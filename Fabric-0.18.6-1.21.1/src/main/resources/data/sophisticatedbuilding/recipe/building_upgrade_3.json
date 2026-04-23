@@ -1,0 +1,25 @@
+{
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "sophisticatedbackpacks"
+      ]
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SSS",
+    "SBS",
+    "SSS"
+  ],
+  "key": {
+    "S": { "item": "sophisticatedbuilding:compressed_sand" },
+    "B": { "item": "sophisticatedbuilding:building_upgrade_2" }
+  },
+  "result": {
+    "id": "sophisticatedbuilding:building_upgrade_3",
+    "count": 1
+  }
+}

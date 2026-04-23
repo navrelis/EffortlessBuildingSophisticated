@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "DDD",
+    "DDD",
+    "DDD"
+  ],
+  "key": {
+    "D": { "item": "minecraft:dirt" }
+  },
+  "result": {
+    "id": "sophisticatedbuilding:compressed_dirt",
+    "count": 1
+  }
+}

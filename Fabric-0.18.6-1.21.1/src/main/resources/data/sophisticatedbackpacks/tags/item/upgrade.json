@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "sophisticatedbuilding:building_upgrade_1",
+    "sophisticatedbuilding:building_upgrade_2",
+    "sophisticatedbuilding:building_upgrade_3",
+    "sophisticatedbuilding:building_upgrade_4",
+    "sophisticatedbuilding:building_upgrade_omega"
+  ]
+}

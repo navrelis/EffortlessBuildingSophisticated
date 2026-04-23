@@ -1,0 +1,11 @@
+{
+  "type": "sophisticatedbuilding:single_item_loot_modifier",
+  "conditions": [
+    {
+      "condition": "neoforge:loot_table_id",
+      "loot_table_id": "minecraft:chests/stronghold_library"
+    }
+  ],
+  "item": {"id": "sophisticatedbuilding:building_techniques_book"},
+  "chance": 0.6
+}

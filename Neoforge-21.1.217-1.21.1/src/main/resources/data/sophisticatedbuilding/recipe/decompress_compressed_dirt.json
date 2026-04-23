@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    {
+      "item": "sophisticatedbuilding:compressed_dirt"
+    }
+  ],
+  "result": {
+    "id": "minecraft:dirt",
+    "count": 9
+  }
+}

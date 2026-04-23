@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "DDD",
+    "DDD",
+    "DDD"
+  ],
+  "key": {
+    "D": { "item": "minecraft:cobbled_deepslate" }
+  },
+  "result": {
+    "id": "sophisticatedbuilding:compressed_cobbled_deepslate",
+    "count": 1
+  }
+}

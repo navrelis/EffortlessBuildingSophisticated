@@ -1,0 +1,25 @@
+package sophisticated.building.create.foundation.gui.widget;
+
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+
+import java.util.List;
+
+public class TooltipArea extends AbstractSimiWidget {
+
+	public TooltipArea(int x, int y, int width, int height) {
+		super(x, y, width, height);
+	}
+
+	@Override
+	public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+		if (visible)
+			isHovered = mouseX >= getX() && mouseY >= getY() && mouseX < getX() + width && mouseY < getY() + height;
+	}
+
+	public TooltipArea withTooltip(List<Component> tooltip) {
+		this.toolTip = tooltip;
+		return this;
+	}
+
+}

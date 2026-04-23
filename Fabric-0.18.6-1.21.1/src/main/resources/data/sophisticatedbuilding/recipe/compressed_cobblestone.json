@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "CCC",
+    "CCC",
+    "CCC"
+  ],
+  "key": {
+    "C": { "item": "minecraft:cobblestone" }
+  },
+  "result": {
+    "id": "sophisticatedbuilding:compressed_cobblestone",
+    "count": 1
+  }
+}

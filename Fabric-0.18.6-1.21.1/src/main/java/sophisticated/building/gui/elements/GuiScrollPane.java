@@ -1,0 +1,408 @@
+package sophisticated.building.gui.elements;
+
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Renderable;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.util.Mth;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.ArrayList;
+import java.util.List;
+
+@Environment(EnvType.CLIENT)
+@MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
+public class GuiScrollPane extends SlotGui {
+
+	public Screen parent;
+	public Font font;
+	private final List<IScrollEntry> listEntries;
+	private float scrollMultiplier = 1f;
+
+	private int mouseX;
+	private int mouseY;
+
+	public GuiScrollPane(Screen parent, Font font, int top, int bottom) {
+		super(Minecraft.getInstance(), parent.width, parent.height, top, bottom, 100);
+		this.parent = parent;
+		this.font = font;
+		this.renderSelection = false;
+		listEntries = new ArrayList<>();
+	}
+
+	public IScrollEntry getListEntry(int index) {
+		return listEntries.get(index);
+	}
+
+	public void AddListEntry(IScrollEntry listEntry) {
+		listEntries.add(listEntry);
+	}
+
+	@Override
+	protected int getItemCount() {
+		return listEntries.size();
+	}
+
+	@Override
+	protected boolean isSelectedItem(int slotIndex) {
+		return false;
+	}
+
+	@Override
+	protected int getScrollbarPosition() {
+		return width - 15;
+	}
+
+	@Override
+	public int getRowWidth() {
+		return 280;
+	}
+
+	//Removed background
+	@Override
+	public void render(GuiGraphics guiGraphics, int mouseXIn, int mouseYIn, float partialTicks) {
+		if (this.visible) {
+			this.mouseX = mouseXIn;
+			this.mouseY = mouseYIn;
+			this.renderBackground();
+			int scrollbarLeft = this.getScrollbarPosition();
+			int scrollbarRight = scrollbarLeft + 6;
+			this.capYPosition();
+
+			Tesselator tessellator = Tesselator.getInstance();
+
+			int insideLeft = this.x0 + this.width / 2 - this.getRowWidth() / 2 + 2;
+			int insideTop = this.y0 + 4 - (int) this.yo;
+			if (this.renderHeader) {
+				this.renderHeader(insideLeft, insideTop, tessellator);
+			}
+
+			//All entries
+			this.renderList(guiGraphics, insideLeft, insideTop, mouseXIn, mouseYIn, partialTicks);
+			RenderSystem.disableDepthTest();
+
+			RenderSystem.enableBlend();
+			RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ZERO, GlStateManager.DestFactor.ONE);
+
+			//Draw scrollbar
+			int maxScroll = this.getMaxScroll();
+			if (maxScroll > 0) {
+				int k1 = (int) ((float) ((this.y1 - this.y0) * (this.y1 - this.y0)) / (float) this.getMaxPosition());
+				k1 = Mth.clamp(k1, 32, this.y1 - this.y0 - 8);
+				int l1 = (int) this.yo * (this.y1 - this.y0 - k1) / maxScroll + this.y0;
+				if (l1 < this.y0) {
+					l1 = this.y0;
+				}
+
+				BufferBuilder bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+				bufferbuilder.addVertex(scrollbarLeft, this.y1, 0.0F).setUv(0.0F, 1.0F).setColor(0, 0, 0, 255);
+				bufferbuilder.addVertex(scrollbarRight, this.y1, 0.0F).setUv(1.0F, 1.0F).setColor(0, 0, 0, 255);
+				bufferbuilder.addVertex(scrollbarRight, this.y0, 0.0F).setUv(1.0F, 0.0F).setColor(0, 0, 0, 255);
+				bufferbuilder.addVertex(scrollbarLeft, this.y0, 0.0F).setUv(0.0F, 0.0F).setColor(0, 0, 0, 255);
+				BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
+
+				bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+				bufferbuilder.addVertex(scrollbarLeft, l1 + k1, 0.0F).setUv(0.0F, 1.0F).setColor(128, 128, 128, 255);
+				bufferbuilder.addVertex(scrollbarRight, l1 + k1, 0.0F).setUv(1.0F, 1.0F).setColor(128, 128, 128, 255);
+				bufferbuilder.addVertex(scrollbarRight, l1, 0.0F).setUv(1.0F, 0.0F).setColor(128, 128, 128, 255);
+				bufferbuilder.addVertex(scrollbarLeft, l1, 0.0F).setUv(0.0F, 0.0F).setColor(128, 128, 128, 255);
+				BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
+
+				bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+				bufferbuilder.addVertex(scrollbarLeft, l1 + k1 - 1, 0.0F).setUv(0.0F, 1.0F).setColor(192, 192, 192, 255);
+				bufferbuilder.addVertex(scrollbarRight - 1, l1 + k1 - 1, 0.0F).setUv(1.0F, 1.0F).setColor(192, 192, 192, 255);
+				bufferbuilder.addVertex(scrollbarRight - 1, l1, 0.0F).setUv(1.0F, 0.0F).setColor(192, 192, 192, 255);
+				bufferbuilder.addVertex(scrollbarLeft, l1, 0.0F).setUv(0.0F, 0.0F).setColor(192, 192, 192, 255);
+				BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
+			}
+
+			RenderSystem.disableBlend();
+		}
+	}
+
+	//SLOTHEIGHT MODIFICATIONS
+	@Override
+	protected int getMaxPosition() {
+		int height = this.headerHeight;
+		for (IScrollEntry entry : listEntries) {
+			height += entry.getHeight();
+		}
+		return height;
+	}
+
+	@Override
+	protected void renderBackground() {
+
+	}
+
+	@Override
+	protected void renderItem(GuiGraphics guiGraphics, int slotIndex, int xPos, int yPos, int heightIn, int mouseXIn, int mouseYIn, float partialTicks) {
+		this.getListEntry(slotIndex).drawEntry(guiGraphics, slotIndex, xPos, yPos, this.getRowWidth(), heightIn, mouseXIn, mouseYIn,
+			this.getSlotIndexFromScreenCoords(mouseXIn, mouseYIn) == slotIndex, partialTicks);
+	}
+
+	public int getMaxPosition(int count) {
+		int height = this.headerHeight;
+		for (int i = 0; i < count; i++) {
+			IScrollEntry entry = listEntries.get(i);
+			height += entry.getHeight();
+		}
+		return height;
+	}
+
+	public int getSlotIndexFromScreenCoords(double posX, double posY) {
+		int left = this.x0 + (this.width - this.getRowWidth()) / 2;
+		int right = this.x0 + (this.width + this.getRowWidth()) / 2;
+		double relativeMouseY = getRelativeMouseY(mouseY, 0);
+
+		for (int i = 0; i < listEntries.size(); i++) {
+			IScrollEntry entry = listEntries.get(i);
+			if (relativeMouseY <= entry.getHeight())
+				return posX < this.getScrollbarPosition() && posX >= left && posX <= right && i >= 0 &&
+					relativeMouseY >= 0 && i < this.getItemCount() ? i : -1;
+			relativeMouseY -= entry.getHeight();
+		}
+		return -1;
+	}
+
+	@Override
+	public List<? extends GuiEventListener> children() {
+		return null;
+	}
+
+	@Override
+	public boolean mouseClicked(double mouseX, double mouseY, int button) {
+		int selectedSlot = this.getSlotIndexFromScreenCoords(mouseX, mouseY);
+		double relativeX = getRelativeMouseX(mouseX);
+
+		for (int i = 0; i < this.listEntries.size(); i++) {
+			double relativeY = getRelativeMouseY(mouseY, i);
+			this.getListEntry(i).mousePressed(selectedSlot, (int) mouseX, (int) mouseY, button, (int) relativeX, (int) relativeY);
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean mouseReleased(double mouseX, double mouseY, int pButton) {
+		for (int i = 0; i < this.getItemCount(); ++i) {
+			double relativeX = getRelativeMouseX(mouseX);
+			double relativeY = getRelativeMouseY(mouseY, i);
+			this.getListEntry(i).mouseReleased(i, (int) mouseX, (int) mouseY, pButton, (int) relativeX, (int) relativeY);
+		}
+
+		this.visible = true;
+		return false;
+	}
+
+	public void handleMouseInput() {
+		if (this.isMouseInList(this.mouseX, this.mouseY)) {
+			if (minecraft.mouseHandler.isLeftPressed() && this.mouseY >= this.y0 &&
+				this.mouseY <= this.y1) {
+				int i = this.x0 + (this.width - this.getRowWidth()) / 2;
+				int j = this.x0 + (this.width + this.getRowWidth()) / 2;
+				int slotIndex = getSlotIndexFromScreenCoords(this.mouseX, this.mouseY);
+				double relativeMouseY = getRelativeMouseY(mouseY, slotIndex);
+
+				if (slotIndex > -1) {
+					this.mouseClicked(this.mouseX, this.mouseY, 0);
+				} else if (this.mouseX >= i && this.mouseX <= j && relativeMouseY < 0) {
+					this.clickedHeader(this.mouseX - i, this.mouseY - this.y0 + (int) this.yo - 4);
+				}
+			}
+
+			if (minecraft.mouseHandler.isLeftPressed() && this.isVisible()) {
+				if (this.yDrag == -1) {
+					boolean flag1 = true;
+
+					if (this.mouseY >= this.y0 && this.mouseY <= this.y1) {
+						int i2 = this.x0 + (this.width - this.getRowWidth()) / 2;
+						int j2 = this.x0 + (this.width + this.getRowWidth()) / 2;
+						int slotIndex = getSlotIndexFromScreenCoords(this.mouseX, this.mouseY);
+						double relativeMouseY = getRelativeMouseY(mouseY, slotIndex);
+
+						if (slotIndex > -1) {
+							this.mouseClicked(slotIndex, this.mouseX, this.mouseY);
+						} else if (this.mouseX >= i2 && this.mouseX <= j2 && relativeMouseY < 0) {
+							this.clickedHeader(this.mouseX - i2,
+								this.mouseY - this.y0 + (int) this.yo - 4);
+							flag1 = false;
+						}
+
+						int i3 = this.getScrollbarPosition();
+						int j1 = i3 + 6;
+
+						if (this.mouseX >= i3 && this.mouseX <= j1) {
+							this.scrollMultiplier = -1.0F;
+							int maxScroll = this.getMaxScroll();
+
+							if (maxScroll < 1) {
+								maxScroll = 1;
+							}
+
+							int l1 = (int) ((float) ((this.y1 - this.y0) * (this.y1 - this.y0)) /
+								(float) this.getMaxPosition());
+							l1 = Mth.clamp(l1, 32, this.y1 - this.y0 - 8);
+							this.scrollMultiplier /= (float) (this.y1 - this.y0 - l1) / (float) maxScroll;
+						} else {
+							this.scrollMultiplier = 1.0F;
+						}
+
+						if (flag1) {
+							this.yDrag = this.mouseY;
+						} else {
+							this.yDrag = -2;
+						}
+					} else {
+						this.yDrag = -2;
+					}
+				} else if (this.yDrag >= 0) {
+					this.yo -= (float) (this.mouseY - this.yDrag) * this.scrollMultiplier;
+					this.yDrag = this.mouseY;
+				}
+			} else {
+				this.yDrag = -1;
+			}
+
+		}
+	}
+
+	//Draw in center if it fits
+	@Override
+	protected void renderList(GuiGraphics guiGraphics, int insideLeft, int insideTop, int mouseXIn, int mouseYIn, float partialTicks) {
+		int itemCount = this.getItemCount();
+		Tesselator tessellator = Tesselator.getInstance();
+
+		int y = this.headerHeight + insideTop;
+		int contentHeight = getMaxPosition();
+		int insideHeight = this.y1 - this.y0 - 4;
+
+		if (contentHeight < insideHeight) {
+			y += (insideHeight - contentHeight) / 2;
+		}
+
+		for (int i = 0; i < itemCount; ++i) {
+			int entryHeight = listEntries.get(i).getHeight();
+			int entryHeight2 = entryHeight - 4;
+
+			if (y > this.y1 || y + entryHeight2 < this.y0) {
+				this.updateItemPosition(i, insideLeft, y, partialTicks);
+			}
+
+			if (this.renderSelection && this.isSelectedItem(i)) {
+				int i1 = this.x0 + this.width / 2 - this.getRowWidth() / 2;
+				int j1 = this.x0 + this.width / 2 + this.getRowWidth() / 2;
+				float f = this.isFocused() ? 1.0F : 0.5F;
+				RenderSystem.setShaderColor(f, f, f, 1.0F);
+				BufferBuilder bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+				bufferbuilder.addVertex(i1, y + entryHeight2 + 2, 0.0f);
+				bufferbuilder.addVertex(j1, y + entryHeight2 + 2, 0.0f);
+				bufferbuilder.addVertex(j1, y - 2, 0.0f);
+				bufferbuilder.addVertex(i1, y - 2, 0.0f);
+				BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
+
+				RenderSystem.setShaderColor(0.0F, 0.0F, 0.0F, 1.0F);
+				bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+				bufferbuilder.addVertex(i1 + 1, y + entryHeight2 + 1, 0.0f);
+				bufferbuilder.addVertex(j1 - 1, y + entryHeight2 + 1, 0.0f);
+				bufferbuilder.addVertex(j1 - 1, y - 1, 0.0f);
+				bufferbuilder.addVertex(i1 + 1, y - 1, 0.0f);
+				BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
+			}
+
+			this.renderItem(guiGraphics, i, insideLeft, y, entryHeight2, mouseXIn, mouseYIn, partialTicks);
+			y += entryHeight;
+		}
+	}
+
+	private double getRelativeMouseX(double mouseX) {
+		int j = this.x0 + this.width / 2 - this.getRowWidth() / 2 + 2;
+		return mouseX - j;
+	}
+
+	private double getRelativeMouseY(double mouseY, int contentIndex) {
+		int k = this.y0 + 4 - this.getScroll() + getMaxPosition(contentIndex) + this.headerHeight;
+		double relativeMouseY = mouseY - k;
+
+		int contentHeight = getMaxPosition();
+		int insideHeight = this.y1 - this.y0 - 4;
+
+		if (contentHeight < insideHeight) {
+			relativeMouseY -= (insideHeight - contentHeight) / 2f;
+		}
+		return relativeMouseY;
+	}
+
+	//PASSTHROUGHS
+	public void init(List<Renderable> renderables) {
+		for (IScrollEntry entry : this.listEntries) {
+			entry.init(renderables);
+		}
+	}
+
+	public void updateScreen() {
+		for (IScrollEntry entry : this.listEntries)
+			entry.updateScreen();
+	}
+
+	public void drawTooltip(GuiGraphics guiGraphics, Screen guiScreen, int mouseX, int mouseY) {
+		for (IScrollEntry entry : this.listEntries)
+			entry.drawTooltip(guiGraphics, guiScreen, mouseX, mouseY);
+	}
+
+	@Override
+	public boolean charTyped(char eventChar, int eventKey) {
+		for (IScrollEntry entry : this.listEntries)
+			entry.charTyped(eventChar, eventKey);
+		return false;
+	}
+
+	public void onGuiClosed() {
+		for (IScrollEntry entry : this.listEntries)
+			entry.onGuiClosed();
+	}
+
+	public int getWidth() {
+		return width;
+	}
+
+	public int getHeight() {
+		return height;
+	}
+
+	public interface IScrollEntry {
+		void init(List<Renderable> renderables);
+
+		void updateScreen();
+
+		void drawTooltip(GuiGraphics guiGraphics, Screen guiScreen, int mouseX, int mouseY);
+
+		boolean charTyped(char eventChar, int eventKey);
+
+		void onGuiClosed();
+
+		int getHeight();
+
+		void updatePosition(int slotIndex, int x, int y, float partialTicks);
+
+		void drawEntry(GuiGraphics guiGraphics, int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partialTicks);
+
+		boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY);
+
+		void mouseReleased(int slotIndex, int x, int y, int mouseEvent, int relativeX, int relativeY);
+	}
+}
+

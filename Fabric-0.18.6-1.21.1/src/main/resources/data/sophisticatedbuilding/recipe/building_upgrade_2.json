@@ -1,0 +1,25 @@
+{
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "sophisticatedbackpacks"
+      ]
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CCC",
+    "CBC",
+    "CCC"
+  ],
+  "key": {
+    "C": { "item": "sophisticatedbuilding:compressed_cobblestone" },
+    "B": { "item": "sophisticatedbuilding:building_upgrade_1" }
+  },
+  "result": {
+    "id": "sophisticatedbuilding:building_upgrade_2",
+    "count": 1
+  }
+}

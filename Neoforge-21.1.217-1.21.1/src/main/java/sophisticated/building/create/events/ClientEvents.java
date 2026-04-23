@@ -1,0 +1,100 @@
+package sophisticated.building.create.events;
+
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.createmod.catnip.animation.AnimationTickHolder;
+import net.createmod.catnip.levelWrappers.WrappedClientLevel;
+import net.createmod.catnip.render.DefaultSuperRenderTypeBuffer;
+import net.createmod.catnip.render.SuperRenderTypeBuffer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.client.event.ViewportEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import sophisticated.building.create.Create;
+import sophisticated.building.create.CreateClient;
+import sophisticated.building.create.foundation.utility.CameraAngleAnimationService;
+
+@EventBusSubscriber(Dist.CLIENT)
+public class ClientEvents {
+
+	private static final String ITEM_PREFIX = "item." + Create.ID;
+	private static final String BLOCK_PREFIX = "block." + Create.ID;
+
+	@SubscribeEvent
+	public static void onTick(ClientTickEvent.Post event) {
+		if (!isGameActive()) return;
+
+		AnimationTickHolder.tick();
+
+		CreateClient.GHOST_BLOCKS.tickGhosts();
+//		CreateClient.OUTLINER.tickOutlines();
+		CameraAngleAnimationService.tick();
+	}
+
+	@SubscribeEvent
+	public static void onLoadWorld(LevelEvent.Load event) {
+		LevelAccessor world = event.getLevel();
+		if (world.isClientSide() && world instanceof ClientLevel && !(world instanceof WrappedClientLevel)) {
+			CreateClient.invalidateRenderers();
+			AnimationTickHolder.reset();
+		}
+	}
+
+	@SubscribeEvent
+	public static void onUnloadWorld(LevelEvent.Unload event) {
+		if (!event.getLevel()
+			.isClientSide())
+			return;
+		CreateClient.invalidateRenderers();
+		AnimationTickHolder.reset();
+	}
+
+	@SubscribeEvent
+	public static void onRenderWorld(RenderLevelStageEvent event) {
+		// Ghost blocks are now rendered in RenderHandler.onRender for correct camera translation
+		// This event handler is kept for potential future use
+		/*
+		if(event.getStage() != RenderLevelStageEvent.Stage.AFTER_CUTOUT_BLOCKS) return;
+
+		Vec3 cameraPos = Minecraft.getInstance().gameRenderer.getMainCamera()
+			.getPosition();
+		float pt = AnimationTickHolder.getPartialTicks();
+
+		PoseStack ms = event.getPoseStack();
+		ms.pushPose();
+		ms.translate(-cameraPos.x(), -cameraPos.y(), -cameraPos.z());
+		SuperRenderTypeBuffer buffer = DefaultSuperRenderTypeBuffer.getInstance();
+
+		CreateClient.GHOST_BLOCKS.renderAll(ms, buffer);
+
+//		CreateClient.OUTLINER.renderOutlines(ms, buffer, pt);
+		buffer.draw();
+		RenderSystem.enableCull();
+
+		ms.popPose();
+		*/
+	}
+
+	@SubscribeEvent
+	public static void onCameraSetup(ViewportEvent.ComputeCameraAngles event) {
+		float partialTicks = AnimationTickHolder.getPartialTicks();
+
+		if (CameraAngleAnimationService.isYawAnimating())
+			event.setYaw(CameraAngleAnimationService.getYaw(partialTicks));
+
+		if (CameraAngleAnimationService.isPitchAnimating())
+			event.setPitch(CameraAngleAnimationService.getPitch(partialTicks));
+	}
+
+	public static boolean isGameActive() {
+		return !(Minecraft.getInstance().level == null || Minecraft.getInstance().player == null);
+	}
+
+}

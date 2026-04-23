@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "entries": [
+    "sophisticatedbuilding:muscles_loot_modifier",
+    "sophisticatedbuilding:elastic_hand_loot_modifier",
+    "sophisticatedbuilding:building_techniques_book_loot_modifier",
+    "sophisticatedbuilding:building_techniques_book_library_loot_modifier"
+  ]
+}

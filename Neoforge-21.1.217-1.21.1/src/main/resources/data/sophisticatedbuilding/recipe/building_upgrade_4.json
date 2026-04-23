@@ -1,0 +1,23 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "sophisticatedbackpacks"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "DDD",
+    "DBD",
+    "DDD"
+  ],
+  "key": {
+    "D": { "item": "sophisticatedbuilding:compressed_cobbled_deepslate" },
+    "B": { "item": "sophisticatedbuilding:building_upgrade_3" }
+  },
+  "result": {
+    "id": "sophisticatedbuilding:building_upgrade_4",
+    "count": 1
+  }
+}

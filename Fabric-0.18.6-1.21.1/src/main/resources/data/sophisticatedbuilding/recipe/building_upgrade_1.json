@@ -1,0 +1,25 @@
+{
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "sophisticatedbackpacks"
+      ]
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "DDD",
+    "DBD",
+    "DDD"
+  ],
+  "key": {
+    "D": { "item": "sophisticatedbuilding:compressed_dirt" },
+    "B": { "item": "sophisticatedbackpacks:upgrade_base" }
+  },
+  "result": {
+    "id": "sophisticatedbuilding:building_upgrade_1",
+    "count": 1
+  }
+}

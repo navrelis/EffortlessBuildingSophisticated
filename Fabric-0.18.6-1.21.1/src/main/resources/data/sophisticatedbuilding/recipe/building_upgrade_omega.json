@@ -1,0 +1,26 @@
+{
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "sophisticatedbackpacks"
+      ]
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "NNN",
+    "NBN",
+    "NSN"
+  ],
+  "key": {
+    "N": { "item": "minecraft:netherite_block" },
+    "S": { "item": "minecraft:nether_star" },
+    "B": { "item": "sophisticatedbuilding:building_upgrade_4" }
+  },
+  "result": {
+    "id": "sophisticatedbuilding:building_upgrade_omega",
+    "count": 1
+  }
+}
