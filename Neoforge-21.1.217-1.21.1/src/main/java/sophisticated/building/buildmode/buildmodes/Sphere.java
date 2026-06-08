@@ -49,9 +49,9 @@ public class Sphere extends ThreeClicksBuildMode {
 
 				for (int m = y1; y1 < y2 ? m <= y2 : m >= y2; m += y1 < y2 ? 1 : -1) {
 
-					float distance = distance(l, m, n, centerX, centerY, centerZ);
-					float radius = calculateSpheroidRadius(centerX, centerY, centerZ, radiusX, radiusY, radiusZ, l, m, n);
-					if (distance < radius + 0.4f)
+					// https://stackoverflow.com/a/17770614
+					float offset = (l / radiusX) * (l / radiusX) + (m / radiusY) * (m / radiusY) + (n / radiusZ) * (n / radiusZ);
+					if (Mth.abs(offset - 1) < 1 / ((radiusX + radiusY + radiusZ) / 3))
 						list.add(new BlockPos(l, m, n));
 				}
 			}
@@ -66,26 +66,13 @@ public class Sphere extends ThreeClicksBuildMode {
 
 				for (int m = y1; y1 < y2 ? m <= y2 : m >= y2; m += y1 < y2 ? 1 : -1) {
 
-					float distance = distance(l, m, n, centerX, centerY, centerZ);
-					float radius = calculateSpheroidRadius(centerX, centerY, centerZ, radiusX, radiusY, radiusZ, l, m, n);
-					if (distance < radius + 0.4f && distance > radius - 0.6f)
+					// https://stackoverflow.com/a/17770614
+					float offset = (l / radiusX) * (l / radiusX) + (m / radiusY) * (m / radiusY) + (n / radiusZ) * (n / radiusZ);
+					if (Mth.abs(offset - 1) < 1 / ((radiusX + radiusY + radiusZ) / 3))
 						list.add(new BlockPos(l, m, n));
 				}
 			}
 		}
-	}
-
-	private static float distance(float x1, float y1, float z1, float x2, float y2, float z2) {
-		return Mth.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) + (z2 - z1) * (z2 - z1));
-	}
-
-	public static float calculateSpheroidRadius(float centerX, float centerY, float centerZ, float radiusX, float radiusY, float radiusZ, int x, int y, int z) {
-		//Twice ellipse radius
-		float radiusXZ = Circle.calculateEllipseRadius(centerX, centerZ, radiusX, radiusZ, x, z);
-
-		//TODO project x to plane
-
-		return Circle.calculateEllipseRadius(centerX, centerY, radiusXZ, radiusY, x, y);
 	}
 
 	@Override
