@@ -14,6 +14,7 @@ import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.SophisticatedBuildingClient;
 import sophisticated.building.client.ClientBackpackItemCache;
+import sophisticated.building.client.ClientBackpackToolCache;
 import sophisticated.building.client.ClientBuildingUpgradeState;
 import sophisticated.building.client.gui.MaterialCostOverlay;
 import sophisticated.building.compatibility.CompatHelper;
@@ -42,6 +43,7 @@ public final class FabricClientEvents {
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             ClientBackpackItemCache.clear();
             ClientBuildingUpgradeState.clear();
+            ClientBackpackToolCache.clear();
         });
     }
 

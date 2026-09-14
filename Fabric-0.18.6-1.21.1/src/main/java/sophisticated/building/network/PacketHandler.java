@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.network.message.BackpackItemCountPacket;
+import sophisticated.building.network.message.BackpackToolsPacket;
 import sophisticated.building.network.message.BuildingUpgradeStatePacket;
 import sophisticated.building.network.message.IsQuickReplacingPacket;
 import sophisticated.building.network.message.IsUsingBuildModePacket;
@@ -39,6 +40,7 @@ public class PacketHandler {
 		PayloadTypeRegistry.playS2C().register(PowerLevelPacket.ID, PowerLevelPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(TranslatedLogPacket.ID, TranslatedLogPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(BuildingUpgradeStatePacket.ID, BuildingUpgradeStatePacket.CODEC);
+		PayloadTypeRegistry.playS2C().register(BackpackToolsPacket.ID, BackpackToolsPacket.CODEC);
 	}
 
 	private static void registerServerReceivers() {

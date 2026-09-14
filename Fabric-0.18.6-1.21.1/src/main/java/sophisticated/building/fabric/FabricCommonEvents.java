@@ -24,14 +24,18 @@ import sophisticated.building.attachment.PowerLevel;
 import sophisticated.building.compatibility.CompatHelper;
 import sophisticated.building.inventory.IItemHandler;
 import sophisticated.building.item.AbstractRandomizerBagItem;
+import sophisticated.building.integration.ToolSwapperIntegration;
 import sophisticated.building.item.upgrade.BuildingUpgradeHelper;
 import sophisticated.building.network.message.BackpackItemCountPacket;
+import sophisticated.building.network.message.BackpackToolsPacket;
 import sophisticated.building.network.message.BuildingUpgradeStatePacket;
 import sophisticated.building.network.message.ModifierSettingsPacket;
 import sophisticated.building.network.message.PowerLevelPacket;
 import sophisticated.building.systems.ServerBuildState;
+import sophisticated.building.utilities.BreakToolHelper;
 import sophisticated.building.utilities.PowerLevelCommand;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -43,6 +47,7 @@ public final class FabricCommonEvents {
     private static final Map<UUID, ItemStack> LAST_MAIN_HAND = new HashMap<>();
     private static final Map<UUID, Map<Item, Integer>> LAST_BACKPACK_COUNTS = new HashMap<>();
     private static final Map<UUID, int[]> LAST_UPGRADE_STATE = new HashMap<>();
+    private static final Map<UUID, List<String>> LAST_BACKPACK_TOOLS = new HashMap<>();
 
     private FabricCommonEvents() {
     }
@@ -62,6 +67,7 @@ public final class FabricCommonEvents {
             LAST_MAIN_HAND.clear();
             LAST_BACKPACK_COUNTS.clear();
             LAST_UPGRADE_STATE.clear();
+            LAST_BACKPACK_TOOLS.clear();
         });
 
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
@@ -103,6 +109,7 @@ public final class FabricCommonEvents {
             ServerPlayNetworking.send(player, new PowerLevelPacket(powerLevel.getPowerLevel()));
 
             sendBuildingUpgradeState(player, true);
+            sendBackpackTools(player, true);
         });
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
@@ -111,6 +118,7 @@ public final class FabricCommonEvents {
             LAST_MAIN_HAND.remove(player.getUUID());
             LAST_BACKPACK_COUNTS.remove(player.getUUID());
             LAST_UPGRADE_STATE.remove(player.getUUID());
+            LAST_BACKPACK_TOOLS.remove(player.getUUID());
         });
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
@@ -119,7 +127,9 @@ public final class FabricCommonEvents {
                 AttachmentHandler.setPowerLevel(newPlayer, AttachmentHandler.getOrCreatePowerLevel(oldPlayer));
             }
             LAST_UPGRADE_STATE.remove(oldPlayer.getUUID());
+            LAST_BACKPACK_TOOLS.remove(oldPlayer.getUUID());
             sendBuildingUpgradeState(newPlayer, true);
+            sendBackpackTools(newPlayer, true);
         });
 
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> {
@@ -128,6 +138,7 @@ public final class FabricCommonEvents {
             ServerPlayNetworking.send(player, new PowerLevelPacket(powerLevel.getPowerLevel()));
 
             sendBuildingUpgradeState(player, true);
+            sendBackpackTools(player, true);
         });
     }
 
@@ -143,7 +154,42 @@ public final class FabricCommonEvents {
             syncPeriodicBackpackCounts(player);
             if (player.tickCount % 10 == 0) {
                 sendBuildingUpgradeState(player, false);
+                sendBackpackTools(player, false);
             }
+        }
+    }
+
+    /**
+     * Sends the tools found inside an enabled Tool Swapper / Advanced Tool Swapper backpack
+     * upgrade to the client, for the survival-breaking preview/HUD (T-S4). Sent unconditionally on
+     * join/respawn/dimension change ({@code force}); from the periodic tick it is only sent when
+     * the fingerprint (item id + damage + count per tool, in order) differs from the last value
+     * sent to that player.
+     */
+    private static void sendBackpackTools(ServerPlayer player, boolean force) {
+        if (!CompatHelper.isSophisticatedBackpacksLoaded()) {
+            return;
+        }
+
+        try {
+            List<BreakToolHelper.ToolSlot> slots = ToolSwapperIntegration.collectBackpackTools(player);
+            List<ItemStack> tools = new ArrayList<>(slots.size());
+            List<String> fingerprint = new ArrayList<>(slots.size());
+            for (BreakToolHelper.ToolSlot slot : slots) {
+                ItemStack stack = slot.get().copy();
+                tools.add(stack);
+                fingerprint.add(BuiltInRegistries.ITEM.getKey(stack.getItem()) + "#" + stack.getDamageValue() + "#" + stack.getCount());
+            }
+
+            List<String> last = LAST_BACKPACK_TOOLS.get(player.getUUID());
+            if (!force && fingerprint.equals(last)) {
+                return;
+            }
+
+            LAST_BACKPACK_TOOLS.put(player.getUUID(), fingerprint);
+            ServerPlayNetworking.send(player, new BackpackToolsPacket(tools));
+        } catch (Exception | NoClassDefFoundError e) {
+            SophisticatedBuilding.logger.debug("Error syncing backpack tools: {}", e.getMessage());
         }
     }
 
