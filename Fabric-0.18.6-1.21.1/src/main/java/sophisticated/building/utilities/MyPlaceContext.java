@@ -3,6 +3,7 @@ package sophisticated.building.utilities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
@@ -13,9 +14,9 @@ import net.minecraft.world.phys.Vec3;
 public class MyPlaceContext extends BlockPlaceContext {
     private final Direction direction;
 
-    public MyPlaceContext(Level level, BlockPos blockPos, Direction direction, ItemStack itemStack, Direction clickedFace, Vec3 relativeHitVec) {
+    public MyPlaceContext(Level level, Player player, BlockPos blockPos, Direction direction, ItemStack itemStack, Direction clickedFace, Vec3 relativeHitVec) {
 
-        super(level, null, InteractionHand.MAIN_HAND, itemStack, new BlockHitResult(
+        super(level, player, InteractionHand.MAIN_HAND, itemStack, new BlockHitResult(
                 Vec3.atLowerCornerOf(blockPos).add(relativeHitVec), clickedFace, blockPos, false));
         this.direction = direction;
     }
@@ -48,10 +49,6 @@ public class MyPlaceContext extends BlockPlaceContext {
 
     public Direction getHorizontalDirection() {
         return this.direction.getAxis() == Direction.Axis.Y ? Direction.NORTH : this.direction;
-    }
-
-    public boolean isSecondaryUseActive() {
-        return false;
     }
 
     public float getRotation() {

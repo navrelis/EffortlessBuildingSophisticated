@@ -79,6 +79,16 @@ public class RadialMenu extends Screen {
 
 	private float visibility;
 
+	// Accumulated mouse offset from the screen center, used for radial selection.
+	// On Fabric 1.21.1 the OS cursor warps to the window center when the screen
+	// opens (releaseMouse), so we cannot rely on absolute xpos()/ypos(). Instead
+	// we track deltas from the first rendered frame onward.
+	private double accumulatedMouseX;
+	private double accumulatedMouseY;
+	private double lastRawMouseX;
+	private double lastRawMouseY;
+	private boolean mouseInitialized;
+
 	public RadialMenu() {
 		super(Component.translatable("sophisticatedbuilding.screen.radial_menu"));
 	}
@@ -92,6 +102,9 @@ public class RadialMenu extends Screen {
 		super.init();
 		performedActionUsingMouse = false;
 		visibility = 0f;
+		accumulatedMouseX = 0;
+		accumulatedMouseY = 0;
+		mouseInitialized = false;
 	}
 
 	@Override
@@ -127,13 +140,24 @@ public class RadialMenu extends Screen {
 		final double middleX = width / 2.0;
 		final double middleY = height / 2.0;
 
-		//Fix for high def (retina) displays: use custom mouse coordinates
-		//Borrowed from GameRenderer::updateCameraAndRender
-		int mouseXX = (int) (minecraft.mouseHandler.xpos() * (double) minecraft.getWindow().getGuiScaledWidth() / (double) minecraft.getWindow().getScreenWidth());
-		int mouseYY = (int) (minecraft.mouseHandler.ypos() * (double) minecraft.getWindow().getGuiScaledHeight() / (double) minecraft.getWindow().getScreenHeight());
+		// On Fabric 1.21.1 opening a Screen warps the OS cursor to the window center,
+		// making mouseHandler.xpos()/ypos() unreliable for absolute position.
+		// We instead accumulate deltas via mouseMoved() and use those as the offset
+		// from the screen center. On the very first frame we seed from the scaled
+		// standard mouseX/mouseY passed by Minecraft (which are correct pre-warp).
+		if (!mouseInitialized) {
+			accumulatedMouseX = mouseX - middleX;
+			accumulatedMouseY = mouseY - middleY;
+			lastRawMouseX = minecraft.mouseHandler.xpos();
+			lastRawMouseY = minecraft.mouseHandler.ypos();
+			mouseInitialized = true;
+		}
 
-		final double mouseXCenter = mouseXX - middleX;
-		final double mouseYCenter = mouseYY - middleY;
+		int mouseXX = (int) (middleX + accumulatedMouseX);
+		int mouseYY = (int) (middleY + accumulatedMouseY);
+
+		final double mouseXCenter = accumulatedMouseX;
+		final double mouseYCenter = accumulatedMouseY;
 		double mouseRadians = Math.atan2(mouseYCenter, mouseXCenter);
 
 		final double quarterCircle = Math.PI / 2.0;
@@ -436,6 +460,19 @@ public class RadialMenu extends Screen {
 
 	private int sign(final double n) {
 		return n > 0 ? 1 : -1;
+	}
+
+	@Override
+	public void mouseMoved(double xpos, double ypos) {
+		if (!mouseInitialized) return;
+		double rawX = minecraft.mouseHandler.xpos();
+		double rawY = minecraft.mouseHandler.ypos();
+		double dx = (rawX - lastRawMouseX) * minecraft.getWindow().getGuiScaledWidth() / minecraft.getWindow().getScreenWidth();
+		double dy = (rawY - lastRawMouseY) * minecraft.getWindow().getGuiScaledHeight() / minecraft.getWindow().getScreenHeight();
+		lastRawMouseX = rawX;
+		lastRawMouseY = rawY;
+		accumulatedMouseX += dx;
+		accumulatedMouseY += dy;
 	}
 
 	@Override

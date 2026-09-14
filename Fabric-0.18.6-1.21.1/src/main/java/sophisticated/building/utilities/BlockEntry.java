@@ -5,6 +5,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -45,7 +46,7 @@ public class BlockEntry {
         rotation = blockEntry.rotation;
     }
 
-    public void setItemAndFindNewBlockState(ItemStack itemStack, Level world, Direction originalDirection, Direction clickedFace, Vec3 relativeHitVec) {
+    public void setItemAndFindNewBlockState(ItemStack itemStack, Level world, Player player, Direction originalDirection, Direction clickedFace, Vec3 relativeHitVec) {
         this.item = itemStack.getItem();
 
         //Find new blockstate with right direction
@@ -54,7 +55,7 @@ public class BlockEntry {
         if (rotation != null) direction = rotation.rotate(direction);
         direction = applyMirror(direction);
         //TODO mirror and rotate relativeHitVec?
-        var blockPlaceContext = new MyPlaceContext(world, blockPos, direction, itemStack, clickedFace, relativeHitVec);
+        var blockPlaceContext = new MyPlaceContext(world, player, blockPos, direction, itemStack, clickedFace, relativeHitVec);
         newBlockState = block.getStateForPlacement(blockPlaceContext);
         applyMirrorToBlockState();
     }

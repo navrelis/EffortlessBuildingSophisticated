@@ -335,7 +335,7 @@ public class BuilderChain {
             }
 
             //Find new blockstate
-            blockEntry.setItemAndFindNewBlockState(itemStack, player.level(), originalDirection, clickedFace, relativeHitVec);
+            blockEntry.setItemAndFindNewBlockState(itemStack, player.level(), player, originalDirection, clickedFace, relativeHitVec);
 
             //Filter on new blockstate
             if (SophisticatedBuildingClient.BUILDER_FILTER.filterOnNewBlockState(blockEntry, player)) {
@@ -370,7 +370,7 @@ public class BuilderChain {
             ItemStack itemStack = CompatHelper.getItemBlockFromStackFresh(heldItem, player);
             if (itemStack == null || itemStack.isEmpty()) continue;
             
-            blockEntry.setItemAndFindNewBlockState(itemStack, player.level(), originalDirection, clickedFace, relativeHitVec);
+            blockEntry.setItemAndFindNewBlockState(itemStack, player.level(), player, originalDirection, clickedFace, relativeHitVec);
         }
     }
 

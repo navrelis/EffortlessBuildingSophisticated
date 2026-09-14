@@ -51,6 +51,18 @@ java {
     withSourcesJar()
 }
 
+// Empty source set: used by clientExported run so Loom does not attach this project as a dev mod (only jars in run/mods).
+// Without mirroring main's dependency classpaths, Loom would only put exportedStub's output on the game classpath and
+// the JVM could not find net.fabricmc.devlaunchinjector.Main (and nothing else).
+sourceSets {
+    exportedStub {
+        def main = sourceSets.main
+        compileClasspath += main.compileClasspath
+        runtimeClasspath += main.runtimeClasspath
+        runtimeClasspath -= main.output
+    }
+}
+
 loom {
     runs {
         client {
@@ -59,6 +71,13 @@ loom {
         server {
             server()
             vmArgs '-Dfabric.log.level=debug'
+        }
+        // Loads mods from DevInstance_Fabric/run/mods only (copy exported sophisticatedbuilding-fabric-*.jar there).
+        clientExported {
+            inherit client
+            configName = 'Minecraft Client (exported jar)'
+            runDir '../DevInstance_Fabric/run'
+            source sourceSets.exportedStub
         }
     }
 }
