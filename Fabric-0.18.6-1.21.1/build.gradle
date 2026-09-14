@@ -103,14 +103,31 @@ def useLocalRuntimeMods = (findProperty("useLocalRuntimeMods") ?: "false").toBoo
 def otherModsTree = fileTree("other_mods") {
     include "sophisticated*.jar"
 }
-// Sophisticated Core jar-in-jars io.github.fabricators_of_create.porting_lib:transfer (META-INF/jars/transfer-*.jar);
-// its types (e.g. ItemStackHandler, SlottedStackStorage) are part of Core's public API (InventoryHandler/UpgradeHandler
-// extend them) but Loom 1.10.1 does not put a modCompileOnly dependency's nested jar-in-jar jars on the compile
-// classpath. Loom itself extracts+remaps the nested jar into loom-cache as a side effect of processing the Core
-// dependency above, so reuse that remapped copy here instead of pulling an unverified second Porting-Lib coordinate.
-def portingLibTransferTree = fileTree(".gradle/loom-cache/remapped_mods") {
-    include "**/transfer-*.jar"
+// Sophisticated Core jar-in-jars several io.github.fabricators_of_create.porting_lib modules
+// (META-INF/jars/*.jar: transfer, fluids, core, item_abilities, loot, level_events, render_types,
+// model_loader, lazy_registration, conditions). Their types (e.g. ItemStackHandler,
+// SlottedStackStorage) are part of Core's public API (InventoryHandler/UpgradeHandler extend them),
+// and SophisticatedCore.onInitialize() itself needs porting_lib:fluids/transfer at runtime
+// (registerHandlers -> BaseFlowingFluid$Source), so Fabric Loader throws NoClassDefFoundError and
+// the dev server never starts without them. Loom 1.10.1 does not put a mod*-configuration
+// dependency's nested jar-in-jar jars on the compile OR runtime classpath when the outer jar comes
+// from CurseMaven rather than being built with Loom's own jar-in-jar tooling; it does extract+remap
+// each nested jar into loom-cache as a side effect of processing the Core dependency above, so reuse
+// those remapped copies here instead of pulling unverified separate Porting-Lib coordinates.
+// mixinextras-fabric and energy are intentionally excluded: mixinextras is a mixin library already
+// on the loader's classpath (adding it as a second mod risks duplicate mixin registration) and
+// energy is already declared as its own modLocalRuntime above.
+def portingLibJarInJarTree = fileTree(".gradle/loom-cache/remapped_mods") {
+    include "**/transfer-3.1.0*.jar"
+    include "**/fluids-3.1.0*.jar"
     include "**/core-3.1.0*.jar"
+    include "**/item_abilities-3.1.0*.jar"
+    include "**/loot-3.1.0*.jar"
+    include "**/level_events-3.1.0*.jar"
+    include "**/render_types-3.1.0*.jar"
+    include "**/model_loader-3.1.0*.jar"
+    include "**/lazy_registration-3.1.0*.jar"
+    include "**/conditions-3.1.0*.jar"
 }
 
 dependencies {
@@ -151,8 +168,13 @@ dependencies {
         modLocalRuntime "curse.maven:${sophisticatedbackpacks_cf}"
         modLocalRuntime "curse.maven:${sophisticatedstorage_cf}"
     }
-    if (!portingLibTransferTree.isEmpty()) {
-        compileOnly(portingLibTransferTree)
+    if (!portingLibJarInJarTree.isEmpty()) {
+        compileOnly(portingLibJarInJarTree)
+        // These jars are already Loom-remapped (named mappings) copies pulled from
+        // loom-cache/remapped_mods, so add them as plain localRuntime (not modLocalRuntime, which
+        // would try to remap an already-remapped jar and fail with "Failed to remap N mods").
+        // Fabric Loader still discovers them as real mods at runtime via their fabric.mod.json.
+        localRuntime(portingLibJarInJarTree)
     }
 
     compileOnly "javax.annotation:javax.annotation-api:1.3.2"
