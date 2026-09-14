@@ -98,26 +98,20 @@ configurations.configureEach {
     exclude group: "dev.engine-room.flywheel", module: "flywheel-fabric-api-${flywheel_minecraft_version}"
 }
 
-def useCurseRuntimeDeps = (findProperty("useCurseRuntimeDeps") ?: "false").toBoolean()
 def embedCreateDeps = (findProperty("embedCreateDeps") ?: "true").toBoolean()
 def useLocalRuntimeMods = (findProperty("useLocalRuntimeMods") ?: "false").toBoolean()
 def otherModsTree = fileTree("other_mods") {
-    include "*.jar"
-    exclude "ForgeConfigAPIPort-*.jar"
-    exclude "forgeconfigapiport-*.jar"
-    exclude "flywheel-*.jar"
-    exclude "ponder-*.jar"
+    include "sophisticated*.jar"
 }
-def fallbackCompileOnlyModsTree = fileTree("../Neoforge-21.1.217-1.21.1/other_mods") {
-    include "sophisticatedcore-*.jar"
-    include "sophisticatedbackpacks-*.jar"
-    include "curios-*.jar"
-}
-def remappedPortingTransferTree = fileTree(".gradle/loom-cache/remapped_mods") {
-    include "**/core-*.jar"
+// Sophisticated Core jar-in-jars io.github.fabricators_of_create.porting_lib:transfer (META-INF/jars/transfer-*.jar);
+// its types (e.g. ItemStackHandler, SlottedStackStorage) are part of Core's public API (InventoryHandler/UpgradeHandler
+// extend them) but Loom 1.10.1 does not put a modCompileOnly dependency's nested jar-in-jar jars on the compile
+// classpath. Loom itself extracts+remaps the nested jar into loom-cache as a side effect of processing the Core
+// dependency above, so reuse that remapped copy here instead of pulling an unverified second Porting-Lib coordinate.
+def portingLibTransferTree = fileTree(".gradle/loom-cache/remapped_mods") {
     include "**/transfer-*.jar"
+    include "**/core-3.1.0*.jar"
 }
-def compileSupportModsTree = !otherModsTree.isEmpty() ? otherModsTree : fallbackCompileOnlyModsTree
 
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
@@ -143,26 +137,22 @@ dependencies {
     }
     modLocalRuntime "teamreborn:energy:4.1.0"
 
-    // Optional Sophisticated dependencies from CurseMaven.
-    // By default they are compile-only to avoid duplicate runtime mods when using other_mods/*.jar.
-    if (useCurseRuntimeDeps) {
-        modImplementation "curse.maven:sophisticated-backpacks-unofficial-fabric-port-979322:7147929"
-        modImplementation "curse.maven:sophisticated-storage-unofficial-fabric-port-979326:7344673"
-    } else {
-        modCompileOnly "curse.maven:sophisticated-backpacks-unofficial-fabric-port-979322:7147929"
-        modCompileOnly "curse.maven:sophisticated-storage-unofficial-fabric-port-979326:7344673"
-    }
+    // Sophisticated Core/Backpacks/Storage, unofficial Fabric ports for MC 1.21.1 (CurseMaven).
+    // Coordinates are documented in gradle.properties (sophisticatedcore_cf etc.).
+    modCompileOnly "curse.maven:${sophisticatedcore_cf}"
+    modCompileOnly "curse.maven:${sophisticatedbackpacks_cf}"
+    modCompileOnly "curse.maven:${sophisticatedstorage_cf}"
 
-    // Default dev setup: prefer Fabric jars in other_mods/. If absent, compile against
-    // sibling NeoForge Sophisticated APIs to keep local builds working.
-    if (!compileSupportModsTree.isEmpty()) {
-        compileOnly(compileSupportModsTree)
-    }
-    if (!remappedPortingTransferTree.isEmpty()) {
-        compileOnly(remappedPortingTransferTree)
-    }
-    if (useLocalRuntimeMods && !otherModsTree.isEmpty()) {
+    if (useLocalRuntimeMods) {
+        // Dev runtime from local jars placed in other_mods/ (production, intermediary-mapped).
         modLocalRuntime(otherModsTree)
+    } else {
+        modLocalRuntime "curse.maven:${sophisticatedcore_cf}"
+        modLocalRuntime "curse.maven:${sophisticatedbackpacks_cf}"
+        modLocalRuntime "curse.maven:${sophisticatedstorage_cf}"
+    }
+    if (!portingLibTransferTree.isEmpty()) {
+        compileOnly(portingLibTransferTree)
     }
 
     compileOnly "javax.annotation:javax.annotation-api:1.3.2"
