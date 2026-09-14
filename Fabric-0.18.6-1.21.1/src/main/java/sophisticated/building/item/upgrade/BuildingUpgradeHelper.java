@@ -6,16 +6,15 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.p3pp3rf1y.sophisticatedbackpacks.backpack.BackpackItem;
 import net.p3pp3rf1y.sophisticatedbackpacks.backpack.wrapper.BackpackWrapper;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
+import net.p3pp3rf1y.sophisticatedbackpacks.util.PlayerInventoryProvider;
 import sophisticated.building.SophisticatedBuilding;
-import sophisticated.building.compatibility.CuriosCompatHelper;
 import sophisticated.building.network.message.BackpackItemCountPacket;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,53 +23,57 @@ public class BuildingUpgradeHelper {
     private BuildingUpgradeHelper() {
     }
 
+    /**
+     * Finds the highest-tier enabled Building Upgrade across every backpack the player carries
+     * (main inventory, offhand, worn chest slot, and Trinkets/Accessories/Curios via
+     * {@link PlayerInventoryProvider}). Must only be called on the logical server: on the client
+     * the backpack upgrade inventory is never fully synced (see 03_ROOT_CAUSE_BUILDING_UPGRADE.md
+     * RC2), so this always returns null there.
+     */
     @Nullable
     public static BuildingUpgradeWrapper findBestBuildingUpgrade(Player player) {
-        BuildingUpgradeWrapper bestWrapper = null;
-        int bestTier = 0;
-
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            ItemStack stack = player.getInventory().getItem(i);
-            BuildingUpgradeWrapper wrapper = getBuildingUpgradeFromBackpack(stack);
-            if (wrapper != null && wrapper.isEnabled() && wrapper.getTier() > bestTier) {
-                bestWrapper = wrapper;
-                bestTier = wrapper.getTier();
-            }
+        if (player.level().isClientSide()) {
+            SophisticatedBuilding.logger.debug("findBestBuildingUpgrade called on the client; ignoring.");
+            return null;
         }
 
-        if (CuriosCompatHelper.isCuriosLoaded()) {
-            List<ItemStack> curiosBackpacks = CuriosCompatHelper.getBackpacksFromCurios(player);
-            for (ItemStack stack : curiosBackpacks) {
-                BuildingUpgradeWrapper wrapper = getBuildingUpgradeFromBackpack(stack);
-                if (wrapper != null && wrapper.isEnabled() && wrapper.getTier() > bestTier) {
-                    bestWrapper = wrapper;
-                    bestTier = wrapper.getTier();
+        BuildingUpgradeWrapper[] best = new BuildingUpgradeWrapper[1];
+        try {
+            PlayerInventoryProvider.get().runOnBackpacks(player, (backpack, invName, identifier, slot) -> {
+                BuildingUpgradeWrapper wrapper = getBuildingUpgradeFromBackpack(backpack);
+                if (wrapper != null && wrapper.isEnabled() && (best[0] == null || wrapper.getTier() > best[0].getTier())) {
+                    best[0] = wrapper;
                 }
-            }
+                return false;
+            });
+        } catch (Exception | NoClassDefFoundError e) {
+            SophisticatedBuilding.logger.debug("Error scanning backpacks for building upgrades: {}", e.getMessage());
         }
 
-        return bestWrapper;
+        return best[0];
     }
 
+    /**
+     * Finds every enabled Building Upgrade across every backpack the player carries. Server-only,
+     * see {@link #findBestBuildingUpgrade(Player)}.
+     */
     public static List<BuildingUpgradeWrapper> findAllBuildingUpgrades(Player player) {
         List<BuildingUpgradeWrapper> wrappers = new ArrayList<>();
-
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            ItemStack stack = player.getInventory().getItem(i);
-            BuildingUpgradeWrapper wrapper = getBuildingUpgradeFromBackpack(stack);
-            if (wrapper != null && wrapper.isEnabled()) {
-                wrappers.add(wrapper);
-            }
+        if (player.level().isClientSide()) {
+            SophisticatedBuilding.logger.debug("findAllBuildingUpgrades called on the client; ignoring.");
+            return wrappers;
         }
 
-        if (CuriosCompatHelper.isCuriosLoaded()) {
-            List<ItemStack> curiosBackpacks = CuriosCompatHelper.getBackpacksFromCurios(player);
-            for (ItemStack stack : curiosBackpacks) {
-                BuildingUpgradeWrapper wrapper = getBuildingUpgradeFromBackpack(stack);
+        try {
+            PlayerInventoryProvider.get().runOnBackpacks(player, (backpack, invName, identifier, slot) -> {
+                BuildingUpgradeWrapper wrapper = getBuildingUpgradeFromBackpack(backpack);
                 if (wrapper != null && wrapper.isEnabled()) {
                     wrappers.add(wrapper);
                 }
-            }
+                return false;
+            });
+        } catch (Exception | NoClassDefFoundError e) {
+            SophisticatedBuilding.logger.debug("Error scanning backpacks for building upgrades: {}", e.getMessage());
         }
 
         return wrappers;
@@ -78,47 +81,32 @@ public class BuildingUpgradeHelper {
 
     @Nullable
     public static BuildingUpgradeWrapper getBuildingUpgradeFromBackpack(ItemStack backpackStack) {
-        if (backpackStack.isEmpty() || !(backpackStack.getItem() instanceof BackpackItem)) {
+        if (backpackStack.isEmpty()) {
             return null;
         }
 
         try {
-            IStorageWrapper wrapper = getStorageWrapperFromBackpack(backpackStack);
-            if (wrapper == null) {
-                return null;
-            }
+            IStorageWrapper wrapper = BackpackWrapper.fromStack(backpackStack);
 
             UpgradeHandler upgradeHandler = wrapper.getUpgradeHandler();
-            var wrappers = upgradeHandler.getTypeWrappers(BuildingUpgradeItem.TYPE);
-
-            if (!wrappers.isEmpty()) {
-                return wrappers.getFirst();
+            var typeWrappers = upgradeHandler.getTypeWrappers(BuildingUpgradeItem.TYPE);
+            if (!typeWrappers.isEmpty()) {
+                return typeWrappers.getFirst();
             }
-        } catch (Exception e) {
+
+            // getTypeWrappers only contains wrappers that were enabled when the type cache was last
+            // built; fall back to a direct scan of every installed upgrade so a stale cache can
+            // never hide an upgrade that is actually enabled (see RC3 in 03_ROOT_CAUSE...md).
+            for (IUpgradeWrapper slotWrapper : upgradeHandler.getSlotWrappers().values()) {
+                if (slotWrapper instanceof BuildingUpgradeWrapper buildingUpgradeWrapper && buildingUpgradeWrapper.isEnabled()) {
+                    return buildingUpgradeWrapper;
+                }
+            }
+        } catch (Exception | NoClassDefFoundError e) {
             SophisticatedBuilding.logger.debug("Error checking backpack for building upgrade: {}", e.getMessage());
         }
 
         return null;
-    }
-
-    @Nullable
-    private static IStorageWrapper getStorageWrapperFromBackpack(ItemStack backpackStack) {
-        try {
-            Method fromStackMethod = BackpackWrapper.class.getMethod("fromStack", ItemStack.class);
-            Object wrapperObj = fromStackMethod.invoke(null, backpackStack);
-            if (wrapperObj instanceof IStorageWrapper storageWrapper) {
-                return storageWrapper;
-            }
-        } catch (Exception ignored) {
-            // Fall back to direct wrapper construction.
-        }
-
-        try {
-            return new BackpackWrapper(backpackStack);
-        } catch (Exception e) {
-            SophisticatedBuilding.logger.debug("Error creating backpack wrapper fallback: {}", e.getMessage());
-            return null;
-        }
     }
 
     public static int getMaxBlocksForPlayer(Player player) {
