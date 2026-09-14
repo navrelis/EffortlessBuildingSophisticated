@@ -174,15 +174,36 @@ public class ClientEvents {
     @SubscribeEvent
     public static void onGuiOpen(ScreenEvent.Opening event) {
         Player player = Minecraft.getInstance().player;
-        if (player != null) {
-            SophisticatedBuildingClient.BUILDER_CHAIN.cancel();
+        if (player == null) {
+            return;
         }
+
+        // Opening the radial menu must not cancel an in-progress build (F2): the player may be
+        // switching an option (fill, thickness, ...) mid-build, or undoing/redoing.
+        // BuildModes.setBuildMode cancels the chain when the build mode itself changes.
+        if (event.getNewScreen() instanceof RadialMenu) {
+            return;
+        }
+
+        SophisticatedBuildingClient.BUILDER_CHAIN.cancel();
     }
 
     public static boolean isKeybindDown(int keybindIndex) {
-        return InputConstants.isKeyDown(
-                Minecraft.getInstance().getWindow().getWindow(),
-                keyBindings[keybindIndex].getKey().getValue());
+        KeyMapping keyMapping = keyBindings[keybindIndex];
+        if (keyMapping.isDown()) {
+            return true;
+        }
+
+        InputConstants.Key boundKey = keyMapping.getKey();
+        long window = Minecraft.getInstance().getWindow().getWindow();
+        if (boundKey.getType() == InputConstants.Type.MOUSE) {
+            return GLFW.glfwGetMouseButton(window, boundKey.getValue()) == GLFW.GLFW_PRESS;
+        }
+        if (boundKey.getType() == InputConstants.Type.KEYSYM || boundKey.getType() == InputConstants.Type.SCANCODE) {
+            return InputConstants.isKeyDown(window, boundKey.getValue());
+        }
+
+        return false;
     }
 
     public static boolean isGameActive() {

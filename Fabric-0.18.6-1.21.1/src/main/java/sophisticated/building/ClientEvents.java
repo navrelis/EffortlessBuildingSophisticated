@@ -1,6 +1,7 @@
 package sophisticated.building;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
@@ -166,15 +167,21 @@ public class ClientEvents {
     }
 
     public static boolean isKeybindDown(int keybindIndex) {
-        if (keyBindings[keybindIndex].isDown()) {
+        KeyMapping keyMapping = keyBindings[keybindIndex];
+        if (keyMapping.isDown()) {
             return true;
         }
 
-        // KeyMapping#isDown can briefly desync for ALT while a screen is open.
-        if (keybindIndex == 0) {
-            return InputConstants.isKeyDown(
-                    Minecraft.getInstance().getWindow().getWindow(),
-                    GLFW.GLFW_KEY_LEFT_ALT);
+        // KeyMapping#isDown can briefly desync while a screen is open (e.g. ALT, since opening a
+        // screen on Fabric warps the OS cursor). Fall back to the actually bound key/button rather
+        // than a hard-coded GLFW_KEY_LEFT_ALT, so a rebound radial key still works.
+        InputConstants.Key boundKey = KeyBindingHelper.getBoundKeyOf(keyMapping);
+        long window = Minecraft.getInstance().getWindow().getWindow();
+        if (boundKey.getType() == InputConstants.Type.MOUSE) {
+            return GLFW.glfwGetMouseButton(window, boundKey.getValue()) == GLFW.GLFW_PRESS;
+        }
+        if (boundKey.getType() == InputConstants.Type.KEYSYM || boundKey.getType() == InputConstants.Type.SCANCODE) {
+            return InputConstants.isKeyDown(window, boundKey.getValue());
         }
 
         return false;

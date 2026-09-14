@@ -10,6 +10,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import sophisticated.building.SophisticatedBuilding;
+import sophisticated.building.SophisticatedBuildingClient;
 import sophisticated.building.network.message.IsUsingBuildModePacket;
 import sophisticated.building.utilities.BlockSet;
 
@@ -28,6 +29,14 @@ public class BuildModes {
 	}
 
 	public void setBuildMode(BuildModeEnum buildMode) {
+		// Opening the radial menu no longer cancels an in-progress build (F2); instead cancel here,
+		// but only when the mode is actually changing, before the new mode is assigned so the old
+		// mode instance is re-initialized cleanly. Re-selecting the same mode (or just changing an
+		// option) does not throw the build away.
+		if (this.buildMode != buildMode) {
+			SophisticatedBuildingClient.BUILDER_CHAIN.cancel();
+		}
+
 		this.buildMode = buildMode;
 
 		PacketDistributor.sendToServer(new IsUsingBuildModePacket(this.buildMode != BuildModeEnum.DISABLED));
