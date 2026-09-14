@@ -85,6 +85,11 @@ public final class FabricCommonEvents {
                 return true;
             }
 
+            // canBreakFar() now also returns true for survival players when survival breaking is
+            // enabled (see PowerLevel.canBreakFar / ServerConfig.survivalBreaking), so vanilla
+            // mining is cancelled here for survival players with a build mode active too, exactly
+            // like it already was for creative - build-mode breaking replaces vanilla mining while
+            // a build mode is on; switching to Disable mode restores vanilla (design decision D5).
             PowerLevel powerLevel = AttachmentHandler.getOrCreatePowerLevel(player);
             return ServerBuildState.isLikeVanilla(player) || !powerLevel.canBreakFar(player);
         });

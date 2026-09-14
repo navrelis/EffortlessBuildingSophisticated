@@ -1,6 +1,7 @@
 package sophisticated.building.systems;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.ServerConfig;
@@ -8,9 +9,13 @@ import sophisticated.building.utilities.BlockEntry;
 import sophisticated.building.utilities.BlockPlacerHelper;
 import sophisticated.building.utilities.BlockSet;
 import sophisticated.building.utilities.BlockUtilities;
+import sophisticated.building.utilities.BreakToolHelper;
 import sophisticated.building.utilities.InventoryHelper;
+import sophisticated.building.utilities.ToolSelector;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -57,7 +62,36 @@ public class ServerBlockPlacer {
 //endregion
 
     public void breakBlocks(Player player, BlockSet blocks) {
-        applyBlockSet(player, blocks);
+        if (player.isCreative()) {
+            applyBlockSet(player, blocks);
+            return;
+        }
+
+        if (!ServerConfig.survivalBreaking.enabled.get()) {
+            SophisticatedBuilding.log(player, ChatFormatting.RED + "Survival breaking is disabled on this server.", true);
+            return;
+        }
+
+        if (!checkAndNotifyAllowedToUseMod(player)) return;
+        if (!validateBlockSet(player, blocks)) return;
+
+        List<BreakToolHelper.ToolSlot> candidates = BreakToolHelper.collectCandidates(player);
+        int totalTicks = 0;
+        for (BlockEntry block : blocks) {
+            if (blocks.skipFirst && block.blockPos == blocks.firstPos) continue;
+
+            var state = player.level().getBlockState(block.blockPos);
+            var selected = BreakToolHelper.selectTool(player, player.level(), block.blockPos, state, candidates);
+            if (BreakToolHelper.isImpossible(selected)) continue;
+
+            var tool = selected == null ? net.minecraft.world.item.ItemStack.EMPTY : selected.get();
+            totalTicks += BreakToolHelper.estimateBreakTicks(player.level(), block.blockPos, state, tool);
+        }
+        int delay = ToolSelector.capDelay(totalTicks, ServerConfig.survivalBreaking.maxDelayTicks.get());
+
+        // Tools are not pre-damaged here; selection (and the actual durability cost) happens again
+        // at apply time in applyBlockSet, against the live stacks.
+        delayedEntries.add(new DelayedEntry(player, blocks, player.level().getGameTime() + delay));
     }
 
     public void applyBlockSet(Player player, BlockSet blocks) {
@@ -66,12 +100,19 @@ public class ServerBlockPlacer {
         if (!validateBlockSet(player, blocks)) return;
 
         SophisticatedBuilding.ITEM_USAGE_TRACKER.initialize();
+        List<BreakToolHelper.ToolSlot> candidates = player.isCreative() ? null : BreakToolHelper.collectCandidates(player);
         var undoSet = new BlockSet();
+        int survivalBreaksAttempted = 0;
+        int survivalBreaksSucceeded = 0;
         for (BlockEntry block : blocks) {
             if (blocks.skipFirst && block.blockPos == blocks.firstPos) continue;
 
-            if (applyBlockEntry(player, block)) {
+            boolean breaking = BlockUtilities.isNullOrAir(block.newBlockState);
+            if (breaking && candidates != null) survivalBreaksAttempted++;
+
+            if (applyBlockEntry(player, block, candidates)) {
                 undoSet.add(block);
+                if (breaking && candidates != null) survivalBreaksSucceeded++;
             }
         }
 
@@ -82,6 +123,10 @@ public class ServerBlockPlacer {
             InventoryHelper.removeFromInventory(player, SophisticatedBuilding.ITEM_USAGE_TRACKER.placed);
         }
 
+        if (survivalBreaksAttempted > 0 && survivalBreaksSucceeded == 0) {
+            SophisticatedBuilding.logTranslate(player, "", "sophisticatedbuilding.message.survival_break_nothing", "", true);
+        }
+
         SophisticatedBuilding.UNDO_REDO.addUndo(player, undoSet);
     }
 
@@ -90,11 +135,12 @@ public class ServerBlockPlacer {
         if (!SophisticatedBuilding.UNDO_REDO.isAllowedToUndo(player)) return;
 
         SophisticatedBuilding.ITEM_USAGE_TRACKER.initialize();
+        List<BreakToolHelper.ToolSlot> candidates = player.isCreative() ? null : BreakToolHelper.collectCandidates(player);
         var redoSet = new BlockSet();
         for (BlockEntry block : blocks) {
             if (blocks.skipFirst && block.blockPos == blocks.firstPos) continue;
 
-            if (undoBlockEntry(player, block)) {
+            if (undoBlockEntry(player, block, candidates)) {
                 redoSet.add(block);
             }
         }
@@ -109,7 +155,7 @@ public class ServerBlockPlacer {
         SophisticatedBuilding.UNDO_REDO.addRedo(player, redoSet);
     }
 
-    private boolean applyBlockEntry(Player player, BlockEntry block) {
+    private boolean applyBlockEntry(Player player, BlockEntry block, @Nullable List<BreakToolHelper.ToolSlot> candidates) {
 
         block.existingBlockState = player.level().getBlockState(block.blockPos);
         boolean breaking = BlockUtilities.isNullOrAir(block.newBlockState);
@@ -118,7 +164,7 @@ public class ServerBlockPlacer {
         boolean success;
         isPlacingOrBreakingBlocks = true;
         if (breaking) {
-            success = BlockPlacerHelper.breakBlock(player, block);
+            success = BlockPlacerHelper.breakBlock(player, block, candidates);
         } else {
             //If we have the item in our inventory, place it
             if (SophisticatedBuilding.ITEM_USAGE_TRACKER.increaseUsageCount(block.item, 1, player)) {
@@ -134,7 +180,7 @@ public class ServerBlockPlacer {
         return success;
     }
 
-    private boolean undoBlockEntry(Player player, BlockEntry block) {
+    private boolean undoBlockEntry(Player player, BlockEntry block, @Nullable List<BreakToolHelper.ToolSlot> candidates) {
 
         boolean breaking = BlockUtilities.isNullOrAir(block.existingBlockState);
 
@@ -151,7 +197,7 @@ public class ServerBlockPlacer {
         boolean success;
         isPlacingOrBreakingBlocks = true;
         if (breaking) {
-            success = BlockPlacerHelper.breakBlock(player, tempBlockEntry);
+            success = BlockPlacerHelper.breakBlock(player, tempBlockEntry, candidates);
         } else {
             //If we have the item in our inventory, place it
             if (SophisticatedBuilding.ITEM_USAGE_TRACKER.increaseUsageCount(tempBlockEntry.item, 1, player)) {
@@ -246,6 +292,14 @@ public class ServerBlockPlacer {
         if (!player.level().isLoaded(block.blockPos)) return false;
 
         if (breaking && BlockUtilities.isNullOrAir(block.existingBlockState)) return false;
+
+        if (breaking && !player.isCreative()) {
+            if (!player.level().mayInteract(player, block.blockPos)) return false;
+            if (player instanceof ServerPlayer serverPlayer
+                    && serverPlayer.blockActionRestricted(serverPlayer.level(), block.blockPos, serverPlayer.gameMode.getGameModeForPlayer())) {
+                return false;
+            }
+        }
 
         return true;
     }

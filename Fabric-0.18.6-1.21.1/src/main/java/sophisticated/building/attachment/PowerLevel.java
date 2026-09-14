@@ -4,6 +4,7 @@ import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.CommonConfig;
+import sophisticated.building.ServerConfig;
 
 public class PowerLevel {
 	public static final int MAX_POWER_LEVEL = 3; //Common access
@@ -85,8 +86,10 @@ public class PowerLevel {
 		return getMaxBlocksPlacedAtOnce(player, false) <= 0 || getMaxBlocksPerAxis(player, false) <= 0;
 	}
 
+	// True when the player may use build-mode breaking (creative always; survival when the
+	// survival-breaking config switch is enabled - see ServerConfig.survivalBreaking).
 	public boolean canBreakFar(Player player) {
-		return player.getAbilities().instabuild;
+		return player.getAbilities().instabuild || ServerConfig.survivalBreaking.enabled.get();
 	}
 
 	/**
