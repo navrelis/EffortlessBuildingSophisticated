@@ -405,9 +405,9 @@ All commits carry the trailer `Co-Authored-By: Claude Fable 5.1 <noreply@anthrop
 | `c6c6d04` | feat(survival-break): client plan, preview and HUD (T-S5) |
 | `b1534a1` | fix: resync build mode state to the server on join so Disable mode is always vanilla (T-S6) |
 | `ee1db47` | feat(neoforge): survival breaking parity (T-S8) |
-| (T-S9 commit, see below) | release: 4.1.0 patch notes – survival breaking (T-S9) |
+| `dea5312` | release: 4.1.0 patch notes – survival breaking (T-S9) |
 
-`git log origin/main..main` is empty after the T-S9 commit is pushed — everything above is pushed.
+`git log origin/main..main` is empty — everything above is pushed (verified after the T-S9 push).
 
 #### T-S1 – Config + pure tool-selection logic (Fabric)
 `ServerConfig.survivalBreaking` added exactly as specified (`enabled`, `stopBeforeToolBreaks`,
