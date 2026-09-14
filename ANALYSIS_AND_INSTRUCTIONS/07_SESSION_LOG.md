@@ -742,3 +742,15 @@ capped delay when it enqueues the DelayedEntry) driving a client countdown + pro
 crosshair, a pre-click "~x.x s" estimate next to the tool icons, the red outline kept on the
 pending blocks, and the dissolve animation deferred to the moment the blocks actually vanish.
 Spec in `09_SURVIVAL_BREAKING_TASKS.md` T-S10; dispatched to the same Sonnet implementer.
+
+## 2026-09-14 (late) - T-S10 review and graph refresh (Fable)
+
+Reviewed commit 49bf72a by diff: BreakCountdownPacket sent right after the survival DelayedEntry is
+enqueued (creative sends nothing), ClientBreakCountdown byte-identical on both loaders, pending
+FIFO + 60-tick expiry, dissolve animation deferred to countdown end, "pending-break" red cluster,
+HUD text + 100x4 progress bar, "~x.x s" estimate next to the tool icons, lang keys and patch notes
+on both copies. No corrections needed. Re-ran both builds myself: Fabric BUILD SUCCESSFUL with
+17/17 tests, NeoForge BUILD SUCCESSFUL. Cosmetic note only: in Disable mode the pending cluster
+also outlines the vanilla-handled first block (same as the previous immediate dissolve did).
+Graph refreshed incrementally (20 code files, 4 docs): 5080 nodes, 13707 edges, 223 communities,
+24 new communities hand-labelled.
