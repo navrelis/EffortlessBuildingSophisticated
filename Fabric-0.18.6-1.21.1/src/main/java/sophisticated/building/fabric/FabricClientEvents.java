@@ -45,6 +45,14 @@ public final class FabricClientEvents {
             ClientBuildingUpgradeState.clear();
             ClientBackpackToolCache.clear();
         });
+
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> client.execute(() -> {
+            try {
+                SophisticatedBuildingClient.BUILD_MODES.resyncToServer();
+            } catch (Exception e) {
+                SophisticatedBuilding.logger.warn("Failed to resync build mode state to the server: {}", e.getMessage());
+            }
+        }));
     }
 
     private static void registerKeyMappings() {

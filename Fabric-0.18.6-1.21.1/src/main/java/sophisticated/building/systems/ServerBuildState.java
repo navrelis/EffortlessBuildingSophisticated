@@ -9,6 +9,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ServerBuildState {
+    // legacy NBT keys, no longer persisted; state is session-only and re-sent by the client on join
+    // (BuildModes.resyncToServer(), called from ClientPlayConnectionEvents.JOIN - see T-S6)
     private static final String IS_USING_BUILD_MODE_KEY = SophisticatedBuilding.MODID + ":isUsingBuildMode";
     private static final String IS_QUICK_REPLACING_KEY = SophisticatedBuilding.MODID + ":isQuickReplacing";
     private static final Map<UUID, Boolean> USING_BUILD_MODE = new ConcurrentHashMap<>();
