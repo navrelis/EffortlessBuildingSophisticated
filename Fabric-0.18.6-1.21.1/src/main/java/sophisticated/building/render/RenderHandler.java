@@ -113,17 +113,20 @@ public class RenderHandler {
 
 	//Draw item stacks at cursor, showing what will be used and what is missing
 	private static void drawStacks(GuiGraphics guiGraphics) {
-		var state = SophisticatedBuildingClient.BUILDER_CHAIN.getBuildingState();
-
 		Minecraft mc = Minecraft.getInstance();
 		var player = mc.player;
 		if (player == null) return;
 
-		if (state == BuilderChain.BuildingState.BREAKING) {
+		// Use the pretend state (as if actively building) for the breaking branch so a survival
+		// player in e.g. SINGLE mode sees the tool/barrier HUD just from looking at a block - this
+		// is how they learn why nothing breaks. The placing branch below keeps using the actual
+		// state, unchanged.
+		if (SophisticatedBuildingClient.BUILDER_CHAIN.getPretendBuildingState() == BuilderChain.BuildingState.BREAKING) {
 			drawBreakPlanStacks(guiGraphics, mc, player);
 			return;
 		}
 
+		var state = SophisticatedBuildingClient.BUILDER_CHAIN.getBuildingState();
 		if (state != BuilderChain.BuildingState.PLACING) return;
 
 		var stacks = SophisticatedBuildingClient.ITEM_USAGE_TRACKER.total;

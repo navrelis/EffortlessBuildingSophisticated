@@ -154,10 +154,23 @@ public class BuilderChain {
 
             if (!blocks.isEmpty()) {
                 if (!player.isCreative()) {
+                    // buildMode == DISABLED is what the later assignment below will set
+                    // blocks.skipFirst to; compute it locally now rather than reading
+                    // blocks.skipFirst, which still holds whatever was assigned on the *previous*
+                    // send (setStartPos/clear never reset it) and would double-subtract when the
+                    // first entry is itself invalid.
+                    boolean skipFirst = buildMode == BuildModeEnum.DISABLED;
+                    BlockPos skipPos = skipFirst ? blocks.firstPos : null;
+
                     //The set may have changed since the last onTick plan; re-plan against the final set.
-                    lastBreakPlan = BreakToolHelper.planClient(player, blocks);
+                    lastBreakPlan = BreakToolHelper.planClient(player, blocks, skipPos);
                     int invalidCount = countInvalid(blocks);
-                    int validCount = blocks.size() - invalidCount - (blocks.skipFirst ? 1 : 0);
+                    int validCount = 0;
+                    for (BlockEntry entry : blocks) {
+                        if (entry.invalid) continue;
+                        if (skipFirst && entry.blockPos.equals(blocks.firstPos)) continue;
+                        validCount++;
+                    }
                     if (validCount <= 0) {
                         SophisticatedBuilding.logTranslate(player, "", "sophisticatedbuilding.message.survival_break_nothing", "", true);
                         cancel();
@@ -251,7 +264,8 @@ public class BuilderChain {
         SophisticatedBuildingClient.BUILDER_FILTER.filterOnExistingBlockStates(blocks, player);
 
         if (getPretendBuildingState() == BuildingState.BREAKING && !player.isCreative()) {
-            lastBreakPlan = BreakToolHelper.planClient(player, blocks);
+            BlockPos skipPos = buildMode == BuildModeEnum.DISABLED ? blocks.firstPos : null;
+            lastBreakPlan = BreakToolHelper.planClient(player, blocks, skipPos);
         } else {
             lastBreakPlan = null;
         }

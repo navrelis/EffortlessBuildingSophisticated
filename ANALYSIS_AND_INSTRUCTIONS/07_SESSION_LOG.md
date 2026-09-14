@@ -619,3 +619,36 @@ stated intent of the task it belongs to.
 #### Open problems
 None identified. All nine tasks compiled, built, and (where applicable) tested green on the first
 or second attempt; the one smoke test run passed cleanly with no relevant errors in the log.
+
+#### Review corrections (applied to both loaders, one commit)
+The orchestrator's review flagged four issues, all fixed on Fabric first then mirrored to
+NeoForge:
+- **C1 (bug):** `BuilderChain.onLeftClick`'s survival branch read `blocks.skipFirst` before this
+  click's assignment of it (the assignment happens later in the same method, and
+  `BlockSet.setStartPos`/`clear` never reset the flag, so it was stale from the previous send),
+  and double-subtracted a skipped-first block that was also itself invalid. Fixed by computing
+  `boolean skipFirst = buildMode == BuildModeEnum.DISABLED` locally and counting valid entries as
+  `!entry.invalid && !(skipFirst && entry.blockPos.equals(blocks.firstPos))`; the existing later
+  `blocks.skipFirst = ...` assignment is untouched.
+- **C2 (consistency):** `BreakToolHelper.planClient` gained a `@Nullable BlockPos skipPos`
+  parameter; an entry at that position is skipped entirely (not planned, counted, or flagged),
+  matching the server's own `skipFirst` handling. Both `BuilderChain` call sites (`onTick`,
+  `onLeftClick`) now pass `buildMode == DISABLED ? blocks.firstPos : null`.
+- **C3 (UX):** `RenderHandler.drawStacks`'s breaking branch now checks
+  `BUILDER_CHAIN.getPretendBuildingState() == BREAKING` instead of the actual `getBuildingState()`,
+  so a survival player in e.g. SINGLE mode sees the tool/barrier HUD just from looking at a block
+  (this is how they learn why nothing breaks) rather than only once actively breaking. The placing
+  branch still reads the actual state, unchanged.
+- **C4 (quality):** `BreakToolHelper.collectCandidates`'s client branch now takes one
+  `List<ItemStack> backpackTools = ClientBackpackToolCache.snapshot()` before the loop instead of
+  calling `snapshot()` (which copies the whole list) once per loop iteration plus once per
+  `ToolSlot.get()`; each `get()` now indexes into the single captured list.
+`BreakToolHelper.java` was re-copied byte-for-byte from Fabric to NeoForge after the fix (diffed
+identical both before and after); `BuilderChain.java`/`RenderHandler.java` got the same edits
+applied by hand since those files carry loader-specific networking/event code around the
+corrected lines.
+Check: `.\gradlew.bat build --no-daemon` → **BUILD SUCCESSFUL** on both projects;
+`.\gradlew.bat test --no-daemon` (Fabric) → 17/17 tests green, 0 failures/errors (unchanged from
+before the corrections — none of the four fixes touch tested code paths).
+Re-ran `rebuild_all_and_export_jar.ps1` and re-copied the Fabric jar into
+`DevInstance_Fabric/run/mods/`.

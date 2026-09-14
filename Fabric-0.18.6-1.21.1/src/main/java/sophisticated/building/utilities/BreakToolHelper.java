@@ -79,8 +79,9 @@ public class BreakToolHelper {
 				}
 			}
 		} else {
-			for (int i = 0; i < ClientBackpackToolCache.snapshot().size(); i++) {
-				ItemStack stack = ClientBackpackToolCache.snapshot().get(i);
+			List<ItemStack> backpackTools = ClientBackpackToolCache.snapshot();
+			for (int i = 0; i < backpackTools.size(); i++) {
+				ItemStack stack = backpackTools.get(i);
 				if (!isTool(stack)) {
 					continue;
 				}
@@ -88,7 +89,7 @@ public class BreakToolHelper {
 				candidates.add(new ToolSlot() {
 					@Override
 					public ItemStack get() {
-						return ClientBackpackToolCache.snapshot().get(index);
+						return backpackTools.get(index);
 					}
 
 					@Override
@@ -284,8 +285,12 @@ public class BreakToolHelper {
 	 * (durability is drained per assignment so the preview reflects the real per-tool budget),
 	 * flags entries the plan cannot break as {@code invalid}, and returns the resulting
 	 * {@link BreakPlan} for the HUD.
+	 *
+	 * @param skipPos when non-null, the entry at this position is neither planned, counted, nor
+	 *                flagged invalid - vanilla handles that block in Disable mode, matching the
+	 *                server's own {@code skipFirst} handling in {@code ServerBlockPlacer}.
 	 */
-	public static BreakPlan planClient(Player player, Iterable<BlockEntry> blocks) {
+	public static BreakPlan planClient(Player player, Iterable<BlockEntry> blocks, @Nullable BlockPos skipPos) {
 		BreakPlan plan = new BreakPlan();
 		Level level = player.level();
 
@@ -325,6 +330,10 @@ public class BreakToolHelper {
 
 		int totalTicks = 0;
 		for (BlockEntry entry : blocks) {
+			if (skipPos != null && entry.blockPos.equals(skipPos)) {
+				continue;
+			}
+
 			BlockState state = level.getBlockState(entry.blockPos);
 
 			ToolSlot selected = selectTool(player, level, entry.blockPos, state, liveView);
