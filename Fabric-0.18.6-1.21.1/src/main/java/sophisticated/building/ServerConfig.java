@@ -7,6 +7,7 @@ import java.util.List;
 public class ServerConfig {
     public static final Validation validation = new Validation();
     public static final Memory memory = new Memory();
+    public static final SurvivalBreaking survivalBreaking = new SurvivalBreaking();
 
     // Kept as a compatibility placeholder while config registration is migrated to Fabric.
     public static final Object spec = new Object();
@@ -20,5 +21,12 @@ public class ServerConfig {
 
     public static class Memory {
         public final SimpleConfigValue<Integer> undoStackSize = new SimpleConfigValue<>(50);
+    }
+
+    public static class SurvivalBreaking {
+        public final SimpleConfigValue<Boolean> enabled = new SimpleConfigValue<>(true);
+        public final SimpleConfigValue<Boolean> stopBeforeToolBreaks = new SimpleConfigValue<>(true);
+        public final SimpleConfigValue<Integer> maxDelayTicks = new SimpleConfigValue<>(40);
+        public final SimpleConfigValue<Double> exhaustionPerBlock = new SimpleConfigValue<>(0.005);
     }
 }
