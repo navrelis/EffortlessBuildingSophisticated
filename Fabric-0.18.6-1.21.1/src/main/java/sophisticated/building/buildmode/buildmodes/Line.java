@@ -5,10 +5,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import sophisticated.building.attachment.AttachmentHandler;
 import sophisticated.building.buildmode.BuildModes;
+import sophisticated.building.buildmode.ModeOptions;
 import sophisticated.building.buildmode.TwoClicksBuildMode;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Line extends TwoClicksBuildMode {
 
@@ -62,17 +65,73 @@ public class Line extends TwoClicksBuildMode {
 	}
 
 	public static List<BlockPos> getLineBlocks(Player player, int x1, int y1, int z1, int x2, int y2, int z2) {
-		List<BlockPos> list = new ArrayList<>();
+		return getLineBlocks(x1, y1, z1, x2, y2, z2, thicknessOf(ModeOptions.getLineThickness()));
+	}
+
+	/**
+	 * Converts the {@link ModeOptions.ActionEnum} thickness selection (THICKNESS_1/3/5) to the
+	 * integer thickness used by the pure block-generation methods below.
+	 */
+	public static int thicknessOf(ModeOptions.ActionEnum thicknessAction) {
+		if (thicknessAction == ModeOptions.ActionEnum.THICKNESS_3) {
+			return 3;
+		}
+		if (thicknessAction == ModeOptions.ActionEnum.THICKNESS_5) {
+			return 5;
+		}
+		return 1;
+	}
+
+	/**
+	 * Axis-aligned line with a square t&#215;t cross-section (radius r = (t-1)/2 in the two axes
+	 * perpendicular to the line's own axis). Thickness 1 behaves exactly like the plain
+	 * {@code addXLineBlocks}/{@code addYLineBlocks}/{@code addZLineBlocks} helpers, which stay
+	 * 1-thick since Wall/Floor reuse them directly for their hollow outlines (F3).
+	 */
+	public static List<BlockPos> getLineBlocks(int x1, int y1, int z1, int x2, int y2, int z2, int thickness) {
+		List<BlockPos> centerLine = new ArrayList<>();
 
 		if (x1 != x2) {
-			addXLineBlocks(list, x1, x2, y1, z1);
+			addXLineBlocks(centerLine, x1, x2, y1, z1);
 		} else if (y1 != y2) {
-			addYLineBlocks(list, y1, y2, x1, z1);
+			addYLineBlocks(centerLine, y1, y2, x1, z1);
 		} else {
-			addZLineBlocks(list, z1, z2, x1, y1);
+			addZLineBlocks(centerLine, z1, z2, x1, y1);
 		}
 
-		return list;
+		if (thickness <= 1) {
+			return centerLine;
+		}
+
+		int radius = (thickness - 1) / 2;
+		Set<BlockPos> thickened = new LinkedHashSet<>();
+
+		boolean alongX = x1 != x2;
+		boolean alongY = !alongX && y1 != y2;
+
+		for (BlockPos center : centerLine) {
+			if (alongX) {
+				for (int dy = -radius; dy <= radius; dy++) {
+					for (int dz = -radius; dz <= radius; dz++) {
+						thickened.add(center.offset(0, dy, dz));
+					}
+				}
+			} else if (alongY) {
+				for (int dx = -radius; dx <= radius; dx++) {
+					for (int dz = -radius; dz <= radius; dz++) {
+						thickened.add(center.offset(dx, 0, dz));
+					}
+				}
+			} else {
+				for (int dx = -radius; dx <= radius; dx++) {
+					for (int dy = -radius; dy <= radius; dy++) {
+						thickened.add(center.offset(dx, dy, 0));
+					}
+				}
+			}
+		}
+
+		return new ArrayList<>(thickened);
 	}
 
 	public static void addXLineBlocks(List<BlockPos> list, int x1, int x2, int y, int z) {
