@@ -22,6 +22,32 @@ Open / needs the user
 - Whether the NeoForge gameplay semantics should be unified with Fabric (not done).
 - In-game confirmation on the Nytheria instance after the 4.1.0 jar is built (the analysis is code-based; no interactive game session was possible here).
 
+## 2026-09-14 – T11: knowledge graph refresh (Fable 5.1, orchestrator)
+
+Reviewed the implementer's T0–T10 work first (see checklist in `06`): re-ran `gradlew build` and
+`gradlew test` on both projects myself rather than trusting the reported summary (Fabric and
+NeoForge both genuinely `BUILD SUCCESSFUL`; 11/11 JUnit tests green, read from the raw XML), traced
+every remaining `BuildingUpgradeHelper.*` call site by hand to confirm none is reachable on the
+client (RC2 fix holds), and checked the exported 4.1.0 jars and dev-instance mod folder. No
+corrections were needed; all 12 implementer commits stand as-is.
+
+Then ran the incremental graphify update (T11): `detect_incremental` found 49 changed/new files (39
+code, 10 doc — the `ANALYSIS_AND_INSTRUCTIONS/` docs and `PATCH_NOTES_4.1.0.md`) and 2 deleted
+(`CuriosCompatHelper.java`, `PATCH_NOTES_4.0.0.md`). AST re-extraction ran on the 39 code files; one
+subagent extracted the 10 docs. `build_merge` replaced 292 nodes from re-extracted files and pruned
+11 nodes from the 2 deletions. Re-clustered and remapped community ids against the previous run
+(`remap_communities_to_previous`) so prior manual labels survive for stable communities; new/split
+communities got an auto-picked label. Result: 4,820 nodes, 13,314 edges, 180 communities.
+`graphify-out/graph.html`/`graph.json`/`GRAPH_REPORT.md`/`manifest.json`/`cost.json` all updated and
+committed; all-time token cost 214,084 input.
+
+Note for future incremental runs: `graphify.build.build_merge` does **not** write `graph.json**
+itself (despite taking `graph_path`) — it returns the merged in-memory graph read-only; the caller
+must cluster and call `export.to_json(...)` to persist it. `cluster.remap_communities_to_previous`
+takes `(communities, previous_node_community)` — a node→old-community-id map, not the old
+`graph.json` path or the new communities' member lists — and returns communities with ids remapped
+to the old scheme.
+
 How the graph was built (for re-runs)
 ```
 PY=$(cat graphify-out/.graphify_python)
