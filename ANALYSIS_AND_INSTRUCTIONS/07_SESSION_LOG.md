@@ -355,3 +355,38 @@ graph").
 No task was implemented differently from what compiled against the real API — every deviation
 above is either a scope-preserving fix required to satisfy the spec's own stated intent, or a
 runtime/build issue discovered by a later task's own verification step and fixed in place.
+
+---
+
+## Session 2026-09-14 (evening) – survival mass breaking (orchestrator: Fable)
+
+User request: CurseForge comments ask for mass breaking in survival ("like the original had"),
+complain that Disable mode blocks vanilla placing/breaking, and do not know how breaking works at
+all. Requested a balanced design (tools per block category, durability), compatibility with the
+Sophisticated Backpacks Tool Swapper / Advanced Tool Swapper upgrades, and expanded 4.1.0 notes.
+
+Analysis performed (no code written by the orchestrator):
+- Traced the break path on both loaders: client gate `PowerLevel.canBreakFar == instabuild`
+  (`BuilderChain` lines 129/302); server `BlockPlacerHelper.breakBlock` always breaks with
+  `ItemStack.EMPTY` through `BlockHelper.destroyBlockAs` (which already supports a real tool:
+  `mineBlock`, `Block.getDrops` with tool). No correct-tool check exists anywhere on the server.
+- Verified with javap against the real Fabric port jars in `other_mods/` and the official NeoForge
+  jars in the gradle cache that `ToolSwapperUpgradeWrapper`, `ToolSwapMode`, `FilterLogic`,
+  `InventoryHandler` and `PlayerInventoryProvider` have identical signatures on both loaders;
+  `ToolSwapperUpgradeItem.TYPE` is private (must enumerate `getSlotWrappers()`); Fabric slot count
+  is `getSlotCount()`, NeoForge `getSlots()`.
+- Disable-mode drift: `ServerBuildState` is session-only and reset on join, but the client keeps
+  its static `BuildModes.buildMode` across worlds and never re-sends it → client/server disagree
+  after a rejoin. Fix = client resync on join (T-S6).
+- Design (08 §5): server-authoritative tool selection with vanilla durability/drops/hunger,
+  correct-tool required for blocks that need it, tools never broken, main-hand fallback for
+  tool-less blocks, hardness-0 blocks free, Tool Swapper backpacks as extra candidates (Advanced
+  filters respected), capped mining delay (default 40 ticks) through the existing delayed queue,
+  spawn-protection/adventure checks, client preview + HUD from a synced backpack tool list.
+
+Documents written: `08_SURVIVAL_BREAKING_ANALYSIS.md`, `09_SURVIVAL_BREAKING_TASKS.md`; README and
+`06_REVIEW_CHECKLIST.md` extended. Next: dispatch one Sonnet implementer on T-S1 … T-S9, then
+review against the checklist, then rebuild the knowledge graph.
+
+### Implementer notes – survival breaking
+(to be filled in by the implementing agent)

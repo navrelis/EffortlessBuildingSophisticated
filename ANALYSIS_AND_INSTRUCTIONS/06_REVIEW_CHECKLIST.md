@@ -38,6 +38,19 @@ Evidence before assertions. For each item, read the diff and the command output;
 - [ ] `Wall`/`Floor` hollow helpers unchanged (still 1 thick); `DiagonalWall` calls the 1-thick diagonal line.
 - [ ] Unit tests exist and assert the block counts stated in T7.
 
+## Survival breaking (T-S1 … T-S9, see 08/09)
+- [ ] `ToolSelector` has no Minecraft imports; `ToolSelectorTest` covers the six cases listed in T-S1 and is green; the file is identical in both projects.
+- [ ] `PowerLevel.canBreakFar` = `instabuild || ServerConfig.survivalBreaking.enabled`; nothing else in the client gate changed.
+- [ ] Server break path: `breakBlocks` enqueues survival sets with a capped delay; `applyBlockEntry`/`undoBlockEntry` pass candidates; `BlockPlacerHelper.breakBlock` selects the tool, passes it to `destroyBlockAs`, writes the stack back, adds exhaustion; creative path still uses `ItemStack.EMPTY`.
+- [ ] Correct-tool rule: a block with `requiresCorrectToolForDrops` is never broken by a non-correct tool (read the selector call, not the summary).
+- [ ] `validateBlockEntry` checks `mayInteract` + `blockActionRestricted` for survival breaking.
+- [ ] `ToolSwapperIntegration` uses `getSlotWrappers().values()` + `instanceof ToolSwapperUpgradeWrapper`, `isEnabled()`, `getToolSwapMode() != NO_SWAP`, filter only when `!hideSettingsTab()`; Fabric `getSlotCount()`, NeoForge `getSlots()`; write-back via `setStackInSlot` on a copy.
+- [ ] `BackpackToolsPacket` registered S2C on both loaders; sent on join/respawn/dimension change and on fingerprint change every 10 ticks; cache cleared on disconnect; client never constructs a backpack wrapper.
+- [ ] Client: invalid entries flagged in BREAKING state, grey cluster rendered, HUD shows tools + barrier count, "nothing breakable" cancels without sending.
+- [ ] `BuildModes.resyncToServer()` called from Fabric `ClientPlayConnectionEvents.JOIN` and NeoForge `ClientPlayerNetworkEvent.LoggingIn`.
+- [ ] Vanilla-cancel hooks unchanged in expression on both loaders (survival now included by design D5).
+- [ ] Patch notes still say 4.1.0 and contain the survival-breaking section, the Disable resync bullet and the config note; exported copy matches the root copy.
+
 ## Process
 - [ ] One commit per task group with the trailer; all pushed (`git log origin/main..main` empty).
 - [ ] `07_SESSION_LOG.md` has the implementer notes; deviations are explained.

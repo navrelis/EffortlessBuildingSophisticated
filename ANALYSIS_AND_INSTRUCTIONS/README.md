@@ -21,6 +21,10 @@ without re-deriving the analysis.
 5. `05_IMPLEMENTATION_TASKS.md` – the ordered, testable task list for the implementer. This is the contract.
 6. `06_REVIEW_CHECKLIST.md` – what the reviewer verifies after implementation.
 7. `07_SESSION_LOG.md` – chronological log of what was done, decided, and left open.
+8. `08_SURVIVAL_BREAKING_ANALYSIS.md` – how breaking works today, why survival is blocked, why
+   Disable mode can drift, the verified Tool Swapper API, and the balance design (D1–D8).
+9. `09_SURVIVAL_BREAKING_TASKS.md` – the ordered task contract for survival mass breaking
+   (T-S1 … T-S9), still shipped as 4.1.0.
 
 ## Standing rules for this repository (apply to every session)
 
