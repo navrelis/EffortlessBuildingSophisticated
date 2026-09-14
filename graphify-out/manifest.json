@@ -60,10 +60,10 @@
     "semantic_hash": "936ea51f16f544ab7a26a99a5055004c"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/ServerConfig.java": {
-    "mtime": 1775256389.9428985,
-    "seen": 1789405265.801763,
-    "ast_hash": "36474f2b60117c1e9841624dbd8fa89d",
-    "semantic_hash": "36474f2b60117c1e9841624dbd8fa89d"
+    "mtime": 1789410579.067531,
+    "seen": 1789413376.418685,
+    "ast_hash": "c50109e7c616304afc11978f6bbfe50f",
+    "semantic_hash": "c50109e7c616304afc11978f6bbfe50f"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/SophisticatedBuilding.java": {
     "mtime": 1775420673.9544184,
@@ -84,10 +84,10 @@
     "semantic_hash": "e2faa0b4c770319aabdfe33606249e47"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/attachment/PowerLevel.java": {
-    "mtime": 1775256389.9488971,
-    "seen": 1789405265.801763,
-    "ast_hash": "cf713c858fe2ae5fb7db030af65fb067",
-    "semantic_hash": "cf713c858fe2ae5fb7db030af65fb067"
+    "mtime": 1789411070.4662366,
+    "seen": 1789413376.418685,
+    "ast_hash": "15ce54d92f8bf721cafbf2d5903d1eb7",
+    "semantic_hash": "15ce54d92f8bf721cafbf2d5903d1eb7"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/buildmode/BaseBuildMode.java": {
     "mtime": 1775256165.0733097,
@@ -108,10 +108,10 @@
     "semantic_hash": "5e970ecb93a85bbb90f9839e42e442c3"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/buildmode/BuildModes.java": {
-    "mtime": 1789406491.8427923,
-    "seen": 1789408825.5304146,
-    "ast_hash": "163fdca767b971b2058fd97785a12451",
-    "semantic_hash": "163fdca767b971b2058fd97785a12451"
+    "mtime": 1789411629.4300117,
+    "seen": 1789413376.418685,
+    "ast_hash": "468913ea2b9dd75192db5bec0f916b31",
+    "semantic_hash": "468913ea2b9dd75192db5bec0f916b31"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/buildmode/IBuildMode.java": {
     "mtime": 1775256165.0753107,
@@ -492,10 +492,10 @@
     "semantic_hash": "5dc3f4a83d296b2aebb766b707211a5f"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/create/foundation/utility/BlockHelper.java": {
-    "mtime": 1775259947.4525526,
-    "seen": 1789405265.801763,
-    "ast_hash": "49363f2cfc7256cd4f59e9e7ef8a0eb4",
-    "semantic_hash": "49363f2cfc7256cd4f59e9e7ef8a0eb4"
+    "mtime": 1789411012.8595006,
+    "seen": 1789413376.425733,
+    "ast_hash": "bc1fcc41a9507478aef5facec1a1ba13",
+    "semantic_hash": "bc1fcc41a9507478aef5facec1a1ba13"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/create/foundation/utility/CameraAngleAnimationService.java": {
     "mtime": 1775256165.1193085,
@@ -618,16 +618,16 @@
     "semantic_hash": "5f361d74da8271282b621402199f046e"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/fabric/FabricClientEvents.java": {
-    "mtime": 1789406477.066825,
-    "seen": 1789408825.5319605,
-    "ast_hash": "4396ba8ec406c9eeee1c61739691ffb9",
-    "semantic_hash": "4396ba8ec406c9eeee1c61739691ffb9"
+    "mtime": 1789411643.7338657,
+    "seen": 1789413376.4277325,
+    "ast_hash": "a10b4d95d8316bb27448f0b910b7e03d",
+    "semantic_hash": "a10b4d95d8316bb27448f0b910b7e03d"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/fabric/FabricCommonEvents.java": {
-    "mtime": 1789406351.4826298,
-    "seen": 1789408825.5319605,
-    "ast_hash": "1b8ba1d843cdbef207ec2bdfa937d489",
-    "semantic_hash": "1b8ba1d843cdbef207ec2bdfa937d489"
+    "mtime": 1789411353.686085,
+    "seen": 1789413376.4277325,
+    "ast_hash": "49b9901c8f7329f6cac6ef12afbd5d1b",
+    "semantic_hash": "49b9901c8f7329f6cac6ef12afbd5d1b"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/fabric/SophisticatedBuildingFabric.java": {
     "mtime": 1775256165.1273081,
@@ -918,16 +918,16 @@
     "semantic_hash": "ee3e641f5260046dc2b722b8ef21badc"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/network/PacketHandler.java": {
-    "mtime": 1789406307.9883893,
-    "seen": 1789408825.5319605,
-    "ast_hash": "24df1dbb7e32caebd2dc88e2dbd9bff6",
-    "semantic_hash": "24df1dbb7e32caebd2dc88e2dbd9bff6"
+    "mtime": 1789411308.2113898,
+    "seen": 1789413376.4337752,
+    "ast_hash": "99d34b943a1f9e1368ea946f178bffa1",
+    "semantic_hash": "99d34b943a1f9e1368ea946f178bffa1"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/network/PacketHandlerClient.java": {
-    "mtime": 1789406316.4786706,
-    "seen": 1789408825.5319605,
-    "ast_hash": "08f2de43285fee628be54c5c7fc8c147",
-    "semantic_hash": "08f2de43285fee628be54c5c7fc8c147"
+    "mtime": 1789411318.6716783,
+    "seen": 1789413376.4337752,
+    "ast_hash": "8c97828ef10aad645001ad4d3d9a4a44",
+    "semantic_hash": "8c97828ef10aad645001ad4d3d9a4a44"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/network/message/BackpackItemCountPacket.java": {
     "mtime": 1775421787.9574788,
@@ -1008,10 +1008,10 @@
     "semantic_hash": "ca3133bf92cc36c6e112199309eb77c8"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/render/BlockPreviews.java": {
-    "mtime": 1776978380.3498936,
-    "seen": 1789405265.801763,
-    "ast_hash": "0050d05a2f03cec2886f04e2d25a7b32",
-    "semantic_hash": "0050d05a2f03cec2886f04e2d25a7b32"
+    "mtime": 1789411505.9816148,
+    "seen": 1789413376.4352827,
+    "ast_hash": "901b7adf750155f8666a869fffb9a2ff",
+    "semantic_hash": "901b7adf750155f8666a869fffb9a2ff"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/render/BuildRenderTypes.java": {
     "mtime": 1775256165.1573098,
@@ -1032,10 +1032,10 @@
     "semantic_hash": "175366be473cbb48eef34f4f4932ff6c"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/render/RenderHandler.java": {
-    "mtime": 1776978380.3408887,
-    "seen": 1789405265.801763,
-    "ast_hash": "c2335b1231552a2e579bf20ceb434d8d",
-    "semantic_hash": "c2335b1231552a2e579bf20ceb434d8d"
+    "mtime": 1789412853.4978576,
+    "seen": 1789413376.4352827,
+    "ast_hash": "769abd0519d03acedb9360038e3d8d60",
+    "semantic_hash": "769abd0519d03acedb9360038e3d8d60"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/systems/BuildSettings.java": {
     "mtime": 1775259116.233308,
@@ -1044,10 +1044,10 @@
     "semantic_hash": "e98adca9976635a280806210e78e0b8d"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/systems/BuilderChain.java": {
-    "mtime": 1777569232.0079517,
-    "seen": 1789405265.801763,
-    "ast_hash": "59048e004cd7d47e8bdfa6f79a1a66cf",
-    "semantic_hash": "59048e004cd7d47e8bdfa6f79a1a66cf"
+    "mtime": 1789412840.358722,
+    "seen": 1789413376.4352827,
+    "ast_hash": "0ae183b6b3eed505cdf9311f9775a7f5",
+    "semantic_hash": "0ae183b6b3eed505cdf9311f9775a7f5"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/systems/BuilderFilter.java": {
     "mtime": 1775256165.1603124,
@@ -1062,16 +1062,16 @@
     "semantic_hash": "61396a2642f20e8f669e5bdde2a1761f"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/systems/ServerBlockPlacer.java": {
-    "mtime": 1775256165.1603124,
-    "seen": 1789405265.801763,
-    "ast_hash": "f22eca2b82d207de998c1766546a7319",
-    "semantic_hash": "f22eca2b82d207de998c1766546a7319"
+    "mtime": 1789411178.8425467,
+    "seen": 1789413376.4362826,
+    "ast_hash": "3512305a12ab3d164734dfb4a59a988d",
+    "semantic_hash": "3512305a12ab3d164734dfb4a59a988d"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/systems/ServerBuildState.java": {
-    "mtime": 1775257735.779384,
-    "seen": 1789405265.801763,
-    "ast_hash": "0870212a2123293071e2a4da5b17eaff",
-    "semantic_hash": "0870212a2123293071e2a4da5b17eaff"
+    "mtime": 1789411657.3534305,
+    "seen": 1789413376.4362826,
+    "ast_hash": "79ec89e6747179281c3858903f8c2291",
+    "semantic_hash": "79ec89e6747179281c3858903f8c2291"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/systems/UndoRedo.java": {
     "mtime": 1775259947.4595528,
@@ -1086,10 +1086,10 @@
     "semantic_hash": "abe4f6fdd0479907ee427afdfdaef5df"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/utilities/BlockPlacerHelper.java": {
-    "mtime": 1775259947.4525526,
-    "seen": 1789405265.801763,
-    "ast_hash": "9f78b61dc59b4577e4d71732f6afe0bc",
-    "semantic_hash": "9f78b61dc59b4577e4d71732f6afe0bc"
+    "mtime": 1789411002.2005198,
+    "seen": 1789413376.4362826,
+    "ast_hash": "dcb62fe76591818bedffdab33fac0d56",
+    "semantic_hash": "dcb62fe76591818bedffdab33fac0d56"
   },
   "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/utilities/BlockSet.java": {
     "mtime": 1775256389.956897,
@@ -1164,10 +1164,10 @@
     "semantic_hash": "7e683f5dbb65b89bae547f147b32fc9a"
   },
   "Fabric-0.18.6-1.21.1/src/main/resources/assets/sophisticatedbuilding/lang/en_us.json": {
-    "mtime": 1789406132.222852,
-    "seen": 1789408825.5319605,
-    "ast_hash": "59a4013cc6427b17c58d62e870706a4e",
-    "semantic_hash": "59a4013cc6427b17c58d62e870706a4e"
+    "mtime": 1789411488.343641,
+    "seen": 1789413376.4372833,
+    "ast_hash": "ea063e10f02071a948f9c5a79e8e8f49",
+    "semantic_hash": "ea063e10f02071a948f9c5a79e8e8f49"
   },
   "Fabric-0.18.6-1.21.1/src/main/resources/assets/sophisticatedbuilding/models/item/building_techniques_book.json": {
     "mtime": 1775254489.5835187,
@@ -1422,8 +1422,8 @@
     "semantic_hash": "1c4ee326d5673a390e082695fe5bf8ac"
   },
   "Neoforge-21.1.217-1.21.1/.vscode/launch.json": {
-    "mtime": 1778356112.1902678,
-    "seen": 1789405265.801763,
+    "mtime": 1789411835.616202,
+    "seen": 1789413376.4417899,
     "ast_hash": "14545970285da46eb56d44000662281d",
     "semantic_hash": "14545970285da46eb56d44000662281d"
   },
@@ -1470,10 +1470,10 @@
     "semantic_hash": "9480ea9cc7073a191ab7286260bc240b"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/ClientEvents.java": {
-    "mtime": 1789407785.711837,
-    "seen": 1789408825.5319605,
-    "ast_hash": "04ec002e370fe5cc84daf442b481671f",
-    "semantic_hash": "04ec002e370fe5cc84daf442b481671f"
+    "mtime": 1789412259.4147682,
+    "seen": 1789413376.444314,
+    "ast_hash": "933d16f17f0c2d58ea041fbfefd0419f",
+    "semantic_hash": "933d16f17f0c2d58ea041fbfefd0419f"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/CommonConfig.java": {
     "mtime": 1778354916.7055876,
@@ -1482,16 +1482,16 @@
     "semantic_hash": "22bea83a229a0fb238e6d9eebba09b42"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/CommonEvents.java": {
-    "mtime": 1789407729.816119,
-    "seen": 1789408825.5319605,
-    "ast_hash": "9a8a43ab82a43420df1e46303871280f",
-    "semantic_hash": "9a8a43ab82a43420df1e46303871280f"
+    "mtime": 1789412033.9306476,
+    "seen": 1789413376.444314,
+    "ast_hash": "b3a6dcf1119ca76920791ead0d9341f5",
+    "semantic_hash": "b3a6dcf1119ca76920791ead0d9341f5"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/ServerConfig.java": {
-    "mtime": 1778354916.7075872,
-    "seen": 1789405265.801763,
-    "ast_hash": "b08f71e491a8c76ae045c3b15bd65db9",
-    "semantic_hash": "b08f71e491a8c76ae045c3b15bd65db9"
+    "mtime": 1789411805.8937078,
+    "seen": 1789413376.444314,
+    "ast_hash": "b113e46962fe26f3da6205adce3ee4bf",
+    "semantic_hash": "b113e46962fe26f3da6205adce3ee4bf"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/SophisticatedBuilding.java": {
     "mtime": 1778354916.7085874,
@@ -1512,10 +1512,10 @@
     "semantic_hash": "3a82e64db6daf7e531fe562275d4e676"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/attachment/PowerLevel.java": {
-    "mtime": 1778354916.7105877,
-    "seen": 1789405265.801763,
-    "ast_hash": "e82993e754fcfac83200e5390bf39729",
-    "semantic_hash": "e82993e754fcfac83200e5390bf39729"
+    "mtime": 1789411816.341525,
+    "seen": 1789413376.4453137,
+    "ast_hash": "0bb61e3cef254fd88b392956a05c705a",
+    "semantic_hash": "0bb61e3cef254fd88b392956a05c705a"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/buildmode/BaseBuildMode.java": {
     "mtime": 1778354916.7105877,
@@ -1536,10 +1536,10 @@
     "semantic_hash": "5e970ecb93a85bbb90f9839e42e442c3"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/buildmode/BuildModes.java": {
-    "mtime": 1789406679.1450486,
-    "seen": 1789408825.5324829,
-    "ast_hash": "70ba92b7e223cb4b71fe123dfa0efa05",
-    "semantic_hash": "70ba92b7e223cb4b71fe123dfa0efa05"
+    "mtime": 1789412236.4977825,
+    "seen": 1789413376.446315,
+    "ast_hash": "5323104fd61a9044cc73a06edf73258b",
+    "semantic_hash": "5323104fd61a9044cc73a06edf73258b"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/buildmode/IBuildMode.java": {
     "mtime": 1778354916.712588,
@@ -1944,10 +1944,10 @@
     "semantic_hash": "f0d9c69daee060b1a01c410bd381ec14"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/create/foundation/utility/BlockHelper.java": {
-    "mtime": 1778354916.752587,
-    "seen": 1789405265.801763,
-    "ast_hash": "8f7f7ad60b0aba201106b64139136699",
-    "semantic_hash": "8f7f7ad60b0aba201106b64139136699"
+    "mtime": 1789411852.5793254,
+    "seen": 1789413376.4578304,
+    "ast_hash": "315de4e6f3d2020d96836fc810ee2453",
+    "semantic_hash": "315de4e6f3d2020d96836fc810ee2453"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/create/foundation/utility/CameraAngleAnimationService.java": {
     "mtime": 1778354916.753587,
@@ -2328,10 +2328,10 @@
     "semantic_hash": "204e7b95c1507b1eece6c41d79ac45db"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/network/PacketHandler.java": {
-    "mtime": 1789407689.307749,
-    "seen": 1789408825.5324829,
-    "ast_hash": "e8225fb49b056dd356a8ee80ec16d463",
-    "semantic_hash": "e8225fb49b056dd356a8ee80ec16d463"
+    "mtime": 1789411958.1145096,
+    "seen": 1789413376.467485,
+    "ast_hash": "1e2ae7b693733d0da4563e2ff01ffcab",
+    "semantic_hash": "1e2ae7b693733d0da4563e2ff01ffcab"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/network/message/BackpackItemCountPacket.java": {
     "mtime": 1778354916.7895877,
@@ -2412,10 +2412,10 @@
     "semantic_hash": "f1113d072962b729ec2c6f6a5c6a1745"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/render/BlockPreviews.java": {
-    "mtime": 1778354916.796587,
-    "seen": 1789405265.8027728,
-    "ast_hash": "10301dd299706e5fc6948637eb811f0b",
-    "semantic_hash": "10301dd299706e5fc6948637eb811f0b"
+    "mtime": 1789412181.345619,
+    "seen": 1789413376.4684849,
+    "ast_hash": "4e3ec6ffbc139232a766bf50ca11394d",
+    "semantic_hash": "4e3ec6ffbc139232a766bf50ca11394d"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/render/BuildRenderTypes.java": {
     "mtime": 1778354916.7975874,
@@ -2436,10 +2436,10 @@
     "semantic_hash": "43ea5f56eda0d34eb0233b5bae375b12"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/render/RenderHandler.java": {
-    "mtime": 1778354916.7985876,
-    "seen": 1789405265.8027728,
-    "ast_hash": "dcef9a0454df5e94448e5744dbe2d48f",
-    "semantic_hash": "dcef9a0454df5e94448e5744dbe2d48f"
+    "mtime": 1789412930.7114918,
+    "seen": 1789413376.4699874,
+    "ast_hash": "3eb0c0c18ec709aae43fa30d2ed8d527",
+    "semantic_hash": "3eb0c0c18ec709aae43fa30d2ed8d527"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/systems/BuildSettings.java": {
     "mtime": 1778354916.7995875,
@@ -2448,10 +2448,10 @@
     "semantic_hash": "38dfb39408891d16a50c04cd3c9d7c41"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/systems/BuilderChain.java": {
-    "mtime": 1778355061.8846776,
-    "seen": 1789405265.8027728,
-    "ast_hash": "26a53d1ab1f2ce4376f1c7b5460607db",
-    "semantic_hash": "26a53d1ab1f2ce4376f1c7b5460607db"
+    "mtime": 1789412919.2663143,
+    "seen": 1789413376.4699874,
+    "ast_hash": "d3a2f9944206a14e2d337707a26157d3",
+    "semantic_hash": "d3a2f9944206a14e2d337707a26157d3"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/systems/BuilderFilter.java": {
     "mtime": 1778354916.8015869,
@@ -2466,10 +2466,10 @@
     "semantic_hash": "61396a2642f20e8f669e5bdde2a1761f"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/systems/ServerBlockPlacer.java": {
-    "mtime": 1778354916.8025875,
-    "seen": 1789405265.8027728,
-    "ast_hash": "f22eca2b82d207de998c1766546a7319",
-    "semantic_hash": "f22eca2b82d207de998c1766546a7319"
+    "mtime": 1789412095.3940022,
+    "seen": 1789413376.4699874,
+    "ast_hash": "3512305a12ab3d164734dfb4a59a988d",
+    "semantic_hash": "3512305a12ab3d164734dfb4a59a988d"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/systems/ServerBuildState.java": {
     "mtime": 1778354916.8025875,
@@ -2490,10 +2490,10 @@
     "semantic_hash": "abe4f6fdd0479907ee427afdfdaef5df"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/utilities/BlockPlacerHelper.java": {
-    "mtime": 1778354916.8045874,
-    "seen": 1789405265.8027728,
-    "ast_hash": "17f27a588e21b63d60bb1b4e974700f3",
-    "semantic_hash": "17f27a588e21b63d60bb1b4e974700f3"
+    "mtime": 1789412109.9171815,
+    "seen": 1789413376.4699874,
+    "ast_hash": "b7ad28cd9ecc1cc518667f62c00fac8c",
+    "semantic_hash": "b7ad28cd9ecc1cc518667f62c00fac8c"
   },
   "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/utilities/BlockSet.java": {
     "mtime": 1778354916.8045874,
@@ -2568,10 +2568,10 @@
     "semantic_hash": "ab5c6a134306853fb5bf04d1f5b1ed4f"
   },
   "Neoforge-21.1.217-1.21.1/src/main/resources/assets/sophisticatedbuilding/lang/en_us.json": {
-    "mtime": 1789407673.4008758,
-    "seen": 1789408825.5324829,
-    "ast_hash": "6145d2c26765681dd3a21f07530837b4",
-    "semantic_hash": "6145d2c26765681dd3a21f07530837b4"
+    "mtime": 1789411972.9225776,
+    "seen": 1789413376.4725053,
+    "ast_hash": "5ab576cd079520e1e62903826cc580b9",
+    "semantic_hash": "5ab576cd079520e1e62903826cc580b9"
   },
   "Neoforge-21.1.217-1.21.1/src/main/resources/assets/sophisticatedbuilding/models/item/building_techniques_book.json": {
     "mtime": 1778354916.8125868,
@@ -3000,45 +3000,111 @@
     "semantic_hash": "febac95cd99149669d7b9ca784578119"
   },
   "ANALYSIS_AND_INSTRUCTIONS/06_REVIEW_CHECKLIST.md": {
-    "mtime": 1789405560.728039,
-    "seen": 1789408825.5324829,
-    "ast_hash": "b547edda944612cf7665414b30fc6263",
-    "semantic_hash": "b547edda944612cf7665414b30fc6263"
+    "mtime": 1789410467.953332,
+    "seen": 1789413376.4780848,
+    "ast_hash": "c431d3d999976b991cb5181f59ff5e8c",
+    "semantic_hash": "c431d3d999976b991cb5181f59ff5e8c"
   },
   "ANALYSIS_AND_INSTRUCTIONS/07_SESSION_LOG.md": {
-    "mtime": 1789408103.8553429,
-    "seen": 1789408825.5324829,
-    "ast_hash": "5594d002c2a8a1c28ee88f38bc860652",
-    "semantic_hash": "5594d002c2a8a1c28ee88f38bc860652"
+    "mtime": 1789412992.4616048,
+    "seen": 1789413376.4780848,
+    "ast_hash": "7bfad8cada8325d57d549ecb660fb3b0",
+    "semantic_hash": "7bfad8cada8325d57d549ecb660fb3b0"
   },
   "ANALYSIS_AND_INSTRUCTIONS/README.md": {
-    "mtime": 1789405289.4233384,
-    "seen": 1789408825.5324829,
-    "ast_hash": "79b7115dfff8c953b42f22333b0a5268",
-    "semantic_hash": "79b7115dfff8c953b42f22333b0a5268"
+    "mtime": 1789410452.6256716,
+    "seen": 1789413376.4780848,
+    "ast_hash": "70cd2ebeb714cf75f8f990df2c992b4e",
+    "semantic_hash": "70cd2ebeb714cf75f8f990df2c992b4e"
   },
   "ExportedJars/PATCH_NOTES_4.1.0.md": {
-    "mtime": 1789407863.2898715,
-    "seen": 1789408825.5324829,
-    "ast_hash": "4d15fa65dd77425157c9c09aeeae0904",
-    "semantic_hash": "4d15fa65dd77425157c9c09aeeae0904"
+    "mtime": 1789412347.9424992,
+    "seen": 1789413376.4780848,
+    "ast_hash": "15049dfcead397a0916bc3996e3be8ba",
+    "semantic_hash": "15049dfcead397a0916bc3996e3be8ba"
   },
   "PATCH_NOTES_4.1.0.md": {
-    "mtime": 1789407863.2898715,
-    "seen": 1789408825.5324829,
-    "ast_hash": "4d15fa65dd77425157c9c09aeeae0904",
-    "semantic_hash": "4d15fa65dd77425157c9c09aeeae0904"
+    "mtime": 1789412347.9424992,
+    "seen": 1789413376.4780848,
+    "ast_hash": "15049dfcead397a0916bc3996e3be8ba",
+    "semantic_hash": "15049dfcead397a0916bc3996e3be8ba"
   },
-  "Fabric-0.18.6-1.21.1/src/main/resources/assets/sophisticatedbuilding/sounds/build_click.ogg": {
-    "mtime": 1775254489.588519,
-    "seen": 1789408825.5324829,
-    "ast_hash": "ceb757d736678f38d305400988067566",
-    "semantic_hash": "ceb757d736678f38d305400988067566"
+  "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/client/ClientBackpackToolCache.java": {
+    "mtime": 1789410988.4742954,
+    "seen": 1789413376.421728,
+    "ast_hash": "6f3122871bbafb9d179fd121af1cc10d",
+    "semantic_hash": "6f3122871bbafb9d179fd121af1cc10d"
   },
-  "Neoforge-21.1.217-1.21.1/src/main/resources/assets/sophisticatedbuilding/sounds/build_click.ogg": {
-    "mtime": 1778354916.821587,
-    "seen": 1789408825.5324829,
-    "ast_hash": "ceb757d736678f38d305400988067566",
-    "semantic_hash": "ceb757d736678f38d305400988067566"
+  "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/integration/ToolSwapperIntegration.java": {
+    "mtime": 1789410969.5833738,
+    "seen": 1789413376.4317694,
+    "ast_hash": "b36e29e401d6379a465b03c1c0c9815e",
+    "semantic_hash": "b36e29e401d6379a465b03c1c0c9815e"
+  },
+  "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/network/message/BackpackToolsPacket.java": {
+    "mtime": 1789411262.6489286,
+    "seen": 1789413376.4337752,
+    "ast_hash": "524e050281478eaa969090cd95667daa",
+    "semantic_hash": "524e050281478eaa969090cd95667daa"
+  },
+  "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/utilities/BreakToolHelper.java": {
+    "mtime": 1789412823.7393808,
+    "seen": 1789413376.4362826,
+    "ast_hash": "e9efe5b839f8627cff768d7ecb1fa06e",
+    "semantic_hash": "e9efe5b839f8627cff768d7ecb1fa06e"
+  },
+  "Fabric-0.18.6-1.21.1/src/main/java/sophisticated/building/utilities/ToolSelector.java": {
+    "mtime": 1789410594.8364885,
+    "seen": 1789413376.4372833,
+    "ast_hash": "08953945200d033481c7b944fd73016f",
+    "semantic_hash": "08953945200d033481c7b944fd73016f"
+  },
+  "Fabric-0.18.6-1.21.1/src/test/java/sophisticated/building/ToolSelectorTest.java": {
+    "mtime": 1789410608.7860217,
+    "seen": 1789413376.4417899,
+    "ast_hash": "89579e91bee73bb763f5d7e87ef62c7a",
+    "semantic_hash": "89579e91bee73bb763f5d7e87ef62c7a"
+  },
+  "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/client/ClientBackpackToolCache.java": {
+    "mtime": 1789411877.2824023,
+    "seen": 1789413376.451315,
+    "ast_hash": "6f3122871bbafb9d179fd121af1cc10d",
+    "semantic_hash": "6f3122871bbafb9d179fd121af1cc10d"
+  },
+  "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/integration/ToolSwapperIntegration.java": {
+    "mtime": 1789411913.3669567,
+    "seen": 1789413376.465486,
+    "ast_hash": "176c391e9cd6d8f8c071c159d72b0160",
+    "semantic_hash": "176c391e9cd6d8f8c071c159d72b0160"
+  },
+  "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/network/message/BackpackToolsPacket.java": {
+    "mtime": 1789411947.9315856,
+    "seen": 1789413376.467485,
+    "ast_hash": "9e2ffe02efc44586a3e22d032633a22a",
+    "semantic_hash": "9e2ffe02efc44586a3e22d032633a22a"
+  },
+  "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/utilities/BreakToolHelper.java": {
+    "mtime": 1789412894.09809,
+    "seen": 1789413376.4699874,
+    "ast_hash": "e9efe5b839f8627cff768d7ecb1fa06e",
+    "semantic_hash": "e9efe5b839f8627cff768d7ecb1fa06e"
+  },
+  "Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/utilities/ToolSelector.java": {
+    "mtime": 1789411822.6103363,
+    "seen": 1789413376.4725053,
+    "ast_hash": "08953945200d033481c7b944fd73016f",
+    "semantic_hash": "08953945200d033481c7b944fd73016f"
+  },
+  "ANALYSIS_AND_INSTRUCTIONS/08_SURVIVAL_BREAKING_ANALYSIS.md": {
+    "mtime": 1789410332.8811712,
+    "seen": 1789413376.4780848,
+    "ast_hash": "fe8f855245bb0514a8d84ab2626ca17b",
+    "semantic_hash": "fe8f855245bb0514a8d84ab2626ca17b"
+  },
+  "ANALYSIS_AND_INSTRUCTIONS/09_SURVIVAL_BREAKING_TASKS.md": {
+    "mtime": 1789410445.323168,
+    "seen": 1789413376.4780848,
+    "ast_hash": "a16317fa474d355e0ba323dd3dfbee33",
+    "semantic_hash": "a16317fa474d355e0ba323dd3dfbee33"
   }
 }

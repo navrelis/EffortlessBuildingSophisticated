@@ -652,3 +652,40 @@ Check: `.\gradlew.bat build --no-daemon` → **BUILD SUCCESSFUL** on both projec
 before the corrections — none of the four fixes touch tested code paths).
 Re-ran `rebuild_all_and_export_jar.ps1` and re-copied the Fabric jar into
 `DevInstance_Fabric/run/mods/`.
+
+## 2026-09-14 (evening) - Review of the survival-breaking implementation and graph refresh (Fable)
+
+Reviewed every commit d6f7155..e12ff63 against 06_REVIEW_CHECKLIST.md by reading the diffs, not
+the summary. Re-ran `gradlew build` on both projects myself (Fabric BUILD SUCCESSFUL, 17/17 JUnit
+tests green read from the XML; NeoForge BUILD SUCCESSFUL, 4.1.0 jar produced). Verified with
+`diff` that ToolSelector.java and BreakToolHelper.java are byte-identical across loaders and that
+the only cross-loader difference in ToolSwapperIntegration is getSlotCount()/getSlots().
+
+Findings sent back as one correction round (commit e12ff63):
+- C1 (bug): BuilderChain.onLeftClick read the stale blocks.skipFirst flag (assigned only later,
+  never reset by setStartPos/clear) and could double-subtract an invalid first entry, so a valid
+  Disable-mode mirror break could be refused as "nothing breakable". Fixed with a local skipFirst
+  and an explicit per-entry count.
+- C2: planClient now takes a skipPos so the client HUD/delay skip the vanilla-handled first block
+  in Disable mode, matching the server.
+- C3: the breaking HUD uses the pretend building state so SINGLE-mode survival players see the
+  tool/barrier icons just by looking at a block.
+- C4: the client backpack-tool snapshot is taken once per collectCandidates call.
+Accepted deviations: NeoForge ServerConfig uses a real ModConfigSpec section (file-backed there);
+ClientBackpackToolCache created in T-S2 instead of T-S4; planClient takes Iterable.
+
+Not verified in-game (no interactive client run was possible here): the visual HUD/outline
+behaviour and the feel of the mining delay. Recommended first in-game check on the Nytheria
+instance: survival, pickaxe in hotbar, Wall mode on stone -> red outline, delay <= 2 s, drops in
+inventory, pickaxe durability down by the block count; then obsidian with an iron pickaxe -> grey
+outline + barrier count; then a backpack with Tool Swapper + pickaxe inside, empty hotbar.
+
+Knowledge graph: the working tree had an uncommitted auto-labelled re-cluster of graphify-out
+(203 raw-class-name communities, produced by a plain `graphify update .` CLI run at 20:04); it was
+moved to the session scratchpad and the committed curated graph restored as the base. Incremental
+update (39 code files re-extracted by AST, 7 docs by one extraction subagent, images excluded as
+before): 5016 nodes, 13668 edges, 199 communities; 19 new communities labelled by hand. Health:
+0 dangling/missing edges, 59 self-loops (Java AST artefact). graph.html is now the aggregated
+community view because the graph exceeds 5000 nodes (node-level detail: `--obsidian`).
+Note for re-runs: the `graphify` CLI is not on PATH in the Bash tool; use
+`$(cat graphify-out/.graphify_python) -m graphify export html`.
