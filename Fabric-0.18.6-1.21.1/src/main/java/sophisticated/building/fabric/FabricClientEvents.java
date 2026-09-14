@@ -3,6 +3,7 @@ package sophisticated.building.fabric;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
@@ -12,6 +13,8 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.SophisticatedBuildingClient;
+import sophisticated.building.client.ClientBackpackItemCache;
+import sophisticated.building.client.ClientBuildingUpgradeState;
 import sophisticated.building.client.gui.MaterialCostOverlay;
 import sophisticated.building.compatibility.CompatHelper;
 import sophisticated.building.gui.DiamondRandomizerBagScreen;
@@ -35,6 +38,11 @@ public final class FabricClientEvents {
         registerMenuScreens();
         registerLifecycleEvents();
         registerRenderEvents();
+
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+            ClientBackpackItemCache.clear();
+            ClientBuildingUpgradeState.clear();
+        });
     }
 
     private static void registerKeyMappings() {
@@ -62,7 +70,10 @@ public final class FabricClientEvents {
 
             Screen currentScreen = client.screen;
             if (currentScreen != lastScreen) {
-                if (currentScreen != null) {
+                // Opening the radial menu must not cancel an in-progress build (F2): the player may
+                // be switching an option (fill, thickness, ...) mid-build, or undoing/redoing.
+                // BuildModes.setBuildMode cancels the chain when the build mode itself changes.
+                if (currentScreen != null && !(currentScreen instanceof sophisticated.building.gui.buildmode.RadialMenu)) {
                     ClientEvents.onGuiOpen();
                 }
                 lastScreen = currentScreen;

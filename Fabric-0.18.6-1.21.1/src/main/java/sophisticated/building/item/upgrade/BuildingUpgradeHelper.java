@@ -178,8 +178,15 @@ public class BuildingUpgradeHelper {
         return result;
     }
 
+    /**
+     * @deprecated kept only for source compatibility; returns the same unclamped total as
+     * {@link #countBlockInBackpacksForDisplay(Player, ItemStack)}. All server-&gt;client count
+     * packets now carry the unclamped total; the client clamps with the tier/maxBlocks it was sent
+     * via {@code BuildingUpgradeStatePacket} (RC2).
+     */
+    @Deprecated
     public static int countBlockInBackpack(Player player, ItemStack blockItem) {
-        return countBlockInBackpackClamped(player, blockItem);
+        return countBlockInBackpacksForDisplay(player, blockItem);
     }
 
     public static int countBlockInBackpacksForDisplay(Player player, ItemStack blockItem) {
@@ -191,18 +198,8 @@ public class BuildingUpgradeHelper {
         return total;
     }
 
-    public static int countBlockInBackpackClamped(Player player, ItemStack blockItem) {
-        BuildingUpgradeWrapper wrapper = findBestBuildingUpgrade(player);
-        if (wrapper == null) {
-            return 0;
-        }
-        int realCount = wrapper.countItem(blockItem);
-        int maxBlocks = getEffectiveMaxBlocks(wrapper);
-        return Math.min(realCount, maxBlocks);
-    }
-
     public static void syncItemCount(ServerPlayer player, Item item) {
-        int count = countBlockInBackpackClamped(player, new ItemStack(item));
+        int count = countBlockInBackpacksForDisplay(player, new ItemStack(item));
         ServerPlayNetworking.send(player, new BackpackItemCountPacket(
                 BuiltInRegistries.ITEM.getKey(item),
                 count

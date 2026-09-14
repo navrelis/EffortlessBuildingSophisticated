@@ -26,6 +26,7 @@ import sophisticated.building.inventory.IItemHandler;
 import sophisticated.building.item.AbstractRandomizerBagItem;
 import sophisticated.building.item.upgrade.BuildingUpgradeHelper;
 import sophisticated.building.network.message.BackpackItemCountPacket;
+import sophisticated.building.network.message.BuildingUpgradeStatePacket;
 import sophisticated.building.network.message.ModifierSettingsPacket;
 import sophisticated.building.network.message.PowerLevelPacket;
 import sophisticated.building.systems.ServerBuildState;
@@ -41,6 +42,7 @@ import java.util.UUID;
 public final class FabricCommonEvents {
     private static final Map<UUID, ItemStack> LAST_MAIN_HAND = new HashMap<>();
     private static final Map<UUID, Map<Item, Integer>> LAST_BACKPACK_COUNTS = new HashMap<>();
+    private static final Map<UUID, int[]> LAST_UPGRADE_STATE = new HashMap<>();
 
     private FabricCommonEvents() {
     }
@@ -59,6 +61,7 @@ public final class FabricCommonEvents {
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             LAST_MAIN_HAND.clear();
             LAST_BACKPACK_COUNTS.clear();
+            LAST_UPGRADE_STATE.clear();
         });
 
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
@@ -93,6 +96,8 @@ public final class FabricCommonEvents {
 
             PowerLevel powerLevel = AttachmentHandler.getOrCreatePowerLevel(player);
             ServerPlayNetworking.send(player, new PowerLevelPacket(powerLevel.getPowerLevel()));
+
+            sendBuildingUpgradeState(player, true);
         });
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
@@ -100,6 +105,7 @@ public final class FabricCommonEvents {
             SophisticatedBuilding.UNDO_REDO.clear(player);
             LAST_MAIN_HAND.remove(player.getUUID());
             LAST_BACKPACK_COUNTS.remove(player.getUUID());
+            LAST_UPGRADE_STATE.remove(player.getUUID());
         });
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
@@ -107,12 +113,16 @@ public final class FabricCommonEvents {
             if (AttachmentHandler.hasPowerLevel(oldPlayer)) {
                 AttachmentHandler.setPowerLevel(newPlayer, AttachmentHandler.getOrCreatePowerLevel(oldPlayer));
             }
+            LAST_UPGRADE_STATE.remove(oldPlayer.getUUID());
+            sendBuildingUpgradeState(newPlayer, true);
         });
 
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> {
             SophisticatedBuilding.UNDO_REDO.clear(player);
             PowerLevel powerLevel = AttachmentHandler.getOrCreatePowerLevel(player);
             ServerPlayNetworking.send(player, new PowerLevelPacket(powerLevel.getPowerLevel()));
+
+            sendBuildingUpgradeState(player, true);
         });
     }
 
@@ -126,6 +136,36 @@ public final class FabricCommonEvents {
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             syncOnHeldItemChange(player);
             syncPeriodicBackpackCounts(player);
+            if (player.tickCount % 10 == 0) {
+                sendBuildingUpgradeState(player, false);
+            }
+        }
+    }
+
+    /**
+     * Sends the player's current Building Upgrade tier/maxBlocks to the client (RC2). Sent
+     * unconditionally on join/respawn/dimension change ({@code force}); from the periodic tick it
+     * is only sent when the (tier, maxBlocks) pair differs from the last value sent to that
+     * player.
+     */
+    private static void sendBuildingUpgradeState(ServerPlayer player, boolean force) {
+        if (!CompatHelper.isSophisticatedBackpacksLoaded()) {
+            return;
+        }
+
+        try {
+            int tier = BuildingUpgradeHelper.getBuildingUpgradeTier(player);
+            int maxBlocks = BuildingUpgradeHelper.getMaxBlocksForPlayer(player);
+
+            int[] last = LAST_UPGRADE_STATE.get(player.getUUID());
+            if (!force && last != null && last[0] == tier && last[1] == maxBlocks) {
+                return;
+            }
+
+            LAST_UPGRADE_STATE.put(player.getUUID(), new int[] { tier, maxBlocks });
+            ServerPlayNetworking.send(player, new BuildingUpgradeStatePacket(tier, maxBlocks));
+        } catch (NoClassDefFoundError ignored) {
+            // Optional SophisticatedBackpacks integration missing.
         }
     }
 

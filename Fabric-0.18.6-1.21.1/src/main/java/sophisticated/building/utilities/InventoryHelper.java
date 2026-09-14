@@ -10,23 +10,36 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.compatibility.CompatHelper;
 import sophisticated.building.client.ClientBackpackItemCache;
+import sophisticated.building.client.ClientBuildingUpgradeState;
 
 import java.util.Map;
 
 public class InventoryHelper {
 
+	/**
+	 * The number of blocks of an effective backpack limit that must be kept in the player's
+	 * clamped total, out of the block(s) already physically held, as the build anchor. Client uses
+	 * the server-synced {@link ClientBuildingUpgradeState}; server uses the authoritative helper
+	 * directly. Neither side ever constructs a backpack/upgrade wrapper on the client (RC2).
+	 */
 	private static int getReservedHeldCount(Player player, Item item) {
 		if (!CompatHelper.isSophisticatedBackpacksLoaded()) {
 			return 0;
 		}
 
-		try {
-			int maxFromUpgrade = sophisticated.building.item.upgrade.BuildingUpgradeHelper.getEffectiveMaxBlocksForPlayer(
-					player, new ItemStack(item));
-			if (maxFromUpgrade <= 0) {
+		boolean hasUpgrade;
+		if (player.level().isClientSide()) {
+			hasUpgrade = ClientBuildingUpgradeState.hasUpgrade();
+		} else {
+			try {
+				hasUpgrade = sophisticated.building.item.upgrade.BuildingUpgradeHelper.getEffectiveMaxBlocksForPlayer(
+						player, new ItemStack(item)) > 0;
+			} catch (Exception e) {
 				return 0;
 			}
-		} catch (Exception e) {
+		}
+
+		if (!hasUpgrade) {
 			return 0;
 		}
 
@@ -37,6 +50,17 @@ public class InventoryHelper {
 		}
 
 		return 0;
+	}
+
+	/**
+	 * Clamps a backpack's raw item count to the Building Upgrade's effective max-blocks limit.
+	 * Pure and side-effect free so it can be unit-tested directly (T7).
+	 */
+	public static int clampedBackpackContribution(int backpackCount, int maxBlocks) {
+		if (maxBlocks <= 0) {
+			return 0;
+		}
+		return Math.min(backpackCount, maxBlocks);
 	}
 
 	private static void forceResyncSelectedSlot(Player player, Item item, int selectedSlot) {
@@ -119,14 +143,21 @@ public class InventoryHelper {
 		}
 
 		// Backpack items are clamped by effective upgrade limit so usage checks/hud stay accurate.
-		if (CompatHelper.isSophisticatedBackpacksLoaded()) {
+		// Client: never inspect a backpack wrapper locally, use only the server-synced cache/state
+		// (RC2). Server: the authoritative helper.
+		if (player.level().isClientSide()) {
+			if (ClientBuildingUpgradeState.hasUpgrade()) {
+				int backpackCount = ClientBackpackItemCache.getCount(item);
+				total += clampedBackpackContribution(backpackCount, ClientBuildingUpgradeState.getMaxBlocks());
+			}
+		} else if (CompatHelper.isSophisticatedBackpacksLoaded()) {
 			try {
 				int maxFromUpgrade = sophisticated.building.item.upgrade.BuildingUpgradeHelper.getEffectiveMaxBlocksForPlayer(
 						player, new ItemStack(item));
 				if (maxFromUpgrade > 0) {
 					int backpackCount = sophisticated.building.item.upgrade.BuildingUpgradeHelper.countBlockInBackpacksForDisplay(
 							player, new ItemStack(item));
-					total += Math.min(backpackCount, maxFromUpgrade);
+					total += clampedBackpackContribution(backpackCount, maxFromUpgrade);
 				}
 			} catch (Exception e) {
 				// SophisticatedBackpacks not loaded or error occurred
