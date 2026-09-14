@@ -8,12 +8,14 @@ import java.util.List;
 import static net.neoforged.neoforge.common.ModConfigSpec.BooleanValue;
 import static net.neoforged.neoforge.common.ModConfigSpec.Builder;
 import static net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
+import static net.neoforged.neoforge.common.ModConfigSpec.DoubleValue;
 import static net.neoforged.neoforge.common.ModConfigSpec.IntValue;
 
 public class ServerConfig {
     private static final Builder builder = new Builder();
     public static final Validation validation = new Validation(builder);
     public static final Memory memory = new Memory(builder);
+    public static final SurvivalBreaking survivalBreaking = new SurvivalBreaking(builder);
     public static final ModConfigSpec spec = builder.build();
 
     public static class Validation {
@@ -55,6 +57,35 @@ public class ServerConfig {
                     .comment("How many sets of blocks are remembered for the undo functionality, per player.")
                     .worldRestart()
                     .defineInRange("undoStackSize", 50, 10, 200);
+
+            builder.pop();
+        }
+    }
+
+    public static class SurvivalBreaking {
+        public final BooleanValue enabled;
+        public final BooleanValue stopBeforeToolBreaks;
+        public final IntValue maxDelayTicks;
+        public final DoubleValue exhaustionPerBlock;
+
+        public SurvivalBreaking(Builder builder) {
+            builder.push("SurvivalBreaking");
+
+            enabled = builder
+                    .comment("Allow build-mode mass breaking for survival players (creative players can always use it).")
+                    .define("enabled", true);
+
+            stopBeforeToolBreaks = builder
+                    .comment("Skip a candidate tool once it has 1 use left, so the mod never breaks your tool.")
+                    .define("stopBeforeToolBreaks", true);
+
+            maxDelayTicks = builder
+                    .comment("Maximum mining delay (in ticks) for one survival break operation.")
+                    .defineInRange("maxDelayTicks", 40, 0, 1200);
+
+            exhaustionPerBlock = builder
+                    .comment("Hunger exhaustion applied per block broken in survival, like vanilla mining.")
+                    .defineInRange("exhaustionPerBlock", 0.005, 0.0, 1.0);
 
             builder.pop();
         }

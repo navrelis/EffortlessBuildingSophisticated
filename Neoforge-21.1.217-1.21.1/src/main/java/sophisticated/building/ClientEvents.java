@@ -18,6 +18,7 @@ import net.neoforged.neoforge.client.settings.KeyModifier;
 import sophisticated.building.attachment.AttachmentHandler;
 import sophisticated.building.buildmode.BuildModeEnum;
 import sophisticated.building.client.ClientBackpackItemCache;
+import sophisticated.building.client.ClientBackpackToolCache;
 import sophisticated.building.client.ClientBuildingUpgradeState;
 import sophisticated.building.item.upgrade.BuildingUpgradeItem;
 import sophisticated.building.buildmode.ModeOptions;
@@ -217,6 +218,16 @@ public class ClientEvents {
     public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
         ClientBackpackItemCache.clear();
         ClientBuildingUpgradeState.clear();
+        ClientBackpackToolCache.clear();
+    }
+
+    @SubscribeEvent
+    public static void onLoggingIn(ClientPlayerNetworkEvent.LoggingIn event) {
+        try {
+            SophisticatedBuildingClient.BUILD_MODES.resyncToServer();
+        } catch (Exception e) {
+            SophisticatedBuilding.logger.warn("Failed to resync build mode state to the server: {}", e.getMessage());
+        }
     }
 
 }

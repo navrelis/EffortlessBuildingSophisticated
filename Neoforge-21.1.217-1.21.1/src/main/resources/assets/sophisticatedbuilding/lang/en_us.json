@@ -163,11 +163,14 @@
   "sophisticatedbuilding.networking.modifier_settings.failed": "Failed to set modifier settings: %s",
   "sophisticatedbuilding.networking.power_level.failed": "Failed to set player power level: %s",
   "sophisticatedbuilding.networking.building_upgrade_state.failed": "Failed to sync building upgrade state: %s",
+  "sophisticatedbuilding.networking.backpack_tools.failed": "Failed to sync backpack tools: %s",
   "sophisticatedbuilding.networking.translated_log.failed": "Failed to log a translated message: %s",
   "sophisticatedbuilding.gui.upgrade.enabled": "Enabled",
   "sophisticatedbuilding.gui.upgrade.disabled": "Disabled",
   "sophisticatedbuilding.gui.building_upgrade.tab": "Building Upgrade",
   "sophisticatedbuilding.gui.building_upgrade.info": "Tier %d - up to %d blocks",
-  "sophisticatedbuilding.overlay.total": "Total Blocks: %s"
+  "sophisticatedbuilding.overlay.total": "Total Blocks: %s",
+  "sophisticatedbuilding.message.survival_break_nothing": "No suitable tool for the selected blocks (switch to Disable mode for vanilla mining)",
+  "sophisticatedbuilding.message.survival_break_partial": "Block(s) skipped: no suitable tool"
 }
 

@@ -18,10 +18,13 @@ import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import sophisticated.building.attachment.PowerLevel;
 import sophisticated.building.compatibility.CompatHelper;
+import sophisticated.building.integration.ToolSwapperIntegration;
 import sophisticated.building.item.upgrade.BuildingUpgradeItem;
+import sophisticated.building.network.message.BackpackToolsPacket;
 import sophisticated.building.network.message.ModifierSettingsPacket;
 import sophisticated.building.network.message.PowerLevelPacket;
 import sophisticated.building.systems.ServerBuildState;
+import sophisticated.building.utilities.BreakToolHelper;
 import sophisticated.building.utilities.PowerLevelCommand;
 
 import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
@@ -45,6 +48,7 @@ public class CommonEvents {
 
 	private static final Map<UUID, Map<Item, Integer>> LAST_BACKPACK_COUNTS = new HashMap<>();
 	private static final Map<UUID, int[]> LAST_UPGRADE_STATE = new HashMap<>();
+	private static final Map<UUID, List<String>> LAST_BACKPACK_TOOLS = new HashMap<>();
 
 	/**
 	 * Sends the player's current Building Upgrade tier/maxBlocks to the client (RC2). Sent
@@ -70,6 +74,40 @@ public class CommonEvents {
 			PacketDistributor.sendToPlayer(player, new BuildingUpgradeStatePacket(tier, maxBlocks));
 		} catch (NoClassDefFoundError ignored) {
 			// Optional SophisticatedBackpacks integration missing.
+		}
+	}
+
+	/**
+	 * Sends the tools found inside an enabled Tool Swapper / Advanced Tool Swapper backpack
+	 * upgrade to the client, for the survival-breaking preview/HUD (T-S4/T-S8). Sent
+	 * unconditionally on join/respawn/dimension change ({@code force}); from the periodic tick it
+	 * is only sent when the fingerprint (item id + damage + count per tool, in order) differs from
+	 * the last value sent to that player.
+	 */
+	private static void sendBackpackTools(ServerPlayer player, boolean force) {
+		if (!CompatHelper.isSophisticatedBackpacksLoaded()) {
+			return;
+		}
+
+		try {
+			List<BreakToolHelper.ToolSlot> slots = ToolSwapperIntegration.collectBackpackTools(player);
+			List<ItemStack> tools = new java.util.ArrayList<>(slots.size());
+			List<String> fingerprint = new java.util.ArrayList<>(slots.size());
+			for (BreakToolHelper.ToolSlot slot : slots) {
+				ItemStack stack = slot.get().copy();
+				tools.add(stack);
+				fingerprint.add(BuiltInRegistries.ITEM.getKey(stack.getItem()) + "#" + stack.getDamageValue() + "#" + stack.getCount());
+			}
+
+			List<String> last = LAST_BACKPACK_TOOLS.get(player.getUUID());
+			if (!force && fingerprint.equals(last)) {
+				return;
+			}
+
+			LAST_BACKPACK_TOOLS.put(player.getUUID(), fingerprint);
+			PacketDistributor.sendToPlayer(player, new BackpackToolsPacket(tools));
+		} catch (Exception | NoClassDefFoundError e) {
+			SophisticatedBuilding.logger.debug("Error syncing backpack tools: {}", e.getMessage());
 		}
 	}
 
@@ -138,6 +176,11 @@ public class CommonEvents {
 		//Don't cancel event if our custom logic is breaking blocks
 		if (SophisticatedBuilding.SERVER_BLOCK_PLACER.isPlacingOrBreakingBlocks()) return;
 
+		// canBreakFar() now also returns true for survival players when survival breaking is
+		// enabled (see PowerLevel.canBreakFar / ServerConfig.survivalBreaking), so vanilla mining
+		// is cancelled here for survival players with a build mode active too, exactly like it
+		// already was for creative - build-mode breaking replaces vanilla mining while a build
+		// mode is on; switching to Disable mode restores vanilla (design decision D5).
 		PowerLevel powerLevel = player.getData(SophisticatedBuilding.POWER_LEVEL);
 		if (!ServerBuildState.isLikeVanilla(player) && powerLevel.canBreakFar(player)) {
 			event.setCanceled(true);
@@ -164,6 +207,7 @@ public class CommonEvents {
 		((ServerPlayer)player).connection.send(new PowerLevelPacket(powerLevel.getPowerLevel()));
 
 		sendBuildingUpgradeState((ServerPlayer) player, true);
+		sendBackpackTools((ServerPlayer) player, true);
 	}
 
 	@SubscribeEvent
@@ -257,6 +301,7 @@ public class CommonEvents {
 			lastCounts.keySet().removeIf(item -> !itemsToSync.contains(item));
 
 			sendBuildingUpgradeState(serverPlayer, false);
+			sendBackpackTools(serverPlayer, false);
 		} catch (NoClassDefFoundError ignored) {
 			// SophisticatedCore not available
 		}
@@ -274,6 +319,7 @@ public class CommonEvents {
 		SophisticatedBuilding.UNDO_REDO.clear(player);
 		LAST_BACKPACK_COUNTS.remove(player.getUUID());
 		LAST_UPGRADE_STATE.remove(player.getUUID());
+		LAST_BACKPACK_TOOLS.remove(player.getUUID());
 	}
 
 	@SubscribeEvent
@@ -290,7 +336,9 @@ public class CommonEvents {
 
 		if (player instanceof ServerPlayer serverPlayer) {
 			LAST_UPGRADE_STATE.remove(serverPlayer.getUUID());
+			LAST_BACKPACK_TOOLS.remove(serverPlayer.getUUID());
 			sendBuildingUpgradeState(serverPlayer, true);
+			sendBackpackTools(serverPlayer, true);
 		}
 	}
 
@@ -314,6 +362,7 @@ public class CommonEvents {
 			}
 
 			sendBuildingUpgradeState(serverPlayer, true);
+			sendBackpackTools(serverPlayer, true);
 		}
 
 		//TODO disable build mode and modifiers?

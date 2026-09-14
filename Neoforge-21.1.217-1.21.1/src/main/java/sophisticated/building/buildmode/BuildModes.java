@@ -11,6 +11,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.SophisticatedBuildingClient;
+import sophisticated.building.network.message.IsQuickReplacingPacket;
 import sophisticated.building.network.message.IsUsingBuildModePacket;
 import sophisticated.building.utilities.BlockSet;
 
@@ -61,6 +62,18 @@ public class BuildModes {
 
 	public void onCancel() {
 		getBuildMode().instance.initialize();
+	}
+
+	/**
+	 * Re-sends the client's current build mode (and quick-replace setting) to the server. The
+	 * server's per-UUID {@code ServerBuildState} is session-only and reset on join, but the
+	 * client's {@code buildMode} is a static field that survives leaving a world and is otherwise
+	 * never re-sent - without this, client and server can disagree about whether Disable mode is
+	 * active after a rejoin (see 08_SURVIVAL_BREAKING_ANALYSIS.md section 3). Call on every join.
+	 */
+	public void resyncToServer() {
+		PacketDistributor.sendToServer(new IsUsingBuildModePacket(this.buildMode != BuildModeEnum.DISABLED));
+		PacketDistributor.sendToServer(new IsQuickReplacingPacket(SophisticatedBuildingClient.BUILD_SETTINGS.isQuickReplacing()));
 	}
 
 	//Find coordinates on a line bound by a plane
