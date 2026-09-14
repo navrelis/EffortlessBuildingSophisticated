@@ -165,6 +165,8 @@
   "sophisticatedbuilding.networking.translated_log.failed": "Failed to log a translated message: %s",
   "sophisticatedbuilding.gui.upgrade.enabled": "Enabled",
   "sophisticatedbuilding.gui.upgrade.disabled": "Disabled",
+  "sophisticatedbuilding.gui.building_upgrade.tab": "Building Upgrade",
+  "sophisticatedbuilding.gui.building_upgrade.info": "Tier %d - up to %d blocks",
   "sophisticatedbuilding.overlay.total": "Total Blocks: %s"
 }
 

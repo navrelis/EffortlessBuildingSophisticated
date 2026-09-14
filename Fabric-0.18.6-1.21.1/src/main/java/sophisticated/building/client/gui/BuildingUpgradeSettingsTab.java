@@ -4,6 +4,7 @@ import net.minecraft.network.chat.Component;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeSettingsTab;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinition;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Label;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ToggleButton;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
@@ -28,6 +29,10 @@ public class BuildingUpgradeSettingsTab extends UpgradeSettingsTab<BuildingUpgra
 		addHideableChild(new ToggleButton<>(new Position(x + 3, y + 24), ENABLED_BUTTON,
 				button -> getContainer().setEnabled(!getContainer().isEnabled()),
 				() -> getContainer().isEnabled()));
+
+		var wrapper = getContainer().getUpgradeWrapper();
+		addHideableChild(new Label(new Position(x + 24, y + 27),
+				Component.translatable("sophisticatedbuilding.gui.building_upgrade.info", wrapper.getTier(), wrapper.getMaxBlocks())));
 	}
 
 	@Override

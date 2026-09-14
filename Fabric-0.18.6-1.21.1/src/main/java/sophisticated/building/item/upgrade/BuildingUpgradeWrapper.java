@@ -1,52 +1,15 @@
 package sophisticated.building.item.upgrade;
 
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
 
 import java.util.function.Consumer;
 
-public class BuildingUpgradeWrapper implements IUpgradeWrapper {
-    private final IStorageWrapper storageWrapper;
-    private final ItemStack upgrade;
-    private final BuildingUpgradeItem upgradeItem;
-    private final Consumer<ItemStack> upgradeSaveHandler;
-    private boolean enabled = true;
+public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWrapper, BuildingUpgradeItem> {
 
     public BuildingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
-        this.storageWrapper = storageWrapper;
-        this.upgrade = upgrade;
-        this.upgradeItem = (BuildingUpgradeItem) upgrade.getItem();
-        this.upgradeSaveHandler = upgradeSaveHandler;
-
-        CustomData customData = upgrade.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
-        CompoundTag tag = customData.copyTag();
-        if (tag.contains("enabled")) {
-            this.enabled = tag.getBoolean("enabled");
-        }
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    @Override
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-        CustomData customData = upgrade.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
-        CompoundTag tag = customData.copyTag();
-        tag.putBoolean("enabled", enabled);
-        upgrade.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-        save();
-    }
-
-    @Override
-    public ItemStack getUpgradeStack() {
-        return upgrade;
+        super(storageWrapper, upgrade, upgradeSaveHandler);
     }
 
     public int getTier() {
@@ -137,10 +100,6 @@ public class BuildingUpgradeWrapper implements IUpgradeWrapper {
         }
 
         return false;
-    }
-
-    private void save() {
-        upgradeSaveHandler.accept(upgrade);
     }
 
     @Override
