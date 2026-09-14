@@ -17,6 +17,48 @@
 
 ## Major changes
 
+### Survival mass breaking (Fabric + NeoForge)
+
+The mod could previously only place blocks in bulk; breaking in bulk only worked in Creative. That
+is now fixed:
+
+* **How to break at all:** hold a non-block item (a tool, or nothing) and the crosshair outline
+  turns red instead of the placing outline — left-click to break. Multi-click build modes (Line,
+  Wall, Floor, Fill, Filter, Diagonal Line/Wall...) work exactly the same way for breaking as they
+  already do for placing.
+* **Survival is now supported**, with rules chosen to match vanilla balance:
+  * You need a suitable tool: in your main hand, hotbar, main inventory, offhand, or inside a
+    backpack that has an **enabled Tool Swapper or Advanced Tool Swapper upgrade** whose mode is
+    not "No swap" (Advanced Tool Swapper's item filters are respected).
+  * Durability, drops, and hunger cost are exactly like vanilla mining (`mineBlock`,
+    `Block.getDrops`, `causeFoodExhaustion`). Silk Touch and Fortune apply normally.
+  * A block that requires the correct tool for its drops (e.g. a pickaxe for ore) is only ever
+    broken by a correct tool — a wrong-tier tool skips that block instead of destroying it without
+    its drops.
+  * Tools are never broken by the mod: a damageable tool with 1 use left is skipped in favour of
+    the next candidate.
+  * Unbreakable blocks (bedrock, etc.) are always skipped. Hardness-0 blocks (grass, torches,
+    redstone dust, ...) are broken with the empty hand for free, exactly like vanilla.
+  * A short mining delay applies (up to 2 seconds per operation, scaling with how long vanilla
+    mining would take for the blocks and tools involved) — mass-breaking is not instant in
+    survival. Creative stays instant.
+  * Spawn protection and adventure-mode restrictions are respected; all the existing survival
+    limits (blocks per click/axis, reach by power level, `allowInSurvival`, whitelist, protected
+    tile entities) are unchanged.
+* **HUD:** while breaking in survival, the tools that will be used are shown near the crosshair
+  with the number of blocks each will take; a red barrier icon shows the count of blocks that
+  cannot be broken with anything currently available. Those un-breakable blocks are outlined in
+  grey instead of red in the preview.
+* **Build-mode breaking replaces vanilla mining while a build mode is active** — the mod's rules
+  above apply, in Creative and Survival alike. Switch to **Disable mode** (radial menu or its
+  keybind) for plain vanilla mining/placing.
+
+### Disable mode fix
+
+* Disable mode is now re-synced to the server every time you join a world, so it can no longer get
+  stuck blocking vanilla placing/breaking after a rejoin (the client's Disable/build-mode and
+  quick-replace state used to only be sent when changed in-game, never on join).
+
 ### Building Upgrade actually works now (Fabric + NeoForge)
 
 The Building Upgrade (installed as a Sophisticated Backpacks upgrade item) previously had no
@@ -68,6 +110,14 @@ Root-caused and fixed:
 * Fixed a dev-runtime crash (`NoClassDefFoundError` for `porting_lib` classes,
   `Failed to start the minecraft server`) caused by Sophisticated Core's bundled porting_lib
   jar-in-jar modules not being placed on the runtime classpath.
+
+### Server config
+
+Four new server config keys govern survival breaking (`ServerConfig.survivalBreaking`):
+`enabled` (default `true`), `stopBeforeToolBreaks` (default `true`), `maxDelayTicks` (default
+`40`), `exhaustionPerBlock` (default `0.005`). **Caveat:** on Fabric these are in-memory defaults
+only — Fabric's config loading is not implemented yet, so the values above always apply regardless
+of any config file. On NeoForge they are real, file-backed config options.
 
 ## Update recommendation
 

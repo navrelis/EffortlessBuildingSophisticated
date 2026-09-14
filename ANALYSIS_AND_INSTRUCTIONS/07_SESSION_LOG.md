@@ -389,4 +389,233 @@ Documents written: `08_SURVIVAL_BREAKING_ANALYSIS.md`, `09_SURVIVAL_BREAKING_TAS
 review against the checklist, then rebuild the knowledge graph.
 
 ### Implementer notes – survival breaking
-(to be filled in by the implementing agent)
+
+Executed T-S1 … T-S9 in order on branch `main`, one commit per task, pushed after every commit.
+All commits carry the trailer `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`.
+
+#### Commits (oldest to newest)
+
+| Hash | Subject |
+|------|---------|
+| `d6f7155` | docs: survival breaking analysis and task contract |
+| `427aa06` | feat(survival-break): config and pure tool selector (T-S1) |
+| `36e8956` | feat(survival-break): tool-aware server breaking with Tool Swapper backpack support (T-S2) |
+| `0af04ec` | feat(survival-break): server gate, mining delay and validation (T-S3) |
+| `4d1fda6` | feat(survival-break): sync Tool Swapper backpack tools to the client (T-S4) |
+| `c6c6d04` | feat(survival-break): client plan, preview and HUD (T-S5) |
+| `b1534a1` | fix: resync build mode state to the server on join so Disable mode is always vanilla (T-S6) |
+| `ee1db47` | feat(neoforge): survival breaking parity (T-S8) |
+| (T-S9 commit, see below) | release: 4.1.0 patch notes – survival breaking (T-S9) |
+
+`git log origin/main..main` is empty after the T-S9 commit is pushed — everything above is pushed.
+
+#### T-S1 – Config + pure tool-selection logic (Fabric)
+`ServerConfig.survivalBreaking` added exactly as specified (`enabled`, `stopBeforeToolBreaks`,
+`maxDelayTicks`, `exhaustionPerBlock`, all `SimpleConfigValue`). New
+`utilities/ToolSelector.java` — no Minecraft imports, `select`/`estimateBreakTicks`/`capDelay` as
+specified. `ToolSelectorTest` (6 cases: correct-tool-over-wrong-tier, stopBeforeToolBreaks skip,
+main-hand fallback when no correct-tool required, impossible when no main hand, the four
+`estimateBreakTicks` examples, the two `capDelay` examples).
+Check: `.\gradlew.bat test --no-daemon` → **BUILD SUCCESSFUL**, 17 tests total (11 pre-existing +
+6 new `ToolSelectorTest`), 0 failures (verified via `build/test-results/test/*.xml`
+`tests="n" failures="0" errors="0"` for every suite).
+
+#### T-S2 – BreakToolHelper: candidates, planning, server execution (Fabric)
+New `utilities/BreakToolHelper.java` (`ToolSlot` interface, `isTool`, `collectCandidates`,
+`needFor`, `selectTool`, `estimateBreakTicks`, `BreakPlan`, `planClient`), new
+`integration/ToolSwapperIntegration.java` (imports `net.p3pp3rf1y.*`, guarded per the optional-
+dependency pattern — same try/catch style as `BuildingUpgradeHelper`), `BlockPlacerHelper.breakBlock`
+new 3-arg overload (candidates list; `null`/creative keeps the old empty-hand behaviour),
+`BlockHelper.destroyBlockAs` now passes the real `usedTool` to `spawnAfterBreak` (Silk Touch
+suppresses XP like vanilla) and gained an `state.isAir()` guard.
+Verified the upstream API with `javap` against the Loom-remapped Sophisticated Backpacks/Core jars
+in `.gradle/loom-cache/remapped_mods` before writing the integration class: confirmed
+`ToolSwapperUpgradeWrapper.hideSettingsTab/getFilterLogic/getToolSwapMode`, `ToolSwapMode.NO_SWAP`,
+`UpgradeHandler.getSlotWrappers`, `InventoryHandler.getStackInSlot/setStackInSlot`,
+`PlayerInventoryProvider.runOnBackpacks`, `BackpackWrapper.fromStack` all match 08's claims exactly.
+**Deviation (forward dependency, resolved by creating the class one task early):** T-S2's
+`BreakToolHelper.collectCandidates` needs `client.ClientBackpackToolCache.snapshot()` for the
+client-side candidate branch, but that class was specified for T-S4. Created a minimal
+`ClientBackpackToolCache` (set/snapshot/clear over copies) in T-S2 itself so the file compiles;
+T-S4 only had to wire the sync packet into it, not create it. No behavioural difference from the
+spec — T-S4's own description of the class matches what was created here.
+Check: `.\gradlew.bat build --no-daemon` → **BUILD SUCCESSFUL**.
+
+#### T-S3 – Server gate, delay and validation (Fabric)
+`PowerLevel.canBreakFar` → `instabuild || ServerConfig.survivalBreaking.enabled.get()`.
+`FabricCommonEvents`'s `PlayerBlockBreakEvents.BEFORE` expression left unchanged, comment added
+explaining survival is now included by design (D5). `ServerBlockPlacer.breakBlocks`: creative path
+unchanged (immediate `applyBlockSet`); survival path checks the `enabled` switch, runs
+`checkAndNotifyAllowedToUseMod`/`validateBlockSet`, computes candidates once and a capped delay
+from `estimateBreakTicks` summed over the set (skipping `skipFirst`), then enqueues a
+`DelayedEntry` — no pre-damage, selection happens again at apply time. `applyBlockSet` computes
+candidates once per set for non-creative players and threads them through `applyBlockEntry` →
+`BlockPlacerHelper.breakBlock(player, block, candidates)`; same for `undoBlockEntry` (redo of a
+break). `validateBlockEntry` additionally requires `mayInteract` and `!blockActionRestricted` for
+survival breaks. A survival break set where every entry failed sends the
+`survival_break_nothing` translated message.
+Check: `.\gradlew.bat build --no-daemon` → **BUILD SUCCESSFUL**;
+`grep -n "instabuild" attachment/PowerLevel.java` shows exactly the two expected lines
+(`canBreakFar` with the new expression, `canReplaceBlocks` unchanged).
+
+#### T-S4 – Backpack tool sync packet (Fabric)
+New `network/message/BackpackToolsPacket` (S2C, `ItemStack.OPTIONAL_LIST_STREAM_CODEC.map(...)`,
+id `backpack_tools`) — verified via `javap` against the vanilla `ItemStack` class that
+`OPTIONAL_LIST_STREAM_CODEC` really is `StreamCodec<RegistryFriendlyByteBuf, List<ItemStack>>`
+before writing the codec, and that `PayloadTypeRegistry.playS2C()` is typed for
+`RegistryFriendlyByteBuf` so the codec type lines up. `ClientBackpackToolCache` already existed
+(see T-S2 deviation). `FabricCommonEvents.sendBackpackTools(player, force)` mirrors
+`sendBuildingUpgradeState`'s pattern exactly: a per-player `LAST_BACKPACK_TOOLS` fingerprint map
+(item id + damage + count per tool, in order), sent forced on join/respawn/dimension-change and
+by-fingerprint-diff every 10 ticks, cleared on disconnect and server-stop. Registered the payload
+type and client receiver next to `BuildingUpgradeStatePacket` in `PacketHandler`/
+`PacketHandlerClient`. `ClientBackpackToolCache.clear()` added to the existing
+`ClientPlayConnectionEvents.DISCONNECT` handler in `FabricClientEvents`.
+Check: `.\gradlew.bat build --no-daemon` → **BUILD SUCCESSFUL**.
+
+#### T-S5 – Client: planning, preview, HUD, messages (Fabric)
+`BuilderChain.onTick`: after `filterOnExistingBlockStates`, computes and stores `lastBreakPlan`
+(nullable) via `BreakToolHelper.planClient` when `getPretendBuildingState() == BREAKING &&
+!player.isCreative()`, else clears it. `onLeftClick`: after `onClick` returns true and the set is
+non-empty, in survival re-plans against the final set, counts invalid entries; 0 valid → sends
+`survival_break_nothing`, cancels, returns without sending; some invalid → sends
+`survival_break_partial` (count prefixed since `logTranslate`'s middle argument is a plain
+`I18n.get(key)` with no format placeholders — confirmed by reading `ClientProxy`/`ServerProxy`
+`logTranslate` bodies before choosing prefix-concatenation over a %s in the translation string).
+`BlockPreviews.drawLookAtPreview`'s breaking branch now splits coordinates into a valid (red,
+`thin_checkered`) and an invalid (grey `0.35/0.35/0.35`, texture `thin_checkered`, id
+`firstPos+"-invalid"`/`"single-invalid"`) cluster. `RenderHandler.drawStacks` now also renders in
+`BREAKING` state via a new `drawBreakPlanStacks`: one item stack per tool in `usesPerTool` (count =
+uses, clamped to max stack size) plus a `Items.BARRIER` stack (missing/red count text) when
+`unbreakable > 0`; skipped entirely when the plan is empty. Added the two lang keys to
+`en_us.json`.
+**Deviation (signature widening, required to compile):** `BreakToolHelper.planClient`'s second
+parameter is `Iterable<BlockEntry>` instead of the spec's literal `List<BlockEntry>` — `BlockSet`
+(what `BuilderChain`/`ServerBlockPlacer` actually pass) implements `Iterable<BlockEntry>` via a
+custom `iterator()` but is not a `List`. `planClient` only ever iterates its argument once, so
+widening the parameter type is a pure compile-fix with no behavioural change and preserves every
+other part of the contract.
+Check: `.\gradlew.bat build --no-daemon` → **BUILD SUCCESSFUL**. Re-read `BlockSet.encode` (no
+code change needed): `block.values().stream().filter(be -> !be.invalid).toList()` already drops
+every `invalid`-flagged entry before it is sent, confirmed by direct read of the existing code.
+
+#### T-S6 – Disable mode: resync build state on join (Fabric)
+`BuildModes.resyncToServer()` sends `IsUsingBuildModePacket` (current mode != DISABLED) and
+`IsQuickReplacingPacket` (`BuildSettings.isQuickReplacing()`). `FabricClientEvents.register` calls
+it from `ClientPlayConnectionEvents.JOIN` wrapped in `client.execute(...)` and a try/catch that
+logs a warning on failure. Added the "legacy NBT keys, no longer persisted..." comment next to
+`ServerBuildState`'s unused `IS_USING_BUILD_MODE_KEY`/`IS_QUICK_REPLACING_KEY` constants (Fabric's
+server state is session-only; those constants are genuinely dead fossils there — confirmed by
+reading the whole class, only `handleNewPlayer` resets and the S2C packet handlers write the live
+per-UUID maps, never those NBT keys).
+Check: `.\gradlew.bat build --no-daemon` → **BUILD SUCCESSFUL**.
+
+#### T-S7 – Fabric smoke test
+`run/eula.txt` already had `eula=true`; `run/server.properties` had `online-mode=true`, changed to
+`false` for the local unauthenticated test (git-ignored, no commit needed). Cleared
+`run/logs/latest.log`, ran `.\gradlew.bat runServer --no-daemon` in the background, polled the log
+every 5s. Result: **PASS**. Relevant excerpt:
+```
+	- sophisticatedbackpacks 1.21.1-3.23.4.3.106
+	- sophisticatedbuilding 4.1.0
+	- sophisticatedcore 1.21.1-1.2.9.21.168
+	- sophisticatedstorage 1.21.1-1.3.7.9.139
+...
+[20:48:49] [main/INFO] (sophisticatedbuilding) Initializing Sophisticated Building for Fabric
+...
+[20:48:55] [Server thread/INFO] (Minecraft) Done (2.830s)! For help, type "help"
+[20:48:55] [Server thread/INFO] (SophisticatedBuilding) Registered Sophisticated Backpacks upgrade containers
+```
+`grep -iE "Failed to register|Failed to create BuildingUpgradeItem|NoSuchMethodError|
+NoClassDefFoundError" run/logs/latest.log` — no matches anywhere in the full log (also checked
+case-insensitively for any `Exception`/`NoClassDefFoundError` mentioning `sophisticated` — none).
+Server process (found via `Get-CimInstance Win32_Process` matching `DevLaunchInjector|
+KnotServer`) stopped with `Stop-Process -Force`, then `.\gradlew.bat --stop`. `runClient` was
+never invoked.
+
+#### T-S8 – NeoForge parity
+Applied T-S1…T-S6 to `Neoforge-21.1.217-1.21.1` with the documented substitutions. Before writing
+integration code, verified via `javap` against the **official** NeoForge port jars
+(`sophisticated-backpacks-1.21.1-3.25.44.1736.jar`, `sophisticated-core-1.21.1-1.4.38.1847.jar`
+from the Gradle module cache) that `ToolSwapperUpgradeWrapper`, `ToolSwapMode`,
+`PlayerInventoryProvider.runOnBackpacks`, `BackpackWrapper.fromStack`, `InventoryHandler.
+getStackInSlot/setStackInSlot` and `UpgradeHandler.getSlotWrappers` all have byte-identical
+signatures to the Fabric port (confirming the T9 finding from the earlier session).
+- `ServerConfig.survivalBreaking`: NeoForge's `ServerConfig` is a real file-backed
+  `ModConfigSpec`, not Fabric's `SimpleConfigValue` placeholder — added the four keys as a proper
+  `SurvivalBreaking` config section (`BooleanValue`/`IntValue`/`DoubleValue`, `builder.push/pop`,
+  comments) instead of copying Fabric's placeholder shape; behaviourally equivalent defaults.
+- `PowerLevel.canBreakFar` → same expression as Fabric.
+- `ToolSelector.java` copied byte-for-byte (diffed, confirmed identical — no Minecraft imports, no
+  loader-specific code, satisfies the hard rule directly).
+- `BreakToolHelper.java` and `client/ClientBackpackToolCache.java` copied as-is from Fabric (also
+  no Fabric-specific imports — pure `net.minecraft.*` + our own packages).
+- `integration/ToolSwapperIntegration.java`: same logic as Fabric, `inventory.getSlots()` instead
+  of `getSlotCount()` (verified via `javap` that NeoForge's `InventoryHandler` inherits `getSlots()`
+  from `net.neoforged.neoforge.items.ItemStackHandler`, and that the existing, already-compiling
+  `BuildingUpgradeWrapper.java` on NeoForge already calls `getSlots()` the same way).
+- `network/message/BackpackToolsPacket.java`: NeoForge networking (`IPayloadContext`,
+  `registrar.playToClient`), same `ItemStack.OPTIONAL_LIST_STREAM_CODEC` codec; added the
+  `sophisticatedbuilding.networking.backpack_tools.failed` lang key matching the existing
+  `*.failed` pattern in `en_us.json`.
+- `CommonEvents.java`: `sendBackpackTools(player, force)` added mirroring
+  `sendBuildingUpgradeState`; wired into `onPlayerLoggedIn`, `onPlayerTick` (every-10-ticks branch,
+  `force=false`), `onPlayerRespawn`, `onPlayerChangedDimension` (all `force=true`), and
+  `LAST_BACKPACK_TOOLS` cleared in `onPlayerLoggedOut`. `onBlockBroken`'s vanilla-cancel expression
+  left unchanged, comment added (same as Fabric's `PlayerBlockBreakEvents.BEFORE`).
+- `ServerBlockPlacer.java`/`BlockPlacerHelper.java`: same T-S2/T-S3 transformation as Fabric
+  (`breakBlocks` survival gate + delay, `applyBlockSet`/`undoBlockEntry` threading candidates,
+  `validateBlockEntry`'s `mayInteract`/`blockActionRestricted` checks — confirmed
+  `ServerPlayer.gameMode` is the same public vanilla field on NeoForge, no substitution needed).
+- `BuilderChain.java`/`BlockPreviews.java`/`RenderHandler.java`: identical T-S5 changes (structure
+  was already line-for-line the same as Fabric's pre-change version except for
+  `PacketDistributor.sendToServer` vs `ClientPlayNetworking.send`).
+- `BuildModes.resyncToServer()` added (NeoForge `PacketDistributor.sendToServer`); called from
+  `ClientEvents.onLoggingIn(ClientPlayerNetworkEvent.LoggingIn)`, a new `@SubscribeEvent` next to
+  the existing `onLoggingOut`; `ClientBackpackToolCache.clear()` added to `onLoggingOut`.
+- **Deviation (ServerBuildState comment intentionally NOT added):** the task text says to add a
+  "legacy NBT keys, no longer persisted" comment next to `ServerBuildState`'s
+  `IS_USING_BUILD_MODE_KEY` constant, mirroring Fabric. On NeoForge that constant is **not** a
+  legacy fossil — `ServerBuildState` there genuinely persists build-mode/quick-replace state into
+  `player.getPersistentData()` and reads it back every call; `handleNewPlayer` (called on every
+  join/respawn) already resets both flags to `false` unconditionally, so NeoForge never had the
+  Fabric-side drift bug in the first place (its "session-only" reset already happens through
+  `getPersistentData` writes, not a static client field the server has no way to know about aside
+  from packets). Adding a comment that falsely calls a live, read code path "unused" would be
+  actively misleading, so it was skipped; the actual functional fix that matters for parity — the
+  client resync on join — was still added.
+- Unit tests: no NeoForge test source set exists; none added, per the task's own instruction.
+Check: `.\gradlew.bat build --no-daemon` in `Neoforge-21.1.217-1.21.1` → **BUILD SUCCESSFUL** first
+try, produced `build/libs/sophisticatedbuilding-neoforge-4.1.0.jar`.
+
+#### T-S9 – Release plumbing
+`PATCH_NOTES_4.1.0.md`: added a "Survival mass breaking (Fabric + NeoForge)" section (how to break
+at all, survival support and its rules, the HUD, "build-mode breaking replaces vanilla mining while
+active, switch to Disable for vanilla"), a "Disable mode fix" bullet about the join resync, and a
+"Server config" note listing the four keys with the Fabric-config-not-loaded caveat. Ran
+`rebuild_all_and_export_jar.ps1` from the repo root: both projects `BUILD SUCCESSFUL`,
+`Done. Copied 2 JAR(s) and patch notes to: ...\ExportedJars` — confirmed
+`sophisticatedbuilding-{fabric,neoforge}-4.1.0.jar` and the updated `PATCH_NOTES_4.1.0.md` present.
+Copied the Fabric jar into `DevInstance_Fabric/run/mods/`, replacing the previous 4.1.0 build.
+
+#### Deviations summary (for the reviewer)
+1. **T-S2**: created `client/ClientBackpackToolCache.java` one task early (needed for
+   `BreakToolHelper` to compile); T-S4's own spec for the class was implemented unchanged, just
+   earlier than the letter of the task order.
+2. **T-S5**: `BreakToolHelper.planClient`'s parameter widened from `List<BlockEntry>` to
+   `Iterable<BlockEntry>` — `BlockSet` is not a `List`; no behavioural change, compile-only fix,
+   read-only iteration either way.
+3. **T-S8**: NeoForge's `ServerConfig.survivalBreaking` uses a real `ModConfigSpec` section
+   instead of copying Fabric's `SimpleConfigValue` placeholder shape, matching how the rest of
+   NeoForge's `ServerConfig` already works (functionally equivalent defaults).
+4. **T-S8**: skipped adding the "legacy NBT keys" comment to NeoForge's `ServerBuildState` because
+   that constant is genuinely live/persisted there (not a fossil like on Fabric) — see the detailed
+   note above; the functional fix (client resync on join) was implemented regardless.
+
+No task was implemented differently from what compiled against the real, `javap`-verified API;
+every deviation above is a compile-driven or codebase-accuracy correction that preserves the
+stated intent of the task it belongs to.
+
+#### Open problems
+None identified. All nine tasks compiled, built, and (where applicable) tested green on the first
+or second attempt; the one smoke test run passed cleanly with no relevant errors in the log.
