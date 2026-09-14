@@ -118,10 +118,26 @@ public class BlockPreviews {
 			}
 
 		} else {
-			//Breaking
-			var coordinates = blocks.getCoordinates();
-			CatnipRenderHelper.showCluster(outlineID, coordinates, "thin_checkered",
-					1 / 16f, 0.8f, 0.1f, 0.1f, 1f);
+			//Breaking - split into blocks we can break (red) and blocks we cannot (grey, invalid)
+			var validCoordinates = new HashSet<BlockPos>();
+			var invalidCoordinates = new HashSet<BlockPos>();
+			for (BlockEntry entry : blocks) {
+				if (entry.invalid) {
+					invalidCoordinates.add(entry.blockPos);
+				} else {
+					validCoordinates.add(entry.blockPos);
+				}
+			}
+
+			if (!validCoordinates.isEmpty()) {
+				CatnipRenderHelper.showCluster(outlineID, validCoordinates, "thin_checkered",
+						1 / 16f, 0.8f, 0.1f, 0.1f, 1f);
+			}
+			if (!invalidCoordinates.isEmpty()) {
+				Object invalidOutlineID = blockCount > 1 ? (blocks.firstPos + "-invalid") : "single-invalid";
+				CatnipRenderHelper.showCluster(invalidOutlineID, invalidCoordinates, "thin_checkered",
+						1 / 16f, 0.35f, 0.35f, 0.35f, 1f);
+			}
 		}
 
 		//Display block count and dimensions in actionbar (always show dimensions)

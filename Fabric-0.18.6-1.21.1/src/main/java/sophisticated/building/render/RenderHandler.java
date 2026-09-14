@@ -114,12 +114,18 @@ public class RenderHandler {
 	//Draw item stacks at cursor, showing what will be used and what is missing
 	private static void drawStacks(GuiGraphics guiGraphics) {
 		var state = SophisticatedBuildingClient.BUILDER_CHAIN.getBuildingState();
-		if (state != BuilderChain.BuildingState.PLACING) return;
 
 		Minecraft mc = Minecraft.getInstance();
 		var player = mc.player;
 		if (player == null) return;
-		
+
+		if (state == BuilderChain.BuildingState.BREAKING) {
+			drawBreakPlanStacks(guiGraphics, mc, player);
+			return;
+		}
+
+		if (state != BuilderChain.BuildingState.PLACING) return;
+
 		var stacks = SophisticatedBuildingClient.ITEM_USAGE_TRACKER.total;
 		//Show if we are in survival or we are using multiple types of items
 		if (player.isCreative() && stacks.size() <= 1) {
@@ -147,6 +153,34 @@ public class RenderHandler {
 				drawItemStack(guiGraphics, new ItemStack(stack.getKey(), missing), x + i * 20, y, true);
 				i++;
 			}
+		}
+	}
+
+	//Show the survival break plan: the tools that will be used (with counts) and a barrier icon
+	//with the count of blocks that cannot be broken.
+	private static void drawBreakPlanStacks(GuiGraphics guiGraphics, Minecraft mc, net.minecraft.world.entity.player.Player player) {
+		if (player.isCreative()) return;
+
+		var plan = SophisticatedBuildingClient.BUILDER_CHAIN.getBreakPlan();
+		if (plan == null || (plan.usesPerTool.isEmpty() && plan.unbreakable == 0)) return;
+
+		int screenWidth = mc.getWindow().getGuiScaledWidth();
+		int screenHeight = mc.getWindow().getGuiScaledHeight();
+
+		int x = screenWidth / 2 + 10;
+		int y = screenHeight / 2 - 8;
+
+		int i = 0;
+		for (var entry : plan.usesPerTool.entrySet()) {
+			ItemStack stack = entry.getKey().get().copy();
+			stack.setCount(Math.min(entry.getValue(), stack.getMaxStackSize()));
+			drawItemStack(guiGraphics, stack, x + i * 20, y, false);
+			i++;
+		}
+
+		if (plan.unbreakable > 0) {
+			ItemStack barrier = new ItemStack(net.minecraft.world.item.Items.BARRIER, Math.min(plan.unbreakable, 99));
+			drawItemStack(guiGraphics, barrier, x + i * 20, y, true);
 		}
 	}
 

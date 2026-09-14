@@ -19,6 +19,7 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import sophisticated.building.ClientConfig;
 import sophisticated.building.ClientEvents;
+import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.SophisticatedBuildingClient;
 import sophisticated.building.attachment.AttachmentHandler;
 import sophisticated.building.buildmode.BuildModeEnum;
@@ -28,9 +29,11 @@ import sophisticated.building.network.message.ServerBreakBlocksPacket;
 import sophisticated.building.network.message.ServerPlaceBlocksPacket;
 import sophisticated.building.utilities.BlockEntry;
 import sophisticated.building.utilities.BlockSet;
+import sophisticated.building.utilities.BreakToolHelper;
 import sophisticated.building.utilities.ClientBlockUtilities;
 import sophisticated.building.utilities.SurvivalHelper;
 
+import javax.annotation.Nullable;
 import java.util.HashSet;
 
 // Receives block placed events, then finds additional blocks we want to place through various systems,
@@ -73,6 +76,10 @@ public class BuilderChain {
 
     //Whether we can place or break blocks, determined by what we are looking at and what we are holding
     private AbilitiesState abilitiesState = AbilitiesState.CAN_PLACE_AND_BREAK;
+
+    //Survival break plan for the current tick's blocks (null when not breaking, or in creative)
+    @Nullable
+    private BreakToolHelper.BreakPlan lastBreakPlan;
 
     public void onRightClick() {
         var mc = Minecraft.getInstance();
@@ -146,6 +153,21 @@ public class BuilderChain {
             buildingState = BuildingState.IDLE;
 
             if (!blocks.isEmpty()) {
+                if (!player.isCreative()) {
+                    //The set may have changed since the last onTick plan; re-plan against the final set.
+                    lastBreakPlan = BreakToolHelper.planClient(player, blocks);
+                    int invalidCount = countInvalid(blocks);
+                    int validCount = blocks.size() - invalidCount - (blocks.skipFirst ? 1 : 0);
+                    if (validCount <= 0) {
+                        SophisticatedBuilding.logTranslate(player, "", "sophisticatedbuilding.message.survival_break_nothing", "", true);
+                        cancel();
+                        return;
+                    }
+                    if (invalidCount > 0) {
+                        SophisticatedBuilding.logTranslate(player, invalidCount + " ", "sophisticatedbuilding.message.survival_break_partial", "", true);
+                    }
+                }
+
                 SophisticatedBuildingClient.BLOCK_PREVIEWS.onBlocksBroken(blocks);
                 ClientBlockUtilities.playSoundIfFurtherThanNormal(player, blocks.getLastBlockEntry(), true);
                 player.swing(InteractionHand.MAIN_HAND);
@@ -153,6 +175,14 @@ public class BuilderChain {
                 ClientPlayNetworking.send(new ServerBreakBlocksPacket(blocks));
             }
         }
+    }
+
+    private static int countInvalid(BlockSet blocks) {
+        int count = 0;
+        for (BlockEntry entry : blocks) {
+            if (entry.invalid) count++;
+        }
+        return count;
     }
 
     public void onTick() {
@@ -219,6 +249,12 @@ public class BuilderChain {
 
         findExistingBlockStates(world);
         SophisticatedBuildingClient.BUILDER_FILTER.filterOnExistingBlockStates(blocks, player);
+
+        if (getPretendBuildingState() == BuildingState.BREAKING && !player.isCreative()) {
+            lastBreakPlan = BreakToolHelper.planClient(player, blocks);
+        } else {
+            lastBreakPlan = null;
+        }
 
         var heldItem = player.getItemInHand(InteractionHand.MAIN_HAND);
         findNewBlockStates(player, heldItem); //includes filtering on new blockstates
@@ -447,6 +483,11 @@ public class BuilderChain {
 
     public BlockHitResult getLookingAtNear() {
         return lookingAtNear;
+    }
+
+    @Nullable
+    public BreakToolHelper.BreakPlan getBreakPlan() {
+        return lastBreakPlan;
     }
 }
 

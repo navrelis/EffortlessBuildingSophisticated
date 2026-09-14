@@ -285,7 +285,7 @@ public class BreakToolHelper {
 	 * flags entries the plan cannot break as {@code invalid}, and returns the resulting
 	 * {@link BreakPlan} for the HUD.
 	 */
-	public static BreakPlan planClient(Player player, List<BlockEntry> blocks) {
+	public static BreakPlan planClient(Player player, Iterable<BlockEntry> blocks) {
 		BreakPlan plan = new BreakPlan();
 		Level level = player.level();
 
