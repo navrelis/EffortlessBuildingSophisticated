@@ -37,12 +37,41 @@ import java.util.UUID;
 import sophisticated.building.item.AbstractRandomizerBagItem;
 import net.minecraft.core.registries.BuiltInRegistries;
 import sophisticated.building.network.message.BackpackItemCountPacket;
+import sophisticated.building.network.message.BuildingUpgradeStatePacket;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 @EventBusSubscriber
 public class CommonEvents {
-	
+
 	private static final Map<UUID, Map<Item, Integer>> LAST_BACKPACK_COUNTS = new HashMap<>();
+	private static final Map<UUID, int[]> LAST_UPGRADE_STATE = new HashMap<>();
+
+	/**
+	 * Sends the player's current Building Upgrade tier/maxBlocks to the client (RC2). Sent
+	 * unconditionally on join/respawn/dimension change ({@code force}); from the periodic tick it
+	 * is only sent when the (tier, maxBlocks) pair differs from the last value sent to that
+	 * player.
+	 */
+	private static void sendBuildingUpgradeState(ServerPlayer player, boolean force) {
+		if (!CompatHelper.isSophisticatedBackpacksLoaded()) {
+			return;
+		}
+
+		try {
+			int tier = BuildingUpgradeHelper.getBuildingUpgradeTier(player);
+			int maxBlocks = BuildingUpgradeHelper.getMaxBlocksForPlayer(player);
+
+			int[] last = LAST_UPGRADE_STATE.get(player.getUUID());
+			if (!force && last != null && last[0] == tier && last[1] == maxBlocks) {
+				return;
+			}
+
+			LAST_UPGRADE_STATE.put(player.getUUID(), new int[] { tier, maxBlocks });
+			PacketDistributor.sendToPlayer(player, new BuildingUpgradeStatePacket(tier, maxBlocks));
+		} catch (NoClassDefFoundError ignored) {
+			// Optional SophisticatedBackpacks integration missing.
+		}
+	}
 
 
 
@@ -133,6 +162,8 @@ public class CommonEvents {
 
 		PowerLevel powerLevel = player.getData(SophisticatedBuilding.POWER_LEVEL);
 		((ServerPlayer)player).connection.send(new PowerLevelPacket(powerLevel.getPowerLevel()));
+
+		sendBuildingUpgradeState((ServerPlayer) player, true);
 	}
 
 	@SubscribeEvent
@@ -213,7 +244,8 @@ public class CommonEvents {
 
 			Map<Item, Integer> lastCounts = LAST_BACKPACK_COUNTS.computeIfAbsent(serverPlayer.getUUID(), k -> new HashMap<>());
 			for (Item item : itemsToSync) {
-				int count = BuildingUpgradeHelper.countBlockInBackpack(serverPlayer, new ItemStack(item));
+				// Unclamped total across every backpack with an enabled upgrade (RC2/T4).
+				int count = BuildingUpgradeHelper.countBlockInBackpacksForDisplay(serverPlayer, new ItemStack(item));
 				Integer last = lastCounts.get(item);
 				if (last == null || last != count) {
 					lastCounts.put(item, count);
@@ -223,6 +255,8 @@ public class CommonEvents {
 
 			// Drop stale entries to keep the cache compact
 			lastCounts.keySet().removeIf(item -> !itemsToSync.contains(item));
+
+			sendBuildingUpgradeState(serverPlayer, false);
 		} catch (NoClassDefFoundError ignored) {
 			// SophisticatedCore not available
 		}
@@ -239,6 +273,7 @@ public class CommonEvents {
 
 		SophisticatedBuilding.UNDO_REDO.clear(player);
 		LAST_BACKPACK_COUNTS.remove(player.getUUID());
+		LAST_UPGRADE_STATE.remove(player.getUUID());
 	}
 
 	@SubscribeEvent
@@ -252,6 +287,11 @@ public class CommonEvents {
 
 		//TODO check if this is needed
 		ServerBuildState.handleNewPlayer(player);
+
+		if (player instanceof ServerPlayer serverPlayer) {
+			LAST_UPGRADE_STATE.remove(serverPlayer.getUUID());
+			sendBuildingUpgradeState(serverPlayer, true);
+		}
 	}
 
 	@SubscribeEvent
@@ -272,6 +312,8 @@ public class CommonEvents {
 			if (powerLevel != null) {
 				serverPlayer.connection.send(new PowerLevelPacket(powerLevel.getPowerLevel()));
 			}
+
+			sendBuildingUpgradeState(serverPlayer, true);
 		}
 
 		//TODO disable build mode and modifiers?

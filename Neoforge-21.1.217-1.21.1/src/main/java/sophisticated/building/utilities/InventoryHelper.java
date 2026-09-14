@@ -8,6 +8,7 @@ import net.minecraft.world.level.block.Block;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.compatibility.CompatHelper;
 import sophisticated.building.client.ClientBackpackItemCache;
+import sophisticated.building.client.ClientBuildingUpgradeState;
 
 import java.util.Map;
 
@@ -69,9 +70,16 @@ public class InventoryHelper {
 				total += invStack.getCount();
 			}
 		}
-		// Backpack items are NOT clamped - tier only determines IF upgrade works
-		// If player has a valid building upgrade, they can extract ALL items from backpack
-		if (CompatHelper.isSophisticatedBackpacksLoaded()) {
+
+		// Backpack items are NOT clamped - tier only determines IF upgrade works. If the player has
+		// a valid building upgrade, ALL items in the backpack count (no cap). Client: never inspect
+		// a backpack wrapper locally, use only the server-synced cache/state (RC2). Server: the
+		// authoritative helper.
+		if (player.level().isClientSide()) {
+			if (ClientBuildingUpgradeState.hasUpgrade()) {
+				total += ClientBackpackItemCache.getCount(item);
+			}
+		} else if (CompatHelper.isSophisticatedBackpacksLoaded()) {
 			try {
 				// Check if player has a valid building upgrade at all
 				int maxFromUpgrade = sophisticated.building.item.upgrade.BuildingUpgradeHelper.getEffectiveMaxBlocksForPlayer(
@@ -124,7 +132,7 @@ public class InventoryHelper {
 			return 0;
 		}
 		try {
-			return sophisticated.building.item.upgrade.BuildingUpgradeHelper.countBlockInBackpack(
+			return sophisticated.building.item.upgrade.BuildingUpgradeHelper.countBlockInBackpacksForDisplay(
 					player, new ItemStack(item));
 		} catch (Exception e) {
 			// SophisticatedBackpacks not loaded or error occurred
@@ -207,9 +215,10 @@ public class InventoryHelper {
 				return removed;
 			}
 
-			// Sync new backpack count to client for HUD accuracy
+			// Sync new backpack count to client for HUD accuracy (unclamped total across all
+			// backpacks with an enabled upgrade, matching syncItemCount / countBlockInBackpacksForDisplay).
 			if (removed > 0 && player.level().getServer() != null) {
-				int newCount = sophisticated.building.item.upgrade.BuildingUpgradeHelper.countBlockInBackpack(player, new ItemStack(item));
+				int newCount = sophisticated.building.item.upgrade.BuildingUpgradeHelper.countBlockInBackpacksForDisplay(player, new ItemStack(item));
 				var key = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item);
 				if (key != null) {
 					net.neoforged.neoforge.network.PacketDistributor.sendToPlayer((net.minecraft.server.level.ServerPlayer) player,

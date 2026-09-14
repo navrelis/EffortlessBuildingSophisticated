@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
@@ -16,6 +17,8 @@ import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.neoforged.neoforge.client.settings.KeyModifier;
 import sophisticated.building.attachment.AttachmentHandler;
 import sophisticated.building.buildmode.BuildModeEnum;
+import sophisticated.building.client.ClientBackpackItemCache;
+import sophisticated.building.client.ClientBuildingUpgradeState;
 import sophisticated.building.item.upgrade.BuildingUpgradeItem;
 import sophisticated.building.buildmode.ModeOptions;
 import sophisticated.building.gui.buildmode.PlayerSettingsGui;
@@ -208,6 +211,12 @@ public class ClientEvents {
 
     public static boolean isGameActive() {
         return !(Minecraft.getInstance().level == null || Minecraft.getInstance().player == null);
+    }
+
+    @SubscribeEvent
+    public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
+        ClientBackpackItemCache.clear();
+        ClientBuildingUpgradeState.clear();
     }
 
 }

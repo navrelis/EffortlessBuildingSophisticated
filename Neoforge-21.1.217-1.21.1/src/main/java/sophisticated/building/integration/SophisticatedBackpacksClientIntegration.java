@@ -13,8 +13,8 @@ public class SophisticatedBackpacksClientIntegration {
         UpgradeGuiManager.registerTab(
             SophisticatedBackpacksIntegration.getContainerType(),
             (BuildingUpgradeContainer c, Position p, StorageScreenBase<?> s) -> 
-                new BuildingUpgradeSettingsTab(c, p, s, 
-                    Component.translatable("sophisticatedbuilding.screen.modifier_settings"), 
+                new BuildingUpgradeSettingsTab(c, p, s,
+                    Component.translatable("sophisticatedbuilding.gui.building_upgrade.tab"),
                     Component.empty())
         );
     }

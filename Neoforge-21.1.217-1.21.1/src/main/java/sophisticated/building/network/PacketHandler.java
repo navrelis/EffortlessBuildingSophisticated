@@ -9,6 +9,7 @@ import sophisticated.building.network.message.IsUsingBuildModePacket;
 import sophisticated.building.network.message.ModifierSettingsPacket;
 import sophisticated.building.network.message.OmegaBagWeightPacket;
 import sophisticated.building.network.message.BackpackItemCountPacket;
+import sophisticated.building.network.message.BuildingUpgradeStatePacket;
 import sophisticated.building.network.message.PerformRedoPacket;
 import sophisticated.building.network.message.PerformUndoPacket;
 import sophisticated.building.network.message.PowerLevelPacket;
@@ -39,5 +40,6 @@ public class PacketHandler {
 
 		registrar.playToClient(PowerLevelPacket.ID, PowerLevelPacket.CODEC, PowerLevelPacket.Handler::handle);
 		registrar.playToClient(TranslatedLogPacket.ID, TranslatedLogPacket.CODEC, TranslatedLogPacket.Handler::handle);
+		registrar.playToClient(BuildingUpgradeStatePacket.ID, BuildingUpgradeStatePacket.CODEC, BuildingUpgradeStatePacket.Handler::handle);
 	}
 }
