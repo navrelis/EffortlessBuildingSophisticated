@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 <#
   Builds Sophisticated Building for NeoForge 1.21.1 and Fabric 1.21.1, then copies the main mod JARs
-  (and PATCH_NOTES_4.0.0.md) into ExportedJars at the repository root.
+  (and the current PATCH_NOTES_*.md) into ExportedJars at the repository root.
 
   Removes prior exported JARs matching the mod basename so version bumps do not leave stale files.
 #>
@@ -12,7 +12,10 @@ $RepoRoot = $PSScriptRoot
 $ExportedJars = Join-Path $RepoRoot 'ExportedJars'
 $NeoForgeProject = Join-Path $RepoRoot 'Neoforge-21.1.217-1.21.1'
 $FabricProject = Join-Path $RepoRoot 'Fabric-0.18.6-1.21.1'
-$PatchNotesSrc = Join-Path $RepoRoot 'PATCH_NOTES_4.0.0.md'
+# Picks the newest PATCH_NOTES_*.md at the repo root by version-like sort of the filename, so a
+# version bump only needs a new PATCH_NOTES_<version>.md file, not an edit here.
+$PatchNotesSrc = Get-ChildItem -LiteralPath $RepoRoot -Filter 'PATCH_NOTES_*.md' -File -ErrorAction SilentlyContinue |
+    Sort-Object Name -Descending | Select-Object -First 1 -ExpandProperty FullName
 
 # archives_base_name: NeoForge uses "${mod_id}-neoforge", Fabric uses "${mod_id}-fabric"
 $JarPrefixes = @(
@@ -28,6 +31,9 @@ function Remove-OldExportedModJars {
         Get-ChildItem -LiteralPath $Directory -Filter "$prefix*.jar" -File -ErrorAction SilentlyContinue |
             ForEach-Object { Remove-Item -LiteralPath $_.FullName -Force -ErrorAction SilentlyContinue }
     }
+    # Also drop stale exported patch notes so only the current version's file remains.
+    Get-ChildItem -LiteralPath $Directory -Filter 'PATCH_NOTES_*.md' -File -ErrorAction SilentlyContinue |
+        ForEach-Object { Remove-Item -LiteralPath $_.FullName -Force -ErrorAction SilentlyContinue }
 }
 
 function Get-MainModJarOrThrow {
@@ -118,11 +124,11 @@ foreach ($f in $toPublish) {
     Copy-Item -LiteralPath $f -Destination $ExportedJars -Force
 }
 
-if (Test-Path -LiteralPath $PatchNotesSrc) {
+if ($PatchNotesSrc -and (Test-Path -LiteralPath $PatchNotesSrc)) {
     Copy-Item -LiteralPath $PatchNotesSrc -Destination $ExportedJars -Force
 }
 else {
-    Write-Warning "PATCH_NOTES_4.0.0.md not found at $PatchNotesSrc - skipped copy to ExportedJars."
+    Write-Warning "No PATCH_NOTES_*.md found at $RepoRoot - skipped copy to ExportedJars."
 }
 
 Write-Host "Done. Copied $($toPublish.Count) JAR(s) and patch notes to:" -ForegroundColor Green
