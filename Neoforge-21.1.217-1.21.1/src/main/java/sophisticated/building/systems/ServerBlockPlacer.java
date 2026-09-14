@@ -3,8 +3,10 @@ package sophisticated.building.systems;
 import net.minecraft.ChatFormatting;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.neoforged.neoforge.network.PacketDistributor;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.ServerConfig;
+import sophisticated.building.network.message.BreakCountdownPacket;
 import sophisticated.building.utilities.BlockEntry;
 import sophisticated.building.utilities.BlockPlacerHelper;
 import sophisticated.building.utilities.BlockSet;
@@ -77,8 +79,10 @@ public class ServerBlockPlacer {
 
         List<BreakToolHelper.ToolSlot> candidates = BreakToolHelper.collectCandidates(player);
         int totalTicks = 0;
+        int blockCount = 0;
         for (BlockEntry block : blocks) {
             if (blocks.skipFirst && block.blockPos == blocks.firstPos) continue;
+            blockCount++;
 
             var state = player.level().getBlockState(block.blockPos);
             var selected = BreakToolHelper.selectTool(player, player.level(), block.blockPos, state, candidates);
@@ -92,6 +96,10 @@ public class ServerBlockPlacer {
         // Tools are not pre-damaged here; selection (and the actual durability cost) happens again
         // at apply time in applyBlockSet, against the live stacks.
         delayedEntries.add(new DelayedEntry(player, blocks, player.level().getGameTime() + delay));
+
+        if (player instanceof ServerPlayer serverPlayer) {
+            PacketDistributor.sendToPlayer(serverPlayer, new BreakCountdownPacket(delay, blockCount));
+        }
     }
 
     public void applyBlockSet(Player player, BlockSet blocks) {

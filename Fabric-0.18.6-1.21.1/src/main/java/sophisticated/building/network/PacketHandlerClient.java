@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.network.message.BackpackItemCountPacket;
 import sophisticated.building.network.message.BackpackToolsPacket;
+import sophisticated.building.network.message.BreakCountdownPacket;
 import sophisticated.building.network.message.BuildingUpgradeStatePacket;
 import sophisticated.building.network.message.ModifierSettingsPacket;
 import sophisticated.building.network.message.PowerLevelPacket;
@@ -21,6 +22,7 @@ public final class PacketHandlerClient {
         ClientPlayNetworking.registerGlobalReceiver(TranslatedLogPacket.ID, TranslatedLogPacket.Handler::handle);
         ClientPlayNetworking.registerGlobalReceiver(BuildingUpgradeStatePacket.ID, BuildingUpgradeStatePacket.Handler::handle);
         ClientPlayNetworking.registerGlobalReceiver(BackpackToolsPacket.ID, BackpackToolsPacket.Handler::handle);
+        ClientPlayNetworking.registerGlobalReceiver(BreakCountdownPacket.ID, BreakCountdownPacket.Handler::handle);
         SophisticatedBuilding.log("Registered client networking receivers");
     }
 }

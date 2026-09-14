@@ -13,6 +13,7 @@ import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.SophisticatedBuildingClient;
 import sophisticated.building.buildmode.BuildModeEnum;
+import sophisticated.building.client.ClientBreakCountdown;
 import sophisticated.building.compatibility.CompatHelper;
 import sophisticated.building.systems.BuilderChain;
 import sophisticated.building.utilities.BlockEntry;
@@ -50,7 +51,21 @@ public class BlockPreviews {
 
 		drawPlacedBlocks();
 		drawLookAtPreview(player);
+		drawPendingBreaks();
 		drawOutlineAtBreakPosition(player);
+	}
+
+	/**
+	 * Keeps the red selection outline on blocks that were sent to the server to break but have not
+	 * broken yet (awaiting the mining delay countdown, T-S10), so the selection stays visible until
+	 * the blocks actually vanish.
+	 */
+	public void drawPendingBreaks() {
+		var coordinates = ClientBreakCountdown.pendingCoordinates();
+		if (coordinates.isEmpty()) return;
+
+		CatnipRenderHelper.showCluster("pending-break", coordinates, "thin_checkered",
+				1 / 16f, 0.8f, 0.1f, 0.1f, 1f);
 	}
 
 	public void drawPlacedBlocks() {

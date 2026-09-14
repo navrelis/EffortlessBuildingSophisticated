@@ -41,7 +41,9 @@ is now fixed:
     redstone dust, ...) are broken with the empty hand for free, exactly like vanilla.
   * A short mining delay applies (up to 2 seconds per operation, scaling with how long vanilla
     mining would take for the blocks and tools involved) — mass-breaking is not instant in
-    survival. Creative stays instant.
+    survival. Creative stays instant. An on-screen countdown with a progress bar shows how long
+    until the blocks break, and the estimated time is shown next to the tool icons before you
+    click; the red outline stays on the selected blocks until they break.
   * Spawn protection and adventure-mode restrictions are respected; all the existing survival
     limits (blocks per click/axis, reach by power level, `allowInSurvival`, whitelist, protected
     tile entities) are unchanged.

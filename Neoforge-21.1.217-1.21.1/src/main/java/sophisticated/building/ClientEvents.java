@@ -19,6 +19,7 @@ import sophisticated.building.attachment.AttachmentHandler;
 import sophisticated.building.buildmode.BuildModeEnum;
 import sophisticated.building.client.ClientBackpackItemCache;
 import sophisticated.building.client.ClientBackpackToolCache;
+import sophisticated.building.client.ClientBreakCountdown;
 import sophisticated.building.client.ClientBuildingUpgradeState;
 import sophisticated.building.item.upgrade.BuildingUpgradeItem;
 import sophisticated.building.buildmode.ModeOptions;
@@ -58,6 +59,8 @@ public class ClientEvents {
         onMouseInput();
 
         SophisticatedBuildingClient.BLOCK_PREVIEWS.onTick();
+
+        ClientBreakCountdown.tick();
     }
 
     @SubscribeEvent
@@ -219,6 +222,7 @@ public class ClientEvents {
         ClientBackpackItemCache.clear();
         ClientBuildingUpgradeState.clear();
         ClientBackpackToolCache.clear();
+        ClientBreakCountdown.clear();
     }
 
     @SubscribeEvent

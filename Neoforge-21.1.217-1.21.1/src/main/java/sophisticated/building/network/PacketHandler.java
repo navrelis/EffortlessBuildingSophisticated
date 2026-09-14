@@ -10,6 +10,7 @@ import sophisticated.building.network.message.ModifierSettingsPacket;
 import sophisticated.building.network.message.OmegaBagWeightPacket;
 import sophisticated.building.network.message.BackpackItemCountPacket;
 import sophisticated.building.network.message.BackpackToolsPacket;
+import sophisticated.building.network.message.BreakCountdownPacket;
 import sophisticated.building.network.message.BuildingUpgradeStatePacket;
 import sophisticated.building.network.message.PerformRedoPacket;
 import sophisticated.building.network.message.PerformUndoPacket;
@@ -43,5 +44,6 @@ public class PacketHandler {
 		registrar.playToClient(TranslatedLogPacket.ID, TranslatedLogPacket.CODEC, TranslatedLogPacket.Handler::handle);
 		registrar.playToClient(BuildingUpgradeStatePacket.ID, BuildingUpgradeStatePacket.CODEC, BuildingUpgradeStatePacket.Handler::handle);
 		registrar.playToClient(BackpackToolsPacket.ID, BackpackToolsPacket.CODEC, BackpackToolsPacket.Handler::handle);
+		registrar.playToClient(BreakCountdownPacket.ID, BreakCountdownPacket.CODEC, BreakCountdownPacket.Handler::handle);
 	}
 }

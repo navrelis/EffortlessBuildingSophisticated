@@ -293,3 +293,60 @@ Check: NeoForge `build` green, jar produced. Commit `feat(neoforge): survival br
    command outputs summarised, every deviation with reason).
 4. Commit `release: 4.1.0 patch notes – survival breaking (T-S9)`, push, and verify
    `git log origin/main..main` is empty.
+
+---
+
+## T-S10 – On-screen countdown for the survival mining delay (user request, still 4.1.0)
+
+User request after reading the patch notes: "add a timer on screen that displays how long it takes
+until the blocks are broken". Design (orchestrator):
+
+Server (both loaders, `ServerBlockPlacer.breakBlocks` survival branch): right after the
+`DelayedEntry` is enqueued, send a new S2C `BreakCountdownPacket(int delayTicks, int blockCount)`
+to the player (`blockCount` = entries in the set excluding the skipped first; `delayTicks` = the
+capped delay just computed). Register it like `BackpackToolsPacket` (Fabric: payload type +
+client receiver; NeoForge: `registrar.playToClient`). Creative sends nothing (still instant).
+
+Client:
+1. New `client/ClientBreakCountdown` (common package, no loader imports): holds a small FIFO of
+   pending break sets and a list of active countdowns.
+   - `addPending(BlockSet copy)` – called from `BuilderChain.onLeftClick` in survival INSTEAD of
+     the immediate `BLOCK_PREVIEWS.onBlocksBroken(blocks)` call (keep the sound and the swing at
+     click time). Creative keeps calling `onBlocksBroken` immediately, unchanged.
+   - `onPacket(delayTicks, blockCount)` – pops the oldest pending set (if any) and starts a
+     countdown `{remainingTicks = delayTicks, total = delayTicks, blockCount, blocks}`. If no
+     pending set exists (should not happen), start the countdown with `blocks = null`.
+   - `tick()` – called once per client tick from `ClientEvents.onClientTickPre` next to
+     `BLOCK_PREVIEWS.onTick()`: decrement every active countdown; when one reaches 0, call
+     `BLOCK_PREVIEWS.onBlocksBroken(blocks)` (if non-null) so the red dissolve animation starts
+     when the blocks actually vanish, then remove it. Pending sets older than 60 ticks without a
+     packet are dropped (server refused the break).
+   - `clear()` on disconnect (Fabric `ClientPlayConnectionEvents.DISCONNECT`, NeoForge
+     `onLoggingOut`).
+   - Getters for the HUD: `hasActive()`, `remainingTicks()` / `totalTicks()` of the countdown that
+     finishes last, and `totalBlockCount()` summed over active countdowns.
+2. `BlockPreviews`: while countdowns are active, draw their pending coordinates every tick as a
+   red `thin_checkered` cluster (id `"pending-break"`, same colour as the breaking preview), so
+   the selection stays visible until it breaks. Use a new method called from `onTick()` after
+   `drawLookAtPreview`.
+3. `RenderHandler`: new `drawBreakCountdown(guiGraphics)` called from the same place as
+   `drawStacks`. When `ClientBreakCountdown.hasActive()`: centred text
+   `I18n.get("sophisticatedbuilding.hud.break_countdown", blockCount, secondsOneDecimal)` at
+   `(screenWidth/2, screenHeight/2 + 24)` with shadow, plus a 100x4 px progress bar directly below
+   it (dark background `0xAA000000`, fill `0xFFDD3333` proportional to `1 - remaining/total`).
+   Seconds = `remainingTicks / 20f` formatted with one decimal (`String.format(Locale.ROOT, "%.1f", …)`).
+   Additionally, in `drawBreakPlanStacks`, when the plan's `delayTicks > 0`, draw
+   `I18n.get("sophisticatedbuilding.hud.break_estimate", seconds)` in small white text right of the
+   last icon (x + i*20 + 4, y + 4) so the player sees the estimate before clicking.
+4. Lang (both loaders): `"sophisticatedbuilding.hud.break_countdown": "Breaking %s blocks in %s s"`,
+   `"sophisticatedbuilding.hud.break_estimate": "~%s s"`.
+5. Patch notes (`PATCH_NOTES_4.1.0.md`, both copies via the export script): extend the mining-delay
+   bullet with: "an on-screen countdown with a progress bar shows how long until the blocks break,
+   and the estimated time is shown next to the tool icons before you click; the red outline stays
+   on the selected blocks until they break."
+6. Session log: append to "Implementer notes – survival breaking" a T-S10 paragraph.
+
+Checks: Fabric `build` (tests still 17/17), NeoForge `build`, `rebuild_all_and_export_jar.ps1`,
+re-copy the Fabric jar to `DevInstance_Fabric/run/mods/`. Commit
+`feat(survival-break): on-screen countdown for the mining delay (T-S10)`, push, confirm
+`git log origin/main..main` empty.

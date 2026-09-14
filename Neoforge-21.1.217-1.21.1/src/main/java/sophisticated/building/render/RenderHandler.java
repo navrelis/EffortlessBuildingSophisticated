@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
@@ -21,6 +22,7 @@ import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.items.IItemHandler;
 import sophisticated.building.SophisticatedBuildingClient;
+import sophisticated.building.client.ClientBreakCountdown;
 import sophisticated.building.item.AbstractRandomizerBagItem;
 import sophisticated.building.systems.BuilderChain;
 import sophisticated.building.utilities.InventoryHelper;
@@ -80,7 +82,9 @@ public class RenderHandler {
 		renderSubText(event.getGuiGraphics());
 
 		drawStacks(event.getGuiGraphics());
-		
+
+		drawBreakCountdown(event.getGuiGraphics());
+
 		drawRandomizerBagHUD(event.getGuiGraphics());
 	}
 
@@ -189,6 +193,50 @@ public class RenderHandler {
 		if (plan.unbreakable > 0) {
 			ItemStack barrier = new ItemStack(net.minecraft.world.item.Items.BARRIER, Math.min(plan.unbreakable, 99));
 			drawItemStack(guiGraphics, barrier, x + i * 20, y, true);
+			i++;
+		}
+
+		// Show the estimated mining delay next to the tool icons, before the player clicks.
+		if (plan.delayTicks > 0) {
+			String seconds = String.format(Locale.ROOT, "%.1f", plan.delayTicks / 20f);
+			String text = I18n.get("sophisticatedbuilding.hud.break_estimate", seconds);
+			Font font = Minecraft.getInstance().font;
+			guiGraphics.drawString(font, text, x + i * 20 + 4, y + 4, 0xffffffff, true);
+		}
+	}
+
+	/**
+	 * Draws the on-screen countdown until the current survival break actually applies: centred
+	 * text with the block count and remaining seconds, plus a progress bar below it (T-S10).
+	 */
+	private static void drawBreakCountdown(GuiGraphics guiGraphics) {
+		if (!ClientBreakCountdown.hasActive()) return;
+
+		Minecraft mc = Minecraft.getInstance();
+		int screenWidth = mc.getWindow().getGuiScaledWidth();
+		int screenHeight = mc.getWindow().getGuiScaledHeight();
+		Font font = mc.font;
+
+		int remaining = ClientBreakCountdown.remainingTicks();
+		int total = ClientBreakCountdown.totalTicks();
+		int blockCount = ClientBreakCountdown.totalBlockCount();
+		String seconds = String.format(Locale.ROOT, "%.1f", remaining / 20f);
+		String text = I18n.get("sophisticatedbuilding.hud.break_countdown", blockCount, seconds);
+
+		int textX = screenWidth / 2;
+		int textY = screenHeight / 2 + 24;
+		guiGraphics.drawCenteredString(font, text, textX, textY, 0xffffffff);
+
+		int barWidth = 100;
+		int barHeight = 4;
+		int barX = screenWidth / 2 - barWidth / 2;
+		int barY = textY + font.lineHeight + 2;
+		float progress = total > 0 ? Math.max(0f, Math.min(1f, 1f - (remaining / (float) total))) : 0f;
+		int filledWidth = Math.round(barWidth * progress);
+
+		guiGraphics.fill(barX, barY, barX + barWidth, barY + barHeight, 0xAA000000);
+		if (filledWidth > 0) {
+			guiGraphics.fill(barX, barY, barX + filledWidth, barY + barHeight, 0xFFDD3333);
 		}
 	}
 

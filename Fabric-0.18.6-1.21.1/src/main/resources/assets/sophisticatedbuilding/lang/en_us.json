@@ -169,6 +169,8 @@
   "sophisticatedbuilding.gui.building_upgrade.info": "Tier %d - up to %d blocks",
   "sophisticatedbuilding.overlay.total": "Total Blocks: %s",
   "sophisticatedbuilding.message.survival_break_nothing": "No suitable tool for the selected blocks (switch to Disable mode for vanilla mining)",
-  "sophisticatedbuilding.message.survival_break_partial": "Block(s) skipped: no suitable tool"
+  "sophisticatedbuilding.message.survival_break_partial": "Block(s) skipped: no suitable tool",
+  "sophisticatedbuilding.hud.break_countdown": "Breaking %s blocks in %s s",
+  "sophisticatedbuilding.hud.break_estimate": "~%s s"
 }
 

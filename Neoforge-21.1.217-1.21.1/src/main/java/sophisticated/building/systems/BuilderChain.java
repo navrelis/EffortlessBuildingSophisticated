@@ -23,6 +23,7 @@ import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.SophisticatedBuildingClient;
 import sophisticated.building.attachment.AttachmentHandler;
 import sophisticated.building.buildmode.BuildModeEnum;
+import sophisticated.building.client.ClientBreakCountdown;
 import sophisticated.building.compatibility.CompatHelper;
 import sophisticated.building.item.AbstractRandomizerBagItem;
 import sophisticated.building.network.message.ServerBreakBlocksPacket;
@@ -181,10 +182,21 @@ public class BuilderChain {
                     }
                 }
 
-                SophisticatedBuildingClient.BLOCK_PREVIEWS.onBlocksBroken(blocks);
                 ClientBlockUtilities.playSoundIfFurtherThanNormal(player, blocks.getLastBlockEntry(), true);
                 player.swing(InteractionHand.MAIN_HAND);
                 blocks.skipFirst = buildMode == BuildModeEnum.DISABLED;
+
+                if (player.isCreative()) {
+                    // Creative breaking is instant server-side; keep the immediate dissolve animation.
+                    SophisticatedBuildingClient.BLOCK_PREVIEWS.onBlocksBroken(blocks);
+                } else {
+                    // Survival breaking is delayed server-side; defer the dissolve animation until
+                    // the matching BreakCountdownPacket's countdown reaches 0 (T-S10). The red
+                    // selection outline stays visible on these blocks via BlockPreviews' "pending"
+                    // cluster in the meantime.
+                    ClientBreakCountdown.addPending(new BlockSet(blocks));
+                }
+
                 PacketDistributor.sendToServer(new ServerBreakBlocksPacket(blocks));
             }
         }

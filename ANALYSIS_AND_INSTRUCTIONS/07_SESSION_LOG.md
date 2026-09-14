@@ -653,6 +653,50 @@ before the corrections — none of the four fixes touch tested code paths).
 Re-ran `rebuild_all_and_export_jar.ps1` and re-copied the Fabric jar into
 `DevInstance_Fabric/run/mods/`.
 
+#### T-S10 – On-screen countdown for the mining delay (user request)
+Implemented exactly per the appended spec in `09_SURVIVAL_BREAKING_TASKS.md`, Fabric first then
+mirrored to NeoForge.
+- Server (`ServerBlockPlacer.breakBlocks` survival branch, both loaders): after computing
+  `blockCount` (entries excluding the skipped first) and the capped `delay` the same way it always
+  did, sends a new S2C `BreakCountdownPacket(delayTicks, blockCount)` to the player. Registered
+  like `BackpackToolsPacket`/`BuildingUpgradeStatePacket` (Fabric: `PayloadTypeRegistry.playS2C` +
+  `PacketHandlerClient` receiver; NeoForge: `registrar.playToClient`, plus a
+  `sophisticatedbuilding.networking.break_countdown.failed` lang key matching the existing
+  `*.failed` pattern). Creative still calls `applyBlockSet` directly and sends nothing.
+- New `client/ClientBreakCountdown` (no loader imports - only `net.minecraft.*` and the mod's own
+  common packages, copied byte-for-byte between both projects, diff-confirmed identical):
+  `addPending`/`onPacket`/`tick`/`clear` and the HUD getters exactly as specified, plus a
+  `pendingCoordinates()` getter (needed for `BlockPreviews`' "pending-break" cluster, not
+  separately named in the spec's getter list but required by its own item 2 - the natural
+  extension of "Getters for the HUD").
+- `BuilderChain.onLeftClick`: creative keeps the immediate `BLOCK_PREVIEWS.onBlocksBroken(blocks)`
+  call; survival now calls `ClientBreakCountdown.addPending(new BlockSet(blocks))` instead, after
+  the sound/swing/`skipFirst` assignment (so the pending copy carries the final `skipFirst` value)
+  and before sending the packet. `ClientBreakCountdown.tick()` wired into
+  `ClientEvents.onClientTickPre` right after `BLOCK_PREVIEWS.onTick()`; `clear()` wired into the
+  existing disconnect/logout handlers (Fabric `FabricClientEvents`'
+  `ClientPlayConnectionEvents.DISCONNECT`, NeoForge `ClientEvents.onLoggingOut`).
+- `BlockPreviews.drawPendingBreaks()` (called from `onTick()` after `drawLookAtPreview`, per the
+  spec's "new method called from onTick() after drawLookAtPreview"): draws
+  `ClientBreakCountdown.pendingCoordinates()` every tick as a red `thin_checkered` cluster, id
+  `"pending-break"`.
+- `RenderHandler.drawBreakCountdown` (called from the same place as `drawStacks`, i.e.
+  `onRenderGui`/`onRenderGuiEvent`): centred `I18n.get("...break_countdown", blockCount, seconds)`
+  at `(screenWidth/2, screenHeight/2 + 24)` plus a 100x4 px progress bar directly below (dark
+  `0xAA000000` background, red `0xFFDD3333` fill proportional to `1 - remaining/total`); verified
+  `GuiGraphics.fill(int,int,int,int,int)` and `drawCenteredString(Font,String,int,int,int)` exist
+  with these exact signatures via `javap` before using them. `drawBreakPlanStacks` additionally
+  draws `I18n.get("...break_estimate", seconds)` right of the last icon when `plan.delayTicks > 0`.
+- Lang keys added on both loaders: `sophisticatedbuilding.hud.break_countdown` = "Breaking %s
+  blocks in %s s", `sophisticatedbuilding.hud.break_estimate` = "~%s s".
+- `PATCH_NOTES_4.1.0.md`: extended the existing mining-delay bullet with the countdown/progress
+  bar/estimate/red-outline-persists sentence, exactly as specified.
+Check: Fabric `.\gradlew.bat build --no-daemon` → **BUILD SUCCESSFUL**, tests unchanged at **17/17
+green, 0 failures/errors** (T-S10 touches no tested code path). NeoForge
+`.\gradlew.bat build --no-daemon` → **BUILD SUCCESSFUL**. Re-ran
+`rebuild_all_and_export_jar.ps1` (both projects rebuilt, jars + patch notes copied to
+`ExportedJars/`) and re-copied the new Fabric jar into `DevInstance_Fabric/run/mods/`.
+
 ## 2026-09-14 (evening) - Review of the survival-breaking implementation and graph refresh (Fable)
 
 Reviewed every commit d6f7155..e12ff63 against 06_REVIEW_CHECKLIST.md by reading the diffs, not
@@ -689,3 +733,12 @@ before): 5016 nodes, 13668 edges, 199 communities; 19 new communities labelled b
 community view because the graph exceeds 5000 nodes (node-level detail: `--obsidian`).
 Note for re-runs: the `graphify` CLI is not on PATH in the Bash tool; use
 `$(cat graphify-out/.graphify_python) -m graphify export html`.
+
+## 2026-09-14 (late) - T-S10 countdown request (Fable)
+
+User asked for an on-screen timer showing how long until the survival break happens. Designed as
+a server-sent `BreakCountdownPacket(delayTicks, blockCount)` (the server already knows the exact
+capped delay when it enqueues the DelayedEntry) driving a client countdown + progress bar under the
+crosshair, a pre-click "~x.x s" estimate next to the tool icons, the red outline kept on the
+pending blocks, and the dissolve animation deferred to the moment the blocks actually vanish.
+Spec in `09_SURVIVAL_BREAKING_TASKS.md` T-S10; dispatched to the same Sonnet implementer.

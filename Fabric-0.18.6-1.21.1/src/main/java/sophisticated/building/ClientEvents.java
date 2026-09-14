@@ -10,6 +10,7 @@ import net.minecraft.world.entity.player.Player;
 import sophisticated.building.attachment.AttachmentHandler;
 import sophisticated.building.buildmode.BuildModeEnum;
 import sophisticated.building.buildmode.ModeOptions;
+import sophisticated.building.client.ClientBreakCountdown;
 import sophisticated.building.gui.buildmode.PlayerSettingsGui;
 import sophisticated.building.gui.buildmode.RadialMenu;
 import sophisticated.building.gui.buildmodifier.ModifiersScreen;
@@ -44,6 +45,8 @@ public class ClientEvents {
         onMouseInput();
 
         SophisticatedBuildingClient.BLOCK_PREVIEWS.onTick();
+
+        ClientBreakCountdown.tick();
     }
 
     public static void onClientTickPost() {
