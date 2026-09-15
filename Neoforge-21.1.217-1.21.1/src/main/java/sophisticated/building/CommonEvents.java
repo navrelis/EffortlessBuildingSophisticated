@@ -72,7 +72,7 @@ public class CommonEvents {
 
 			LAST_UPGRADE_STATE.put(player.getUUID(), new int[] { tier, maxBlocks });
 			PacketDistributor.sendToPlayer(player, new BuildingUpgradeStatePacket(tier, maxBlocks));
-		} catch (NoClassDefFoundError ignored) {
+		} catch (LinkageError ignored) {
 			// Optional SophisticatedBackpacks integration missing.
 		}
 	}
@@ -106,7 +106,7 @@ public class CommonEvents {
 
 			LAST_BACKPACK_TOOLS.put(player.getUUID(), fingerprint);
 			PacketDistributor.sendToPlayer(player, new BackpackToolsPacket(tools));
-		} catch (Exception | NoClassDefFoundError e) {
+		} catch (Exception | LinkageError e) {
 			SophisticatedBuilding.logger.debug("Error syncing backpack tools: {}", e.getMessage());
 		}
 	}
@@ -246,7 +246,7 @@ public class CommonEvents {
 					}
 				}
 			}
-		} catch (NoClassDefFoundError ignored) {
+		} catch (LinkageError ignored) {
 			// SophisticatedCore not available
 		}
 	}
@@ -302,7 +302,7 @@ public class CommonEvents {
 
 			sendBuildingUpgradeState(serverPlayer, false);
 			sendBackpackTools(serverPlayer, false);
-		} catch (NoClassDefFoundError ignored) {
+		} catch (LinkageError ignored) {
 			// SophisticatedCore not available
 		}
 	}

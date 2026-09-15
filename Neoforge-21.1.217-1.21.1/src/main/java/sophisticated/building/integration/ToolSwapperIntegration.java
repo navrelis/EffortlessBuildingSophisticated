@@ -18,7 +18,10 @@ import java.util.List;
  * Enumerates tools carried inside Sophisticated Backpacks that have an enabled Tool Swapper /
  * Advanced Tool Swapper upgrade (mode != NO_SWAP). Imports {@code net.p3pp3rf1y.*}, so every
  * caller must be guarded by {@code CompatHelper.isSophisticatedBackpacksLoaded()} and a
- * {@code catch (Exception | NoClassDefFoundError)}, exactly like {@code BuildingUpgradeHelper}.
+ * {@code catch (Exception | LinkageError)}, exactly like {@code BuildingUpgradeHelper}.
+ * {@code NoSuchMethodError}/{@code NoSuchFieldError} etc. are {@code LinkageError}s, not
+ * {@code Exception}s and not {@code NoClassDefFoundError}, so the wider catch is required to
+ * degrade instead of crash on any upstream binary-incompatible change, not just a missing class.
  * Server only.
  */
 public class ToolSwapperIntegration {
@@ -92,7 +95,7 @@ public class ToolSwapperIntegration {
 					}
 				});
 			}
-		} catch (Exception | NoClassDefFoundError e) {
+		} catch (Exception | LinkageError e) {
 			SophisticatedBuilding.logger.debug("Error scanning backpack for tool swapper tools: {}", e.getMessage());
 		}
 	}

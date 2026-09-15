@@ -128,7 +128,7 @@ public class BuildingUpgradeHelper {
                     return buildingUpgradeWrapper;
                 }
             }
-        } catch (Exception | NoClassDefFoundError e) {
+        } catch (Exception | LinkageError e) {
             SophisticatedBuilding.logger.debug("Error checking backpack for building upgrade: {}", e.getMessage());
         }
 

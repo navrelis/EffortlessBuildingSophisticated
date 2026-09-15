@@ -188,7 +188,7 @@ public final class FabricCommonEvents {
 
             LAST_BACKPACK_TOOLS.put(player.getUUID(), fingerprint);
             ServerPlayNetworking.send(player, new BackpackToolsPacket(tools));
-        } catch (Exception | NoClassDefFoundError e) {
+        } catch (Exception | LinkageError e) {
             SophisticatedBuilding.logger.debug("Error syncing backpack tools: {}", e.getMessage());
         }
     }
@@ -215,7 +215,7 @@ public final class FabricCommonEvents {
 
             LAST_UPGRADE_STATE.put(player.getUUID(), new int[] { tier, maxBlocks });
             ServerPlayNetworking.send(player, new BuildingUpgradeStatePacket(tier, maxBlocks));
-        } catch (NoClassDefFoundError ignored) {
+        } catch (LinkageError ignored) {
             // Optional SophisticatedBackpacks integration missing.
         }
     }
@@ -245,7 +245,7 @@ public final class FabricCommonEvents {
                     }
                 }
             }
-        } catch (NoClassDefFoundError ignored) {
+        } catch (LinkageError ignored) {
             // Optional SophisticatedBackpacks integration missing.
         }
     }
@@ -290,7 +290,7 @@ public final class FabricCommonEvents {
             }
 
             lastCounts.keySet().removeIf(item -> !itemsToSync.contains(item));
-        } catch (NoClassDefFoundError ignored) {
+        } catch (LinkageError ignored) {
             // Optional SophisticatedBackpacks integration missing.
         }
     }

@@ -74,7 +74,7 @@ public class BreakToolHelper {
 			if (CompatHelper.isSophisticatedBackpacksLoaded()) {
 				try {
 					candidates.addAll(ToolSwapperIntegration.collectBackpackTools(player));
-				} catch (Exception | NoClassDefFoundError e) {
+				} catch (Exception | LinkageError e) {
 					SophisticatedBuilding.logger.debug("Error collecting backpack tools: {}", e.getMessage());
 				}
 			}
