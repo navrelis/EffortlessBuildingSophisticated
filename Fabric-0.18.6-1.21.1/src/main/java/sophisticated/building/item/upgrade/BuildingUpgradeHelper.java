@@ -12,6 +12,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
 import net.p3pp3rf1y.sophisticatedbackpacks.util.PlayerInventoryProvider;
 import sophisticated.building.SophisticatedBuilding;
+import sophisticated.building.integration.BackpackScanCompat;
 import sophisticated.building.network.message.BackpackItemCountPacket;
 
 import javax.annotation.Nullable;
@@ -39,14 +40,14 @@ public class BuildingUpgradeHelper {
 
         BuildingUpgradeWrapper[] best = new BuildingUpgradeWrapper[1];
         try {
-            PlayerInventoryProvider.get().runOnBackpacks(player, (backpack, invName, identifier, slot) -> {
+            BackpackScanCompat.forEachBackpack(player, (backpack, invName, identifier, slot) -> {
                 BuildingUpgradeWrapper wrapper = getBuildingUpgradeFromBackpack(backpack);
                 if (wrapper != null && wrapper.isEnabled() && (best[0] == null || wrapper.getTier() > best[0].getTier())) {
                     best[0] = wrapper;
                 }
                 return false;
             });
-        } catch (Exception | NoClassDefFoundError e) {
+        } catch (Exception | LinkageError e) {
             SophisticatedBuilding.logger.debug("Error scanning backpacks for building upgrades: {}", e.getMessage());
         }
 
@@ -65,14 +66,14 @@ public class BuildingUpgradeHelper {
         }
 
         try {
-            PlayerInventoryProvider.get().runOnBackpacks(player, (backpack, invName, identifier, slot) -> {
+            BackpackScanCompat.forEachBackpack(player, (backpack, invName, identifier, slot) -> {
                 BuildingUpgradeWrapper wrapper = getBuildingUpgradeFromBackpack(backpack);
                 if (wrapper != null && wrapper.isEnabled()) {
                     wrappers.add(wrapper);
                 }
                 return false;
             });
-        } catch (Exception | NoClassDefFoundError e) {
+        } catch (Exception | LinkageError e) {
             SophisticatedBuilding.logger.debug("Error scanning backpacks for building upgrades: {}", e.getMessage());
         }
 

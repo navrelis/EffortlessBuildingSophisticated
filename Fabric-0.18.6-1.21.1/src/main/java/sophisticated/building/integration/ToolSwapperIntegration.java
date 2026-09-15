@@ -5,7 +5,6 @@ import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedbackpacks.backpack.wrapper.BackpackWrapper;
 import net.p3pp3rf1y.sophisticatedbackpacks.upgrades.toolswapper.ToolSwapMode;
 import net.p3pp3rf1y.sophisticatedbackpacks.upgrades.toolswapper.ToolSwapperUpgradeWrapper;
-import net.p3pp3rf1y.sophisticatedbackpacks.util.PlayerInventoryProvider;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
@@ -30,7 +29,7 @@ public class ToolSwapperIntegration {
 	public static List<BreakToolHelper.ToolSlot> collectBackpackTools(Player player) {
 		List<BreakToolHelper.ToolSlot> tools = new ArrayList<>();
 
-		PlayerInventoryProvider.get().runOnBackpacks(player, (backpack, invName, identifier, slot) -> {
+		BackpackScanCompat.forEachBackpack(player, (backpack, invName, identifier, slot) -> {
 			collectFromBackpack(backpack, tools);
 			return false;
 		});
