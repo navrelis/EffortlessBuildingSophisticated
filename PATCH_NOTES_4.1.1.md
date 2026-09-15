@@ -40,6 +40,10 @@ server tick loop died instead of just disabling the Building Upgrade feature.
   NeoForge mixin config never generates a refmap (NeoForge 1.21 runs on Mojang names and doesn't
   need one), so the stale reference is simply removed. Fabric is unaffected — Loom still generates
   its own refmap there.
+* Removed stale loot-modifier data for items that no longer exist in this fork (`muscles`,
+  `elastic_hand`, `building_techniques_book`, `building_techniques_book_library` — leftovers from
+  the original Effortless Building mod). These produced four "Could not decode
+  GlobalLootModifier" warnings on every world load on NeoForge.
 
 ## Who is affected
 

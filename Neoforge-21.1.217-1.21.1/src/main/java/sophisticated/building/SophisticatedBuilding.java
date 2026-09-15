@@ -1,6 +1,5 @@
 package sophisticated.building;
 
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -26,7 +25,6 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.loot.IGlobalLootModifier;
 import net.neoforged.neoforge.items.ComponentItemHandler;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -70,7 +68,6 @@ public class SophisticatedBuilding {
     // Registration
     private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
     private static final DeferredRegister<MenuType<?>> CONTAINERS = DeferredRegister.create(BuiltInRegistries.MENU, MODID);
-    private static final DeferredRegister<MapCodec<? extends IGlobalLootModifier>> LOOT_MODIFIERS = DeferredRegister.create(NeoForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS, MODID);
     private static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, MODID);
     private static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
 
@@ -153,8 +150,6 @@ public class SophisticatedBuilding {
     public static final Supplier<MenuType<DiamondRandomizerBagContainer>> DIAMOND_RANDOMIZER_BAG_CONTAINER = CONTAINERS.register("diamond_randomizer_bag", () -> registerContainer(DiamondRandomizerBagContainer::new));
     public static final Supplier<MenuType<OmegaRandomizerBagContainer>> OMEGA_RANDOMIZER_BAG_CONTAINER = CONTAINERS.register("omega_randomizer_bag", () -> registerContainer(OmegaRandomizerBagContainer::new));
 
-    public static final Supplier<MapCodec<SingleItemLootModifier>> SINGLE_ITEM_LOOT_MODIFIER = LOOT_MODIFIERS.register("single_item_loot_modifier", SingleItemLootModifier.CODEC);
-
     public static final Supplier<AttachmentType<PowerLevel>> POWER_LEVEL = ATTACHMENT_TYPES.register("power_level", () -> AttachmentType.serializable(PowerLevel::new).build());
 
     public SophisticatedBuilding(IEventBus modEventBus, ModContainer container, Dist dist) {
@@ -170,7 +165,6 @@ public class SophisticatedBuilding {
         CONTAINERS.register(modEventBus);
         CREATIVE_MODE_TABS.register(modEventBus);
 
-        LOOT_MODIFIERS.register(modEventBus);
         ATTACHMENT_TYPES.register(modEventBus);
 
         // Register config

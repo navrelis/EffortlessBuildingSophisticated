@@ -851,3 +851,43 @@ both loaders, plus one javadoc `{@link PlayerInventoryProvider#runOnBackpacks}` 
 
 No deviations from the contract. All four builds required by the contract (Fabric x2, NeoForge x2,
 plus the two `rebuild_all_and_export_jar.ps1` builds) were genuinely green; nothing was skipped.
+
+## Implementer notes – 4.1.1 loot-modifier cleanup
+
+Fixed the orchestrator's finding of four "Could not decode GlobalLootModifier" warnings on every
+NeoForge world load, for `sophisticatedbuilding:muscles_loot_modifier`,
+`elastic_hand_loot_modifier`, `building_techniques_book_loot_modifier` and
+`building_techniques_book_library_loot_modifier`. These were leftover data files from the original
+Effortless Building mod referencing items (`muscles`, `elastic_hand`, `building_techniques_book`,
+`building_techniques_book_library`) that no longer exist as registered items in this fork.
+
+Grep evidence: `grep -rniI "muscles|elastic_hand|building_techniques_book" --include="*.java"` over
+both loaders' `src` trees found no item registration — the only hit was a comment in NeoForge's
+`SophisticatedBuilding.java` (`// Removed: MUSCLES_ITEM, ELASTIC_HAND_ITEM,
+BUILDING_TECHNIQUES_BOOK_ITEM (PowerLevelItem)`) confirming these items were already intentionally
+removed. `git ls-files` on the two empty Fabric directories
+(`data/neoforge/loot_modifiers`, `data/sophisticatedbuilding/loot_modifiers`) returned nothing, so
+nothing there was tracked.
+
+Removed via `git rm`: the 4 NeoForge loot-modifier JSON files under
+`data/sophisticatedbuilding/loot_modifiers/`, NeoForge's
+`data/neoforge/loot_modifiers/global_loot_modifiers.json` (both now-empty directories were removed
+automatically by `git rm`), and
+`Neoforge-21.1.217-1.21.1/src/main/java/sophisticated/building/item/SingleItemLootModifier.java`
+(the codec for those files; grep confirmed no other reference anywhere in either loader). Its
+registration line in `SophisticatedBuilding.java` (`SINGLE_ITEM_LOOT_MODIFIER =
+LOOT_MODIFIERS.register(...)`), the now-unused `LOOT_MODIFIERS` `DeferredRegister` field and its
+`.register(modEventBus)` call, and the now-unused `MapCodec`/`IGlobalLootModifier` imports were
+removed by hand-edit (plain deletion, not `git rm`, since the file itself stays).
+`NeoForgeRegistries` stays imported (still used by `ATTACHMENT_TYPES`). The two empty,
+already-untracked Fabric `loot_modifiers` directories were deleted directly (not `git rm`, nothing
+was tracked in them).
+
+Build result: NeoForge `.\gradlew.bat build --no-daemon` → `BUILD SUCCESSFUL`. Fabric
+`.\gradlew.bat build --no-daemon` → `BUILD SUCCESSFUL`; forced `test --rerun` afterwards and summed
+`build/test-results/test/*.xml`: 23 tests, 0 failures, 0 errors. `.\rebuild_all_and_export_jar.ps1`
+ran clean and refreshed `ExportedJars/sophisticatedbuilding-neoforge-4.1.1.jar` and
+`sophisticatedbuilding-fabric-4.1.1.jar`; `unzip -l` on both jars found zero `loot_modifiers`
+entries and the NeoForge jar's `data/neoforge/` directory is gone entirely (it held nothing else).
+
+No deviations from the contract.
