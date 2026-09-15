@@ -754,3 +754,100 @@ on both copies. No corrections needed. Re-ran both builds myself: Fabric BUILD S
 also outlines the vanilla-handled first block (same as the previous immediate dissolve did).
 Graph refreshed incrementally (20 code files, 4 docs): 5080 nodes, 13707 edges, 223 communities,
 24 new communities hand-labelled.
+
+## 2026-09-15 – Implementer notes – 4.1.1 hotfix (Sonnet 5)
+
+Executed `10_UPSTREAM_API_BREAK_4.1.1.md` T-U1 through T-U4 in order, Fabric first then NeoForge
+parity, one commit per task, build green before each commit, pushed after each commit. No
+deviations from the contract.
+
+**T-U1 (`53297d2`)** – `sophisticated/building/utilities/ReturnTypeAgnosticInvoker.java`, no MC or
+Sophisticated imports, `findVirtualIgnoringReturnType(Class<?>, String, Class<?>...)` returning
+`Optional<MethodHandle>` via `getMethod` + `MethodHandles.publicLookup().unreflect`, catching
+`NoSuchMethodException | IllegalAccessException | SecurityException | LinkageError`. Copied
+byte-identical to NeoForge (`diff` confirmed identical). New test
+`ReturnTypeAgnosticInvokerTest.java` with `VoidReturningOwner`/`BooleanReturningOwner` nested
+dummy classes; asserts both resolve, invoking each handle as a statement runs the body (proving the
+boolean -> void adaptation), a missing method name and wrong parameter types both yield
+`Optional.empty()`. Fabric build: BUILD SUCCESSFUL, 23 tests (17 previous + 6 new), all green.
+NeoForge build: BUILD SUCCESSFUL (no test task, as before – no `src/test` in that project).
+
+**T-U2 (`7179768`)** – `sophisticated/building/integration/BackpackScanCompat.java` on both
+loaders, lazy double-checked `Optional<MethodHandle>` holder built from
+`ReturnTypeAgnosticInvoker.findVirtualIgnoringReturnType(PlayerInventoryProvider.class,
+"runOnBackpacks", Player.class, PlayerInventoryProvider.BackpackInventorySlotConsumer.class)`.
+`forEachBackpack` invokes the handle as a statement, catches `LinkageError` (report once at WARN
+naming the installed Backpacks version via `AtomicBoolean REPORTED`, DEBUG afterwards) and returns
+`false`; `RuntimeException`/other `Error`s rethrown unchanged; anything else wrapped in
+`RuntimeException`. The two copies differ only in the `// loader-specific` version-lookup method
+(Fabric: `FabricLoader.getInstance().getModContainer(...).getMetadata().getVersion()`; NeoForge:
+`ModList.get().getModContainerById(...).getModInfo().getVersion()`) — confirmed with `diff`.
+Replaced the three direct `PlayerInventoryProvider.get().runOnBackpacks(...)` calls
+(`BuildingUpgradeHelper.findBestBuildingUpgrade`, `findAllBuildingUpgrades`,
+`ToolSwapperIntegration.collectBackpackTools`) on both loaders; removed the now-unused
+`PlayerInventoryProvider` import from `ToolSwapperIntegration` on both loaders (the
+`BuildingUpgradeHelper` import stays, it is still referenced by a javadoc `{@link}`). Both builds
+green; Fabric still 23/23 tests. `grep -rn "runOnBackpacks" src/main/java` on each loader only
+hits `BackpackScanCompat` (code + javadoc).
+
+**T-U3 (`7007104`)** – widened `catch (Exception | NoClassDefFoundError)` /
+`catch (NoClassDefFoundError ignored)` to `LinkageError` in exactly the files named by the
+contract: `BuildingUpgradeHelper` (the third catch, in `getBuildingUpgradeFromBackpack`, on both
+loaders — the other two were already replaced by `BackpackScanCompat` in T-U2),
+`ToolSwapperIntegration` (its catch plus the class javadoc and the rule text it quotes, on both
+loaders), `BreakToolHelper` (both loaders), NeoForge `CommonEvents` (all four occurrences,
+including the `sendBuildingUpgradeState` one named explicitly in the contract), and Fabric
+`FabricCommonEvents` (all four occurrences). Kept DEBUG logging in `BuildingUpgradeHelper`'s catch
+blocks as instructed (the WARN-once now lives in `BackpackScanCompat`). Left untouched, as the
+contract specifies or implies by not naming them: Fabric `SophisticatedBuilding.java`'s
+`catch (Throwable)` blocks; the Catnip-only guards in `RenderHandler`/`CatnipRenderHelper` (both
+loaders); the Curios-only guards in NeoForge `CuriosCompatHelper`; the registration-time guards in
+NeoForge `SophisticatedBuilding.java`/`SophisticatedBuildingClient.java` and Fabric
+`FabricClientEvents.registerOptionalIntegrations` (none of these are in the T-U3 file list and none
+call `runOnBackpacks`). Both builds green; Fabric 23/23 tests.
+
+**T-U4 (this commit)** –
+1. `Neoforge-21.1.217-1.21.1/gradle.properties`: `sophisticatedcore_version=1.21.1-1.5.1.2341`,
+   `sophisticatedbackpacks_version=1.21.1-3.26.3.2158`. `.\gradlew.bat build --no-daemon
+   --refresh-dependencies` succeeded on the first try — no compile errors, nothing to report as a
+   break. `neoforge.mods.toml` dependency version ranges (`sophisticatedbackpacks` `[3.22.0,)`,
+   `sophisticatedcore` `[1.0.0,)`) were not touched.
+2. Removed the `"refmap": "sophisticatedbuilding.refmap.json"` line from
+   `Neoforge-21.1.217-1.21.1/src/main/resources/sophisticatedbuilding.mixins.json`. Fabric's copy
+   of the same file (which still needs its Loom-generated refmap) was left untouched.
+3. `mod_version=4.1.1` in both projects' `gradle.properties`.
+4. `PATCH_NOTES_4.1.1.md` written at the repo root (short, user-facing, matches the 4.1.0 style):
+   crash symptom, affected combination (4.1.0 NeoForge + Backpacks >= 3.26.0), the shim fix, both
+   older and newer Backpacks now working, the one-WARN-line behaviour on future breaks, and the
+   refmap warning removal.
+5. Ran `.\rebuild_all_and_export_jar.ps1` from the repo root: both `BUILD SUCCESSFUL`, jars and
+   patch notes copied into `ExportedJars/` (`sophisticatedbuilding-neoforge-4.1.1.jar`,
+   `sophisticatedbuilding-fabric-4.1.1.jar`, `PATCH_NOTES_4.1.1.md`). Extracted classes from both
+   jars (`jar xf`) and ran `javap -c -p` (JDK 21):
+   - NeoForge/Fabric `BuildingUpgradeHelper.class` | `grep -i runOnBackpacks` -> no hits on either
+     jar (exit 1, confirmed).
+   - NeoForge/Fabric `ToolSwapperIntegration.class` | `grep -i runOnBackpacks` -> no hits on either
+     jar (exit 1, confirmed).
+   - NeoForge/Fabric `BackpackScanCompat.class` | `grep -E "invoke|runOnBackpacks"` -> only
+     `MethodHandle.invoke` (`invokevirtual ... MethodHandle.invoke:(...)`), the `Optional`/
+     `AtomicBoolean` plumbing that happens to contain "invoke" in method names, and the two log
+     message string constants naming `runOnBackpacks`. No direct `invokevirtual` on
+     `PlayerInventoryProvider.runOnBackpacks` anywhere in either jar. (Fabric class names are Yarn
+     remapped, e.g. `net/minecraft/class_1657` for `Player`; the bytecode shape is identical to
+     NeoForge's Mojang-mapped output.)
+6. This section added to `07_SESSION_LOG.md`; `10_UPSTREAM_API_BREAK_4.1.1.md` added to the
+   numbered reading-order list in `README.md`.
+
+Final grep evidence (both loaders, `src/main/java`):
+`grep -rn "NoClassDefFoundError" */src/main/java` only hits: the `ToolSwapperIntegration` javadoc
+(both loaders, explains the `LinkageError` rule by name, as the contract requires), the
+Catnip-only guards in `RenderHandler`/`CatnipRenderHelper` (both loaders), the Curios-only guards
+in NeoForge `CuriosCompatHelper`, and the registration-time guards in NeoForge
+`SophisticatedBuilding.java`/`SophisticatedBuildingClient.java` and Fabric
+`FabricClientEvents.java` — none of these touch `runOnBackpacks` or are in the T-U3 file list.
+`grep -rn "runOnBackpacks" */src/main/java` only hits `BackpackScanCompat` (code and javadoc) on
+both loaders, plus one javadoc `{@link PlayerInventoryProvider#runOnBackpacks}` reference each in
+`BackpackScanCompat` and (NeoForge only) `BuildingUpgradeHelper`'s class javadoc.
+
+No deviations from the contract. All four builds required by the contract (Fabric x2, NeoForge x2,
+plus the two `rebuild_all_and_export_jar.ps1` builds) were genuinely green; nothing was skipped.

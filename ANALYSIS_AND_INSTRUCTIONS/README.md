@@ -25,6 +25,10 @@ without re-deriving the analysis.
    Disable mode can drift, the verified Tool Swapper API, and the balance design (D1–D8).
 9. `09_SURVIVAL_BREAKING_TASKS.md` – the ordered task contract for survival mass breaking
    (T-S1 … T-S9), still shipped as 4.1.0.
+10. `10_UPSTREAM_API_BREAK_4.1.1.md` – root-cause record and task contract (T-U1 … T-U4) for the
+    4.1.1 hotfix: SophisticatedBackpacks 3.26.0 changed `PlayerInventoryProvider.runOnBackpacks`'s
+    return type from `void` to `boolean`, a binary-incompatible change that crashed the NeoForge
+    server tick loop with `NoSuchMethodError`.
 
 ## Standing rules for this repository (apply to every session)
 
