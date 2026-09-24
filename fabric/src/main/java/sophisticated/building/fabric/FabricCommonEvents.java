@@ -9,6 +9,7 @@ import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
@@ -44,7 +45,20 @@ public final class FabricCommonEvents {
                 return InteractionResult.PASS;
             }
 
-            return CommonEvents.shouldCancelBlockPlace(player) ? InteractionResult.FAIL : InteractionResult.PASS;
+            if (!CommonEvents.shouldCancelBlockPlace(player)) {
+                return InteractionResult.PASS;
+            }
+            // Like NeoForge/Forge: the client already predicted the placement and took the item from the selected
+            // slot, and the server never tells it otherwise. Resend the slot, or a player holding exactly the items
+            // the build needs (e.g. 1 block + a backpack with a Building Upgrade) loses the held block client side.
+            if (player instanceof ServerPlayer serverPlayer) {
+                serverPlayer.connection.send(new ClientboundContainerSetSlotPacket(
+                        serverPlayer.inventoryMenu.containerId,
+                        serverPlayer.inventoryMenu.incrementStateId(),
+                        36 + serverPlayer.getInventory().selected,
+                        serverPlayer.getInventory().getSelected()));
+            }
+            return InteractionResult.FAIL;
         });
 
         PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) ->

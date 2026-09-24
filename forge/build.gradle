@@ -4,6 +4,8 @@ plugins {
     id 'net.minecraftforge.gradle' version '7.0.40'
 }
 
+apply from: '../gradle/smoketest.gradle'
+
 version = mod_version
 group = mod_group
 
@@ -28,6 +30,16 @@ sourceSets {
     test {
         java.srcDir "${commonDir}/src/test/java"
     }
+    // In-game smoke test harness (runSmokeClient / runSmokeServer, see TESTING.md): loader-neutral scenarios from
+    // ../common/src/smoketest and the Forge glue from src/smoketest. No Sophisticated Backpacks on Forge 1.21.1, so no
+    // backpack fixture. Its own mod ("sophisticatedbuilding_smoketest", META-INF/mods.toml), loaded
+    // only by the smoke runs (every classpath folder with a mods.toml is a mod in the Forge dev runtime); never packaged.
+    smoketest {
+        java.srcDir "${commonDir}/src/smoketest/java"
+        resources.srcDir "${commonDir}/src/smoketest/resources"
+        compileClasspath += main.output
+        runtimeClasspath += main.output
+    }
 }
 
 minecraft {
@@ -44,14 +56,30 @@ minecraft {
             systemProperty 'forge.logging.console.level', 'debug'
         }
 
-        register('client')
+        register('client') {
+            // runSmokeClient (= runSmoketestClient): a real client creates a fresh superflat world, runs the client
+            // scenarios, writes <smoketestOut>/smoketest-result.json and exits. gradlew runSmokeClient -PsmoketestOut=<dir>
+            with(sourceSets.smoketest) {
+                workingDir = layout.projectDirectory.dir('build/smoketest/client-run')
+                systemProperty 'sophisticatedbuilding.smoketest.mode', 'client'
+                systemProperty 'sophisticatedbuilding.smoketest.out', smoketestOutDir('client').absolutePath
+            }
+        }
 
         register('server') {
             args '--nogui'
         }
 
         // Launches the GameTestServer, runs all registered gametests, then exits.
-        register('gameTestServer')
+        register('gameTestServer') {
+            // runSmokeServer (= runSmoketestGameTestServer): headless, the game test server runs the server scenarios and
+            // writes the same JSON. gradlew runSmokeServer -PsmoketestOut=<dir>
+            with(sourceSets.smoketest) {
+                workingDir = layout.projectDirectory.dir('build/smoketest/server-run')
+                systemProperty 'sophisticatedbuilding.smoketest.mode', 'server'
+                systemProperty 'sophisticatedbuilding.smoketest.out', smoketestOutDir('server').absolutePath
+            }
+        }
     }
 }
 
@@ -60,6 +88,12 @@ repositories {
     maven fg.forgeMaven
     maven fg.minecraftLibsMaven
     mavenCentral()
+}
+
+// The smoke harness compiles and runs against everything main does; ForgeGradle then also creates the smoketest
+// variants of the runs (runSmoketestClient, runSmoketestGameTestServer, ...).
+configurations {
+    smoketestImplementation.extendsFrom implementation
 }
 
 dependencies {
@@ -94,6 +128,21 @@ var generateModMetadata = tasks.register('generateModMetadata', ProcessResources
 // Include the output of "generateModMetadata" as an input directory for the build.
 sourceSets.main.resources.srcDir generateModMetadata
 
+// The smoke runs under the task names every loader build uses; they pass or fail on the result file they write (shared
+// logic in ../gradle/smoketest.gradle)
+tasks.matching { it.name == 'runSmoketestClient' }.configureEach { verifySmokeRun(it, smoketestOutDir('client')) }
+tasks.matching { it.name == 'runSmoketestGameTestServer' }.configureEach { verifySmokeRun(it, smoketestOutDir('server')) }
+tasks.register('runSmokeClient') {
+    group = 'Slime Launcher'
+    description = 'Runs the client smoke test (runSmoketestClient).'
+    dependsOn 'runSmoketestClient'
+}
+tasks.register('runSmokeServer') {
+    group = 'Slime Launcher'
+    description = 'Runs the server smoke test (runSmoketestGameTestServer).'
+    dependsOn 'runSmoketestGameTestServer'
+}
+
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.release = java_version as int
@@ -118,8 +167,9 @@ tasks.register('checkCommonIsLoaderNeutral') {
     }
 }
 
+// build compiles the smoke harness (so it cannot rot) but never runs it; that is runSmokeClient / runSmokeServer's job.
 tasks.named('check') {
-    dependsOn tasks.named('checkCommonIsLoaderNeutral')
+    dependsOn tasks.named('checkCommonIsLoaderNeutral'), tasks.named('smoketestClasses')
 }
 
 // Resolved while configuring: the configuration cache cannot read project properties at execution time.
