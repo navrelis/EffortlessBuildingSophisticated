@@ -4,6 +4,8 @@ plugins {
     id 'idea'
 }
 
+apply from: '../gradle/smoketest.gradle'
+
 version = mod_version
 group = mod_group
 
@@ -31,6 +33,16 @@ sourceSets {
     // In-world tests of the server-side building rules (Fabric GameTest). Own fabric.mod.json with a
     // "fabric-gametest" entrypoint; only loaded by the gametest run, never packaged into the mod jar.
     gametest {
+        compileClasspath += main.compileClasspath + main.output
+        runtimeClasspath += main.runtimeClasspath + main.output
+    }
+    // In-game smoke test harness (runSmokeClient / runSmokeServer, see TESTING.md): loader-neutral scenarios from
+    // ../common/src/smoketest and the Fabric glue from src/smoketest. No Sophisticated Backpacks on Fabric 1.21.4, so no
+    // backpack fixture (../common/src/smoketestBackpacks) and no Trinkets. Own fabric.mod.json (mod
+    // "sophisticatedbuilding_smoketest"); only loaded by the smoke runs, never packaged into the mod jar.
+    smoketest {
+        java.srcDir "${commonDir}/src/smoketest/java"
+        resources.srcDir "${commonDir}/src/smoketest/resources"
         compileClasspath += main.compileClasspath + main.output
         runtimeClasspath += main.runtimeClasspath + main.output
     }
@@ -95,8 +107,33 @@ loom {
             runDir 'build/gametest'
             source sourceSets.gametest
         }
+        // Smoke test harness (see TESTING.md): a real client creates a fresh superflat world, runs the client
+        // scenarios, writes <smoketestOut>/smoketest-result.json and exits. gradlew runSmokeClient -PsmoketestOut=<dir>
+        smokeClient {
+            client()
+            configName = 'Smoke Test Client'
+            runDir 'build/smoketest/client-run'
+            source sourceSets.smoketest
+            vmArg '-Dsophisticatedbuilding.smoketest.mode=client'
+            vmArg "-Dsophisticatedbuilding.smoketest.out=${smoketestOutDir('client')}"
+        }
+        // Headless: a game test server runs the server scenarios (fake survival players) and writes the same JSON.
+        // gradlew runSmokeServer -PsmoketestOut=<dir>
+        smokeServer {
+            server()
+            configName = 'Smoke Test Server'
+            runDir 'build/smoketest/server-run'
+            source sourceSets.smoketest
+            vmArg '-Dfabric-api.gametest'
+            vmArg '-Dsophisticatedbuilding.smoketest.mode=server'
+            vmArg "-Dsophisticatedbuilding.smoketest.out=${smoketestOutDir('server')}"
+        }
     }
 }
+
+// The smoke runs pass or fail on the result file they write (shared logic in ../gradle/smoketest.gradle)
+tasks.named('runSmokeClient') { verifySmokeRun(it, smoketestOutDir('client')) }
+tasks.named('runSmokeServer') { verifySmokeRun(it, smoketestOutDir('server')) }
 
 processResources {
     var expandProps = [
@@ -141,9 +178,10 @@ tasks.register('checkCommonIsLoaderNeutral') {
     }
 }
 
-// build compiles the game tests (so they cannot rot) but never runs them; that is runGametest's job.
+// build compiles the game tests and the smoke harness (so they cannot rot) but never runs them; that is the job of
+// runGametest and runSmokeClient / runSmokeServer.
 tasks.named('check') {
-    dependsOn tasks.named('gametestClasses'), tasks.named('checkCommonIsLoaderNeutral')
+    dependsOn tasks.named('gametestClasses'), tasks.named('smoketestClasses'), tasks.named('checkCommonIsLoaderNeutral')
 }
 
 // Resolved while configuring: the configuration cache cannot read project properties at execution time.

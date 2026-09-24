@@ -1,0 +1,58 @@
+// In-game smoke test harness: the part every loader build shares (applied by <loader>/build.gradle).
+// The loader build declares the source set and the runSmokeClient / runSmokeServer run tasks, then calls
+// verifySmokeRun on each task. See TESTING.md.
+//
+//   gradlew runSmokeClient -PsmoketestOut=<absolute dir> --no-daemon
+//
+// The game runs the scenarios by itself, writes <dir>/smoketest-result.json and exits. This file makes the task
+// start from an empty result (old result and screenshots removed) and fail unless a result was written, every check
+// passed and the game exited normally.
+
+import groovy.json.JsonSlurper
+
+// <smoketestOut> if given, else build/smoketest/<kind>; always absolute
+ext.smoketestOutDir = { String kind ->
+    def value = project.findProperty('smoketestOut')
+    return value ? new File(value.toString()).absoluteFile : project.layout.buildDirectory.dir("smoketest/${kind}").get().asFile
+}
+
+ext.verifySmokeRun = { Task task, File outDir ->
+    File result = new File(outDir, 'smoketest-result.json')
+    File tmp = new File(outDir, 'smoketest-result.json.tmp')
+    File shots = new File(outDir, 'screenshots')
+    // Outer watchdog: the game has its own (5 min by default), this one also covers a game that hangs before the
+    // harness started (e.g. a mod loading error on a server, which then never exits)
+    task.timeout = java.time.Duration.ofMinutes(15)
+    if (task instanceof JavaExec) {
+        // The result file decides; a non-zero exit is reported below with the failing checks
+        task.ignoreExitValue = true
+    }
+    task.doFirst {
+        result.delete()
+        tmp.delete()
+        if (shots.directory) {
+            shots.listFiles().each { it.delete() }
+        }
+        outDir.mkdirs()
+    }
+    task.doLast { Task t ->
+        if (!result.file) {
+            throw new GradleException("Smoke test wrote no result (${result}): the game did not start or crashed early, see its log")
+        }
+        def json = new JsonSlurper().parse(result)
+        def checks = json.checks ?: []
+        def failed = checks.findAll { !it.passed }
+        def skipped = checks.findAll { it.skipped }
+        t.logger.lifecycle("Smoke test ${json.passed ? 'PASSED' : 'FAILED'}: ${checks.size()} checks, ${failed.size()} failed, ${skipped.size()} skipped -> ${result}")
+        checks.each { c -> t.logger.lifecycle("  ${c.passed ? (c.skipped ? 'SKIP' : 'PASS') : 'FAIL'} ${c.name}: ${c.detail}") }
+        if (!json.passed) {
+            throw new GradleException("Smoke test failed: " + failed.collect { it.name }.join(', ') + " (see ${result})")
+        }
+        if (t instanceof JavaExec) {
+            int exit = t.executionResult.get().exitValue
+            if (exit != 0) {
+                throw new GradleException("All smoke checks passed but the game exited with code ${exit}")
+            }
+        }
+    }
+}

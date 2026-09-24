@@ -13,6 +13,7 @@ common/                    loader-neutral code and assets, no build of its own
   src/main/resources         assets (incl. the 1.21.4 item model definitions in assets/<modid>/items), data (recipes
                              carry Fabric, NeoForge and Forge load conditions), mixin config
   src/test/java              unit tests, run by every loader build
+  src/smoketest              in-game smoke test harness (dev-only, see TESTING.md); src/smoketestBackpacks: its SB fixture
 fabric/                    Fabric build (Loom): entry points, platform services, JSON config backend, GameTests
                            (src/gametest); no backpack integration (no Sophisticated Backpacks for Fabric 1.21.4)
 neoforge/                  NeoForge build (ModDevGradle): entry points, platform services, ModConfigSpec configs,
@@ -82,6 +83,15 @@ cd forge    && ./gradlew build          # jar in forge/build/libs, runs the comm
 Forge: the first build sets up Minecraft through ForgeGradle's Mavenizer (several minutes); do not run it in parallel
 with another ForgeGradle 7 build on a cold cache. The Forge dev runs (`runClient`, `runServer`, `runGameTestServer`)
 have no Sophisticated Backpacks and no `runClientExported`.
+
+## In-game smoke tests
+
+`gradlew runSmokeClient -PsmoketestOut=<dir>` (real client, fresh world) and `gradlew runSmokeServer -PsmoketestOut=<dir>`
+(headless game test server) in any loader folder run the in-game smoke scenarios, including the Sophisticated
+Backpacks integration on NeoForge (the only loader with Sophisticated Backpacks on 1.21.4), and write
+`<dir>/smoketest-result.json`; the game exits by itself. The harness (`common/src/smoketest`,
+`common/src/smoketestBackpacks`, `<loader>/src/smoketest`, `gradle/smoketest.gradle`) is dev-only and never packaged.
+See [TESTING.md](TESTING.md) for the scenarios, the result contract and how a port adopts it.
 
 ## Run
 
