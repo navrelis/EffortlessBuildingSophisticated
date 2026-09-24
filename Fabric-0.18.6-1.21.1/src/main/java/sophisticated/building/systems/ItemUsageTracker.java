@@ -72,6 +72,17 @@ public class ItemUsageTracker {
         return have >= newValue;
     }
 
+    //Takes back an increaseUsageCount for an entry that ended up not being placed
+    public void decreaseUsageCount(Item item, int count) {
+        if (item == null) return;
+        int newValue = total.getOrDefault(item, 0) - count;
+        if (newValue > 0) {
+            total.put(item, newValue);
+        } else {
+            total.remove(item);
+        }
+    }
+
     public void calculateMissingItems(Player player) {
         if (player.isCreative()) return;
         for (Item item : total.keySet()) {

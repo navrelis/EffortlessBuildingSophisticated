@@ -5,7 +5,7 @@
 | T1 | Fabric JSON config files (common/server/client) + server->client sync + new `survivalReplace.enabled` (default false) | Fabric | Opus | - | with T3 | done |
 | T3 | #4 place with the real stack's data components (contents, name) and consume that exact stack; #1 hardening (third-party getStateForPlacement exceptions mark the entry invalid instead of crashing) | Fabric | Opus (worktree) | - | with T1 | done |
 | T5 | #3 audit: trace Building Upgrade item flow (client count -> packet -> server extraction) on both loaders, report concrete bugs | both | Sonnet (read-only) | - | with T1, T3 | in progress |
-| T2 | Survival replace: gate via config, mine replaced blocks with survival rules, delay + countdown, client preview marks unbreakable targets, safe survival undo/redo of replacements | Fabric | Opus | T1, T3 | - | open |
+| T2 | Survival replace: gate via config, mine replaced blocks with survival rules, delay + countdown, client preview marks unbreakable targets, safe survival undo/redo of replacements | Fabric | Opus | T1, T3 | - | done |
 | T5b | Fix bugs found by T5 | both | tbd | T5 | - | open |
 | T6 | NeoForge parity for T2, T3, T5b + SERVER config entry | NeoForge | Sonnet/Opus | T2, T3, T5b | - | open |
 | T7 | Release 4.2.0: version bump, patch notes, export jars, .gitignore negation for .knowledge | both | Sonnet | T6 | - | open |

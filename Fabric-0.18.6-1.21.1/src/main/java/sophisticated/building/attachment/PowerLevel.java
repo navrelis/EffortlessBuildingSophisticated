@@ -92,13 +92,10 @@ public class PowerLevel {
 		return player.getAbilities().instabuild || ServerConfig.survivalBreaking.enabled.get();
 	}
 
-	/**
-	 * Check if the player can use Replace mode.
-	 * Replace is only available in Creative mode.
-	 */
+	// True when the player may use the replace modes and Quick Replace (creative always; survival when the
+	// survival-replace config switch is enabled - replaced blocks are then mined, see ServerBlockPlacer).
 	public boolean canReplaceBlocks(Player player) {
-		// Replace is only available in Creative mode
-		return player.getAbilities().instabuild;
+		return player.getAbilities().instabuild || ServerConfig.survivalReplace.enabled.get();
 	}
 
 	public CompoundTag serializeNBT(Provider provider) {

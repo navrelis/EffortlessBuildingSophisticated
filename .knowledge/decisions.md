@@ -8,3 +8,5 @@
 - T3 runs in a git worktree so it can build in parallel with T1 without half-written code from the other agent breaking its compile.
 - Fabric server config sync skips server-only values (whitelist). Reason: clients never need them and names should not leak to every joining player.
 - Undo of a survival break now costs the block's item (derived from the state). Reason: it previously crashed (new ItemStack(null)); a free re-place would duplicate items since the drops were kept.
+- Server skipFirst uses identity (==) and never matches after decoding; left as is because Quick Replace in Disable mode relies on the server handling the first position. Reason: changing it would break creative/survival quick replace in Disable mode.
+- Survival: same-block targets are placed only as one-step merges (slab->double, +1 candle/pickle/egg), never mined; other same-block cases skipped. Server now rejects survival overwrites of non-replaceable blocks when survival replace is off. Reason: prevents mine-1-pay-1-get-2 dupes and closes a modified-client overwrite hole.
