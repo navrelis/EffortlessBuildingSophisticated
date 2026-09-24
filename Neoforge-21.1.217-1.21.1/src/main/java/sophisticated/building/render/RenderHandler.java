@@ -221,7 +221,8 @@ public class RenderHandler {
 		int total = ClientBreakCountdown.totalTicks();
 		int blockCount = ClientBreakCountdown.totalBlockCount();
 		String seconds = String.format(Locale.ROOT, "%.1f", remaining / 20f);
-		String text = I18n.get("sophisticatedbuilding.hud.break_countdown", blockCount, seconds);
+		String key = ClientBreakCountdown.onlyPlacing() ? "sophisticatedbuilding.hud.replace_countdown" : "sophisticatedbuilding.hud.break_countdown";
+		String text = I18n.get(key, blockCount, seconds);
 
 		int textX = screenWidth / 2;
 		int textY = screenHeight / 2 + 24;

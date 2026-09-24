@@ -11,7 +11,10 @@ import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.Half;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -21,6 +24,31 @@ public class BlockUtilities {
 
     public static boolean isNullOrAir(BlockState blockState) {
         return blockState == null || blockState.isAir();
+    }
+
+    //True if placing here replaces a real block that has to be mined first (not air, grass, water...)
+    public static boolean needsMining(BlockState blockState) {
+        return blockState != null && ReplaceRules.needsMining(blockState.isAir(), blockState.canBeReplaced());
+    }
+
+    //True if next adds one to existing like a vanilla merge: a single slab becomes double, or exactly one integer
+    //property (candles, pickles, eggs...) goes up by one; all other properties equal except waterlogged
+    public static boolean isOneStepMerge(BlockState existing, BlockState next) {
+        if (existing == null || next == null || existing.getBlock() != next.getBlock()) return false;
+        int steps = 0;
+        for (Property<?> property : existing.getProperties()) {
+            Comparable<?> before = existing.getValue(property);
+            Comparable<?> after = next.getValue(property);
+            if (before.equals(after) || property == BlockStateProperties.WATERLOGGED) continue;
+            if (property == BlockStateProperties.SLAB_TYPE && before != SlabType.DOUBLE && after == SlabType.DOUBLE) {
+                steps++;
+            } else if (property instanceof IntegerProperty && (Integer) after == (Integer) before + 1) {
+                steps++;
+            } else {
+                return false;
+            }
+        }
+        return steps == 1;
     }
 
     @Deprecated //Use BlockEntry.setItemStackAndFindNewBlockState instead

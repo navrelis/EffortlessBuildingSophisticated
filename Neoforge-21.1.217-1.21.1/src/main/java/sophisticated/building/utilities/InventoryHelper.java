@@ -140,14 +140,22 @@ public class InventoryHelper {
 		}
 	}
 
+	/**
+	 * Bulk removal after a block set was placed. Stacks with data are skipped, they are consumed
+	 * individually at placement time (see {@link PlacementTemplates}).
+	 */
 	public static void removeFromInventory(Player player, Map<Item, Integer> items) {
 		for (Item item : items.keySet()) {
 			int count = items.get(item);
-			removeFromInventory(player, item, count);
+			removeFromInventory(player, item, count, true);
 		}
 	}
 
 	public static void removeFromInventory(Player player, Item item, int amount) {
+		removeFromInventory(player, item, amount, false);
+	}
+
+	private static void removeFromInventory(Player player, Item item, int amount, boolean skipStacksWithData) {
 		if (player.isCreative()) return;
 
 		int amountFound = 0;
@@ -162,7 +170,7 @@ public class InventoryHelper {
 			int preferredSlot = player.getInventory().selected;
 			ItemStack itemstack = player.getInventory().getItem(preferredSlot);
 			int count = itemstack.getCount();
-			if (itemstack.getItem() == item && count > 0) {
+			if (itemstack.getItem() == item && count > 0 && !(skipStacksWithData && PlacementTemplates.hasData(itemstack))) {
 				int taken = Math.min(count, amount - amountFound);
 				player.getInventory().setItem(preferredSlot, new ItemStack(itemstack.getItem(), count - taken));
 				amountFound += taken;
@@ -173,7 +181,7 @@ public class InventoryHelper {
 		for (int i = 0; i < player.getInventory().getContainerSize() && amountFound < amount; ++i) {
 			ItemStack itemstack = player.getInventory().getItem(i);
 			int count = itemstack.getCount();
-			if (itemstack.getItem() == item && count > 0) {
+			if (itemstack.getItem() == item && count > 0 && !(skipStacksWithData && PlacementTemplates.hasData(itemstack))) {
 				int taken = Math.min(count, amount - amountFound);
 				player.getInventory().setItem(i, new ItemStack(itemstack.getItem(), count - taken));
 				amountFound += taken;

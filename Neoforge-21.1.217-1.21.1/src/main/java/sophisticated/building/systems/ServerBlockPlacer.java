@@ -3,6 +3,11 @@ package sophisticated.building.systems;
 import net.minecraft.ChatFormatting;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.network.PacketDistributor;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.ServerConfig;
@@ -13,6 +18,8 @@ import sophisticated.building.utilities.BlockSet;
 import sophisticated.building.utilities.BlockUtilities;
 import sophisticated.building.utilities.BreakToolHelper;
 import sophisticated.building.utilities.InventoryHelper;
+import sophisticated.building.utilities.PlacementTemplates;
+import sophisticated.building.utilities.ReplaceRules;
 import sophisticated.building.utilities.ToolSelector;
 
 import javax.annotation.Nullable;
@@ -34,9 +41,43 @@ public class ServerBlockPlacer {
         if (!checkAndNotifyAllowedToUseMod(player)) return;
         if (!validateBlockSet(player, blocks)) return;
 
+        if (!player.isCreative() && ServerConfig.survivalReplace.enabled.get()) {
+            placeTime = scheduleReplaceMining(player, blocks, placeTime);
+        }
+
         delayedEntries.add(new DelayedEntry(player, blocks, placeTime));
     }
-    
+
+    //Survival replace: the blocks in the way are mined, so wait for the mining delay like survival breaking
+    private long scheduleReplaceMining(Player player, BlockSet blocks, long clientPlaceTime) {
+        Level level = player.level();
+        List<BreakToolHelper.ToolSlot> candidates = BreakToolHelper.collectCandidates(player);
+        int totalTicks = 0;
+        int replaceCount = 0;
+        for (BlockEntry block : blocks) {
+            if (blocks.skipFirst && block.blockPos == blocks.firstPos) continue;
+            if (BlockUtilities.isNullOrAir(block.newBlockState)) continue;
+
+            BlockState state = level.getBlockState(block.blockPos);
+            if (!BlockUtilities.needsMining(state) || state.is(block.newBlockState.getBlock())) continue;
+
+            var selected = BreakToolHelper.selectTool(player, level, block.blockPos, state, candidates);
+            if (BreakToolHelper.isImpossible(selected)) continue;
+
+            replaceCount++;
+            var tool = selected == null ? ItemStack.EMPTY : selected.get();
+            totalTicks += BreakToolHelper.estimateBreakTicks(level, block.blockPos, state, tool);
+        }
+        if (replaceCount == 0) return clientPlaceTime;
+
+        long now = level.getGameTime();
+        long placeTime = ReplaceRules.placeTime(clientPlaceTime, now, totalTicks, ServerConfig.survivalBreaking.maxDelayTicks.get());
+        if (player instanceof ServerPlayer serverPlayer) {
+            PacketDistributor.sendToPlayer(serverPlayer, new BreakCountdownPacket((int) Math.max(0, placeTime - now), replaceCount, true));
+        }
+        return placeTime;
+    }
+
     public void tick() {
 
         //Iterator to prevent concurrent modification exception
@@ -47,7 +88,7 @@ public class ServerBlockPlacer {
                 iterator.remove();
                 continue;
             }
-            
+
             long gameTime = entry.player.level().getGameTime();
             if (gameTime >= entry.placeTime) {
                 applyBlockSet(entry.player, entry.blocks);
@@ -98,7 +139,7 @@ public class ServerBlockPlacer {
         delayedEntries.add(new DelayedEntry(player, blocks, player.level().getGameTime() + delay));
 
         if (player instanceof ServerPlayer serverPlayer) {
-            PacketDistributor.sendToPlayer(serverPlayer, new BreakCountdownPacket(delay, blockCount));
+            PacketDistributor.sendToPlayer(serverPlayer, new BreakCountdownPacket(delay, blockCount, false));
         }
     }
 
@@ -109,6 +150,7 @@ public class ServerBlockPlacer {
 
         SophisticatedBuilding.ITEM_USAGE_TRACKER.initialize();
         List<BreakToolHelper.ToolSlot> candidates = player.isCreative() ? null : BreakToolHelper.collectCandidates(player);
+        var templates = new PlacementTemplates(player);
         var undoSet = new BlockSet();
         int survivalBreaksAttempted = 0;
         int survivalBreaksSucceeded = 0;
@@ -118,17 +160,17 @@ public class ServerBlockPlacer {
             boolean breaking = BlockUtilities.isNullOrAir(block.newBlockState);
             if (breaking && candidates != null) survivalBreaksAttempted++;
 
-            if (applyBlockEntry(player, block, candidates)) {
+            if (applyBlockEntry(player, block, candidates, templates)) {
                 undoSet.add(block);
                 if (breaking && candidates != null) survivalBreaksSucceeded++;
             }
         }
 
-        //Remove items from inventory
+        //Remove items from inventory, except those already consumed individually during placement
         //(Adding items is done during BlockPlacerHelper.breakBlock)
         SophisticatedBuilding.ITEM_USAGE_TRACKER.calculateMissingItems(player);
         if (!player.isCreative()) {
-            InventoryHelper.removeFromInventory(player, SophisticatedBuilding.ITEM_USAGE_TRACKER.placed);
+            InventoryHelper.removeFromInventory(player, SophisticatedBuilding.ITEM_USAGE_TRACKER.getBulkRemovalCounts());
         }
 
         if (survivalBreaksAttempted > 0 && survivalBreaksSucceeded == 0) {
@@ -144,11 +186,12 @@ public class ServerBlockPlacer {
 
         SophisticatedBuilding.ITEM_USAGE_TRACKER.initialize();
         List<BreakToolHelper.ToolSlot> candidates = player.isCreative() ? null : BreakToolHelper.collectCandidates(player);
+        var templates = new PlacementTemplates(player);
         var redoSet = new BlockSet();
         for (BlockEntry block : blocks) {
             if (blocks.skipFirst && block.blockPos == blocks.firstPos) continue;
 
-            if (undoBlockEntry(player, block, candidates)) {
+            if (undoBlockEntry(player, block, candidates, templates)) {
                 redoSet.add(block);
             }
         }
@@ -157,38 +200,81 @@ public class ServerBlockPlacer {
         //(Adding items is done during BlockPlacerHelper.breakBlock)
         SophisticatedBuilding.ITEM_USAGE_TRACKER.calculateMissingItems(player);
         if (!player.isCreative()) {
-            InventoryHelper.removeFromInventory(player, SophisticatedBuilding.ITEM_USAGE_TRACKER.placed);
+            InventoryHelper.removeFromInventory(player, SophisticatedBuilding.ITEM_USAGE_TRACKER.getBulkRemovalCounts());
         }
 
         SophisticatedBuilding.UNDO_REDO.addRedo(player, redoSet);
     }
 
-    private boolean applyBlockEntry(Player player, BlockEntry block, @Nullable List<BreakToolHelper.ToolSlot> candidates) {
+    private boolean applyBlockEntry(Player player, BlockEntry block, @Nullable List<BreakToolHelper.ToolSlot> candidates,
+                                    PlacementTemplates templates) {
 
         block.existingBlockState = player.level().getBlockState(block.blockPos);
         boolean breaking = BlockUtilities.isNullOrAir(block.newBlockState);
-        if (!validateBlockEntry(player, block, breaking)) return false;
+        //Survival may only overwrite a real block by mining it, and only with survival replace enabled (merges excepted)
+        ReplaceRules.Action action = breaking ? ReplaceRules.Action.BREAK : ReplaceRules.forPlacement(candidates != null,
+                BlockUtilities.needsMining(block.existingBlockState), block.existingBlockState.is(block.newBlockState.getBlock()),
+                BlockUtilities.isOneStepMerge(block.existingBlockState, block.newBlockState),
+                ServerConfig.survivalReplace.enabled.get());
+        if (action == ReplaceRules.Action.SKIP) return false;
+        if (!validateBlockEntry(player, block, action != ReplaceRules.Action.PLACE)) return false;
 
-        boolean success;
         isPlacingOrBreakingBlocks = true;
-        if (breaking) {
-            success = BlockPlacerHelper.breakBlock(player, block, candidates);
-        } else {
-            //If we have the item in our inventory, place it
-            if (SophisticatedBuilding.ITEM_USAGE_TRACKER.increaseUsageCount(block.item, 1, player)) {
-                success = BlockPlacerHelper.placeBlock(player, block);
-            } else {
-                success = false;
-                //Not having the item at this point would be a bit weird
-                //It could mean the client/server are out of sync, or the inventory changed during the short delay period
-                //HUD already shows inventory counts visually, no need to spam chat
-            }
-        }
+        boolean success = switch (action) {
+            case BREAK -> BlockPlacerHelper.breakBlock(player, block, candidates);
+            case REPLACE -> mineAndPlace(player, block, candidates, templates);
+            default -> placeIfAvailable(player, block, templates);
+        };
         isPlacingOrBreakingBlocks = false;
         return success;
     }
 
-    private boolean undoBlockEntry(Player player, BlockEntry block, @Nullable List<BreakToolHelper.ToolSlot> candidates) {
+    private boolean placeIfAvailable(Player player, BlockEntry block, PlacementTemplates templates) {
+        //If we have the item in our inventory, place it
+        if (SophisticatedBuilding.ITEM_USAGE_TRACKER.increaseUsageCount(block.item, 1, player)) {
+            return placeWithTemplate(player, block, templates, false);
+        }
+        //Not having the item at this point would be a bit weird
+        //It could mean the client/server are out of sync, or the inventory changed during the short delay period
+        //HUD already shows inventory counts visually, no need to spam chat
+        return false;
+    }
+
+    //Survival replace: the item is checked first, then the block in the way is mined like a survival break
+    //(tool durability, drops to the inventory, exhaustion). Nothing is mined or charged if either fails.
+    private boolean mineAndPlace(Player player, BlockEntry block, List<BreakToolHelper.ToolSlot> candidates,
+                                 PlacementTemplates templates) {
+        var tracker = SophisticatedBuilding.ITEM_USAGE_TRACKER;
+        if (!tracker.increaseUsageCount(block.item, 1, player)) {
+            tracker.decreaseUsageCount(block.item, 1);
+            return false;
+        }
+        if (!BlockPlacerHelper.breakBlock(player, block, candidates)) {
+            tracker.decreaseUsageCount(block.item, 1);
+            return false;
+        }
+        return placeWithTemplate(player, block, templates, true);
+    }
+
+    //Places the entry with the data of a real inventory stack; a stack with data is consumed right here in survival
+    //uncountOnFailure: a failed placement is taken back from the usage count instead of being charged
+    private boolean placeWithTemplate(Player player, BlockEntry block, PlacementTemplates templates, boolean uncountOnFailure) {
+        var template = block.item == null ? null : templates.find(block.item);
+        boolean success = BlockPlacerHelper.placeBlock(player, block, template == null ? ItemStack.EMPTY : template.stack());
+        if (!success && uncountOnFailure) {
+            SophisticatedBuilding.ITEM_USAGE_TRACKER.decreaseUsageCount(block.item, 1);
+            return false;
+        }
+        if (template != null && template.individual()) {
+            //Taken from the exact stack (only if placed); either way it is left out of the bulk removal
+            SophisticatedBuilding.ITEM_USAGE_TRACKER.addConsumedIndividually(block.item, 1);
+            if (success) template.stack().shrink(1);
+        }
+        return success;
+    }
+
+    private boolean undoBlockEntry(Player player, BlockEntry block, @Nullable List<BreakToolHelper.ToolSlot> candidates,
+                                   PlacementTemplates templates) {
 
         boolean breaking = BlockUtilities.isNullOrAir(block.existingBlockState);
 
@@ -196,26 +282,28 @@ public class ServerBlockPlacer {
         var temp = block.existingBlockState;
         tempBlockEntry.existingBlockState = block.newBlockState;
         tempBlockEntry.newBlockState = temp;
+        if (!breaking) {
+            //Re-placing a broken block costs its item like any placement; blocks without an item stay free
+            Item item = temp.getBlock().asItem();
+            tempBlockEntry.item = item == Items.AIR ? null : item;
+        }
 
-        if (!validateBlockEntry(player, tempBlockEntry, breaking)) return false;
+        //Survival: a real block in the way is mined (replace), never overwritten
+        BlockState current = player.level().getBlockState(block.blockPos);
+        ReplaceRules.Action action = ReplaceRules.forUndo(candidates != null, breaking, tempBlockEntry.item != null,
+                BlockUtilities.needsMining(current), current == temp, ServerConfig.survivalReplace.enabled.get());
+        if (action == ReplaceRules.Action.SKIP) return false;
+        if (!validateBlockEntry(player, tempBlockEntry, action != ReplaceRules.Action.PLACE)) return false;
 
         //Update newBlockState for future redo's
-        block.newBlockState = player.level().getBlockState(block.blockPos);
+        block.newBlockState = current;
 
-        boolean success;
         isPlacingOrBreakingBlocks = true;
-        if (breaking) {
-            success = BlockPlacerHelper.breakBlock(player, tempBlockEntry, candidates);
-        } else {
-            //If we have the item in our inventory, place it
-            if (SophisticatedBuilding.ITEM_USAGE_TRACKER.increaseUsageCount(tempBlockEntry.item, 1, player)) {
-                success = BlockPlacerHelper.placeBlock(player, tempBlockEntry);
-            } else {
-                success = false;
-                //Not having the item at this point would be a bit weird
-                //HUD already shows inventory counts visually, no need to spam chat
-            }
-        }
+        boolean success = switch (action) {
+            case BREAK -> BlockPlacerHelper.breakBlock(player, tempBlockEntry, candidates);
+            case REPLACE -> mineAndPlace(player, tempBlockEntry, candidates, templates);
+            default -> placeIfAvailable(player, tempBlockEntry, templates);
+        };
         isPlacingOrBreakingBlocks = false;
 
         return success;
@@ -311,7 +399,7 @@ public class ServerBlockPlacer {
 
         return true;
     }
-    
+
     public boolean isPlacingOrBreakingBlocks() {
         return isPlacingOrBreakingBlocks;
     }

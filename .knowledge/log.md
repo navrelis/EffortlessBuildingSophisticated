@@ -9,3 +9,5 @@
 - 2026-09-24 T2 survival replace (Fabric) -> Opus, started.
 - 2026-09-24 T2 review #1: correction sent (same-block SKIP regressed vanilla merges: slab->double slab, candles, pickles).
 - 2026-09-24 T2 review #2: merge fix accepted; Fabric build green 56/56 tests.
+- 2026-09-24 T6 NeoForge parity (T2+T3+config) -> Sonnet, started.
+- 2026-09-24 T6 review: accepted without corrections (files identical to Fabric except loader APIs, NeoForge snapshot/place events, anchor 0); NeoForge build green (no test source set).

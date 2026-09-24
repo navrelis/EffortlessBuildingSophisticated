@@ -30,12 +30,16 @@ import sophisticated.building.network.message.ServerBreakBlocksPacket;
 import sophisticated.building.network.message.ServerPlaceBlocksPacket;
 import sophisticated.building.utilities.BlockEntry;
 import sophisticated.building.utilities.BlockSet;
+import sophisticated.building.utilities.BlockUtilities;
 import sophisticated.building.utilities.BreakToolHelper;
 import sophisticated.building.utilities.ClientBlockUtilities;
 import sophisticated.building.utilities.SurvivalHelper;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 // Receives block placed events, then finds additional blocks we want to place through various systems,
 // and then sends them to the server to be placed
@@ -112,8 +116,17 @@ public class BuilderChain {
                 // Randomize block states fresh before sending to server
                 // Use fresh random selection per block position.
                 randomizeBlockStatesFresh(player, player.getItemInHand(InteractionHand.MAIN_HAND));
-                
-                SophisticatedBuildingClient.BLOCK_PREVIEWS.onBlocksPlaced(blocks);
+
+                //Survival replace: the server first mines the blocks in the way, so the appear animation waits for it
+                Set<BlockPos> minedPositions = new HashSet<>();
+                if (!player.isCreative() && SophisticatedBuildingClient.BUILD_SETTINGS.isQuickReplacing()) {
+                    for (BlockEntry entry : findMinedEntries()) minedPositions.add(entry.blockPos);
+                }
+                if (minedPositions.isEmpty()) {
+                    SophisticatedBuildingClient.BLOCK_PREVIEWS.onBlocksPlaced(blocks);
+                } else {
+                    ClientBreakCountdown.addPendingPlacement(new BlockSet(blocks), minedPositions);
+                }
                 ClientBlockUtilities.playSoundIfFurtherThanNormal(player, blocks.getLastBlockEntry(), false);
                 player.swing(InteractionHand.MAIN_HAND);
 
@@ -397,6 +410,7 @@ public class BuilderChain {
             }
 
             //Find new blockstate
+            blockEntry.invalid = false;
             blockEntry.setItemAndFindNewBlockState(itemStack, player.level(), player, originalDirection, clickedFace, relativeHitVec);
 
             //Filter on new blockstate
@@ -405,12 +419,47 @@ public class BuilderChain {
                 continue;
             }
 
-            //Increase itemstack usage if not filtered out
-            //Mark invalid if the player does not have enough of that item
-            blockEntry.invalid = !SophisticatedBuildingClient.ITEM_USAGE_TRACKER.increaseUsageCount(itemStack.getItem(), 1, player);
+            //No placeable state (e.g. getStateForPlacement failed): keep it invalid and uncounted
+            if (blockEntry.newBlockState == null) {
+                blockEntry.invalid = true;
+            }
+        }
+
+        if (!player.isCreative()) {
+            //Survival places the same block only as a merge (slab to double slab, one more candle...), the server skips the rest
+            for (BlockEntry blockEntry : blocks) {
+                if (blockEntry.invalid || blockEntry.newBlockState == null) continue;
+                if (!BlockUtilities.needsMining(blockEntry.existingBlockState)) continue;
+                if (!blockEntry.existingBlockState.is(blockEntry.newBlockState.getBlock())) continue;
+                if (!BlockUtilities.isOneStepMerge(blockEntry.existingBlockState, blockEntry.newBlockState)) blockEntry.invalid = true;
+            }
+
+            //Survival replace: blocks in the way get mined; the ones no available tool can mine are marked invalid
+            if (SophisticatedBuildingClient.BUILD_SETTINGS.isQuickReplacing()) {
+                BreakToolHelper.planClient(player, findMinedEntries(), null);
+            }
+        }
+
+        //Increase itemstack usage if not filtered out or invalid
+        //Mark invalid if the player does not have enough of that item
+        for (BlockEntry blockEntry : blocks) {
+            if (blockEntry.invalid) continue;
+            blockEntry.invalid = !SophisticatedBuildingClient.ITEM_USAGE_TRACKER.increaseUsageCount(blockEntry.item, 1, player);
         }
 
         SophisticatedBuildingClient.ITEM_USAGE_TRACKER.calculateMissingItems(player);
+    }
+
+    //Valid entries that would replace a block that has to be mined first (merges into the same block are not mined)
+    private List<BlockEntry> findMinedEntries() {
+        List<BlockEntry> mined = new ArrayList<>();
+        for (BlockEntry blockEntry : blocks) {
+            if (blockEntry.invalid || blockEntry.newBlockState == null) continue;
+            if (!BlockUtilities.needsMining(blockEntry.existingBlockState)) continue;
+            if (blockEntry.existingBlockState.is(blockEntry.newBlockState.getBlock())) continue;
+            mined.add(blockEntry);
+        }
+        return mined;
     }
 
     /**

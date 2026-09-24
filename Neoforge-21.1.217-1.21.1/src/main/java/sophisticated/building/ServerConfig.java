@@ -16,6 +16,7 @@ public class ServerConfig {
     public static final Validation validation = new Validation(builder);
     public static final Memory memory = new Memory(builder);
     public static final SurvivalBreaking survivalBreaking = new SurvivalBreaking(builder);
+    public static final SurvivalReplace survivalReplace = new SurvivalReplace(builder);
     public static final ModConfigSpec spec = builder.build();
 
     public static class Validation {
@@ -86,6 +87,20 @@ public class ServerConfig {
             exhaustionPerBlock = builder
                     .comment("Hunger exhaustion applied per block broken in survival, like vanilla mining.")
                     .defineInRange("exhaustionPerBlock", 0.005, 0.0, 1.0);
+
+            builder.pop();
+        }
+    }
+
+    public static class SurvivalReplace {
+        public final BooleanValue enabled;
+
+        public SurvivalReplace(Builder builder) {
+            builder.push("SurvivalReplace");
+
+            enabled = builder
+                    .comment("Allow survival players to use the replace modes of the radial menu (replace blocks and air / only blocks / filtered by offhand) and Quick Replace. Replaced blocks are mined like survival breaking: the right tool is used and loses durability, drops go to the inventory, protected and unbreakable blocks are skipped, and the mining delay applies.")
+                    .define("enabled", false);
 
             builder.pop();
         }

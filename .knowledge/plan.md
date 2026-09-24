@@ -7,7 +7,7 @@
 | T5 | #3 audit: trace Building Upgrade item flow (client count -> packet -> server extraction) on both loaders, report concrete bugs | both | Sonnet (read-only) | - | with T1, T3 | in progress |
 | T2 | Survival replace: gate via config, mine replaced blocks with survival rules, delay + countdown, client preview marks unbreakable targets, safe survival undo/redo of replacements | Fabric | Opus | T1, T3 | - | done |
 | T5b | Fix bugs found by T5 | both | tbd | T5 | - | open |
-| T6 | NeoForge parity for T2, T3, T5b + SERVER config entry | NeoForge | Sonnet/Opus | T2, T3, T5b | - | open |
+| T6 | NeoForge parity for T2, T3 + SERVER config entry (T5b ported separately) | NeoForge | Sonnet | T2, T3 | with T5 | done |
 | T7 | Release 4.2.0: version bump, patch notes, export jars, .gitignore negation for .knowledge | both | Sonnet | T6 | - | open |
 | T8 | Final: e2e check, graphify refresh, report, push, issue replies | - | lead | T7 | - | open |
 
