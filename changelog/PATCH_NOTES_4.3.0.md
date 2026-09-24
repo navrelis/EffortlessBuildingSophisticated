@@ -6,6 +6,7 @@
 
 * `sophisticatedbuilding-fabric-1.20.4-4.3.0.jar` — Fabric
 * `sophisticatedbuilding-neoforge-1.20.4-4.3.0.jar` — NeoForge
+* `sophisticatedbuilding-forge-1.20.4-4.3.0.jar` — Forge
 
 Jar file names include the Minecraft version (`sophisticatedbuilding-<loader>-<minecraft>-4.3.0.jar`);
 releases before 4.3.0 were named `sophisticatedbuilding-<loader>-<version>.jar` without it, e.g.
@@ -15,8 +16,8 @@ releases before 4.3.0 were named `sophisticatedbuilding-<loader>-<version>.jar` 
 
 ### Minecraft 1.20.4
 
-Sophisticated Building is now available for Minecraft 1.20.4 on Fabric and NeoForge, with the same
-features as the 1.21.1 build. Where 1.20.4 works differently:
+Sophisticated Building is now available for Minecraft 1.20.4 on Fabric, NeoForge and Forge, with the
+same features as the 1.21.1 build. Where 1.20.4 works differently:
 
 * Items keep their data in NBT (1.20.4 has no data components). Storage blocks placed with build
   modes still keep the contents and custom name of the item stack they were placed from. The
@@ -26,6 +27,9 @@ features as the 1.21.1 build. Where 1.20.4 works differently:
   files work as on 1.21.1.
 * **NeoForge:** experience from blocks broken with build modes is dropped directly for the tool used,
   since NeoForge 20.4 has no block drops event other mods could change it through.
+* **Forge:** no Sophisticated Backpacks integration, since Sophisticated Backpacks has no Forge
+  release for 1.20.4 — the Building Upgrade items are placeholders without recipes, and the
+  backpack tool list is Fabric/NeoForge-only, as on Forge 1.21.1.
 
 ## Internal restructure
 
@@ -65,6 +69,12 @@ This release reorganizes the mod internally; there is no change to how it plays.
 * Optional: Sophisticated Core/Backpacks, official NeoForge build (Core 1.20.4-0.6.21.608 or newer,
   Backpacks 1.20.4-3.20.6.1051 or newer).
 * Curios API (compile-only, worn-backpack fallback scan): 7.4.3+1.20.4.
+
+### Forge
+
+* Minecraft 1.20.4, Java 17.
+* Forge 49.2.9 or newer (built and tested against 49.2.9, the latest 1.20.4 release).
+* No Sophisticated Backpacks integration (no Forge release for 1.20.4).
 
 ## Known issues
 
