@@ -1,9 +1,9 @@
 package sophisticated.building.inventory;
 
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.ItemContainerContents;
 
 public class ItemStackHandler implements IItemHandler {
     protected final NonNullList<ItemStack> stacks;
@@ -34,7 +34,7 @@ public class ItemStackHandler implements IItemHandler {
         int limit = Math.min(getSlotLimit(slot), stack.getMaxStackSize());
 
         if (!existing.isEmpty()) {
-            if (!ItemStack.isSameItemSameComponents(existing, stack)) {
+            if (!ItemStack.isSameItemSameTags(existing, stack)) {
                 return stack.copy();
             }
             limit -= existing.getCount();
@@ -119,9 +119,11 @@ public class ItemStackHandler implements IItemHandler {
         }
     }
 
+    /**
+     * The inventory of a randomizer bag, kept in the bag stack's {@code Items} tag (the vanilla container item list
+     * format of {@link ContainerHelper}).
+     */
     public static class BagItemStackHandler extends ItemStackHandler {
-        private static final ItemContainerContents EMPTY_CONTENTS = ItemContainerContents.fromItems(NonNullList.create());
-
         private final ItemStack bagStack;
         private boolean loading;
 
@@ -133,12 +135,13 @@ public class ItemStackHandler implements IItemHandler {
 
         private void loadFromBag() {
             loading = true;
-            ItemContainerContents container = bagStack.getOrDefault(DataComponents.CONTAINER, EMPTY_CONTENTS);
             NonNullList<ItemStack> loaded = NonNullList.withSize(getSlots(), ItemStack.EMPTY);
-            container.copyInto(loaded);
+            CompoundTag tag = bagStack.getTag();
+            if (tag != null) {
+                ContainerHelper.loadAllItems(tag, loaded);
+            }
             for (int i = 0; i < getSlots(); i++) {
-                ItemStack loadedStack = i < loaded.size() ? loaded.get(i) : ItemStack.EMPTY;
-                stacks.set(i, loadedStack.copy());
+                stacks.set(i, loaded.get(i).copy());
             }
             loading = false;
         }
@@ -153,7 +156,7 @@ public class ItemStackHandler implements IItemHandler {
             for (int i = 0; i < getSlots(); i++) {
                 toSave.set(i, stacks.get(i).copy());
             }
-            bagStack.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(toSave));
+            ContainerHelper.saveAllItems(bagStack.getOrCreateTag(), toSave, true);
         }
     }
 }

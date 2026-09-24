@@ -12,7 +12,7 @@ base {
 }
 
 java {
-    // Mojang ships Java 21 to end users in 1.21.1, so mods should target Java 21.
+    // Mojang ships Java 17 to end users in 1.20.4, so mods should target Java 17.
     toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
     withSourcesJar()
 }
@@ -57,30 +57,36 @@ repositories {
         }
         filter { includeGroup('curse.maven') }
     }
-    exclusiveContent {
-        forRepository {
-            maven {
-                name = 'Fabricators of Create'
-                url = 'https://mvn.devos.one/snapshots'
-            }
-        }
-        filter { includeGroup('io.github.fabricators_of_create.Porting-Lib') }
-    }
-    exclusiveContent {
-        forRepository {
-            maven {
-                name = 'Fuzss'
-                url = 'https://raw.githubusercontent.com/Fuzss/modresources/main/maven'
-            }
-        }
-        filter { includeGroup('fuzs.forgeconfigapiport') }
-    }
     mavenCentral()
 }
 
-// Porting Lib modules nested in the Sophisticated Core jar (see gradle.properties).
-def portingLibModules = ['core', 'transfer', 'fluids', 'item_abilities', 'loot', 'level_events', 'render_types',
-                         'model_loader', 'lazy_registration', 'conditions']
+// The Sophisticated Core jar nests (META-INF/jars, partly nested twice) Porting Lib modules built for it
+// (3.1.0-soph.1+1.20.4, published on no Maven), Forge Config API Port (with Night Config shaded) and Team Reborn
+// Energy. Their types are part of Core's public API and Core needs them at runtime, but Loom does not expose a
+// dependency's nested jars, so they are extracted from the resolved Core jar into build/sophisticatedcore-nested,
+// one jar per mod id (the same module is nested at several levels under different file names).
+def extractNestedJars
+extractNestedJars = { File jar, File into, Map<String, File> found ->
+    new java.util.zip.ZipFile(jar).withCloseable { zip ->
+        zip.entries().toList().findAll { !it.directory && it.name.startsWith('META-INF/jars/') && it.name.endsWith('.jar') }.each { entry ->
+            def target = new File(into, entry.name.substring('META-INF/jars/'.length()))
+            if (!target.isFile() || target.length() != entry.size) {
+                into.mkdirs()
+                zip.getInputStream(entry).withCloseable { java.nio.file.Files.copy(it, target.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING) }
+            }
+            def modId = new java.util.zip.ZipFile(target).withCloseable { nested ->
+                nested.getInputStream(nested.getEntry('fabric.mod.json')).withCloseable { new groovy.json.JsonSlurper().parse(it, 'UTF-8').id }
+            }
+            if (!found.containsKey(modId)) {
+                found.put(modId, target)
+                extractNestedJars(target, into, found)
+            }
+        }
+    }
+    return found
+}
+def sophisticatedCoreJar = configurations.detachedConfiguration(dependencies.create("curse.maven:${sophisticatedcore_cf}")).singleFile
+def sophisticatedCoreNestedJars = files(extractNestedJars(sophisticatedCoreJar, layout.buildDirectory.dir('sophisticatedcore-nested').get().asFile, [:]).values().sort())
 
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
@@ -94,15 +100,9 @@ dependencies {
     modCompileOnly "curse.maven:${sophisticatedbackpacks_cf}"
     modLocalRuntime "curse.maven:${sophisticatedcore_cf}"
     modLocalRuntime "curse.maven:${sophisticatedbackpacks_cf}"
-    portingLibModules.each { module ->
-        modCompileOnly("io.github.fabricators_of_create.Porting-Lib:${module}:${porting_lib_version}") { transitive = false }
-        modLocalRuntime("io.github.fabricators_of_create.Porting-Lib:${module}:${porting_lib_version}") { transitive = false }
-    }
-    modLocalRuntime("fuzs.forgeconfigapiport:forgeconfigapiport-fabric:${forgeconfigapiport_version}") { transitive = false }
-    modLocalRuntime("teamreborn:energy:${team_reborn_energy_version}") { transitive = false }
-    // Forge Config API Port nests Night Config; plain libraries, so they come from Maven Central.
-    localRuntime "com.electronwill.night-config:core:${night_config_version}"
-    localRuntime "com.electronwill.night-config:toml:${night_config_version}"
+    // The jars nested in Sophisticated Core (see above).
+    modCompileOnly sophisticatedCoreNestedJars
+    modLocalRuntime sophisticatedCoreNestedJars
 
     compileOnly 'javax.annotation:javax.annotation-api:1.3.2'
     compileOnly 'com.google.code.findbugs:jsr305:3.0.2'

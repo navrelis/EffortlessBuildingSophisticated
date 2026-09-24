@@ -9,7 +9,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -75,7 +74,7 @@ public abstract class AbstractRandomizerBagItem extends Item {
 	public abstract MenuProvider getContainerProvider(ItemStack item);
 
 	/**
-	 * Get the inventory of a randomizer bag, backed by its container component (see
+	 * Get the inventory of a randomizer bag, backed by its {@code Items} tag (see
 	 * {@link sophisticated.building.platform.services.IPlatformHelper#getBagInventory}).
 	 */
 	@Nullable
@@ -393,7 +392,7 @@ public abstract class AbstractRandomizerBagItem extends Item {
 	}
 
 	@Override
-	public int getUseDuration(ItemStack stack, LivingEntity entity) {
+	public int getUseDuration(ItemStack stack) {
 		return 1;
 	}
 	//	@Nullable
@@ -403,7 +402,7 @@ public abstract class AbstractRandomizerBagItem extends Item {
 //	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag tooltipFlag) {
+	public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag tooltipFlag) {
 		tooltip.add(Component.literal(ChatFormatting.GRAY + "Put blocks in bag as " + ChatFormatting.YELLOW + "templates"));
 		tooltip.add(Component.literal(ChatFormatting.GRAY + "Blocks are consumed from " + ChatFormatting.GREEN + "inventory"));
 		tooltip.add(Component.empty());

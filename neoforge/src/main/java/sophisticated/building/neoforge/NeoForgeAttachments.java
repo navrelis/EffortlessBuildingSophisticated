@@ -1,6 +1,5 @@
 package sophisticated.building.neoforge;
 
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.attachment.AttachmentType;
@@ -34,15 +33,15 @@ public final class NeoForgeAttachments {
 
     private static final class PowerLevelSerializer implements IAttachmentSerializer<CompoundTag, PowerLevel> {
         @Override
-        public PowerLevel read(IAttachmentHolder holder, CompoundTag tag, HolderLookup.Provider provider) {
+        public PowerLevel read(IAttachmentHolder holder, CompoundTag tag) {
             PowerLevel powerLevel = new PowerLevel();
-            powerLevel.deserializeNBT(provider, tag);
+            powerLevel.deserializeNBT(tag);
             return powerLevel;
         }
 
         @Override
-        public CompoundTag write(PowerLevel attachment, HolderLookup.Provider provider) {
-            return attachment.serializeNBT(provider);
+        public CompoundTag write(PowerLevel attachment) {
+            return attachment.serializeNBT();
         }
     }
 }

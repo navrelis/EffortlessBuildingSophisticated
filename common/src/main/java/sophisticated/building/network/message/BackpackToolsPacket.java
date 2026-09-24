@@ -1,8 +1,8 @@
 package sophisticated.building.network.message;
 
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.SophisticatedBuilding;
@@ -18,13 +18,19 @@ import java.util.List;
  * only source of backpack tool candidates on the client, via {@link ClientBackpackToolCache}.
  */
 public record BackpackToolsPacket(List<ItemStack> tools) implements CustomPacketPayload {
-	public static final StreamCodec<RegistryFriendlyByteBuf, BackpackToolsPacket> CODEC =
-			ItemStack.OPTIONAL_LIST_STREAM_CODEC.map(BackpackToolsPacket::new, BackpackToolsPacket::tools);
+	public static final ResourceLocation ID = SophisticatedBuilding.asResource("backpack_tools");
 
-	public static final Type<BackpackToolsPacket> ID = new Type<>(SophisticatedBuilding.asResource("backpack_tools"));
+	public BackpackToolsPacket(FriendlyByteBuf buf) {
+		this(buf.readList(FriendlyByteBuf::readItem));
+	}
 
 	@Override
-	public Type<? extends CustomPacketPayload> type() {
+	public void write(FriendlyByteBuf buf) {
+		buf.writeCollection(tools, FriendlyByteBuf::writeItem);
+	}
+
+	@Override
+	public ResourceLocation id() {
 		return ID;
 	}
 

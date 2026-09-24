@@ -7,17 +7,17 @@
     ],
     "key": {
         "O": {
-            "item": "minecraft:leather"
+            "item": "minecraft:end_crystal"
         },
 		"#": {
-            "item": "minecraft:gold_ingot"
+            "item": "minecraft:chorus_fruit"
         },
 		"x": {
-			"item": "minecraft:quartz"
+			"item": "minecraft:ghast_tear"
 		}
     },
     "result": {
       "count": 1,
-      "id": "sophisticatedbuilding:golden_randomizer_bag"
+      "item": "sophisticatedbuilding:reach_upgrade3"
     }
 }

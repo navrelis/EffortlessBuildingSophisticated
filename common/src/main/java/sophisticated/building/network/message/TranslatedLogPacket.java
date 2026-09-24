@@ -1,9 +1,8 @@
 package sophisticated.building.network.message;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.SophisticatedBuilding;
 
@@ -12,21 +11,22 @@ import sophisticated.building.SophisticatedBuilding;
  */
 public record TranslatedLogPacket(String prefix, String translationKey, String suffix,
                                   boolean actionBar) implements CustomPacketPayload {
-	public static final StreamCodec<FriendlyByteBuf, TranslatedLogPacket> CODEC = StreamCodec.composite(
-			ByteBufCodecs.STRING_UTF8,
-			TranslatedLogPacket::prefix,
-			ByteBufCodecs.STRING_UTF8,
-			TranslatedLogPacket::translationKey,
-			ByteBufCodecs.STRING_UTF8,
-			TranslatedLogPacket::suffix,
-			ByteBufCodecs.BOOL,
-			TranslatedLogPacket::actionBar,
-			TranslatedLogPacket::new);
+	public static final ResourceLocation ID = SophisticatedBuilding.asResource("translated_log");
 
-	public static final Type<TranslatedLogPacket> ID = new Type<>(SophisticatedBuilding.asResource("translated_log"));
+	public TranslatedLogPacket(FriendlyByteBuf buf) {
+		this(buf.readUtf(), buf.readUtf(), buf.readUtf(), buf.readBoolean());
+	}
 
 	@Override
-	public Type<? extends CustomPacketPayload> type() {
+	public void write(FriendlyByteBuf buf) {
+		buf.writeUtf(prefix);
+		buf.writeUtf(translationKey);
+		buf.writeUtf(suffix);
+		buf.writeBoolean(actionBar);
+	}
+
+	@Override
+	public ResourceLocation id() {
 		return ID;
 	}
 

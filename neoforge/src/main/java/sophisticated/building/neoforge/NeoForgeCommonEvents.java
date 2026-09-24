@@ -6,22 +6,21 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.event.TickEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
-import net.neoforged.neoforge.event.tick.LevelTickEvent;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import sophisticated.building.CommonEvents;
 import sophisticated.building.SophisticatedBuilding;
 
 /**
  * Server game events, forwarded to the loader-neutral handlers.
  */
-@EventBusSubscriber(modid = SophisticatedBuilding.MODID)
+@Mod.EventBusSubscriber(modid = SophisticatedBuilding.MODID)
 public class NeoForgeCommonEvents {
 
 	@SubscribeEvent
@@ -30,8 +29,8 @@ public class NeoForgeCommonEvents {
 	}
 
 	@SubscribeEvent
-	public static void onTick(LevelTickEvent.Pre event) {
-		if (event.getLevel() instanceof ServerLevel level) {
+	public static void onTick(TickEvent.LevelTickEvent event) {
+		if (event.phase == TickEvent.Phase.START && event.level instanceof ServerLevel level) {
 			CommonEvents.onLevelTick(level);
 		}
 	}
@@ -104,8 +103,9 @@ public class NeoForgeCommonEvents {
 	}
 
 	@SubscribeEvent
-	public static void onPlayerTick(PlayerTickEvent.Post event) {
-		if (!(event.getEntity() instanceof ServerPlayer player)) return;
+	public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+		if (event.phase != TickEvent.Phase.END) return;
+		if (!(event.player instanceof ServerPlayer player)) return;
 		if (player instanceof FakePlayer) return;
 
 		CommonEvents.onPlayerTick(player);

@@ -68,12 +68,13 @@ public class UIRenderHelper {
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
 		Tesselator tesselator = Tesselator.getInstance();
-		BufferBuilder buffer = tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-		buffer.addVertex(mat, right, top, zLevel).setColor(startColor.getRed(), startColor.getGreen(), startColor.getBlue(), startColor.getAlpha());
-		buffer.addVertex(mat, left, top, zLevel).setColor(startColor.getRed(), startColor.getGreen(), startColor.getBlue(), startColor.getAlpha());
-		buffer.addVertex(mat, left, bottom, zLevel).setColor(endColor.getRed(), endColor.getGreen(), endColor.getBlue(), endColor.getAlpha());
-		buffer.addVertex(mat, right, bottom, zLevel).setColor(endColor.getRed(), endColor.getGreen(), endColor.getBlue(), endColor.getAlpha());
-		BufferUploader.drawWithShader(buffer.buildOrThrow());
+		BufferBuilder buffer = tesselator.getBuilder();
+		buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+		buffer.vertex(mat, right, top, zLevel).color(startColor.getRed(), startColor.getGreen(), startColor.getBlue(), startColor.getAlpha()).endVertex();
+		buffer.vertex(mat, left, top, zLevel).color(startColor.getRed(), startColor.getGreen(), startColor.getBlue(), startColor.getAlpha()).endVertex();
+		buffer.vertex(mat, left, bottom, zLevel).color(endColor.getRed(), endColor.getGreen(), endColor.getBlue(), endColor.getAlpha()).endVertex();
+		buffer.vertex(mat, right, bottom, zLevel).color(endColor.getRed(), endColor.getGreen(), endColor.getBlue(), endColor.getAlpha()).endVertex();
+		BufferUploader.drawWithShader(buffer.end());
 
 		RenderSystem.disableBlend();
 	}

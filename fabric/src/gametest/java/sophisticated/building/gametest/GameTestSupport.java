@@ -5,6 +5,7 @@ import io.netty.channel.embedded.EmbeddedChannel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.Connection;
+import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -45,10 +46,13 @@ public final class GameTestSupport {
         ServerLevel level = helper.getLevel();
         MinecraftServer server = level.getServer();
         GameProfile profile = new GameProfile(UUID.randomUUID(), "sb-gametest");
-        CommonListenerCookie cookie = CommonListenerCookie.createInitial(profile, false);
+        CommonListenerCookie cookie = CommonListenerCookie.createInitial(profile);
         ServerPlayer player = new ServerPlayer(server, level, profile, cookie.clientInformation());
         Connection connection = new Connection(PacketFlow.SERVERBOUND);
-        new EmbeddedChannel(connection);
+        EmbeddedChannel channel = new EmbeddedChannel(connection);
+        // 1.20.4 checks the listener against the protocol stored on the channel
+        channel.attr(Connection.ATTRIBUTE_SERVERBOUND_PROTOCOL).set(ConnectionProtocol.PLAY.codec(PacketFlow.SERVERBOUND));
+        channel.attr(Connection.ATTRIBUTE_CLIENTBOUND_PROTOCOL).set(ConnectionProtocol.PLAY.codec(PacketFlow.CLIENTBOUND));
         server.getPlayerList().placeNewPlayer(connection, player, cookie);
         player.setGameMode(gameType);
         player.getInventory().clearContent();

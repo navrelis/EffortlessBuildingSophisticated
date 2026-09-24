@@ -12,7 +12,7 @@ base {
 }
 
 java {
-    // Mojang ships Java 21 to end users in 1.21.1, so mods should target Java 21.
+    // Mojang ships Java 17 to end users in 1.20.4, so mods should target Java 17.
     toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
     withSourcesJar()
 }
@@ -35,6 +35,15 @@ sourceSets {
 }
 
 repositories {
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'CurseMaven'
+                url = 'https://www.cursemaven.com'
+            }
+        }
+        filter { includeGroup('curse.maven') }
+    }
     exclusiveContent {
         forRepository {
             maven {
@@ -104,10 +113,10 @@ configurations {
 dependencies {
     // Sophisticated Core/Backpacks: compiled against, and present in the dev runs (same versions, see
     // gradle.properties) so runClient/runServer start with the backpack integration active. Optional for players.
-    compileOnly "maven.modrinth:sophisticated-core:${sophisticatedcore_version}"
-    compileOnly "maven.modrinth:sophisticated-backpacks:${sophisticatedbackpacks_version}"
-    localRuntime "maven.modrinth:sophisticated-core:${sophisticatedcore_version}"
-    localRuntime "maven.modrinth:sophisticated-backpacks:${sophisticatedbackpacks_version}"
+    compileOnly "curse.maven:${sophisticatedcore_cf}"
+    compileOnly "curse.maven:${sophisticatedbackpacks_cf}"
+    localRuntime "curse.maven:${sophisticatedcore_cf}"
+    localRuntime "curse.maven:${sophisticatedbackpacks_cf}"
     compileOnly "maven.modrinth:curios:${curios_version}"
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'

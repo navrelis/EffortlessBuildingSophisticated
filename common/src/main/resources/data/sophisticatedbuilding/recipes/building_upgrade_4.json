@@ -16,17 +16,16 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "NNN",
-    "NBN",
-    "NSN"
+    "DDD",
+    "DBD",
+    "DDD"
   ],
   "key": {
-    "N": { "item": "minecraft:netherite_block" },
-    "S": { "item": "minecraft:nether_star" },
-    "B": { "item": "sophisticatedbuilding:building_upgrade_4" }
+    "D": { "item": "sophisticatedbuilding:compressed_cobbled_deepslate" },
+    "B": { "item": "sophisticatedbuilding:building_upgrade_3" }
   },
   "result": {
-    "id": "sophisticatedbuilding:building_upgrade_omega",
+    "item": "sophisticatedbuilding:building_upgrade_4",
     "count": 1
   }
 }

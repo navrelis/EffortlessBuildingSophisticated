@@ -7,7 +7,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.SectionBufferBuilderPack;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.resources.model.ModelBakery;
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
+import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 
@@ -65,17 +65,17 @@ public class DefaultSuperRenderTypeBuffer implements SuperRenderTypeBuffer {
 	public static class SuperRenderTypeBufferPhase {
 		// Visible clones from RenderBuffers
 		private final SectionBufferBuilderPack fixedBufferPack = new SectionBufferBuilderPack();
-		private final SortedMap<RenderType, ByteBufferBuilder> fixedBuffers = Util.make(new Object2ObjectLinkedOpenHashMap<>(), map -> {
-			map.put(Sheets.solidBlockSheet(), fixedBufferPack.buffer(RenderType.solid()));
-			map.put(Sheets.cutoutBlockSheet(), fixedBufferPack.buffer(RenderType.cutout()));
-			map.put(Sheets.bannerSheet(), fixedBufferPack.buffer(RenderType.cutoutMipped()));
-			map.put(Sheets.translucentCullBlockSheet(), fixedBufferPack.buffer(RenderType.translucent()));
+		private final SortedMap<RenderType, BufferBuilder> fixedBuffers = Util.make(new Object2ObjectLinkedOpenHashMap<>(), map -> {
+			map.put(Sheets.solidBlockSheet(), fixedBufferPack.builder(RenderType.solid()));
+			map.put(Sheets.cutoutBlockSheet(), fixedBufferPack.builder(RenderType.cutout()));
+			map.put(Sheets.bannerSheet(), fixedBufferPack.builder(RenderType.cutoutMipped()));
+			map.put(Sheets.translucentCullBlockSheet(), fixedBufferPack.builder(RenderType.translucent()));
 			put(map, Sheets.shieldSheet());
 			put(map, Sheets.bedSheet());
 			put(map, Sheets.shulkerBoxSheet());
 			put(map, Sheets.signSheet());
 			put(map, Sheets.hangingSignSheet());
-			map.put(Sheets.chestSheet(), new ByteBufferBuilder(786432));
+			map.put(Sheets.chestSheet(), new BufferBuilder(786432));
 			put(map, RenderType.armorEntityGlint());
 			put(map, RenderType.glint());
 			put(map, RenderType.glintTranslucent());
@@ -89,10 +89,10 @@ public class DefaultSuperRenderTypeBuffer implements SuperRenderTypeBuffer {
 			//extras
 			put(map, OutlineRenderTypes.outlineSolid());
 		});
-		private final BufferSource bufferSource = MultiBufferSource.immediateWithBuffers(fixedBuffers, new ByteBufferBuilder(256));
+		private final BufferSource bufferSource = MultiBufferSource.immediateWithBuffers(fixedBuffers, new BufferBuilder(256));
 
-		private static void put(Object2ObjectLinkedOpenHashMap<RenderType, ByteBufferBuilder> map, RenderType type) {
-			map.put(type, new ByteBufferBuilder(type.bufferSize()));
+		private static void put(Object2ObjectLinkedOpenHashMap<RenderType, BufferBuilder> map, RenderType type) {
+			map.put(type, new BufferBuilder(type.bufferSize()));
 		}
 
 	}

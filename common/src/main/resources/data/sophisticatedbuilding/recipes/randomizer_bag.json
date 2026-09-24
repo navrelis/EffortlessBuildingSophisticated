@@ -6,15 +6,15 @@
         " # "
     ],
     "key": {
-        "O": {
-            "item": "minecraft:ender_pearl"
+        "#": {
+            "item": "minecraft:leather"
         },
-		"#": {
-            "item": "minecraft:slime_ball"
+		"O": {
+            "tag": "minecraft:planks"
         }
     },
     "result": {
         "count": 1,
-        "id": "sophisticatedbuilding:reach_upgrade1"
+        "item": "sophisticatedbuilding:randomizer_bag"
     }
 }

@@ -1,17 +1,14 @@
 package sophisticated.building.fabric;
 
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.network.PacketHandler;
-import sophisticated.building.network.message.ServerConfigSyncPacket;
 
 /**
- * Registers the payload types of both directions (see {@link PacketHandler}) plus the Fabric-only
- * server config sync, and the server receivers; the handlers run on the server thread with the
- * sending player.
+ * Registers the server receivers of the serverbound payloads (see {@link PacketHandler}); each payload
+ * travels on the channel named by its id. The payload is read on the network thread and its handler
+ * runs on the server thread with the sending player.
  */
 public final class FabricNetworking {
 
@@ -20,25 +17,15 @@ public final class FabricNetworking {
 
     public static void setupCommon() {
         for (PacketHandler.Payload<?> payload : PacketHandler.SERVERBOUND) {
-            registerType(PayloadTypeRegistry.playC2S(), payload);
-        }
-        for (PacketHandler.Payload<?> payload : PacketHandler.CLIENTBOUND) {
-            registerType(PayloadTypeRegistry.playS2C(), payload);
-        }
-        PayloadTypeRegistry.playS2C().register(ServerConfigSyncPacket.ID, ServerConfigSyncPacket.CODEC);
-
-        for (PacketHandler.Payload<?> payload : PacketHandler.SERVERBOUND) {
             registerReceiver(payload);
         }
-        SophisticatedBuilding.log("Registered networking payloads and server receivers");
-    }
-
-    private static <T extends CustomPacketPayload> void registerType(PayloadTypeRegistry<RegistryFriendlyByteBuf> registry, PacketHandler.Payload<T> payload) {
-        registry.register(payload.type(), payload.codec());
+        SophisticatedBuilding.log("Registered networking server receivers");
     }
 
     private static <T extends CustomPacketPayload> void registerReceiver(PacketHandler.Payload<T> payload) {
-        ServerPlayNetworking.registerGlobalReceiver(payload.type(), (packet, context) ->
-                context.server().execute(() -> payload.handler().accept(packet, context.player())));
+        ServerPlayNetworking.registerGlobalReceiver(payload.id(), (server, player, handler, buf, responseSender) -> {
+            T packet = payload.reader().apply(buf);
+            server.execute(() -> payload.handler().accept(packet, player));
+        });
     }
 }

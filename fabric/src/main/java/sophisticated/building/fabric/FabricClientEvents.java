@@ -1,7 +1,6 @@
 package sophisticated.building.fabric;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
@@ -59,7 +58,21 @@ public final class FabricClientEvents {
     }
 
     private static void registerLifecycleEvents() {
-        ClientTickEvents.START_CLIENT_TICK.register(client -> ClientEvents.onClientTickPre());
+        ClientTickEvents.START_CLIENT_TICK.register(client -> {
+            // Fabric API 0.97 (1.20.4) has no client world change event: detect the change once per tick.
+            ClientLevel world = client.level;
+            if (world != lastWorld) {
+                if (lastWorld != null) {
+                    sophisticated.building.create.events.ClientEvents.onUnloadWorld(lastWorld);
+                }
+                if (world != null) {
+                    sophisticated.building.create.events.ClientEvents.onLoadWorld(world);
+                }
+                lastWorld = world;
+            }
+
+            ClientEvents.onClientTickPre();
+        });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             ClientEvents.onClientTickPost();
@@ -75,16 +88,6 @@ public final class FabricClientEvents {
                 lastScreen = currentScreen;
             }
         });
-
-        ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register((client, world) -> {
-            if (lastWorld != null && lastWorld != world) {
-                sophisticated.building.create.events.ClientEvents.onUnloadWorld(lastWorld);
-            }
-            if (world != null) {
-                sophisticated.building.create.events.ClientEvents.onLoadWorld(world);
-            }
-            lastWorld = world;
-        });
     }
 
     private static void registerRenderEvents() {
@@ -98,9 +101,9 @@ public final class FabricClientEvents {
             RenderHandler.onRenderOutlines(context.matrixStack());
         });
 
-        HudRenderCallback.EVENT.register((guiGraphics, deltaTracker) -> {
+        HudRenderCallback.EVENT.register((guiGraphics, tickDelta) -> {
             RenderHandler.onRenderGui(guiGraphics);
-            MATERIAL_COST_OVERLAY.render(guiGraphics, deltaTracker);
+            MATERIAL_COST_OVERLAY.render(guiGraphics, tickDelta);
         });
     }
 

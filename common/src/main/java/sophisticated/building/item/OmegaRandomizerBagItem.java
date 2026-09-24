@@ -1,13 +1,11 @@
 package sophisticated.building.item;
 
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 import sophisticated.building.gui.OmegaRandomizerBagContainer;
 
 import javax.annotation.Nullable;
@@ -35,11 +33,8 @@ public class OmegaRandomizerBagItem extends AbstractRandomizerBagItem {
     public int getSlotWeight(ItemStack bag, int slotIndex) {
         if (slotIndex < 0 || slotIndex >= INV_SIZE) return DEFAULT_WEIGHT;
         
-        CustomData customData = bag.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
-        if (customData.isEmpty()) return DEFAULT_WEIGHT;
-        
-        var tag = customData.copyTag();
-        if (!tag.contains(WEIGHTS_TAG)) return DEFAULT_WEIGHT;
+        var tag = bag.getTag();
+        if (tag == null || !tag.contains(WEIGHTS_TAG)) return DEFAULT_WEIGHT;
         
         var weightsArray = tag.getIntArray(WEIGHTS_TAG);
         if (weightsArray.length <= slotIndex) return DEFAULT_WEIGHT;
@@ -54,8 +49,7 @@ public class OmegaRandomizerBagItem extends AbstractRandomizerBagItem {
         if (slotIndex < 0 || slotIndex >= INV_SIZE) return;
         weight = Math.max(MIN_WEIGHT, Math.min(MAX_WEIGHT, weight));
         
-        CustomData customData = bag.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
-        var tag = customData.copyTag();
+        var tag = bag.getOrCreateTag();
         
         int[] weights;
         if (tag.contains(WEIGHTS_TAG)) {
@@ -79,7 +73,6 @@ public class OmegaRandomizerBagItem extends AbstractRandomizerBagItem {
         
         weights[slotIndex] = weight;
         tag.putIntArray(WEIGHTS_TAG, weights);
-        bag.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
     /**

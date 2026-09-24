@@ -1,27 +1,24 @@
 package sophisticated.building.network.message;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.SophisticatedBuilding;
 
 public record PerformUndoPacket() implements CustomPacketPayload {
-
-	public static final StreamCodec<FriendlyByteBuf, PerformUndoPacket> CODEC = CustomPacketPayload.codec(
-			PerformUndoPacket::write,
-			PerformUndoPacket::new);
-	public static final Type<PerformUndoPacket> ID = new Type<>(SophisticatedBuilding.asResource("perform_undo"));
+	public static final ResourceLocation ID = SophisticatedBuilding.asResource("perform_undo");
 
 	public PerformUndoPacket(FriendlyByteBuf buf) {
 		this();
 	}
 
+	@Override
 	public void write(FriendlyByteBuf buf) {}
 
 	@Override
-	public Type<? extends CustomPacketPayload> type() {
+	public ResourceLocation id() {
 		return ID;
 	}
 

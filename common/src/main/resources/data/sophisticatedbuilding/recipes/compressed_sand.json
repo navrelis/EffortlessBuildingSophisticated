@@ -10,7 +10,7 @@
     "S": { "item": "minecraft:sand" }
   },
   "result": {
-    "id": "sophisticatedbuilding:compressed_sand",
+    "item": "sophisticatedbuilding:compressed_sand",
     "count": 1
   }
 }

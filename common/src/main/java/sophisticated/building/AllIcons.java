@@ -136,10 +136,10 @@ public class AllIcons implements ScreenElement {
     }
     
     private void vertex(VertexConsumer builder, Matrix4f matrix, Vec3 vec, Color rgb, float u, float v, int light) {
-        builder.addVertex(matrix, (float) vec.x, (float) vec.y, (float) vec.z)
-            .setColor(rgb.getRedAsInt(), rgb.getGreenAsInt(), rgb.getBlueAsInt(), 255)
-            .setUv(u, v)
-            .setLight(light);
+        builder.vertex(matrix, (float) vec.x, (float) vec.y, (float) vec.z)
+            .color(rgb.getRedAsInt(), rgb.getGreenAsInt(), rgb.getBlueAsInt(), 255)
+            .uv(u, v)
+            .uv2(light).endVertex();
     }
 }
 

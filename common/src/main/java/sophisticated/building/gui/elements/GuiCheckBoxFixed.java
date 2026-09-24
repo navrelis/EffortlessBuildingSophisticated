@@ -15,7 +15,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class GuiCheckBoxFixed extends Button {
 	// Sprite path is relative to textures/gui/sprites/ and no file extension
-	private static final ResourceLocation CHECKBOX_SPRITE = ResourceLocation.withDefaultNamespace("widget/button_disabled");
+	private static final ResourceLocation CHECKBOX_SPRITE = new ResourceLocation("widget/button_disabled");
 	private final int boxWidth;
 	private boolean isChecked;
 

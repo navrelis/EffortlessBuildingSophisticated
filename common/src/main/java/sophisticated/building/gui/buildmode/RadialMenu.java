@@ -137,7 +137,8 @@ public class RadialMenu extends Screen {
 		RenderSystem.blendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 		final Tesselator tesselator = Tesselator.getInstance();
-		final BufferBuilder buffer = tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+		final BufferBuilder buffer = tesselator.getBuilder();
+		buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
 
 		final double middleX = width / 2.0;
 		final double middleY = height / 2.0;
@@ -213,7 +214,7 @@ public class RadialMenu extends Screen {
 		//Draw action backgrounds
 		drawSideButtonBackgrounds(buffer, middleX, middleY, mouseXCenter, mouseYCenter, buttons);
 
-		BufferUploader.drawWithShader(buffer.buildOrThrow());
+		BufferUploader.drawWithShader(buffer.end());
 		RenderSystem.disableBlend();
 
 		ms.translate(0, 0, 200);
@@ -268,10 +269,10 @@ public class RadialMenu extends Screen {
 					switchTo = menuRegion.mode;
 				}
 
-				buffer.addVertex((float)(middleX + x1m1), (float)(middleY + y1m1), 20f).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-				buffer.addVertex((float)(middleX + x2m1), (float)(middleY + y2m1), 20f).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-				buffer.addVertex((float)(middleX + x2m2), (float)(middleY + y2m2), 20f).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-				buffer.addVertex((float)(middleX + x1m2), (float)(middleY + y1m2), 20f).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+				buffer.vertex((float)(middleX + x1m1), (float)(middleY + y1m1), 20f).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()).endVertex();
+				buffer.vertex((float)(middleX + x2m1), (float)(middleY + y2m1), 20f).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()).endVertex();
+				buffer.vertex((float)(middleX + x2m2), (float)(middleY + y2m2), 20f).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()).endVertex();
+				buffer.vertex((float)(middleX + x1m2), (float)(middleY + y1m2), 20f).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()).endVertex();
 
 				//Category line
 				color = menuRegion.mode.category.color;
@@ -282,10 +283,10 @@ public class RadialMenu extends Screen {
 				final double y1m3 = Math.sin(beginRadians + fragment) * categoryLineOuterEdge;
 				final double y2m3 = Math.sin(endRadians - fragment) * categoryLineOuterEdge;
 
-				buffer.addVertex((float)(middleX + x1m1), (float)(middleY + y1m1), 200).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-				buffer.addVertex((float)(middleX + x2m1), (float)(middleY + y2m1), 200).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-				buffer.addVertex((float)(middleX + x2m3), (float)(middleY + y2m3), 200).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-				buffer.addVertex((float)(middleX + x1m3), (float)(middleY + y1m3), 200).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+				buffer.vertex((float)(middleX + x1m1), (float)(middleY + y1m1), 200).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()).endVertex();
+				buffer.vertex((float)(middleX + x2m1), (float)(middleY + y2m1), 200).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()).endVertex();
+				buffer.vertex((float)(middleX + x2m3), (float)(middleY + y2m3), 200).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()).endVertex();
+				buffer.vertex((float)(middleX + x1m3), (float)(middleY + y1m3), 200).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()).endVertex();
 			}
 		}
 	}
@@ -316,10 +317,10 @@ public class RadialMenu extends Screen {
 				doAction = btn.action;
 			}
 
-			buffer.addVertex((float)(middleX + btn.x1), (float)(middleY + btn.y1), 200).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-			buffer.addVertex((float)(middleX + btn.x1), (float)(middleY + btn.y2), 200).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-			buffer.addVertex((float)(middleX + btn.x2), (float)(middleY + btn.y2), 200).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-			buffer.addVertex((float)(middleX + btn.x2), (float)(middleY + btn.y1), 200).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+			buffer.vertex((float)(middleX + btn.x1), (float)(middleY + btn.y1), 200).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()).endVertex();
+			buffer.vertex((float)(middleX + btn.x1), (float)(middleY + btn.y2), 200).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()).endVertex();
+			buffer.vertex((float)(middleX + btn.x2), (float)(middleY + btn.y2), 200).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()).endVertex();
+			buffer.vertex((float)(middleX + btn.x2), (float)(middleY + btn.y1), 200).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()).endVertex();
 		}
 	}
 

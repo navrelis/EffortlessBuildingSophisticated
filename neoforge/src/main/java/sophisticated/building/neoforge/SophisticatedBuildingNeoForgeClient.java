@@ -2,10 +2,10 @@ package sophisticated.building.neoforge;
 
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
+import net.neoforged.neoforge.client.event.RegisterGuiOverlaysEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
-import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
+import net.neoforged.neoforge.client.gui.overlay.VanillaGuiOverlay;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.client.gui.MaterialCostOverlay;
@@ -25,11 +25,13 @@ public class SophisticatedBuildingNeoForgeClient {
         modEventBus.addListener(SophisticatedBuildingNeoForgeClient::registerMenuScreens);
         modEventBus.addListener(SophisticatedBuildingNeoForgeClient::registerKeyMappings);
         modEventBus.addListener(SophisticatedBuildingNeoForgeClient::onClientSetup);
-        modEventBus.addListener(SophisticatedBuildingNeoForgeClient::registerGuiLayers);
+        modEventBus.addListener(SophisticatedBuildingNeoForgeClient::registerGuiOverlays);
     }
 
-    public static void registerGuiLayers(RegisterGuiLayersEvent event) {
-        event.registerAbove(VanillaGuiLayers.CROSSHAIR, SophisticatedBuilding.asResource("material_cost_overlay"), new MaterialCostOverlay());
+    public static void registerGuiOverlays(RegisterGuiOverlaysEvent event) {
+        MaterialCostOverlay overlay = new MaterialCostOverlay();
+        event.registerAbove(VanillaGuiOverlay.CROSSHAIR.id(), SophisticatedBuilding.asResource("material_cost_overlay"),
+                (gui, guiGraphics, partialTick, screenWidth, screenHeight) -> overlay.render(guiGraphics, partialTick));
     }
 
     public static void onClientSetup(final FMLClientSetupEvent event) {

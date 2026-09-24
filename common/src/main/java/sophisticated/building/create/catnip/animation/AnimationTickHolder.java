@@ -13,6 +13,7 @@ public class AnimationTickHolder {
 	private static int ticks;
 	private static int pausedTicks;
 	private static long lastTickNanos = System.nanoTime();
+	private static float frozenPartialTicks;
 
 	public static void reset() {
 		ticks = 0;
@@ -42,11 +43,15 @@ public class AnimationTickHolder {
 	}
 
 	/**
-	 * @return the fraction between the current tick to the next tick, frozen during game pause [0-1]
+	 * @return the fraction between the current tick to the next tick, frozen during game pause [0-1]. The game keeps
+	 * the value it froze at pause private on 1.20.4, so the last value read before the pause is held instead.
 	 */
 	public static float getPartialTicks() {
 		Minecraft mc = Minecraft.getInstance();
-		return mc.getTimer().getGameTimeDeltaPartialTick(false);
+		if (!mc.isPaused()) {
+			frozenPartialTicks = mc.getFrameTime();
+		}
+		return frozenPartialTicks;
 	}
 
 	/**

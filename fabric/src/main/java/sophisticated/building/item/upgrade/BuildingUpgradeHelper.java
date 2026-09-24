@@ -1,6 +1,5 @@
 package sophisticated.building.item.upgrade;
 
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -13,6 +12,7 @@ import net.p3pp3rf1y.sophisticatedbackpacks.util.PlayerInventoryProvider;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.integration.BackpackScanCompat;
 import sophisticated.building.network.message.BackpackItemCountPacket;
+import sophisticated.building.platform.Services;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -86,12 +86,12 @@ public class BuildingUpgradeHelper {
         }
 
         try {
-            IStorageWrapper wrapper = BackpackWrapper.fromStack(backpackStack);
+            IStorageWrapper wrapper = BackpackWrapper.fromData(backpackStack);
 
             UpgradeHandler upgradeHandler = wrapper.getUpgradeHandler();
             var typeWrappers = upgradeHandler.getTypeWrappers(BuildingUpgradeItem.TYPE);
             if (!typeWrappers.isEmpty()) {
-                return typeWrappers.getFirst();
+                return typeWrappers.get(0);
             }
 
             // getTypeWrappers only contains wrappers that were enabled when the type cache was last
@@ -169,7 +169,7 @@ public class BuildingUpgradeHelper {
 
         if (!simulate && totalExtracted > 0 && player instanceof ServerPlayer serverPlayer) {
             int remaining = countBlockInBackpacksForDisplay(player, blockItem);
-            ServerPlayNetworking.send(serverPlayer, new BackpackItemCountPacket(
+            Services.NETWORK.sendToPlayer(serverPlayer, new BackpackItemCountPacket(
                     BuiltInRegistries.ITEM.getKey(blockItem.getItem()),
                     remaining
             ));

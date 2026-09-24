@@ -1,7 +1,6 @@
 package sophisticated.building.gametest;
 
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
@@ -23,7 +22,7 @@ public class InventoryHelperGameTest implements FabricGameTest {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
         try {
             ItemStack named = new ItemStack(Items.STONE, 10);
-            named.set(DataComponents.CUSTOM_NAME, Component.literal(NAME));
+            named.setHoverName(Component.literal(NAME));
             int selected = player.getInventory().selected;
             player.getInventory().setItem(selected, named);
 
@@ -31,8 +30,7 @@ public class InventoryHelperGameTest implements FabricGameTest {
 
             ItemStack remaining = player.getInventory().getItem(selected);
             expectEquals(helper, "stone left in the selected slot", 7, remaining.getCount());
-            Component customName = remaining.get(DataComponents.CUSTOM_NAME);
-            helper.assertTrue(customName != null && NAME.equals(customName.getString()),
+            helper.assertTrue(remaining.hasCustomHoverName() && NAME.equals(remaining.getHoverName().getString()),
                     "The remaining stack should keep its custom name, has " + remaining);
         } finally {
             removePlayer(player);

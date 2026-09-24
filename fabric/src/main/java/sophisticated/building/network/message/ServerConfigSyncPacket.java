@@ -1,9 +1,8 @@
 package sophisticated.building.network.message;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.ServerConfig;
 import sophisticated.building.SophisticatedBuilding;
@@ -14,19 +13,25 @@ import sophisticated.building.config.ModConfigs;
  * client-side decisions (e.g. {@code PowerLevel.canBreakFar}) use the server's settings.
  */
 public record ServerConfigSyncPacket(String json) implements CustomPacketPayload {
-	public static final StreamCodec<FriendlyByteBuf, ServerConfigSyncPacket> CODEC = StreamCodec.composite(
-			ByteBufCodecs.stringUtf8(1 << 20),
-			ServerConfigSyncPacket::json,
-			ServerConfigSyncPacket::new);
+	public static final ResourceLocation ID = SophisticatedBuilding.asResource("server_config_sync");
 
-	public static final Type<ServerConfigSyncPacket> ID = new Type<>(SophisticatedBuilding.asResource("server_config_sync"));
+	private static final int MAX_JSON_LENGTH = 1 << 20;
+
+	public ServerConfigSyncPacket(FriendlyByteBuf buf) {
+		this(buf.readUtf(MAX_JSON_LENGTH));
+	}
+
+	@Override
+	public void write(FriendlyByteBuf buf) {
+		buf.writeUtf(json, MAX_JSON_LENGTH);
+	}
 
 	public static ServerConfigSyncPacket fromCurrent() {
 		return new ServerConfigSyncPacket(ModConfigs.spec(ServerConfig.spec).toSyncJson());
 	}
 
 	@Override
-	public Type<? extends CustomPacketPayload> type() {
+	public ResourceLocation id() {
 		return ID;
 	}
 

@@ -1,9 +1,7 @@
 package sophisticated.building.client.gui;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -16,10 +14,13 @@ import sophisticated.building.utilities.BlockSet;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MaterialCostOverlay implements LayeredDraw.Layer {
+/**
+ * HUD list of the blocks the current build-mode preview would place. Drawn by the loader projects above the
+ * crosshair (NeoForge: a GUI overlay; Fabric: the HUD render callback).
+ */
+public class MaterialCostOverlay {
 
-    @Override
-    public void render(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+    public void render(GuiGraphics guiGraphics, float partialTick) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
 

@@ -236,19 +236,21 @@ public abstract class SlotGui extends AbstractContainerEventHandler implements R
 				RenderSystem.setShader(GameRenderer::getPositionShader);
 				float f = this.isFocused() ? 1.0F : 0.5F;
 				RenderSystem.setShaderColor(f, f, f, 1.0F);
-				bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-				bufferbuilder.addVertex(i1, k + l + 2, 0.0F);
-				bufferbuilder.addVertex(j1, k + l + 2, 0.0F);
-				bufferbuilder.addVertex(j1, k - 2, 0.0F);
-				bufferbuilder.addVertex(i1, k - 2, 0.0F);
-				BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
+				bufferbuilder = tessellator.getBuilder();
+				bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+				bufferbuilder.vertex(i1, k + l + 2, 0.0F).endVertex();
+				bufferbuilder.vertex(j1, k + l + 2, 0.0F).endVertex();
+				bufferbuilder.vertex(j1, k - 2, 0.0F).endVertex();
+				bufferbuilder.vertex(i1, k - 2, 0.0F).endVertex();
+				BufferUploader.drawWithShader(bufferbuilder.end());
 				RenderSystem.setShaderColor(0.0F, 0.0F, 0.0F, 1.0F);
-				bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-				bufferbuilder.addVertex(i1 + 1, k + l + 1, 0.0F);
-				bufferbuilder.addVertex(j1 - 1, k + l + 1, 0.0F);
-				bufferbuilder.addVertex(j1 - 1, k - 1, 0.0F);
-				bufferbuilder.addVertex(i1 + 1, k - 1, 0.0F);
-				BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
+				bufferbuilder = tessellator.getBuilder();
+				bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+				bufferbuilder.vertex(i1 + 1, k + l + 1, 0.0F).endVertex();
+				bufferbuilder.vertex(j1 - 1, k + l + 1, 0.0F).endVertex();
+				bufferbuilder.vertex(j1 - 1, k - 1, 0.0F).endVertex();
+				bufferbuilder.vertex(i1 + 1, k - 1, 0.0F).endVertex();
+				BufferUploader.drawWithShader(bufferbuilder.end());
 				RenderSystem.setShader(GameRenderer::getPositionTexShader);
 			}
 

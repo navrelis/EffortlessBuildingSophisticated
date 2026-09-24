@@ -2,9 +2,7 @@ package sophisticated.building.create.foundation.utility;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.SectionPos;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -19,7 +17,6 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.BlockItemStateProperties;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
@@ -31,6 +28,7 @@ import net.minecraft.world.level.block.IceBlock;
 import net.minecraft.world.level.block.SlimeBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
@@ -193,10 +191,9 @@ public class BlockHelper {
 		CompoundTag data = null;
 		if (blockEntity == null)
 			return null;
-		RegistryAccess access = blockEntity.getLevel().registryAccess();
 		if (blockEntity instanceof IPartialSafeNBT safeNbtBE) {
 			data = new CompoundTag();
-			safeNbtBE.writeSafe(data, access);
+			safeNbtBE.writeSafe(data);
 		}
 
 		return data;
@@ -208,9 +205,10 @@ public class BlockHelper {
 	}
 
 	/**
-	 * With a non-null {@code placer}, the stack's data components are applied to the placed block in the
-	 * same order as vanilla {@code BlockItem.place} (BLOCK_STATE, BLOCK_ENTITY_DATA, block entity components)
-	 * and {@code setPlacedBy} receives the placer. Without one, no item data is applied.
+	 * With a non-null {@code placer}, the stack's item data is applied to the placed block in the
+	 * same order as vanilla {@code BlockItem.place} (BlockStateTag, BlockEntityTag)
+	 * and {@code setPlacedBy} receives the placer. Without one, no item data is applied (only {@code setPlacedBy}
+	 * sees the stack, which on 1.20.4 still names blocks such as chests).
 	 */
 	public static void placeSchematicBlock(Level world, BlockState state, BlockPos target, ItemStack stack,
 	                                       @Nullable CompoundTag data, @Nullable Player placer) {
@@ -258,7 +256,7 @@ public class BlockHelper {
 				data.putInt("x", target.getX());
 				data.putInt("y", target.getY());
 				data.putInt("z", target.getZ());
-				blockEntity.loadWithComponents(data, world.registryAccess());
+				blockEntity.load(data);
 			}
 		}
 
@@ -275,12 +273,21 @@ public class BlockHelper {
 		}
 	}
 
-	// Data part of vanilla BlockItem.place (1.21.1); returns the resulting block state
+	// Data part of vanilla BlockItem.place (1.20.4): BlockStateTag, then BlockEntityTag. The custom name reaches the
+	// block entity through setPlacedBy, as in vanilla. Returns the resulting block state
 	private static BlockState applyItemData(Level world, BlockPos target, BlockState placed, ItemStack stack, Player placer) {
 		try {
-			BlockItemStateProperties stateProperties = stack.getOrDefault(DataComponents.BLOCK_STATE, BlockItemStateProperties.EMPTY);
-			if (!stateProperties.isEmpty()) {
-				BlockState updated = stateProperties.apply(placed);
+			CompoundTag tag = stack.getTag();
+			if (tag != null) {
+				CompoundTag stateTag = tag.getCompound(BlockItem.BLOCK_STATE_TAG);
+				StateDefinition<Block, BlockState> stateDefinition = placed.getBlock().getStateDefinition();
+				BlockState updated = placed;
+				for (String key : stateTag.getAllKeys()) {
+					Property<?> property = stateDefinition.getProperty(key);
+					if (property != null) {
+						updated = withPropertyValue(updated, property, stateTag.get(key).getAsString());
+					}
+				}
 				if (updated != placed) {
 					world.setBlock(target, updated, 2);
 					placed = updated;
@@ -288,16 +295,14 @@ public class BlockHelper {
 			}
 
 			BlockItem.updateCustomBlockEntityTag(world, placer, target, stack);
-
-			BlockEntity blockEntity = world.getBlockEntity(target);
-			if (blockEntity != null) {
-				blockEntity.applyComponentsFromItemStack(stack);
-				blockEntity.setChanged();
-			}
 		} catch (Exception e) {
 			SophisticatedBuilding.logger.warn("Failed to apply item data to the block placed at {}", target, e);
 		}
 		return placed;
+	}
+
+	private static <T extends Comparable<T>> BlockState withPropertyValue(BlockState state, Property<T> property, String value) {
+		return property.getValue(value).map(parsed -> state.setValue(property, parsed)).orElse(state);
 	}
 
 	public static double getBounceMultiplier(Block block) {

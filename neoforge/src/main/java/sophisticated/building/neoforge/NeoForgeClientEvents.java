@@ -2,13 +2,13 @@ package sophisticated.building.neoforge;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
+import net.neoforged.neoforge.event.TickEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuilding;
@@ -17,18 +17,17 @@ import sophisticated.building.render.RenderHandler;
 /**
  * Client game events, forwarded to the loader-neutral handlers.
  */
-@EventBusSubscriber(modid = SophisticatedBuilding.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = SophisticatedBuilding.MODID, value = Dist.CLIENT)
 public class NeoForgeClientEvents {
 
     @SubscribeEvent
-    public static void onClientTickPre(ClientTickEvent.Pre event) {
-        ClientEvents.onClientTickPre();
-    }
-
-    @SubscribeEvent
-    public static void onClientTickPost(ClientTickEvent.Post event) {
-        ClientEvents.onClientTickPost();
-        sophisticated.building.create.events.ClientEvents.onTick();
+    public static void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase == TickEvent.Phase.START) {
+            ClientEvents.onClientTickPre();
+        } else {
+            ClientEvents.onClientTickPost();
+            sophisticated.building.create.events.ClientEvents.onTick();
+        }
     }
 
     @SubscribeEvent(receiveCanceled = true)

@@ -1,18 +1,14 @@
 package sophisticated.building.neoforge;
 
-import net.minecraft.core.component.DataComponents;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.client.gui.ConfigurationScreen;
-import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.ModConfigSpec;
-import net.neoforged.neoforge.items.ComponentItemHandler;
 import sophisticated.building.ClientConfig;
 import sophisticated.building.CommonConfig;
 import sophisticated.building.ServerConfig;
@@ -24,7 +20,7 @@ import sophisticated.building.neoforge.platform.NeoForgePlatformHelper;
 @Mod(SophisticatedBuilding.MODID)
 public class SophisticatedBuildingNeoForge {
 
-    public SophisticatedBuildingNeoForge(IEventBus modEventBus, ModContainer container, Dist dist) {
+    public SophisticatedBuildingNeoForge(IEventBus modEventBus, Dist dist) {
         // Fills the deferred registers, which must happen before they are registered to the mod bus.
         SophisticatedBuilding.init();
 
@@ -35,12 +31,12 @@ public class SophisticatedBuildingNeoForge {
         NeoForgePlatformHelper.registerDeferredRegisters(modEventBus);
         NeoForgeAttachments.register(modEventBus);
 
-        // Register config
-        container.registerConfig(ModConfig.Type.COMMON, (ModConfigSpec) CommonConfig.spec);
-        container.registerConfig(ModConfig.Type.SERVER, (ModConfigSpec) ServerConfig.spec);
+        // Register config (NeoForge 20.4 has no generic config screen)
+        ModLoadingContext context = ModLoadingContext.get();
+        context.registerConfig(ModConfig.Type.COMMON, (ModConfigSpec) CommonConfig.spec);
+        context.registerConfig(ModConfig.Type.SERVER, (ModConfigSpec) ServerConfig.spec);
         if (dist.isClient()) {
-            container.registerConfig(ModConfig.Type.CLIENT, (ModConfigSpec) ClientConfig.spec);
-            container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
+            context.registerConfig(ModConfig.Type.CLIENT, (ModConfigSpec) ClientConfig.spec);
             SophisticatedBuildingNeoForgeClient.onConstructorClient(modEventBus);
         }
     }
@@ -56,7 +52,7 @@ public class SophisticatedBuildingNeoForge {
         // Item handler capability of the randomizer bags (also what the mod reads its bag inventories through)
         event.registerItem(Capabilities.ItemHandler.ITEM, (stack, ctx) -> {
             if (stack.getItem() instanceof AbstractRandomizerBagItem bagItem) {
-                return new ComponentItemHandler(stack, DataComponents.CONTAINER, bagItem.getInventorySize());
+                return new BagItemHandler(stack, bagItem.getInventorySize());
             }
             return null;
         }, SophisticatedBuilding.RANDOMIZER_BAG_ITEM.get(), SophisticatedBuilding.GOLDEN_RANDOMIZER_BAG_ITEM.get(),

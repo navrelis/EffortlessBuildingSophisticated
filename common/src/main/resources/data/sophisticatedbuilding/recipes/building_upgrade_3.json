@@ -16,16 +16,16 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "DDD",
-    "DBD",
-    "DDD"
+    "SSS",
+    "SBS",
+    "SSS"
   ],
   "key": {
-    "D": { "item": "sophisticatedbuilding:compressed_cobbled_deepslate" },
-    "B": { "item": "sophisticatedbuilding:building_upgrade_3" }
+    "S": { "item": "sophisticatedbuilding:compressed_sand" },
+    "B": { "item": "sophisticatedbuilding:building_upgrade_2" }
   },
   "result": {
-    "id": "sophisticatedbuilding:building_upgrade_4",
+    "item": "sophisticatedbuilding:building_upgrade_3",
     "count": 1
   }
 }

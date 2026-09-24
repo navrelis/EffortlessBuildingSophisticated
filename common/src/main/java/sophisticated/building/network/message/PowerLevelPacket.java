@@ -1,9 +1,8 @@
 package sophisticated.building.network.message;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.attachment.AttachmentHandler;
@@ -13,14 +12,19 @@ import sophisticated.building.attachment.PowerLevel;
  * Sync power level from server to client
  */
 public record PowerLevelPacket(int powerLevel) implements CustomPacketPayload {
-	public static final StreamCodec<FriendlyByteBuf, PowerLevelPacket> CODEC = StreamCodec.composite(
-			ByteBufCodecs.INT,
-			PowerLevelPacket::powerLevel,
-			PowerLevelPacket::new);
-	public static final Type<PowerLevelPacket> ID = new Type<>(SophisticatedBuilding.asResource("power_level"));
+	public static final ResourceLocation ID = SophisticatedBuilding.asResource("power_level");
+
+	public PowerLevelPacket(FriendlyByteBuf buf) {
+		this(buf.readInt());
+	}
 
 	@Override
-	public Type<? extends CustomPacketPayload> type() {
+	public void write(FriendlyByteBuf buf) {
+		buf.writeInt(powerLevel);
+	}
+
+	@Override
+	public ResourceLocation id() {
 		return ID;
 	}
 

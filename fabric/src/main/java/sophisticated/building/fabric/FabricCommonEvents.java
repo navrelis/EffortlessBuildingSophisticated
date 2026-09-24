@@ -8,7 +8,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
@@ -17,6 +16,7 @@ import sophisticated.building.CommonEvents;
 import sophisticated.building.attachment.AttachmentHandler;
 import sophisticated.building.compatibility.CompatHelper;
 import sophisticated.building.network.message.ServerConfigSyncPacket;
+import sophisticated.building.platform.Services;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -52,7 +52,7 @@ public final class FabricCommonEvents {
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayer player = handler.getPlayer();
-            ServerPlayNetworking.send(player, ServerConfigSyncPacket.fromCurrent());
+            Services.NETWORK.sendToPlayer(player, ServerConfigSyncPacket.fromCurrent());
             CommonEvents.onPlayerLoggedIn(player);
         });
 
@@ -88,7 +88,7 @@ public final class FabricCommonEvents {
 
         ItemStack held = player.getMainHandItem();
         ItemStack previous = LAST_MAIN_HAND.get(player.getUUID());
-        if (previous != null && ItemStack.isSameItemSameComponents(previous, held)) {
+        if (previous != null && ItemStack.isSameItemSameTags(previous, held)) {
             return;
         }
 

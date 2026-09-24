@@ -1,7 +1,7 @@
 package sophisticated.building.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
+import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -253,7 +253,7 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 			guiGraphics.fill(badgeX - 2, badgeY - 1, badgeX + textWidth + 2, badgeY + badgeHeight, 0xAA000000);
 			RenderSystem.enableDepthTest();
 			
-			MultiBufferSource.BufferSource buffer = MultiBufferSource.immediate(new ByteBufferBuilder(1536));
+			MultiBufferSource.BufferSource buffer = MultiBufferSource.immediate(new BufferBuilder(1536));
 			font.drawInBatch(weightText, badgeX, badgeY, color, true, ms.last().pose(), buffer, Font.DisplayMode.NORMAL, 0, 15728880);
 			buffer.endBatch();
 			

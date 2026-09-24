@@ -1,7 +1,7 @@
 package sophisticated.building.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
+import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.ChatFormatting;
@@ -38,9 +38,9 @@ import java.util.Map;
  */
 public class RenderHandler {
 
-	private static final ByteBufferBuilder LEVEL_BUFFER = new ByteBufferBuilder(1536);
-	private static final ByteBufferBuilder GUI_BUFFER = new ByteBufferBuilder(1536);
-	private static final ByteBufferBuilder TEXT_BUFFER = new ByteBufferBuilder(1536);
+	private static final BufferBuilder LEVEL_BUFFER = new BufferBuilder(1536);
+	private static final BufferBuilder GUI_BUFFER = new BufferBuilder(1536);
+	private static final BufferBuilder TEXT_BUFFER = new BufferBuilder(1536);
 
 	public static void onRenderWorld(PoseStack ms) {
 		Minecraft mc = Minecraft.getInstance();

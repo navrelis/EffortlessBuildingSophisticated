@@ -3,13 +3,10 @@ package sophisticated.building.neoforge.platform;
 import com.google.common.collect.Lists;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -21,10 +18,9 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.SpecialPlantable;
+import net.neoforged.neoforge.common.CommonHooks;
 import net.neoforged.neoforge.common.util.BlockSnapshot;
 import net.neoforged.neoforge.event.EventHooks;
-import net.neoforged.neoforge.event.level.BlockDropsEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import sophisticated.building.platform.services.IBlockEventHelper;
 
@@ -56,13 +52,13 @@ public final class NeoForgeBlockEventHelper implements IBlockEventHelper {
             // revert back all captured blocks
             for (BlockSnapshot blocksnapshot : Lists.reverse(blockSnapshots)) {
                 level.restoringBlockSnapshots = true;
-                blocksnapshot.restore(Block.UPDATE_NONE);
+                blocksnapshot.restore(true, false);
                 level.restoringBlockSnapshots = false;
             }
         } else {
             for (BlockSnapshot snap : blockSnapshots) {
-                int updateFlag = snap.getFlags();
-                BlockState oldBlock = snap.getState();
+                int updateFlag = snap.getFlag();
+                BlockState oldBlock = snap.getReplacedBlock();
                 BlockState newBlock = level.getBlockState(snap.getPos());
                 newBlock.onPlace(level, snap.getPos(), oldBlock, false);
 
@@ -87,12 +83,12 @@ public final class NeoForgeBlockEventHelper implements IBlockEventHelper {
 
     @Override
     public void onBlockDropsCollected(ServerLevel level, BlockPos pos, BlockState state, BlockEntity blockEntity, Player player, ItemStack tool) {
-        BlockDropsEvent event = new BlockDropsEvent(level, pos, state, blockEntity, List.of(), player, tool);
-        NeoForge.EVENT_BUS.post(event);
-        if (!event.isCanceled()) {
-            if (event.getDroppedExperience() > 0)
-                state.getBlock().popExperience(level, pos, event.getDroppedExperience());
-        }
+        // 1.20.4 has no block drops event: the experience its break event would compute, for the used tool
+        int fortune = tool.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE);
+        int silkTouch = tool.getEnchantmentLevel(Enchantments.SILK_TOUCH);
+        int experience = state.getExpDrop(level, level.random, pos, fortune, silkTouch);
+        if (experience > 0)
+            state.getBlock().popExperience(level, pos, experience);
     }
 
     @Override
@@ -102,8 +98,7 @@ public final class NeoForgeBlockEventHelper implements IBlockEventHelper {
 
     @Override
     public boolean doesBrokenIceTurnIntoWater(Level level, ItemStack tool) {
-        Registry<Enchantment> enchantmentRegistry = level.registryAccess().registryOrThrow(Registries.ENCHANTMENT);
-        return tool.getEnchantmentLevel(enchantmentRegistry.getHolderOrThrow(Enchantments.SILK_TOUCH)) == 0;
+        return tool.getEnchantmentLevel(Enchantments.SILK_TOUCH) == 0;
     }
 
     @Override
@@ -113,17 +108,14 @@ public final class NeoForgeBlockEventHelper implements IBlockEventHelper {
 
     @Override
     public boolean placeSpecialPlantable(Level level, BlockState state, BlockPos pos, ItemStack stack) {
-        if (!(state.getBlock() instanceof SpecialPlantable specialPlantable)) {
-            return false;
-        }
-        if (specialPlantable.canPlacePlantAtPosition(stack, level, pos, null))
-            specialPlantable.spawnPlantAtPosition(stack, level, pos, null);
-        return true;
+        // NeoForge 20.4 has no SpecialPlantable (its IPlantable, implemented by the vanilla plants, only gives their
+        // default state), so no block places itself this way.
+        return false;
     }
 
     @Override
     public boolean canHarvestBlock(Player player, BlockState state, Level level, BlockPos pos) {
-        return EventHooks.doPlayerHarvestCheck(player, state, level, pos);
+        return CommonHooks.isCorrectToolForDrops(state, player);
     }
 
     @Override

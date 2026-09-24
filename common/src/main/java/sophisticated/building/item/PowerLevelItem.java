@@ -17,6 +17,7 @@ import sophisticated.building.attachment.AttachmentHandler;
 import sophisticated.building.attachment.PowerLevel;
 import sophisticated.building.create.foundation.item.TooltipHelper;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
@@ -50,7 +51,7 @@ public class PowerLevelItem extends Item {
                 if (!world.isClientSide) {
                     SophisticatedBuilding.log(player, "Already reached maximum power level!");
 
-                    world.playSound((Player) null, player.blockPosition(), SoundEvents.ARMOR_EQUIP_LEATHER.value(), SoundSource.PLAYERS, 1f, 1f);
+                    world.playSound((Player) null, player.blockPosition(), SoundEvents.ARMOR_EQUIP_LEATHER, SoundSource.PLAYERS, 1f, 1f);
                 }
 
                 return InteractionResultHolder.fail(player.getItemInHand(hand));
@@ -61,7 +62,7 @@ public class PowerLevelItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag tooltipFlag) {
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag tooltipFlag) {
         tooltip.addAll(TooltipHelper.cutTextComponent(Component.translatable(getDescriptionId() + ".desc"), ChatFormatting.GRAY, ChatFormatting.GRAY));
         tooltip.addAll(TooltipHelper.cutTextComponent(Component.translatable("key.sophisticatedbuilding.upgrade_power_level"), ChatFormatting.BLUE, ChatFormatting.BLUE));
     }

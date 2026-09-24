@@ -104,26 +104,29 @@ public class GuiScrollPane extends SlotGui {
 					l1 = this.y0;
 				}
 
-				BufferBuilder bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-				bufferbuilder.addVertex(scrollbarLeft, this.y1, 0.0F).setUv(0.0F, 1.0F).setColor(0, 0, 0, 255);
-				bufferbuilder.addVertex(scrollbarRight, this.y1, 0.0F).setUv(1.0F, 1.0F).setColor(0, 0, 0, 255);
-				bufferbuilder.addVertex(scrollbarRight, this.y0, 0.0F).setUv(1.0F, 0.0F).setColor(0, 0, 0, 255);
-				bufferbuilder.addVertex(scrollbarLeft, this.y0, 0.0F).setUv(0.0F, 0.0F).setColor(0, 0, 0, 255);
-				BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
+				BufferBuilder bufferbuilder = tessellator.getBuilder();
+				bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+				bufferbuilder.vertex(scrollbarLeft, this.y1, 0.0F).uv(0.0F, 1.0F).color(0, 0, 0, 255).endVertex();
+				bufferbuilder.vertex(scrollbarRight, this.y1, 0.0F).uv(1.0F, 1.0F).color(0, 0, 0, 255).endVertex();
+				bufferbuilder.vertex(scrollbarRight, this.y0, 0.0F).uv(1.0F, 0.0F).color(0, 0, 0, 255).endVertex();
+				bufferbuilder.vertex(scrollbarLeft, this.y0, 0.0F).uv(0.0F, 0.0F).color(0, 0, 0, 255).endVertex();
+				BufferUploader.drawWithShader(bufferbuilder.end());
 
-				bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-				bufferbuilder.addVertex(scrollbarLeft, l1 + k1, 0.0F).setUv(0.0F, 1.0F).setColor(128, 128, 128, 255);
-				bufferbuilder.addVertex(scrollbarRight, l1 + k1, 0.0F).setUv(1.0F, 1.0F).setColor(128, 128, 128, 255);
-				bufferbuilder.addVertex(scrollbarRight, l1, 0.0F).setUv(1.0F, 0.0F).setColor(128, 128, 128, 255);
-				bufferbuilder.addVertex(scrollbarLeft, l1, 0.0F).setUv(0.0F, 0.0F).setColor(128, 128, 128, 255);
-				BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
+				bufferbuilder = tessellator.getBuilder();
+				bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+				bufferbuilder.vertex(scrollbarLeft, l1 + k1, 0.0F).uv(0.0F, 1.0F).color(128, 128, 128, 255).endVertex();
+				bufferbuilder.vertex(scrollbarRight, l1 + k1, 0.0F).uv(1.0F, 1.0F).color(128, 128, 128, 255).endVertex();
+				bufferbuilder.vertex(scrollbarRight, l1, 0.0F).uv(1.0F, 0.0F).color(128, 128, 128, 255).endVertex();
+				bufferbuilder.vertex(scrollbarLeft, l1, 0.0F).uv(0.0F, 0.0F).color(128, 128, 128, 255).endVertex();
+				BufferUploader.drawWithShader(bufferbuilder.end());
 
-				bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-				bufferbuilder.addVertex(scrollbarLeft, l1 + k1 - 1, 0.0F).setUv(0.0F, 1.0F).setColor(192, 192, 192, 255);
-				bufferbuilder.addVertex(scrollbarRight - 1, l1 + k1 - 1, 0.0F).setUv(1.0F, 1.0F).setColor(192, 192, 192, 255);
-				bufferbuilder.addVertex(scrollbarRight - 1, l1, 0.0F).setUv(1.0F, 0.0F).setColor(192, 192, 192, 255);
-				bufferbuilder.addVertex(scrollbarLeft, l1, 0.0F).setUv(0.0F, 0.0F).setColor(192, 192, 192, 255);
-				BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
+				bufferbuilder = tessellator.getBuilder();
+				bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+				bufferbuilder.vertex(scrollbarLeft, l1 + k1 - 1, 0.0F).uv(0.0F, 1.0F).color(192, 192, 192, 255).endVertex();
+				bufferbuilder.vertex(scrollbarRight - 1, l1 + k1 - 1, 0.0F).uv(1.0F, 1.0F).color(192, 192, 192, 255).endVertex();
+				bufferbuilder.vertex(scrollbarRight - 1, l1, 0.0F).uv(1.0F, 0.0F).color(192, 192, 192, 255).endVertex();
+				bufferbuilder.vertex(scrollbarLeft, l1, 0.0F).uv(0.0F, 0.0F).color(192, 192, 192, 255).endVertex();
+				BufferUploader.drawWithShader(bufferbuilder.end());
 			}
 
 			RenderSystem.disableBlend();
@@ -304,20 +307,22 @@ public class GuiScrollPane extends SlotGui {
 				int j1 = this.x0 + this.width / 2 + this.getRowWidth() / 2;
 				float f = this.isFocused() ? 1.0F : 0.5F;
 				RenderSystem.setShaderColor(f, f, f, 1.0F);
-				BufferBuilder bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-				bufferbuilder.addVertex(i1, y + entryHeight2 + 2, 0.0f);
-				bufferbuilder.addVertex(j1, y + entryHeight2 + 2, 0.0f);
-				bufferbuilder.addVertex(j1, y - 2, 0.0f);
-				bufferbuilder.addVertex(i1, y - 2, 0.0f);
-				BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
+				BufferBuilder bufferbuilder = tessellator.getBuilder();
+				bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+				bufferbuilder.vertex(i1, y + entryHeight2 + 2, 0.0f).endVertex();
+				bufferbuilder.vertex(j1, y + entryHeight2 + 2, 0.0f).endVertex();
+				bufferbuilder.vertex(j1, y - 2, 0.0f).endVertex();
+				bufferbuilder.vertex(i1, y - 2, 0.0f).endVertex();
+				BufferUploader.drawWithShader(bufferbuilder.end());
 
 				RenderSystem.setShaderColor(0.0F, 0.0F, 0.0F, 1.0F);
-				bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-				bufferbuilder.addVertex(i1 + 1, y + entryHeight2 + 1, 0.0f);
-				bufferbuilder.addVertex(j1 - 1, y + entryHeight2 + 1, 0.0f);
-				bufferbuilder.addVertex(j1 - 1, y - 1, 0.0f);
-				bufferbuilder.addVertex(i1 + 1, y - 1, 0.0f);
-				BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
+				bufferbuilder = tessellator.getBuilder();
+				bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+				bufferbuilder.vertex(i1 + 1, y + entryHeight2 + 1, 0.0f).endVertex();
+				bufferbuilder.vertex(j1 - 1, y + entryHeight2 + 1, 0.0f).endVertex();
+				bufferbuilder.vertex(j1 - 1, y - 1, 0.0f).endVertex();
+				bufferbuilder.vertex(i1 + 1, y - 1, 0.0f).endVertex();
+				BufferUploader.drawWithShader(bufferbuilder.end());
 			}
 
 			this.renderItem(guiGraphics, i, insideLeft, y, entryHeight2, mouseXIn, mouseYIn, partialTicks);

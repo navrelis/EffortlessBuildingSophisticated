@@ -1,9 +1,8 @@
 package sophisticated.building.network.message;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.client.ClientBuildingUpgradeState;
@@ -15,17 +14,20 @@ import sophisticated.building.client.ClientBuildingUpgradeState;
  * packet, via {@link ClientBuildingUpgradeState}.
  */
 public record BuildingUpgradeStatePacket(int tier, int maxBlocks) implements CustomPacketPayload {
-    public static final StreamCodec<FriendlyByteBuf, BuildingUpgradeStatePacket> CODEC = StreamCodec.composite(
-            ByteBufCodecs.INT,
-            BuildingUpgradeStatePacket::tier,
-            ByteBufCodecs.INT,
-            BuildingUpgradeStatePacket::maxBlocks,
-            BuildingUpgradeStatePacket::new);
+    public static final ResourceLocation ID = SophisticatedBuilding.asResource("building_upgrade_state");
 
-    public static final Type<BuildingUpgradeStatePacket> ID = new Type<>(SophisticatedBuilding.asResource("building_upgrade_state"));
+    public BuildingUpgradeStatePacket(FriendlyByteBuf buf) {
+        this(buf.readInt(), buf.readInt());
+    }
 
     @Override
-    public Type<? extends CustomPacketPayload> type() {
+    public void write(FriendlyByteBuf buf) {
+        buf.writeInt(tier);
+        buf.writeInt(maxBlocks);
+    }
+
+    @Override
+    public ResourceLocation id() {
         return ID;
     }
 

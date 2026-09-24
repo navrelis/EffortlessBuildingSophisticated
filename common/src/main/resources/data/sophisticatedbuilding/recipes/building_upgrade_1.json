@@ -25,7 +25,7 @@
     "B": { "item": "sophisticatedbackpacks:upgrade_base" }
   },
   "result": {
-    "id": "sophisticatedbuilding:building_upgrade_1",
+    "item": "sophisticatedbuilding:building_upgrade_1",
     "count": 1
   }
 }

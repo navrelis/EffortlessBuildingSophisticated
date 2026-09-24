@@ -2,10 +2,10 @@
   "type": "minecraft:crafting_shapeless",
   "category": "building",
   "ingredients": [
-    { "item": "sophisticatedbuilding:compressed_dirt" }
+    { "item": "sophisticatedbuilding:compressed_sand" }
   ],
   "result": {
-    "id": "minecraft:dirt",
+    "item": "minecraft:sand",
     "count": 9
   }
 }

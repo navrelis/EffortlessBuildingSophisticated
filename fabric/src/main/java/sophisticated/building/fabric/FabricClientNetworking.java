@@ -7,8 +7,9 @@ import sophisticated.building.network.PacketHandler;
 import sophisticated.building.network.message.ServerConfigSyncPacket;
 
 /**
- * Client receivers of the clientbound payloads (see {@link PacketHandler}); the handlers run on the
- * client thread with the local player.
+ * Client receivers of the clientbound payloads (see {@link PacketHandler}) plus the Fabric-only
+ * server config sync. The payload is read on the network thread and its handler runs on the client
+ * thread with the local player.
  */
 public final class FabricClientNetworking {
 
@@ -19,13 +20,14 @@ public final class FabricClientNetworking {
         for (PacketHandler.Payload<?> payload : PacketHandler.CLIENTBOUND) {
             registerReceiver(payload);
         }
-        ClientPlayNetworking.registerGlobalReceiver(ServerConfigSyncPacket.ID, (packet, context) ->
-                context.client().execute(() -> ServerConfigSyncPacket.Handler.handle(packet, context.player())));
+        registerReceiver(new PacketHandler.Payload<>(ServerConfigSyncPacket.ID, ServerConfigSyncPacket::new, ServerConfigSyncPacket.Handler::handle, null));
         SophisticatedBuilding.log("Registered client networking receivers");
     }
 
     private static <T extends CustomPacketPayload> void registerReceiver(PacketHandler.Payload<T> payload) {
-        ClientPlayNetworking.registerGlobalReceiver(payload.type(), (packet, context) ->
-                context.client().execute(() -> payload.handler().accept(packet, context.player())));
+        ClientPlayNetworking.registerGlobalReceiver(payload.id(), (client, handler, buf, responseSender) -> {
+            T packet = payload.reader().apply(buf);
+            client.execute(() -> payload.handler().accept(packet, client.player));
+        });
     }
 }

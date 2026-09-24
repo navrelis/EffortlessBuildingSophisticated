@@ -46,7 +46,7 @@ public class ToolSwapperIntegration {
 		}
 
 		try {
-			IStorageWrapper wrapper = BackpackWrapper.fromStack(backpackStack);
+			IStorageWrapper wrapper = BackpackWrapper.fromData(backpackStack);
 			ToolSwapperUpgradeWrapper toolSwapper = null;
 			for (IUpgradeWrapper slotWrapper : wrapper.getUpgradeHandler().getSlotWrappers().values()) {
 				if (slotWrapper instanceof ToolSwapperUpgradeWrapper candidate

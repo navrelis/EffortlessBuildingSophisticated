@@ -40,15 +40,15 @@ public interface IBlockEventHelper {
     boolean isRestoringBlockSnapshots(Level level);
 
     /**
-     * Called after the drops of a player-broken block were collected. NeoForge fires its block drops
-     * event and pops the event's experience; Fabric does nothing (experience comes from
+     * Called after the drops of a player-broken block were collected. NeoForge pops the block's
+     * experience for the used tool (NeoForge 20.4 has no block drops event); Fabric does nothing (experience comes from
      * {@link BlockState#spawnAfterBreak}, see {@link #getSpawnAfterBreakTool}).
      */
     void onBlockDropsCollected(ServerLevel level, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, Player player, ItemStack tool);
 
     /**
-     * The tool passed to {@link BlockState#spawnAfterBreak}. NeoForge passes an empty stack (its
-     * drops event already handled the experience), Fabric the used tool.
+     * The tool passed to {@link BlockState#spawnAfterBreak}. NeoForge passes an empty stack
+     * ({@link #onBlockDropsCollected} already popped the experience), Fabric the used tool.
      */
     ItemStack getSpawnAfterBreakTool(ItemStack tool);
 
@@ -62,9 +62,10 @@ public interface IBlockEventHelper {
     void markAndNotifyBlock(Level level, BlockPos pos, LevelChunk chunk, BlockState oldState, BlockState newState, int flags);
 
     /**
-     * Places a NeoForge {@code SpecialPlantable} (e.g. a sapling-like plant with custom placement).
+     * Places a block that plants itself with custom placement (NeoForge 1.21+ {@code SpecialPlantable}).
      *
-     * @return true if the block is such a plantable and was handled; always false on Fabric
+     * @return true if the block is such a plantable and was handled; always false on Fabric and on NeoForge
+     * 20.4, which has no such interface
      */
     boolean placeSpecialPlantable(Level level, BlockState state, BlockPos pos, ItemStack stack);
 

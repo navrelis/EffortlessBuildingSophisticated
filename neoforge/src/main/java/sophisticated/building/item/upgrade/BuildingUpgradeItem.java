@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeSlotChangeResult;
@@ -79,7 +80,6 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
         return List.of(new UpgradeConflictDefinition(
                 item -> item instanceof BuildingUpgradeItem,
                 0,
-                TranslationHelper.INSTANCE.translError("add.building_upgrade_conflict"),
                 TranslationHelper.INSTANCE.translError("add.building_upgrade_conflict")
         ));
     }
@@ -107,7 +107,7 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
     }
     
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flagIn) {
         tooltip.add(Component.translatable("item.sophisticatedbuilding.building_upgrade.tooltip", maxBlocks)
                 .withStyle(ChatFormatting.GRAY));
         if (tier == 5) { // Omega tier
@@ -127,14 +127,14 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
     
     @Override
     public UpgradeSlotChangeResult canRemoveUpgradeFrom(IStorageWrapper storageWrapper, boolean isClientSide) {
-        return UpgradeSlotChangeResult.success();
+        return new UpgradeSlotChangeResult.Success();
     }
     
     @Override
     public UpgradeSlotChangeResult canSwapUpgradeFor(ItemStack upgradeStackToPut, int upgradeSlot, IStorageWrapper storageWrapper, boolean isClientSide) {
         // Allow swapping building upgrades for other building upgrades (upgrading tiers)
         if (upgradeStackToPut.getItem() instanceof BuildingUpgradeItem) {
-            return UpgradeSlotChangeResult.success();
+            return new UpgradeSlotChangeResult.Success();
         }
         return super.canSwapUpgradeFor(upgradeStackToPut, upgradeSlot, storageWrapper, isClientSide);
     }

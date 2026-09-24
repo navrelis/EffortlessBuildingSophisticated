@@ -7,10 +7,10 @@
     "DDD"
   ],
   "key": {
-    "D": { "item": "minecraft:dirt" }
+    "D": { "item": "minecraft:cobbled_deepslate" }
   },
   "result": {
-    "id": "sophisticatedbuilding:compressed_dirt",
+    "item": "sophisticatedbuilding:compressed_cobbled_deepslate",
     "count": 1
   }
 }

@@ -16,16 +16,17 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "CCC",
-    "CBC",
-    "CCC"
+    "NNN",
+    "NBN",
+    "NSN"
   ],
   "key": {
-    "C": { "item": "sophisticatedbuilding:compressed_cobblestone" },
-    "B": { "item": "sophisticatedbuilding:building_upgrade_1" }
+    "N": { "item": "minecraft:netherite_block" },
+    "S": { "item": "minecraft:nether_star" },
+    "B": { "item": "sophisticatedbuilding:building_upgrade_4" }
   },
   "result": {
-    "id": "sophisticatedbuilding:building_upgrade_2",
+    "item": "sophisticatedbuilding:building_upgrade_omega",
     "count": 1
   }
 }

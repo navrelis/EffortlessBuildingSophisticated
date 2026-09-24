@@ -115,7 +115,7 @@ public final class NeoForgePlatformHelper implements IPlatformHelper {
         ItemHandlerHelper.giveItemToPlayer(player, stack);
     }
 
-    /** Our item handler view of a NeoForge item handler (the bags' {@code ComponentItemHandler}). */
+    /** Our item handler view of a NeoForge item handler (the bags' {@code BagItemHandler}). */
     private record NeoForgeItemHandler(net.neoforged.neoforge.items.IItemHandler handler) implements IItemHandler {
         @Override
         public int getSlots() {

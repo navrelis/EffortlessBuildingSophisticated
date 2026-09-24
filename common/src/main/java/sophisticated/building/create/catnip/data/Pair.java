@@ -1,7 +1,6 @@
 package sophisticated.building.create.catnip.data;
 
 import java.util.Objects;
-import net.minecraft.network.codec.StreamCodec;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -76,13 +75,5 @@ public class Pair<F, S> {
 			firstCodec.fieldOf("first").forGetter(Pair::getFirst),
 			secondCodec.fieldOf("second").forGetter(Pair::getSecond)
 		).apply(instance, Pair::new));
-	}
-
-	public static <B, F, S> StreamCodec<B, Pair<F, S>> streamCodec(StreamCodec<? super B, F> firstCodec, StreamCodec<? super B, S> secondCodec) {
-		return StreamCodec.composite(
-			firstCodec, Pair::getFirst,
-			secondCodec, Pair::getSecond,
-			Pair::new
-		);
 	}
 }

@@ -1,7 +1,10 @@
 package sophisticated.building.item.upgrade;
 
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
 
 import java.util.function.Consumer;
@@ -36,13 +39,13 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
 
         for (int i = 0; i < slots && totalExtracted < amount; i++) {
             ItemStack slotStack = inventoryHandler.getStackInSlot(i);
-            if (!slotStack.isEmpty() && ItemStack.isSameItemSameComponents(slotStack, item)) {
+            if (!slotStack.isEmpty() && ItemStack.isSameItemSameTags(slotStack, item)) {
                 int wantFromSlot = Math.min(amount - totalExtracted, slotStack.getCount());
 
                 int extractedFromSlot = 0;
                 while (extractedFromSlot < wantFromSlot) {
                     int toExtractThisCall = Math.min(wantFromSlot - extractedFromSlot, item.getMaxStackSize());
-                    ItemStack extractedStack = inventoryHandler.extractItem(i, toExtractThisCall, simulate);
+                    ItemStack extractedStack = extractFromSlot(inventoryHandler, i, toExtractThisCall, simulate);
                     if (extractedStack.isEmpty()) {
                         break;
                     }
@@ -65,6 +68,22 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
         return result;
     }
 
+    // The 1.20.4 Fabric port's inventory is a Fabric Transfer API storage: extract the slot's variant in a transaction
+    // that is only committed when not simulating (what extractItem(slot, amount, simulate) does on the other builds).
+    private static ItemStack extractFromSlot(InventoryHandler inventoryHandler, int slot, int amount, boolean simulate) {
+        ItemVariant variant = ItemVariant.of(inventoryHandler.getStackInSlot(slot));
+        if (variant.isBlank()) {
+            return ItemStack.EMPTY;
+        }
+        try (Transaction transaction = Transaction.openOuter()) {
+            long extracted = inventoryHandler.extractSlot(slot, variant, amount, transaction);
+            if (!simulate) {
+                transaction.commit();
+            }
+            return extracted > 0 ? variant.toStack((int) extracted) : ItemStack.EMPTY;
+        }
+    }
+
     public int countItem(ItemStack item) {
         if (!isEnabled()) {
             return 0;
@@ -76,7 +95,7 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
 
         for (int i = 0; i < slots; i++) {
             ItemStack slotStack = inventoryHandler.getStackInSlot(i);
-            if (!slotStack.isEmpty() && ItemStack.isSameItemSameComponents(slotStack, item)) {
+            if (!slotStack.isEmpty() && ItemStack.isSameItemSameTags(slotStack, item)) {
                 count += slotStack.getCount();
             }
         }

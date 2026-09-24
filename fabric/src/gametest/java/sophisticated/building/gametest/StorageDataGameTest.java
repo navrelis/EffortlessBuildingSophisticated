@@ -2,20 +2,21 @@ package sophisticated.building.gametest;
 
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.NonNullList;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity;
 import sophisticated.building.SophisticatedBuilding;
-
-import java.util.List;
 
 import static sophisticated.building.gametest.GameTestSupport.*;
 
@@ -26,8 +27,10 @@ public class StorageDataGameTest implements FabricGameTest {
 
     private static ItemStack namedShulker() {
         ItemStack stack = new ItemStack(Items.SHULKER_BOX);
-        stack.set(DataComponents.CUSTOM_NAME, Component.literal(NAME));
-        stack.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(List.of(new ItemStack(Items.DIAMOND, 7))));
+        stack.setHoverName(Component.literal(NAME));
+        CompoundTag contents = new CompoundTag();
+        ContainerHelper.saveAllItems(contents, NonNullList.of(ItemStack.EMPTY, new ItemStack(Items.DIAMOND, 7)));
+        BlockItem.setBlockEntityData(stack, BlockEntityType.SHULKER_BOX, contents);
         return stack;
     }
 
@@ -39,7 +42,7 @@ public class StorageDataGameTest implements FabricGameTest {
 
     private static void expectLoot(GameTestHelper helper, BlockPos rel) {
         helper.assertBlockPresent(Blocks.SHULKER_BOX, rel);
-        ShulkerBoxBlockEntity box = helper.getBlockEntity(rel);
+        ShulkerBoxBlockEntity box = (ShulkerBoxBlockEntity) helper.getBlockEntity(rel);
         helper.assertTrue(hasLoot(box), "Placed shulker box should have 7 diamonds and the name '" + NAME
                 + "', has " + box.getItem(0) + " named " + box.getCustomName());
     }
@@ -79,8 +82,8 @@ public class StorageDataGameTest implements FabricGameTest {
 
             helper.assertBlockPresent(Blocks.SHULKER_BOX, relA);
             helper.assertBlockPresent(Blocks.SHULKER_BOX, relB);
-            ShulkerBoxBlockEntity a = helper.getBlockEntity(relA);
-            ShulkerBoxBlockEntity b = helper.getBlockEntity(relB);
+            ShulkerBoxBlockEntity a = (ShulkerBoxBlockEntity) helper.getBlockEntity(relA);
+            ShulkerBoxBlockEntity b = (ShulkerBoxBlockEntity) helper.getBlockEntity(relB);
             int withLoot = (hasLoot(a) ? 1 : 0) + (hasLoot(b) ? 1 : 0);
             int empty = (a.isEmpty() && a.getCustomName() == null ? 1 : 0) + (b.isEmpty() && b.getCustomName() == null ? 1 : 0);
             expectEquals(helper, "placed boxes with the named stack's data", 1, withLoot);
@@ -104,7 +107,7 @@ public class StorageDataGameTest implements FabricGameTest {
 
             expectLoot(helper, rel);
             ItemStack held = player.getMainHandItem();
-            helper.assertTrue(held.is(Items.SHULKER_BOX) && held.getCount() == 1 && ItemStack.isSameItemSameComponents(held, namedShulker()),
+            helper.assertTrue(held.is(Items.SHULKER_BOX) && held.getCount() == 1 && ItemStack.isSameItemSameTags(held, namedShulker()),
                     "The creative player's stack should be kept unchanged, main hand has " + held);
         } finally {
             removePlayer(player);

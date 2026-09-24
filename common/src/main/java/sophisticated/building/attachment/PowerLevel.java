@@ -1,6 +1,5 @@
 package sophisticated.building.attachment;
 
-import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.CommonConfig;
@@ -98,13 +97,13 @@ public class PowerLevel {
 		return player.getAbilities().instabuild || ServerConfig.survivalReplace.enabled.get();
 	}
 
-	public CompoundTag serializeNBT(Provider provider) {
+	public CompoundTag serializeNBT() {
 		CompoundTag tag = new CompoundTag();
 		tag.putInt("powerLevel", getPowerLevel());
 		return tag;
 	}
 
-	public void deserializeNBT(Provider provider, CompoundTag nbt) {
+	public void deserializeNBT(CompoundTag nbt) {
 		setPowerLevel(nbt.getInt("powerLevel"));
 	}
 }

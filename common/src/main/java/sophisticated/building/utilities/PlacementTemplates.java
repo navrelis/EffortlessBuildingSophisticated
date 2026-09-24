@@ -29,7 +29,7 @@ public class PlacementTemplates {
     }
 
     public static boolean hasData(ItemStack stack) {
-        return !stack.getComponentsPatch().isEmpty();
+        return stack.getTag() != null && !stack.getTag().isEmpty();
     }
 
     // Search order: main hand, offhand, rest of the main inventory

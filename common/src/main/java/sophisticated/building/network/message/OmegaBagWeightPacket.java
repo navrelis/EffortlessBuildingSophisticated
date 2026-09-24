@@ -1,9 +1,8 @@
 package sophisticated.building.network.message;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -14,16 +13,20 @@ import sophisticated.building.item.OmegaRandomizerBagItem;
  * Packet to update slot weight in Omega Randomizer Bag
  */
 public record OmegaBagWeightPacket(int slotIndex, int weight) implements CustomPacketPayload {
-	public static final StreamCodec<FriendlyByteBuf, OmegaBagWeightPacket> CODEC = StreamCodec.composite(
-			ByteBufCodecs.INT,
-			OmegaBagWeightPacket::slotIndex,
-			ByteBufCodecs.INT,
-			OmegaBagWeightPacket::weight,
-			OmegaBagWeightPacket::new);
-	public static final Type<OmegaBagWeightPacket> ID = new Type<>(SophisticatedBuilding.asResource("omega_bag_weight"));
+	public static final ResourceLocation ID = SophisticatedBuilding.asResource("omega_bag_weight");
+
+	public OmegaBagWeightPacket(FriendlyByteBuf buf) {
+		this(buf.readInt(), buf.readInt());
+	}
 
 	@Override
-	public Type<? extends CustomPacketPayload> type() {
+	public void write(FriendlyByteBuf buf) {
+		buf.writeInt(slotIndex);
+		buf.writeInt(weight);
+	}
+
+	@Override
+	public ResourceLocation id() {
 		return ID;
 	}
 

@@ -1,9 +1,8 @@
 package sophisticated.building.network.message;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.client.ClientBreakCountdown;
@@ -15,19 +14,21 @@ import sophisticated.building.client.ClientBreakCountdown;
  * replaces; {@code blockCount} is then the number of replaced blocks.
  */
 public record BreakCountdownPacket(int delayTicks, int blockCount, boolean placing) implements CustomPacketPayload {
-	public static final StreamCodec<FriendlyByteBuf, BreakCountdownPacket> CODEC = StreamCodec.composite(
-			ByteBufCodecs.INT,
-			BreakCountdownPacket::delayTicks,
-			ByteBufCodecs.INT,
-			BreakCountdownPacket::blockCount,
-			ByteBufCodecs.BOOL,
-			BreakCountdownPacket::placing,
-			BreakCountdownPacket::new);
+	public static final ResourceLocation ID = SophisticatedBuilding.asResource("break_countdown");
 
-	public static final Type<BreakCountdownPacket> ID = new Type<>(SophisticatedBuilding.asResource("break_countdown"));
+	public BreakCountdownPacket(FriendlyByteBuf buf) {
+		this(buf.readInt(), buf.readInt(), buf.readBoolean());
+	}
 
 	@Override
-	public Type<? extends CustomPacketPayload> type() {
+	public void write(FriendlyByteBuf buf) {
+		buf.writeInt(delayTicks);
+		buf.writeInt(blockCount);
+		buf.writeBoolean(placing);
+	}
+
+	@Override
+	public ResourceLocation id() {
 		return ID;
 	}
 

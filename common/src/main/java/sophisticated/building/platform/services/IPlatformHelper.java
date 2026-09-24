@@ -56,7 +56,7 @@ public interface IPlatformHelper {
     CompoundTag getPersistentData(Player player);
 
     /**
-     * The item inventory of a randomizer bag stack (the {@code minecraft:container} component), or null
+     * The item inventory of a randomizer bag stack (its {@code Items} tag), or null
      * if the stack has none. NeoForge goes through the item handler capability registered for the bags.
      */
     @Nullable

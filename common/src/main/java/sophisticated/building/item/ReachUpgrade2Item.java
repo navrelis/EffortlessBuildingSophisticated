@@ -17,6 +17,7 @@ import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.attachment.AttachmentHandler;
 import sophisticated.building.attachment.PowerLevel;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
@@ -52,13 +53,13 @@ public class ReachUpgrade2Item extends Item {
 				if (!world.isClientSide) {
 					SophisticatedBuilding.log(player, "Use Reach Upgrade 1 first.");
 
-					world.playSound((Player) null, player.blockPosition(), SoundEvents.ARMOR_EQUIP_LEATHER.value(), SoundSource.PLAYERS, 1f, 1f);
+					world.playSound((Player) null, player.blockPosition(), SoundEvents.ARMOR_EQUIP_LEATHER, SoundSource.PLAYERS, 1f, 1f);
 				}
 			} else if (currentLevel > 1) {
 				if (!world.isClientSide) {
 					SophisticatedBuilding.log(player, "Already used this upgrade! Current power level is " + powerLevel.getPowerLevel() + ".");
 
-					world.playSound((Player) null, player.blockPosition(), SoundEvents.ARMOR_EQUIP_LEATHER.value(), SoundSource.PLAYERS, 1f, 1f);
+					world.playSound((Player) null, player.blockPosition(), SoundEvents.ARMOR_EQUIP_LEATHER, SoundSource.PLAYERS, 1f, 1f);
 				}
 			}
 		}
@@ -67,7 +68,7 @@ public class ReachUpgrade2Item extends Item {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag tooltipFlag) {
+	public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag tooltipFlag) {
 		tooltip.add(Component.literal(ChatFormatting.GRAY + "Consume to increase reach to " + ChatFormatting.BLUE + CommonConfig.reach.level2.get()));
 		tooltip.add(Component.literal(ChatFormatting.GRAY + "Previous upgrades need to be consumed first"));
 	}

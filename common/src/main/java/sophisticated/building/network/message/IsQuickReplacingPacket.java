@@ -1,23 +1,27 @@
 package sophisticated.building.network.message;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.systems.ServerBuildState;
 
 public record IsQuickReplacingPacket(boolean isQuickReplacing) implements CustomPacketPayload {
-	public static final StreamCodec<FriendlyByteBuf, IsQuickReplacingPacket> CODEC = StreamCodec.composite(
-			ByteBufCodecs.BOOL,
-			IsQuickReplacingPacket::isQuickReplacing,
-			IsQuickReplacingPacket::new);
-	public static final Type<IsQuickReplacingPacket> ID = new Type<>(SophisticatedBuilding.asResource("is_quick_replacing"));
+	public static final ResourceLocation ID = SophisticatedBuilding.asResource("is_quick_replacing");
+
+	public IsQuickReplacingPacket(FriendlyByteBuf buf) {
+		this(buf.readBoolean());
+	}
 
 	@Override
-	public Type<? extends CustomPacketPayload> type() {
+	public void write(FriendlyByteBuf buf) {
+		buf.writeBoolean(isQuickReplacing);
+	}
+
+	@Override
+	public ResourceLocation id() {
 		return ID;
 	}
 

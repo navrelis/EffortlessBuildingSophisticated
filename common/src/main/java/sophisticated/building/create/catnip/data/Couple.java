@@ -12,8 +12,6 @@ import java.util.stream.Stream;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.minecraft.network.codec.StreamCodec;
-
 /**
  * Adapted from Catnip ({@code sophisticated.building.create.catnip.data.Couple}, MIT License, Copyright (c) 2022
  * The Create Team, see LICENSE_Ponder.txt).
@@ -121,14 +119,6 @@ public class Couple<T> extends Pair<T, T> implements Iterable<T> {
 			codec.fieldOf("first").forGetter(Couple::getFirst),
 			codec.fieldOf("second").forGetter(Couple::getSecond)
 		).apply(instance, Couple::new));
-	}
-
-	public static <B, T> StreamCodec<B, Couple<T>> streamCodec(StreamCodec<? super B, T> codec) {
-		return StreamCodec.composite(
-			codec, Couple::getFirst,
-			codec, Couple::getSecond,
-			Couple::new
-		);
 	}
 
 	@Override

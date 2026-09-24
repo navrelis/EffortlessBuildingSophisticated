@@ -1,23 +1,27 @@
 package sophisticated.building.network.message;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.systems.ServerBuildState;
 
 public record IsUsingBuildModePacket(boolean isUsingBuildMode) implements CustomPacketPayload {
-	public static final StreamCodec<FriendlyByteBuf, IsUsingBuildModePacket> CODEC = StreamCodec.composite(
-			ByteBufCodecs.BOOL,
-			IsUsingBuildModePacket::isUsingBuildMode,
-			IsUsingBuildModePacket::new);
-	public static final Type<IsUsingBuildModePacket> ID = new Type<>(SophisticatedBuilding.asResource("is_using_build_mode"));
+	public static final ResourceLocation ID = SophisticatedBuilding.asResource("is_using_build_mode");
+
+	public IsUsingBuildModePacket(FriendlyByteBuf buf) {
+		this(buf.readBoolean());
+	}
 
 	@Override
-	public Type<? extends CustomPacketPayload> type() {
+	public void write(FriendlyByteBuf buf) {
+		buf.writeBoolean(isUsingBuildMode);
+	}
+
+	@Override
+	public ResourceLocation id() {
 		return ID;
 	}
 
