@@ -1,5 +1,6 @@
 package sophisticated.building.client.gui;
 
+import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
@@ -15,7 +16,7 @@ import java.util.List;
 
 /**
  * The subset of Minecraft 1.20's {@code GuiGraphics} the mod's screens, widgets and HUD use, implemented with the
- * Minecraft 1.19.2 GUI API ({@link GuiComponent}'s static helpers on a {@link PoseStack}, the model-view stack for
+ * Minecraft 1.18.2 GUI API ({@link GuiComponent}'s static helpers on a {@link PoseStack}, the model-view stack for
  * items). Same method names, parameters and results as the 1.20 class, so the GUI code stays the same as on the newer
  * branches; vanilla render callbacks (which still take a {@link PoseStack} in 1.19.2) wrap their stack with
  * {@link #GuiGraphics(PoseStack)}.
@@ -64,12 +65,16 @@ public final class GuiGraphics {
         fill(x + width - 1, y + 1, x + width, y + height - 1, color);
     }
 
+    /** GUI coordinates to window pixels, as 1.19.2's {@code GuiComponent.enableScissor} (missing in 1.18.2) does. */
     public void enableScissor(int minX, int minY, int maxX, int maxY) {
-        GuiComponent.enableScissor(minX, minY, maxX, maxY);
+        Window window = minecraft.getWindow();
+        double scale = window.getGuiScale();
+        RenderSystem.enableScissor((int) (minX * scale), (int) (window.getHeight() - maxY * scale),
+                Math.max(0, (int) ((maxX - minX) * scale)), Math.max(0, (int) ((maxY - minY) * scale)));
     }
 
     public void disableScissor() {
-        GuiComponent.disableScissor();
+        RenderSystem.disableScissor();
     }
 
     public void blit(ResourceLocation atlas, int x, int y, int uOffset, int vOffset, int width, int height) {

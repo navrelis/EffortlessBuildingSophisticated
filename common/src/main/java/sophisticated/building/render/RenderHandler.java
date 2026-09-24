@@ -11,6 +11,7 @@ import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -98,11 +99,11 @@ public class RenderHandler {
 
 	private static final ChatFormatting highlightColor = ChatFormatting.DARK_AQUA;
 	private static final ChatFormatting normalColor = ChatFormatting.WHITE;
-	private static final Component placingText = Component.literal(
+	private static final Component placingText = new TextComponent(
 			normalColor + "Left-click to " + highlightColor + "cancel, " +
 			normalColor + "Right-click to " + highlightColor + "place");
 
-	private static final Component breakingText = Component.literal(
+	private static final Component breakingText = new TextComponent(
 			normalColor + "Left-click to " + highlightColor + "break, " +
 			normalColor + "Right-click to " + highlightColor + "cancel");
 

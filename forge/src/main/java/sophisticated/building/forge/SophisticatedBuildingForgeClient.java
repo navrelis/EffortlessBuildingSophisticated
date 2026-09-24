@@ -3,9 +3,9 @@ package sophisticated.building.forge;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
-import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
+import net.minecraftforge.client.ClientRegistry;
+import net.minecraftforge.client.gui.ForgeIngameGui;
+import net.minecraftforge.client.gui.OverlayRegistry;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import sophisticated.building.ClientEvents;
@@ -26,17 +26,18 @@ public class SophisticatedBuildingForgeClient {
 
     public static void onConstructorClient(IEventBus modEventBus) {
         modEventBus.addListener(SophisticatedBuildingForgeClient::onClientSetup);
-        modEventBus.addListener(SophisticatedBuildingForgeClient::registerKeyMappings);
-        modEventBus.addListener(SophisticatedBuildingForgeClient::registerGuiOverlays);
     }
 
-    public static void registerGuiOverlays(RegisterGuiOverlaysEvent event) {
+    /** Forge 1.18.2 registers HUD overlays and key mappings in client setup (no registration events yet). */
+    private static void registerGuiOverlays() {
         MaterialCostOverlay overlay = new MaterialCostOverlay();
-        event.registerAbove(VanillaGuiOverlay.CROSSHAIR.id(), "material_cost_overlay",
+        OverlayRegistry.registerOverlayAbove(ForgeIngameGui.CROSSHAIR_ELEMENT, "Sophisticated Building material cost",
                 (gui, poseStack, partialTick, screenWidth, screenHeight) -> overlay.render(new GuiGraphics(poseStack), partialTick));
     }
 
     public static void onClientSetup(final FMLClientSetupEvent event) {
+        registerKeyMappings();
+        registerGuiOverlays();
         event.enqueueWork(() -> {
             MenuScreens.register(SophisticatedBuilding.RANDOMIZER_BAG_CONTAINER.get(), RandomizerBagScreen::new);
             MenuScreens.register(SophisticatedBuilding.GOLDEN_RANDOMIZER_BAG_CONTAINER.get(), GoldenRandomizerBagScreen::new);
@@ -55,10 +56,10 @@ public class SophisticatedBuildingForgeClient {
         }
     }
 
-    public static void registerKeyMappings(final RegisterKeyMappingsEvent event) {
+    private static void registerKeyMappings() {
         // Register keybindings for mod controls
         for (var keyBinding : ClientEvents.keyBindings) {
-            event.register(keyBinding);
+            ClientRegistry.registerKeyBinding(keyBinding);
         }
     }
 

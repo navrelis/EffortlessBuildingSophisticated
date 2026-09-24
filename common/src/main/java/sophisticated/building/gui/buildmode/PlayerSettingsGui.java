@@ -10,6 +10,8 @@ import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.sounds.SoundEvents;
 import sophisticated.building.SophisticatedBuilding;
 
@@ -26,7 +28,7 @@ public class PlayerSettingsGui extends Screen {
 	private Button closeButton;
 
 	public PlayerSettingsGui() {
-		super(Component.translatable("sophisticatedbuilding.screen.player_settings"));
+		super(new TranslatableComponent("sophisticatedbuilding.screen.player_settings"));
 	}
 
 	@Override
@@ -48,7 +50,7 @@ public class PlayerSettingsGui extends Screen {
 		AbstractSliderButton slider = new SpeedSlider(right - 200, yy, 200, 20, 0.5, 2.0, 1.0);
 		addRenderableOnly(slider);
 
-		closeButton = new Button(left + 50, bottom - 20, 180, 20, Component.literal("Done"), (button) -> this.minecraft.player.closeContainer());
+		closeButton = new Button(left + 50, bottom - 20, 180, 20, new TextComponent("Done"), (button) -> this.minecraft.player.closeContainer());
 		addRenderableOnly(closeButton);
 	}
 
@@ -62,7 +64,7 @@ public class PlayerSettingsGui extends Screen {
 		private final double max;
 
 		private SpeedSlider(int x, int y, int width, int height, double min, double max, double value) {
-			super(x, y, width, height, Component.empty(), (value - min) / (max - min));
+			super(x, y, width, height, new TextComponent(""), (value - min) / (max - min));
 			this.min = min;
 			this.max = max;
 			updateMessage();
@@ -71,7 +73,7 @@ public class PlayerSettingsGui extends Screen {
 		@Override
 		protected void updateMessage() {
 			double sliderValue = min + (max - min) * this.value;
-			setMessage(Component.literal(String.format("Speed: %.2f", sliderValue)));
+			setMessage(new TextComponent(String.format("Speed: %.2f", sliderValue)));
 		}
 
 		@Override
@@ -124,7 +126,7 @@ public class PlayerSettingsGui extends Screen {
 		}
 
 		ShaderType(String name) {
-			this.name = Component.literal(name);
+			this.name = new TextComponent(name);
 		}
 	}
 

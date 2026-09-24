@@ -29,6 +29,7 @@ public class SophisticatedBuildingForge {
         SophisticatedBuilding.init();
 
         modEventBus.addListener(SophisticatedBuildingForge::setup);
+        modEventBus.addListener(PowerLevelCapability::register);
 
         ForgePlatformHelper.registerDeferredRegisters(modEventBus);
         ForgeNetworking.setupPackets();

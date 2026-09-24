@@ -17,18 +17,14 @@
       "sophisticated.building.fabric.SophisticatedBuildingFabricClient"
     ]
   },
+  "accessWidener": "sophisticatedbuilding.accesswidener",
   "mixins": [
     "sophisticatedbuilding.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=${fabric_loader_version_min}",
     "minecraft": "${minecraft_version}",
-    "fabric-api": "*",
+    "fabric-api": ">=${fabric_api_version_min}",
     "java": ">=${java_version}"
-  },
-  "suggests": {
-    "sophisticatedbackpacks": "*",
-    "sophisticatedcore": "*",
-    "trinkets": "*"
   }
 }

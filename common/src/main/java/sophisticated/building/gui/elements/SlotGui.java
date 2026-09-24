@@ -243,7 +243,8 @@ public abstract class SlotGui extends AbstractContainerEventHandler implements W
 				bufferbuilder.vertex(j1, k + l + 2, 0.0F).endVertex();
 				bufferbuilder.vertex(j1, k - 2, 0.0F).endVertex();
 				bufferbuilder.vertex(i1, k - 2, 0.0F).endVertex();
-				BufferUploader.drawWithShader(bufferbuilder.end());
+				bufferbuilder.end();
+				BufferUploader.end(bufferbuilder);
 				RenderSystem.setShaderColor(0.0F, 0.0F, 0.0F, 1.0F);
 				bufferbuilder = tessellator.getBuilder();
 				bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
@@ -251,7 +252,8 @@ public abstract class SlotGui extends AbstractContainerEventHandler implements W
 				bufferbuilder.vertex(j1 - 1, k + l + 1, 0.0F).endVertex();
 				bufferbuilder.vertex(j1 - 1, k - 1, 0.0F).endVertex();
 				bufferbuilder.vertex(i1 + 1, k - 1, 0.0F).endVertex();
-				BufferUploader.drawWithShader(bufferbuilder.end());
+				bufferbuilder.end();
+				BufferUploader.end(bufferbuilder);
 				RenderSystem.setShader(GameRenderer::getPositionTexShader);
 			}
 

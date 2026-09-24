@@ -3,7 +3,7 @@ package sophisticated.building.gui.buildmodifier;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import sophisticated.building.client.gui.GuiGraphics;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.phys.Vec3;
 import sophisticated.building.AllGuiTextures;
 import sophisticated.building.AllIcons;
@@ -32,7 +32,7 @@ public class RadialMirrorEntry extends BaseModifierEntry<RadialMirror> {
 	protected DecimalFormat df = new DecimalFormat("#.#");
 
 	public RadialMirrorEntry(ModifiersScreen screen, BaseModifier radialMirror) {
-		super(screen, (RadialMirror) radialMirror, Component.literal("Radial Mirror"), AllGuiTextures.RADIAL_MIRROR_ENTRY);
+		super(screen, (RadialMirror) radialMirror, new TextComponent("Radial Mirror"), AllGuiTextures.RADIAL_MIRROR_ENTRY);
 
 		positionInputs = new Vector<>();
 
@@ -42,8 +42,8 @@ public class RadialMirrorEntry extends BaseModifierEntry<RadialMirror> {
 			final int index = i;
 			var scrollInput = new LabeledScrollInput(0, 0, 36, 18)
 				.showControlScrollsSlowerTooltip()
-				.titled(Component.literal(i == 0 ? "X Position" : i == 1 ? "Y Position" : "Z Position"))
-				.format(integer -> Component.literal(df.format(integer / 2.0)))
+				.titled(new TextComponent(i == 0 ? "X Position" : i == 1 ? "Y Position" : "Z Position"))
+				.format(integer -> new TextComponent(df.format(integer / 2.0)))
 				.withStepFunction(stepContext -> stepContext.shift ? 20 : stepContext.control ? 1 : 2)
 				.calling(value -> {
 					modifier.position = MathHelper.with(modifier.position, index, value / 2.0);
@@ -87,7 +87,7 @@ public class RadialMirrorEntry extends BaseModifierEntry<RadialMirror> {
 		//Slices
 		slicesInput = new LabeledScrollInput(0, 0, 27, 18)
 			.withRange(3, 1000)
-			.titled(Component.literal("Slices"))
+			.titled(new TextComponent("Slices"))
 			.calling(value -> {
 				modifier.slices = value;
 				onValueChanged();
@@ -107,8 +107,8 @@ public class RadialMirrorEntry extends BaseModifierEntry<RadialMirror> {
 		radiusInput = new LabeledScrollInput(0, 0, 27, 18)
 			.withRange(0, AttachmentHandler.getMaxMirrorRadius(Minecraft.getInstance().player, false))
 			.titled(Minecraft.getInstance().player.isCreative() ?
-					Component.literal("Radius") :
-					Component.literal("Radius. Use Reach Upgrade items to increase maximum."))
+					new TextComponent("Radius") :
+					new TextComponent("Radius. Use Reach Upgrade items to increase maximum."))
 			.calling(value -> {
 				modifier.radius = value;
 				onValueChanged();

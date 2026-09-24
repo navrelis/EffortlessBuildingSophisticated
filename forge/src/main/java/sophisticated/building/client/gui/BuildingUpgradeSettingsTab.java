@@ -1,6 +1,7 @@
 package sophisticated.building.client.gui;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeSettingsTab;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinition;
@@ -19,8 +20,8 @@ public class BuildingUpgradeSettingsTab extends UpgradeSettingsTab<BuildingUpgra
 
     private static final ButtonDefinition.Toggle<Boolean> ENABLED_BUTTON = createToggleButtonDefinition(
             getBooleanStateData(
-                    GuiHelper.getButtonStateData(new UV(0, 0), Dimension.SQUARE_16, new Position(1, 1), Component.translatable("sophisticatedbuilding.gui.upgrade.enabled")),
-                    GuiHelper.getButtonStateData(new UV(16, 0), Dimension.SQUARE_16, new Position(1, 1), Component.translatable("sophisticatedbuilding.gui.upgrade.disabled"))
+                    GuiHelper.getButtonStateData(new UV(0, 0), Dimension.SQUARE_16, new Position(1, 1), new TranslatableComponent("sophisticatedbuilding.gui.upgrade.enabled")),
+                    GuiHelper.getButtonStateData(new UV(16, 0), Dimension.SQUARE_16, new Position(1, 1), new TranslatableComponent("sophisticatedbuilding.gui.upgrade.disabled"))
             ));
 
     public BuildingUpgradeSettingsTab(BuildingUpgradeContainer upgradeContainer, Position position, StorageScreenBase<?> screen, Component tabLabel, Component closedTooltip) {
@@ -32,7 +33,7 @@ public class BuildingUpgradeSettingsTab extends UpgradeSettingsTab<BuildingUpgra
 
         var wrapper = getContainer().getUpgradeWrapper();
         addHideableChild(new Label(new Position(x + 24, y + 27),
-                Component.translatable("sophisticatedbuilding.gui.building_upgrade.info", wrapper.getTier(), wrapper.getMaxBlocks())));
+                new TranslatableComponent("sophisticatedbuilding.gui.building_upgrade.info", wrapper.getTier(), wrapper.getMaxBlocks())));
     }
 
     @Override

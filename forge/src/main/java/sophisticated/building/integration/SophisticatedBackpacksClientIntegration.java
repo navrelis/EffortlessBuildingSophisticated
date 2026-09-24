@@ -1,6 +1,7 @@
 package sophisticated.building.integration;
 
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.TextComponent;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeGuiManager;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
@@ -14,8 +15,8 @@ public class SophisticatedBackpacksClientIntegration {
             SophisticatedBackpacksIntegration.getContainerType(),
             (BuildingUpgradeContainer c, Position p, StorageScreenBase<?> s) -> 
                 new BuildingUpgradeSettingsTab(c, p, s,
-                    Component.translatable("sophisticatedbuilding.gui.building_upgrade.tab"),
-                    Component.empty())
+                    new TranslatableComponent("sophisticatedbuilding.gui.building_upgrade.tab"),
+                    new TextComponent(""))
         );
     }
 }

@@ -6,6 +6,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -26,7 +27,7 @@ public class GuiIconButton extends Button {
 	}
 
 	public GuiIconButton(int x, int y, int width, int height, int iconX, int iconY, int iconWidth, int iconHeight, int iconAltX, int iconAltY, ResourceLocation resourceLocation, Button.OnPress onPress) {
-		super(x, y, width, height, Component.empty(), onPress);
+		super(x, y, width, height, new TextComponent(""), onPress);
 		this.iconX = iconX;
 		this.iconY = iconY;
 		this.iconWidth = iconWidth;

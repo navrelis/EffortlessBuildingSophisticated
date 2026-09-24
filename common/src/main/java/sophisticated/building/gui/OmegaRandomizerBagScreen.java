@@ -11,6 +11,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
@@ -58,7 +59,7 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 		// Add reset weights button to the right of the GUI
 		int buttonX = leftPos + imageWidth + 4;
 		int buttonY = topPos + 4;
-		resetWeightsButton = new Button(buttonX, buttonY, 40, 16, Component.literal("Reset"), this::onResetWeightsPressed);
+		resetWeightsButton = new Button(buttonX, buttonY, 40, 16, new TextComponent("Reset"), this::onResetWeightsPressed);
 		this.addRenderableWidget(resetWeightsButton);
 	}
 	
@@ -270,9 +271,9 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 			if (mouseX >= slotX && mouseX < slotX + 16 && mouseY >= slotY && mouseY < slotY + 16 && totalWeight > 0) {
 				float percentage = (weight * 100.0f) / totalWeight;
 				List<Component> tooltip = new ArrayList<>();
-				tooltip.add(Component.literal("Weight: " + weight).withStyle(ChatFormatting.GOLD));
-				tooltip.add(Component.literal(String.format("Chance: %.1f%%", percentage)).withStyle(ChatFormatting.YELLOW));
-				tooltip.add(Component.literal("Scroll to adjust").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC));
+				tooltip.add(new TextComponent("Weight: " + weight).withStyle(ChatFormatting.GOLD));
+				tooltip.add(new TextComponent(String.format("Chance: %.1f%%", percentage)).withStyle(ChatFormatting.YELLOW));
+				tooltip.add(new TextComponent("Scroll to adjust").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC));
 				
 				// Offset tooltip to not overlap with item name tooltip (render below and to the right)
 				guiGraphics.renderComponentTooltip(font, tooltip, (int)mouseX + 12, (int)mouseY + 24);

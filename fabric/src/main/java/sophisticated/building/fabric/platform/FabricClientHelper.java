@@ -12,7 +12,6 @@ import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
@@ -21,6 +20,7 @@ import sophisticated.building.platform.services.IClientHelper;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 public final class FabricClientHelper implements IClientHelper {
 
@@ -55,7 +55,7 @@ public final class FabricClientHelper implements IClientHelper {
     }
 
     @Override
-    public List<BakedQuad> getModelQuads(BakedModel model, BlockState state, Direction side, RandomSource random, RenderType renderType) {
+    public List<BakedQuad> getModelQuads(BakedModel model, BlockState state, Direction side, Random random, RenderType renderType) {
         return model.getQuads(state, side, random);
     }
 

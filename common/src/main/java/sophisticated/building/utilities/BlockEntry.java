@@ -91,17 +91,18 @@ public class BlockEntry {
 
     public static void encode(FriendlyByteBuf buf, BlockEntry block) {
         buf.writeBlockPos(block.blockPos);
-        buf.writeNullable(block.newBlockState, (buffer, blockState) -> buffer.writeNbt(NbtUtils.writeBlockState(blockState)));
+        // Nullable block state: a presence flag, then the state (FriendlyByteBuf#writeNullable does not exist in 1.18.2)
+        buf.writeBoolean(block.newBlockState != null);
+        if (block.newBlockState != null) buf.writeNbt(NbtUtils.writeBlockState(block.newBlockState));
         buf.writeInt(Item.getId(block.item));
     }
 
     public static BlockEntry decode(FriendlyByteBuf buf) {
         BlockEntry block = new BlockEntry(buf.readBlockPos());
-        block.newBlockState = buf.readNullable(buffer -> {
+        if (buf.readBoolean()) {
             var nbt = buf.readNbt();
-            if (nbt == null) return null;
-            return NbtUtils.readBlockState(nbt);
-        });
+            block.newBlockState = nbt == null ? null : NbtUtils.readBlockState(nbt);
+        }
         block.item = Item.byId(buf.readInt());
         return block;
     }

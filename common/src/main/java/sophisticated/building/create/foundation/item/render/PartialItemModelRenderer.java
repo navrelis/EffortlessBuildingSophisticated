@@ -7,16 +7,17 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.util.RandomSource;
 import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType;
 import net.minecraft.world.item.ItemStack;
 import sophisticated.building.create.foundation.render.RenderTypes;
+
+import java.util.Random;
 
 public class PartialItemModelRenderer {
 
 	private static final PartialItemModelRenderer INSTANCE = new PartialItemModelRenderer();
 
-	private final RandomSource random = RandomSource.create();
+	private final Random random = new Random();
 
 	private ItemStack stack;
 	private TransformType transformType;

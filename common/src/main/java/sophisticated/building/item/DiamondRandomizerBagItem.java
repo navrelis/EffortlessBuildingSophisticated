@@ -1,6 +1,7 @@
 package sophisticated.building.item;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -33,7 +34,7 @@ public class DiamondRandomizerBagItem extends AbstractRandomizerBagItem{
 
         @Override
         public Component getDisplayName() {
-            return Component.translatable("item.sophisticatedbuilding.diamond_randomizer_bag");
+            return new TranslatableComponent("item.sophisticatedbuilding.diamond_randomizer_bag");
         }
 
         @Nullable

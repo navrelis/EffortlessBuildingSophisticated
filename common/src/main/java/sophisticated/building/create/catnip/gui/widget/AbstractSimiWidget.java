@@ -13,8 +13,9 @@ import net.minecraft.client.gui.Font;
 import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.network.chat.CommonComponents;
+
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 
 /**
  * Adapted from Catnip ({@code sophisticated.building.create.catnip.gui.widget.AbstractSimiWidget}, MIT License, Copyright (c) 2022
@@ -64,7 +65,7 @@ public abstract class AbstractSimiWidget extends AbstractWidget implements Ticka
 	}
 
 	protected AbstractSimiWidget(int x, int y, int width, int height) {
-		this(x, y, width, height, CommonComponents.EMPTY);
+		this(x, y, width, height, TextComponent.EMPTY);
 	}
 
 	protected AbstractSimiWidget(int x, int y, int width, int height, Component message) {

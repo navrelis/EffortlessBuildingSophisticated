@@ -6,7 +6,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.item.BlockItem;
@@ -27,7 +27,7 @@ public class StorageDataGameTest implements FabricGameTest {
 
     private static ItemStack namedShulker() {
         ItemStack stack = new ItemStack(Items.SHULKER_BOX);
-        stack.setHoverName(Component.literal(NAME));
+        stack.setHoverName(new TextComponent(NAME));
         CompoundTag contents = new CompoundTag();
         ContainerHelper.saveAllItems(contents, NonNullList.of(ItemStack.EMPTY, new ItemStack(Items.DIAMOND, 7)));
         BlockItem.setBlockEntityData(stack, BlockEntityType.SHULKER_BOX, contents);

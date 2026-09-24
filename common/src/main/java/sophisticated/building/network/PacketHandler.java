@@ -21,6 +21,7 @@ import sophisticated.building.network.message.TranslatedLogPacket;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * The mod's payloads, their readers and handlers. The loader projects register every entry with their
@@ -62,7 +63,7 @@ public final class PacketHandler {
 	 *                   null to only drop the failure. On Fabric the game's task queue logs it.
 	 */
 	public record Payload<T extends ModPayload>(ResourceLocation id,
-												FriendlyByteBuf.Reader<T> reader,
+												Function<FriendlyByteBuf, T> reader,
 												BiConsumer<T, Player> handler,
 												@Nullable String failureKey) {
 	}

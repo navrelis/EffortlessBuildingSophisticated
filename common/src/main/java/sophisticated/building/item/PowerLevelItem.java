@@ -3,6 +3,7 @@ package sophisticated.building.item;
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -63,7 +64,7 @@ public class PowerLevelItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag tooltipFlag) {
-        tooltip.addAll(TooltipHelper.cutTextComponent(Component.translatable(getDescriptionId() + ".desc"), ChatFormatting.GRAY, ChatFormatting.GRAY));
-        tooltip.addAll(TooltipHelper.cutTextComponent(Component.translatable("key.sophisticatedbuilding.upgrade_power_level"), ChatFormatting.BLUE, ChatFormatting.BLUE));
+        tooltip.addAll(TooltipHelper.cutTextComponent(new TranslatableComponent(getDescriptionId() + ".desc"), ChatFormatting.GRAY, ChatFormatting.GRAY));
+        tooltip.addAll(TooltipHelper.cutTextComponent(new TranslatableComponent("key.sophisticatedbuilding.upgrade_power_level"), ChatFormatting.BLUE, ChatFormatting.BLUE));
     }
 }

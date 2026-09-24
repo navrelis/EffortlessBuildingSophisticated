@@ -1,6 +1,6 @@
 package sophisticated.building.fabric;
 
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -30,7 +30,7 @@ public final class FabricCommonEvents {
     }
 
     public static void register() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
+        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) ->
                 CommonEvents.registerCommands(dispatcher));
 
         ServerTickEvents.END_WORLD_TICK.register(CommonEvents::onLevelTick);

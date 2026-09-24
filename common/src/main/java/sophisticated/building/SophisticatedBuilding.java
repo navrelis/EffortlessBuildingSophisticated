@@ -1,6 +1,6 @@
 package sophisticated.building;
 
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
@@ -140,7 +140,7 @@ public final class SophisticatedBuilding {
     }
 
     public static void log(Player player, String msg, boolean actionBar) {
-        player.displayClientMessage(Component.literal(msg), actionBar);
+        player.displayClientMessage(new TextComponent(msg), actionBar);
     }
 
     // Log with translation supported, call either on client or server (which then sends a message)

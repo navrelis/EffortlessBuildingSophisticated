@@ -3,11 +3,11 @@ package sophisticated.building.forge;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.client.event.RenderGuiEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.client.event.ScreenEvent;
+import net.minecraftforge.client.event.ScreenOpenEvent;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.level.LevelEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import sophisticated.building.ClientEvents;
@@ -32,33 +32,33 @@ public class ForgeClientEvents {
     }
 
     @SubscribeEvent
-    public static void onKeyPress(InputEvent.Key event) {
+    public static void onKeyPress(InputEvent.KeyInputEvent event) {
         ClientEvents.onKeyPress();
     }
 
     @SubscribeEvent
-    public static void onGuiOpen(ScreenEvent.Opening event) {
-        ClientEvents.onGuiOpen(event.getNewScreen());
+    public static void onGuiOpen(ScreenOpenEvent event) {
+        ClientEvents.onGuiOpen(event.getScreen());
     }
 
     @SubscribeEvent
-    public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
+    public static void onLoggingOut(ClientPlayerNetworkEvent.LoggedOutEvent event) {
         ClientEvents.onLoggingOut();
     }
 
     @SubscribeEvent
-    public static void onLoggingIn(ClientPlayerNetworkEvent.LoggingIn event) {
+    public static void onLoggingIn(ClientPlayerNetworkEvent.LoggedInEvent event) {
         ClientEvents.onLoggingIn();
     }
 
     @SubscribeEvent
-    public static void onLoadWorld(LevelEvent.Load event) {
-        sophisticated.building.create.events.ClientEvents.onLoadWorld(event.getLevel());
+    public static void onLoadWorld(WorldEvent.Load event) {
+        sophisticated.building.create.events.ClientEvents.onLoadWorld(event.getWorld());
     }
 
     @SubscribeEvent
-    public static void onUnloadWorld(LevelEvent.Unload event) {
-        sophisticated.building.create.events.ClientEvents.onUnloadWorld(event.getLevel());
+    public static void onUnloadWorld(WorldEvent.Unload event) {
+        sophisticated.building.create.events.ClientEvents.onUnloadWorld(event.getWorld());
     }
 
     @SubscribeEvent
@@ -73,7 +73,10 @@ public class ForgeClientEvents {
     }
 
     @SubscribeEvent
-    public static void onRenderGui(RenderGuiEvent.Post event) {
-        RenderHandler.onRenderGui(new GuiGraphics(event.getPoseStack()));
+    public static void onRenderGui(RenderGameOverlayEvent.Post event) {
+        // Once per frame, after the whole HUD (1.18.2 also posts this event for single HUD elements)
+        if (event.getType() == RenderGameOverlayEvent.ElementType.ALL) {
+            RenderHandler.onRenderGui(new GuiGraphics(event.getMatrixStack()));
+        }
     }
 }

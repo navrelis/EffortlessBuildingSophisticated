@@ -119,7 +119,10 @@ public class BlockSet extends HashMap<BlockPos, BlockEntry> implements Iterable<
         // 2. Write Palette
         buf.writeVarInt(palette.size());
         for (Pair<BlockState, Item> pair : palette) {
-            buf.writeNullable(pair.getFirst(), (buffer, state) -> buffer.writeNbt(NbtUtils.writeBlockState(state)));
+            // Nullable block state: a presence flag, then the state (FriendlyByteBuf#writeNullable does not exist in 1.18.2)
+            BlockState state = pair.getFirst();
+            buf.writeBoolean(state != null);
+            if (state != null) buf.writeNbt(NbtUtils.writeBlockState(state));
             buf.writeVarInt(Item.getId(pair.getSecond()));
         }
 
@@ -150,10 +153,11 @@ public class BlockSet extends HashMap<BlockPos, BlockEntry> implements Iterable<
         int paletteSize = buf.readVarInt();
         List<Pair<BlockState, Item>> palette = new ArrayList<>(paletteSize);
         for (int i = 0; i < paletteSize; i++) {
-            BlockState state = buf.readNullable(buffer -> {
-                var nbt = buffer.readNbt();
-                return nbt == null ? null : NbtUtils.readBlockState(nbt);
-            });
+            BlockState state = null;
+            if (buf.readBoolean()) {
+                var nbt = buf.readNbt();
+                state = nbt == null ? null : NbtUtils.readBlockState(nbt);
+            }
             Item item = Item.byId(buf.readVarInt());
             palette.add(Pair.of(state, item));
         }

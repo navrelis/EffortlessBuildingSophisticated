@@ -16,12 +16,12 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 import sophisticated.building.platform.ClientServices;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Random;
 
 public abstract class GhostBlockRenderer {
 
@@ -97,7 +97,7 @@ public abstract class GhostBlockRenderer {
 		public void renderModel(PoseStack.Pose pose, VertexConsumer consumer,
 			@Nullable BlockState state, BakedModel model, float red, float green, float blue,
 			float alpha, int packedLight, int packedOverlay, RenderType renderType) {
-			RandomSource random = RandomSource.create();
+			Random random = new Random();
 
 			for (Direction direction : Direction.values()) {
 				random.setSeed(42L);

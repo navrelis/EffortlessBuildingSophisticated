@@ -5,6 +5,7 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -273,7 +274,7 @@ public abstract class AbstractRandomizerBagItem extends Item {
 			// No available blocks - notify player
 			if (!player.level.isClientSide) {
 				player.displayClientMessage(
-					Component.literal("Missing blocks in inventory for randomizer bag!").withStyle(ChatFormatting.RED),
+					new TextComponent("Missing blocks in inventory for randomizer bag!").withStyle(ChatFormatting.RED),
 					true
 				);
 			}
@@ -403,16 +404,16 @@ public abstract class AbstractRandomizerBagItem extends Item {
 
 	@Override
 	public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag tooltipFlag) {
-		tooltip.add(Component.literal(ChatFormatting.GRAY + "Put blocks in bag as " + ChatFormatting.YELLOW + "templates"));
-		tooltip.add(Component.literal(ChatFormatting.GRAY + "Blocks are consumed from " + ChatFormatting.GREEN + "inventory"));
-		tooltip.add(Component.empty());
-		tooltip.add(Component.literal(ChatFormatting.BLUE + "Rightclick" + ChatFormatting.GRAY + " to place a random block"));
-		tooltip.add(Component.literal(ChatFormatting.BLUE + "Sneak + rightclick" + ChatFormatting.GRAY + " to open inventory"));
+		tooltip.add(new TextComponent(ChatFormatting.GRAY + "Put blocks in bag as " + ChatFormatting.YELLOW + "templates"));
+		tooltip.add(new TextComponent(ChatFormatting.GRAY + "Blocks are consumed from " + ChatFormatting.GREEN + "inventory"));
+		tooltip.add(new TextComponent(""));
+		tooltip.add(new TextComponent(ChatFormatting.BLUE + "Rightclick" + ChatFormatting.GRAY + " to place a random block"));
+		tooltip.add(new TextComponent(ChatFormatting.BLUE + "Sneak + rightclick" + ChatFormatting.GRAY + " to open inventory"));
 		
 		// Add special tooltip for Omega bag
 		if (this instanceof OmegaRandomizerBagItem) {
-			tooltip.add(Component.empty());
-			tooltip.add(Component.literal(ChatFormatting.GOLD + "Scroll wheel" + ChatFormatting.GRAY + " on slots to adjust weight"));
+			tooltip.add(new TextComponent(""));
+			tooltip.add(new TextComponent(ChatFormatting.GOLD + "Scroll wheel" + ChatFormatting.GRAY + " on slots to adjust weight"));
 		}
 	}
 	

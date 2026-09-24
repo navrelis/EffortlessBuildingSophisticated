@@ -3,7 +3,7 @@ package sophisticated.building.gui.buildmodifier;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import sophisticated.building.client.gui.GuiGraphics;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.phys.Vec3;
 import sophisticated.building.AllGuiTextures;
 import sophisticated.building.AllIcons;
@@ -31,7 +31,7 @@ public class MirrorEntry extends BaseModifierEntry<Mirror> {
 	protected DecimalFormat df = new DecimalFormat("#.#");
 	
 	public MirrorEntry(ModifiersScreen screen, BaseModifier mirror) {
-		super(screen, (Mirror) mirror, Component.literal("Mirror"), AllGuiTextures.MIRROR_ENTRY);
+		super(screen, (Mirror) mirror, new TextComponent("Mirror"), AllGuiTextures.MIRROR_ENTRY);
 		
 		positionInputs = new Vector<>();
 		axisButtons = new Vector<>();
@@ -42,8 +42,8 @@ public class MirrorEntry extends BaseModifierEntry<Mirror> {
 			final int index = i;
 			var scrollInput = new LabeledScrollInput(0, 0, 36, 18)
 				.showControlScrollsSlowerTooltip()
-				.titled(Component.literal(i == 0 ? "X Position" : i == 1 ? "Y Position" : "Z Position"))
-				.format(integer -> Component.literal(df.format(integer / 2.0)))
+				.titled(new TextComponent(i == 0 ? "X Position" : i == 1 ? "Y Position" : "Z Position"))
+				.format(integer -> new TextComponent(df.format(integer / 2.0)))
 				.withStepFunction(stepContext -> stepContext.shift ? 20 : stepContext.control ? 1 : 2)
 				.calling(value -> {
 					modifier.position = MathHelper.with(modifier.position, index, value / 2.0);
@@ -101,8 +101,8 @@ public class MirrorEntry extends BaseModifierEntry<Mirror> {
 		radiusInput = new LabeledScrollInput(0, 0, 27, 18)
 			.withRange(0, AttachmentHandler.getMaxMirrorRadius(Minecraft.getInstance().player, false))
 			.titled(Minecraft.getInstance().player.isCreative() ?
-					Component.literal("Radius") :
-					Component.literal("Radius. Use Reach Upgrade items to increase maximum."))
+					new TextComponent("Radius") :
+					new TextComponent("Radius. Use Reach Upgrade items to increase maximum."))
 			.calling(value -> {
 				modifier.radius = value;
 				onValueChanged();

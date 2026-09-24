@@ -45,7 +45,7 @@ public final class GameTestSupport {
         ServerLevel level = helper.getLevel();
         MinecraftServer server = level.getServer();
         GameProfile profile = new GameProfile(UUID.randomUUID(), "sb-gametest");
-        ServerPlayer player = new ServerPlayer(server, level, profile, null);
+        ServerPlayer player = new ServerPlayer(server, level, profile);
         // As vanilla's makeMockServerPlayerInLevel: the embedded channel activates the connection and swallows what
         // the server sends
         Connection connection = new Connection(PacketFlow.SERVERBOUND);

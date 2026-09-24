@@ -44,9 +44,8 @@ final class ClientWindow {
             if (monitor == primary) continue;
             int[] x = new int[1];
             int[] y = new int[1];
-            int[] width = new int[1];
-            int[] height = new int[1];
-            GLFW.glfwGetMonitorWorkarea(monitor, x, y, width, height);
+            // The monitor's position: LWJGL 3.2.1 of Minecraft 1.18.2 has no glfwGetMonitorWorkarea
+            GLFW.glfwGetMonitorPos(monitor, x, y);
             if (x[0] == primaryX[0] && y[0] == primaryY[0]) continue;
             GLFW.glfwSetWindowPos(window, x[0] + 40, y[0] + 40);
             String result = "muted, input detached; window moved to monitor " + GLFW.glfwGetMonitorName(monitor) + " at " + (x[0] + 40) + "," + (y[0] + 40);

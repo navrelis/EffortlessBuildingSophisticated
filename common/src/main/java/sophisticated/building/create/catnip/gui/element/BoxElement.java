@@ -142,7 +142,8 @@ public class BoxElement extends AbstractRenderElement {
 		b.vertex(model, x - f - 1, y + f + 1 + height, z).color(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha()).endVertex();
 		b.vertex(model, x + f + 1 + width, y + f + 1 + height, z).color(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha()).endVertex();
 		b.vertex(model, x + f + 1 + width, y - f - 1, z).color(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha()).endVertex();
-		BufferUploader.drawWithShader(b.end());
+		b.end();
+		BufferUploader.end(b);
 		b = tesselator.getBuilder();
 		b.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
 		//inner top - includes corners
@@ -166,7 +167,8 @@ public class BoxElement extends AbstractRenderElement {
 		b.vertex(model, x + f + 1 + width, y + f + height, z).color(c3.getRed(), c3.getGreen(), c3.getBlue(), c3.getAlpha()).endVertex();
 		b.vertex(model, x + f + 1 + width, y - f, z).color(c2.getRed(), c2.getGreen(), c2.getBlue(), c2.getAlpha()).endVertex();
 
-		BufferUploader.drawWithShader(b.end());
+		b.end();
+		BufferUploader.end(b);
 
 		RenderSystem.disableBlend();
 		//RenderSystem.enableTexture();

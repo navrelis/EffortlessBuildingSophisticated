@@ -74,7 +74,8 @@ public class UIRenderHelper {
 		buffer.vertex(mat, left, top, zLevel).color(startColor.getRed(), startColor.getGreen(), startColor.getBlue(), startColor.getAlpha()).endVertex();
 		buffer.vertex(mat, left, bottom, zLevel).color(endColor.getRed(), endColor.getGreen(), endColor.getBlue(), endColor.getAlpha()).endVertex();
 		buffer.vertex(mat, right, bottom, zLevel).color(endColor.getRed(), endColor.getGreen(), endColor.getBlue(), endColor.getAlpha()).endVertex();
-		BufferUploader.drawWithShader(buffer.end());
+		buffer.end();
+		BufferUploader.end(buffer);
 
 		RenderSystem.disableBlend();
 	}

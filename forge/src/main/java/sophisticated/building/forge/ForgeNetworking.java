@@ -1,7 +1,7 @@
 package sophisticated.building.forge;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.network.NetworkEvent;
@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
- * Sends the payloads of {@link PacketHandler} over one Forge {@link SimpleChannel}. Forge 1.20.1 identifies the
+ * Sends the payloads of {@link PacketHandler} over one Forge {@link SimpleChannel}. Forge 1.18.2 identifies the
  * messages of a channel by their class, so every payload travels in one {@link Message}, which writes the payload's
  * id before its body; the receiving side reads it with the payload's reader and runs the handler of its direction
  * (a payload type in both lists is bidirectional). The handlers run on the main thread with the context player; when
@@ -41,7 +41,7 @@ public final class ForgeNetworking {
 		CHANNEL.messageBuilder(Message.class, 0)
 				.encoder(Message::write)
 				.decoder(Message::read)
-				.consumerMainThread(ForgeNetworking::handle)
+				.consumer(ForgeNetworking::handle)
 				.add();
 	}
 
@@ -57,18 +57,21 @@ public final class ForgeNetworking {
 	private static void handle(Message message, Supplier<NetworkEvent.Context> contextSupplier) {
 		NetworkEvent.Context context = contextSupplier.get();
 		boolean serverSide = context.getDirection().getReceptionSide().isServer();
-		// Only the handler of the receiving side's direction runs; a payload sent the wrong way is dropped
-		find(serverSide ? PacketHandler.SERVERBOUND : PacketHandler.CLIENTBOUND, message.payload().id()).ifPresent(payload -> {
-			Player player = serverSide ? context.getSender() : SophisticatedBuildingForgeClient.localPlayer();
-			try {
-				accept(payload, message.payload(), player);
-			} catch (RuntimeException e) {
-				// Logged like NeoForge logs a failed payload task, not rethrown
-				SophisticatedBuilding.logger.error("Failed to process a synchronized task of the payload: {}", payload.id(), e);
-				if (payload.failureKey() != null) {
-					context.getNetworkManager().disconnect(Component.translatable("sophisticatedbuilding.networking." + payload.failureKey() + ".failed", e.toString()));
+		// Forge 1.18.2 has no consumerMainThread: the handler moves itself to the main thread
+		context.enqueueWork(() -> {
+			// Only the handler of the receiving side's direction runs; a payload sent the wrong way is dropped
+			find(serverSide ? PacketHandler.SERVERBOUND : PacketHandler.CLIENTBOUND, message.payload().id()).ifPresent(payload -> {
+				Player player = serverSide ? context.getSender() : SophisticatedBuildingForgeClient.localPlayer();
+				try {
+					accept(payload, message.payload(), player);
+				} catch (RuntimeException e) {
+					// Logged like NeoForge logs a failed payload task, not rethrown
+					SophisticatedBuilding.logger.error("Failed to process a synchronized task of the payload: {}", payload.id(), e);
+					if (payload.failureKey() != null) {
+						context.getNetworkManager().disconnect(new TranslatableComponent("sophisticatedbuilding.networking." + payload.failureKey() + ".failed", e.toString()));
+					}
 				}
-			}
+			});
 		});
 		context.setPacketHandled(true);
 	}

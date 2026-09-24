@@ -264,7 +264,7 @@ public final class ClientDriver {
 
     /** Server-side command as the server console (op level 4). */
     public void command(String command) {
-        serverRun(server -> server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), command));
+        serverRun(server -> server.getCommands().performCommand(server.createCommandSourceStack(), command));
     }
 
     //endregion

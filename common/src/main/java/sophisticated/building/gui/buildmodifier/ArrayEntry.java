@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import sophisticated.building.client.gui.GuiGraphics;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import sophisticated.building.AllGuiTextures;
 import sophisticated.building.attachment.AttachmentHandler;
 import sophisticated.building.buildmodifier.Array;
@@ -21,14 +21,14 @@ public class ArrayEntry extends BaseModifierEntry<Array> {
 	protected ScrollInput countInput;
 
 	public ArrayEntry(ModifiersScreen screen, BaseModifier array) {
-		super(screen, (Array) array, Component.literal("Array"), AllGuiTextures.ARRAY_ENTRY);
+		super(screen, (Array) array, new TextComponent("Array"), AllGuiTextures.ARRAY_ENTRY);
 
 		offsetInputs.clear();
 
 		for (int i = 0; i < 3; i++) {
 			final int index = i;
 			var scrollInput = new LabeledScrollInput(0, 0, 18, 18)
-				.titled(Component.literal(i == 0 ? "X Offset" : i == 1 ? "Y Offset" : "Z Offset"))
+				.titled(new TextComponent(i == 0 ? "X Offset" : i == 1 ? "Y Offset" : "Z Offset"))
 				.calling(value -> {
 					modifier.offset = MathHelper.with(modifier.offset, index, value);
 					onValueChanged();
@@ -40,7 +40,7 @@ public class ArrayEntry extends BaseModifierEntry<Array> {
 
 		countInput = new LabeledScrollInput(0, 0, 18, 18)
 			.withRange(1, 100)
-			.titled(Component.literal("Count"))
+			.titled(new TextComponent("Count"))
 			.calling(value -> {
 				modifier.count = value;
 				onValueChanged();
@@ -87,7 +87,7 @@ public class ArrayEntry extends BaseModifierEntry<Array> {
 		int maxReach = AttachmentHandler.getMaxBlocksPerAxis(Minecraft.getInstance().player, false);
 		ChatFormatting reachColor = isCurrentReachValid(currentReach, maxReach) ? ChatFormatting.GRAY : ChatFormatting.RED;
 		var reachText = "" + reachColor + currentReach + ChatFormatting.GRAY + "/" + ChatFormatting.GRAY + maxReach;
-		reachLabel.text = Component.literal(reachText);
+		reachLabel.text = new TextComponent(reachText);
 	}
 
 	private int getArrayReach() {

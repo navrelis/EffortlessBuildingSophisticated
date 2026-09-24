@@ -3,7 +3,7 @@ package sophisticated.building.gui.buildmodifier;
 import sophisticated.building.create.catnip.gui.widget.BoxWidget;
 import net.minecraft.client.Minecraft;
 import sophisticated.building.client.gui.GuiGraphics;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuildingClient;
 import sophisticated.building.buildmodifier.Array;
@@ -26,7 +26,7 @@ public class ModifiersScreen extends AbstractSimiScreen {
 	protected BoxWidget closeButton;
 
 	public ModifiersScreen() {
-		super(Component.translatable("sophisticatedbuilding.screen.modifier_settings"));
+		super(new TranslatableComponent("sophisticatedbuilding.screen.modifier_settings"));
 	}
 
 	@Override

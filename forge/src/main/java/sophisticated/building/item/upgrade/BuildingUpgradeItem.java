@@ -2,6 +2,7 @@ package sophisticated.building.item.upgrade;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -96,18 +97,18 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
     
     @Override
     public Component getName() {
-        return Component.translatable(getDescriptionId());
+        return new TranslatableComponent(getDescriptionId());
     }
     
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flagIn) {
-        tooltip.add(Component.translatable("item.sophisticatedbuilding.building_upgrade.tooltip", maxBlocks)
+        tooltip.add(new TranslatableComponent("item.sophisticatedbuilding.building_upgrade.tooltip", maxBlocks)
                 .withStyle(ChatFormatting.GRAY));
         if (tier == 5) { // Omega tier
-            tooltip.add(Component.translatable("item.sophisticatedbuilding.building_upgrade.omega_tooltip")
+            tooltip.add(new TranslatableComponent("item.sophisticatedbuilding.building_upgrade.omega_tooltip")
                     .withStyle(ChatFormatting.GOLD));
         }
-        tooltip.add(Component.translatable("item.sophisticatedbuilding.building_upgrade.backpack_tooltip")
+        tooltip.add(new TranslatableComponent("item.sophisticatedbuilding.building_upgrade.backpack_tooltip")
                 .withStyle(ChatFormatting.DARK_GRAY));
     }
     

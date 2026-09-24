@@ -3,7 +3,7 @@ package sophisticated.building.gametest;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -22,7 +22,7 @@ public class InventoryHelperGameTest implements FabricGameTest {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
         try {
             ItemStack named = new ItemStack(Items.STONE, 10);
-            named.setHoverName(Component.literal(NAME));
+            named.setHoverName(new TextComponent(NAME));
             int selected = player.getInventory().selected;
             player.getInventory().setItem(selected, named);
 

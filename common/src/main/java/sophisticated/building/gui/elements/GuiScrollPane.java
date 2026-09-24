@@ -112,7 +112,8 @@ public class GuiScrollPane extends SlotGui {
 				bufferbuilder.vertex(scrollbarRight, this.y1, 0.0F).uv(1.0F, 1.0F).color(0, 0, 0, 255).endVertex();
 				bufferbuilder.vertex(scrollbarRight, this.y0, 0.0F).uv(1.0F, 0.0F).color(0, 0, 0, 255).endVertex();
 				bufferbuilder.vertex(scrollbarLeft, this.y0, 0.0F).uv(0.0F, 0.0F).color(0, 0, 0, 255).endVertex();
-				BufferUploader.drawWithShader(bufferbuilder.end());
+				bufferbuilder.end();
+				BufferUploader.end(bufferbuilder);
 
 				bufferbuilder = tessellator.getBuilder();
 				bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
@@ -120,7 +121,8 @@ public class GuiScrollPane extends SlotGui {
 				bufferbuilder.vertex(scrollbarRight, l1 + k1, 0.0F).uv(1.0F, 1.0F).color(128, 128, 128, 255).endVertex();
 				bufferbuilder.vertex(scrollbarRight, l1, 0.0F).uv(1.0F, 0.0F).color(128, 128, 128, 255).endVertex();
 				bufferbuilder.vertex(scrollbarLeft, l1, 0.0F).uv(0.0F, 0.0F).color(128, 128, 128, 255).endVertex();
-				BufferUploader.drawWithShader(bufferbuilder.end());
+				bufferbuilder.end();
+				BufferUploader.end(bufferbuilder);
 
 				bufferbuilder = tessellator.getBuilder();
 				bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
@@ -128,7 +130,8 @@ public class GuiScrollPane extends SlotGui {
 				bufferbuilder.vertex(scrollbarRight - 1, l1 + k1 - 1, 0.0F).uv(1.0F, 1.0F).color(192, 192, 192, 255).endVertex();
 				bufferbuilder.vertex(scrollbarRight - 1, l1, 0.0F).uv(1.0F, 0.0F).color(192, 192, 192, 255).endVertex();
 				bufferbuilder.vertex(scrollbarLeft, l1, 0.0F).uv(0.0F, 0.0F).color(192, 192, 192, 255).endVertex();
-				BufferUploader.drawWithShader(bufferbuilder.end());
+				bufferbuilder.end();
+				BufferUploader.end(bufferbuilder);
 			}
 
 			RenderSystem.disableBlend();
@@ -315,7 +318,8 @@ public class GuiScrollPane extends SlotGui {
 				bufferbuilder.vertex(j1, y + entryHeight2 + 2, 0.0f).endVertex();
 				bufferbuilder.vertex(j1, y - 2, 0.0f).endVertex();
 				bufferbuilder.vertex(i1, y - 2, 0.0f).endVertex();
-				BufferUploader.drawWithShader(bufferbuilder.end());
+				bufferbuilder.end();
+				BufferUploader.end(bufferbuilder);
 
 				RenderSystem.setShaderColor(0.0F, 0.0F, 0.0F, 1.0F);
 				bufferbuilder = tessellator.getBuilder();
@@ -324,7 +328,8 @@ public class GuiScrollPane extends SlotGui {
 				bufferbuilder.vertex(j1 - 1, y + entryHeight2 + 1, 0.0f).endVertex();
 				bufferbuilder.vertex(j1 - 1, y - 1, 0.0f).endVertex();
 				bufferbuilder.vertex(i1 + 1, y - 1, 0.0f).endVertex();
-				BufferUploader.drawWithShader(bufferbuilder.end());
+				bufferbuilder.end();
+				BufferUploader.end(bufferbuilder);
 			}
 
 			this.renderItem(guiGraphics, i, insideLeft, y, entryHeight2, mouseXIn, mouseYIn, partialTicks);

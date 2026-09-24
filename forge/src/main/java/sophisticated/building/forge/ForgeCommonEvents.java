@@ -10,8 +10,8 @@ import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingEquipmentChangeEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
+import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import sophisticated.building.CommonEvents;
@@ -29,8 +29,8 @@ public class ForgeCommonEvents {
 	}
 
 	@SubscribeEvent
-	public static void onTick(TickEvent.LevelTickEvent event) {
-		if (event.phase == TickEvent.Phase.START && event.level instanceof ServerLevel level) {
+	public static void onTick(TickEvent.WorldTickEvent event) {
+		if (event.phase == TickEvent.Phase.START && event.world instanceof ServerLevel level) {
 			CommonEvents.onLevelTick(level);
 		}
 	}
@@ -43,7 +43,7 @@ public class ForgeCommonEvents {
 	//Cancel event if necessary. Nothing more, rest is handled on mouseclick
 	@SubscribeEvent
 	public static void onBlockPlaced(BlockEvent.EntityPlaceEvent event) {
-		if (event.getLevel().isClientSide()) return; //Never called clientside anyway, but just to be sure
+		if (event.getWorld().isClientSide()) return; //Never called clientside anyway, but just to be sure
 		if (!(event.getEntity() instanceof Player player)) return;
 		if (event.getEntity() instanceof FakePlayer) return;
 
@@ -65,7 +65,7 @@ public class ForgeCommonEvents {
 	//Cancel event if necessary. Nothing more, rest is handled on mouseclick
 	@SubscribeEvent
 	public static void onBlockBroken(BlockEvent.BreakEvent event) {
-		if (event.getLevel().isClientSide()) return;
+		if (event.getWorld().isClientSide()) return;
 		Player player = event.getPlayer();
 		if (player instanceof FakePlayer) return;
 
@@ -85,7 +85,7 @@ public class ForgeCommonEvents {
 	@SubscribeEvent
 	public static void onClone(PlayerEvent.Clone event) {
 		Player original = event.getOriginal();
-		Player clone = event.getEntity();
+		Player clone = event.getPlayer();
 
 		// Copy the power level from the original player to the clone, on both death (whose capabilities
 		// Forge has invalidated already) and return from the End

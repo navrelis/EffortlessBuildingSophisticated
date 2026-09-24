@@ -9,15 +9,16 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.model.data.ModelData;
+import net.minecraftforge.client.ForgeHooksClient;
+import net.minecraftforge.client.model.data.EmptyModelData;
 import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.client.settings.KeyModifier;
 import sophisticated.building.platform.services.IClientHelper;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 public final class ForgeClientHelper implements IClientHelper {
 
@@ -52,12 +53,18 @@ public final class ForgeClientHelper implements IClientHelper {
 
     @Override
     public Locale getLocale() {
-        return Minecraft.getInstance().getLocale();
+        return Minecraft.getInstance().getLanguageManager().getSelected().getJavaLocale();
     }
 
     @Override
-    public List<BakedQuad> getModelQuads(BakedModel model, BlockState state, Direction side, RandomSource random, RenderType renderType) {
-        return model.getQuads(state, side, random, ModelData.EMPTY, renderType);
+    public List<BakedQuad> getModelQuads(BakedModel model, BlockState state, Direction side, Random random, RenderType renderType) {
+        // Forge 1.18.2 tells multi-layer models the layer being drawn through this thread's render type
+        ForgeHooksClient.setRenderType(renderType);
+        try {
+            return model.getQuads(state, side, random, EmptyModelData.INSTANCE);
+        } finally {
+            ForgeHooksClient.setRenderType(null);
+        }
     }
 
     @Override

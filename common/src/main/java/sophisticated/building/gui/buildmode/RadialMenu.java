@@ -19,9 +19,9 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.RandomSource;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuildingClient;
 import sophisticated.building.attachment.AttachmentHandler;
@@ -92,7 +92,7 @@ public class RadialMenu extends Screen {
 	private boolean mouseInitialized;
 
 	public RadialMenu() {
-		super(Component.translatable("sophisticatedbuilding.screen.radial_menu"));
+		super(new TranslatableComponent("sophisticatedbuilding.screen.radial_menu"));
 	}
 
 	public boolean isVisible() {
@@ -215,7 +215,8 @@ public class RadialMenu extends Screen {
 		//Draw action backgrounds
 		drawSideButtonBackgrounds(buffer, middleX, middleY, mouseXCenter, mouseYCenter, buttons);
 
-		BufferUploader.drawWithShader(buffer.end());
+		buffer.end();
+		BufferUploader.end(buffer);
 		RenderSystem.disableBlend();
 
 		ms.translate(0, 0, 200);
@@ -523,7 +524,7 @@ public class RadialMenu extends Screen {
 		final float volume = 0.1f;
 		if (volume >= 0.0001f) {
 			SimpleSoundInstance sound = new SimpleSoundInstance(SoundEvents.UI_BUTTON_CLICK, SoundSource.MASTER, volume,
-					1.0f, RandomSource.create(), Minecraft.getInstance().player.blockPosition());
+					1.0f, Minecraft.getInstance().player.blockPosition());
 			Minecraft.getInstance().getSoundManager().play(sound);
 		}
 	}

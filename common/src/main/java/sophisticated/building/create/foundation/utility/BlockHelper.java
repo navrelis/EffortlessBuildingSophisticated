@@ -150,7 +150,7 @@ public class BlockHelper {
 				return false;
 			}
 
-			state.spawnAfterBreak((ServerLevel) world, pos, Services.BLOCK_EVENTS.getSpawnAfterBreakTool(usedTool), true);
+			state.spawnAfterBreak((ServerLevel) world, pos, Services.BLOCK_EVENTS.getSpawnAfterBreakTool(usedTool));
 		}
 
 		world.setBlockAndUpdate(pos, fluidState.createLegacyBlock());
