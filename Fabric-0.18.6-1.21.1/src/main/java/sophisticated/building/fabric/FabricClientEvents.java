@@ -19,6 +19,7 @@ import sophisticated.building.client.ClientBreakCountdown;
 import sophisticated.building.client.ClientBuildingUpgradeState;
 import sophisticated.building.client.gui.MaterialCostOverlay;
 import sophisticated.building.compatibility.CompatHelper;
+import sophisticated.building.config.ModConfigs;
 import sophisticated.building.gui.DiamondRandomizerBagScreen;
 import sophisticated.building.gui.GoldenRandomizerBagScreen;
 import sophisticated.building.gui.OmegaRandomizerBagScreen;
@@ -46,6 +47,8 @@ public final class FabricClientEvents {
             ClientBuildingUpgradeState.clear();
             ClientBackpackToolCache.clear();
             ClientBreakCountdown.clear();
+            // Drop the values synced from the server we just left.
+            ModConfigs.restoreLocalServer();
         });
 
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> client.execute(() -> {

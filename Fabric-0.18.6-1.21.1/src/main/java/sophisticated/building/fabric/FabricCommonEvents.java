@@ -31,6 +31,7 @@ import sophisticated.building.network.message.BackpackToolsPacket;
 import sophisticated.building.network.message.BuildingUpgradeStatePacket;
 import sophisticated.building.network.message.ModifierSettingsPacket;
 import sophisticated.building.network.message.PowerLevelPacket;
+import sophisticated.building.network.message.ServerConfigSyncPacket;
 import sophisticated.building.systems.ServerBuildState;
 import sophisticated.building.utilities.BreakToolHelper;
 import sophisticated.building.utilities.PowerLevelCommand;
@@ -103,6 +104,7 @@ public final class FabricCommonEvents {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayer player = handler.getPlayer();
             ServerBuildState.handleNewPlayer(player);
+            ServerPlayNetworking.send(player, ServerConfigSyncPacket.fromCurrent());
             ServerPlayNetworking.send(player, new ModifierSettingsPacket(player));
 
             PowerLevel powerLevel = AttachmentHandler.getOrCreatePowerLevel(player);

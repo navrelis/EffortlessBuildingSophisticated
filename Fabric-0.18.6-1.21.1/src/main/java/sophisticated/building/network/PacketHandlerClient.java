@@ -8,6 +8,7 @@ import sophisticated.building.network.message.BreakCountdownPacket;
 import sophisticated.building.network.message.BuildingUpgradeStatePacket;
 import sophisticated.building.network.message.ModifierSettingsPacket;
 import sophisticated.building.network.message.PowerLevelPacket;
+import sophisticated.building.network.message.ServerConfigSyncPacket;
 import sophisticated.building.network.message.TranslatedLogPacket;
 
 public final class PacketHandlerClient {
@@ -23,6 +24,7 @@ public final class PacketHandlerClient {
         ClientPlayNetworking.registerGlobalReceiver(BuildingUpgradeStatePacket.ID, BuildingUpgradeStatePacket.Handler::handle);
         ClientPlayNetworking.registerGlobalReceiver(BackpackToolsPacket.ID, BackpackToolsPacket.Handler::handle);
         ClientPlayNetworking.registerGlobalReceiver(BreakCountdownPacket.ID, BreakCountdownPacket.Handler::handle);
+        ClientPlayNetworking.registerGlobalReceiver(ServerConfigSyncPacket.ID, ServerConfigSyncPacket.Handler::handle);
         SophisticatedBuilding.log("Registered client networking receivers");
     }
 }

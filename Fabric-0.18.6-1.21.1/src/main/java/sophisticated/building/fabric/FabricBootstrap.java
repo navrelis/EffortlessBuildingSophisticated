@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.SophisticatedBuildingClient;
 import sophisticated.building.compatibility.CompatHelper;
+import sophisticated.building.config.ModConfigs;
 import sophisticated.building.network.PacketHandler;
 import sophisticated.building.network.PacketHandlerClient;
 
@@ -19,6 +20,9 @@ public final class FabricBootstrap {
 
     public static void initializeCommon() {
         LOGGER.info("Initializing Sophisticated Building for Fabric");
+        ModConfigs.loadCommonAndServer();
+        // Re-read so edits to the server config between singleplayer worlds take effect.
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> ModConfigs.loadServer());
         SophisticatedBuilding.initializeCommon();
         PacketHandler.setupCommon();
         FabricCommonEvents.register();
@@ -36,6 +40,7 @@ public final class FabricBootstrap {
 
     public static void initializeClient() {
         LOGGER.info("Initializing Sophisticated Building Fabric client hooks");
+        ModConfigs.loadClient();
         PacketHandlerClient.setupClient();
         SophisticatedBuildingClient.initializeClient();
 

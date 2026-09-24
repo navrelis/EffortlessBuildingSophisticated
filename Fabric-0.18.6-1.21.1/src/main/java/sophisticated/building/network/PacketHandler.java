@@ -15,6 +15,7 @@ import sophisticated.building.network.message.PerformRedoPacket;
 import sophisticated.building.network.message.PerformUndoPacket;
 import sophisticated.building.network.message.PowerLevelPacket;
 import sophisticated.building.network.message.ServerBreakBlocksPacket;
+import sophisticated.building.network.message.ServerConfigSyncPacket;
 import sophisticated.building.network.message.ServerPlaceBlocksPacket;
 import sophisticated.building.network.message.TranslatedLogPacket;
 
@@ -43,6 +44,7 @@ public class PacketHandler {
 		PayloadTypeRegistry.playS2C().register(BuildingUpgradeStatePacket.ID, BuildingUpgradeStatePacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(BackpackToolsPacket.ID, BackpackToolsPacket.CODEC);
 		PayloadTypeRegistry.playS2C().register(BreakCountdownPacket.ID, BreakCountdownPacket.CODEC);
+		PayloadTypeRegistry.playS2C().register(ServerConfigSyncPacket.ID, ServerConfigSyncPacket.CODEC);
 	}
 
 	private static void registerServerReceivers() {
