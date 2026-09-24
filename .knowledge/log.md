@@ -23,3 +23,4 @@
 - 2026-09-24 L2 review: 1 correction (dead countBlockInBackpackClamped removed); accepted, NeoForge build green in worktree; diff held until L1 finishes.
 - 2026-09-24 L1 review: accepted without corrections (redo got its own entry point; merges charge only the difference). L3 review: accepted; startup "No data fixer" ERROR traced to Sophisticated Backpacks Fabric port (EntityType.Builder.build("") in ModItems), not ours. Combined build: Fabric 77/77, NeoForge green. Commits 1ee43a6, 662285e, 4c81b1b.
 - 2026-09-24 L4 Fabric GameTests -> Opus, started.
+- 2026-09-24 L4 review: accepted; build green (77 unit), runGametest 16/16 passed (verified by lead). Open points from L4 -> L4b: skipped survival undo is dropped from the undo stack; single-item removeFromInventory rebuilds the held stack without its data.

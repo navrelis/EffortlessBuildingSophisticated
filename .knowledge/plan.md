@@ -13,7 +13,7 @@
 | L1 | Undo item counts + merge whitelist + skipFirst redesign + protection checks + finally | both | Opus | - | with L2, L3 | done |
 | L2 | NeoForge tier cap + anchor port + tooltip restore | NeoForge | Sonnet (worktree) | - | with L1, L3 | done |
 | L3 | Fabric config correction/backup + data-fixer investigation | Fabric | Sonnet (worktree) | - | with L1, L2 | done |
-| L4 | Fabric GameTests for server-side rules | Fabric | Opus | L1 | - | in progress |
+| L4 | Fabric GameTests for server-side rules | Fabric | Opus | L1 | - | done |
 | L5 | Release 4.2.1 (patch notes, export) + smoke test | both | Sonnet | L1-L4 | - | open |
 | L6 | Final: graph, report, push, memory | - | lead | L5 | - | open |
 

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "sophisticatedbuilding-gametest",
+  "version": "1.0.0",
+  "name": "Sophisticated Building Game Tests",
+  "description": "In-world tests of the server-side building rules. Only loaded by the runGametest task.",
+  "license": "LGPL-3.0-only",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-gametest": [
+      "sophisticated.building.gametest.StorageDataGameTest",
+      "sophisticated.building.gametest.SurvivalReplaceGameTest",
+      "sophisticated.building.gametest.MergeGameTest",
+      "sophisticated.building.gametest.UndoGameTest",
+      "sophisticated.building.gametest.SkipFirstGameTest",
+      "sophisticated.building.gametest.ProtectionGameTest"
+    ]
+  },
+  "depends": {
+    "sophisticatedbuilding": "*",
+    "fabric-gametest-api-v1": "*"
+  }
+}
