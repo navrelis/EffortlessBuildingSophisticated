@@ -9,11 +9,16 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 /**
- * Reads a {@link ConfigSpec} from its JSON file: a missing file is created with defaults, missing
- * keys are added (keeping the other values), and an unparseable file is left untouched while the
- * defaults are used.
+ * Reads a {@link ConfigSpec} from its JSON file: a missing file is created with defaults, and an
+ * unparseable file is left untouched while the defaults are used (the user must fix it). When
+ * loading finds anything to correct (missing keys, clamped/wrong-typed values, unknown keys) the
+ * original file is first backed up next to it (NeoForge-style {@code <name>.json.bak},
+ * {@code <name>-1.json.bak}, ...), then the corrected file is written, so the same warning does
+ * not repeat on every load.
  */
 public final class ConfigFile {
+
+    private static final String BACKUP_SUFFIX = ".bak";
 
     private ConfigFile() {
     }
@@ -43,9 +48,38 @@ public final class ConfigFile {
         for (String warning : result.warnings()) {
             logger.warn("Config file {}: {}", file.getFileName(), warning);
         }
-        if (result.missingKeys()) {
-            logger.info("Config file {} is missing options, adding them with default values", file.getFileName());
+        for (String unknownKey : result.unknownKeys()) {
+            logger.warn("Config file {}: unknown option {} ignored", file.getFileName(), unknownKey);
+        }
+        if (result.needsCorrection()) {
+            Path backup = backup(file, logger);
+            if (backup != null) {
+                logger.warn("Config file {} is not correct. Correcting, previous file backed up to {}",
+                        file.getFileName(), backup.getFileName());
+            }
             write(spec, file, logger);
+        }
+    }
+
+    /**
+     * Copies {@code file} to {@code <name>.json.bak}, or {@code <name>-1.json.bak}, {@code -2}, ...
+     * if that already exists, mirroring NeoForge's {@code <name>-1.toml.bak} backups.
+     */
+    private static Path backup(Path file, Logger logger) {
+        String fileName = file.getFileName().toString();
+        String base = fileName.endsWith(".json") ? fileName.substring(0, fileName.length() - ".json".length()) : fileName;
+
+        Path backup = file.resolveSibling(base + ".json" + BACKUP_SUFFIX);
+        for (int i = 1; Files.exists(backup); i++) {
+            backup = file.resolveSibling(base + "-" + i + ".json" + BACKUP_SUFFIX);
+        }
+
+        try {
+            Files.copy(file, backup, StandardCopyOption.COPY_ATTRIBUTES);
+            return backup;
+        } catch (IOException e) {
+            logger.error("Could not back up config file {}: {}", file, e.toString());
+            return null;
         }
     }
 

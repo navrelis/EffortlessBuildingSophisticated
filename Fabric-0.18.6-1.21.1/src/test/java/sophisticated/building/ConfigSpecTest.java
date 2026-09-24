@@ -148,6 +148,102 @@ class ConfigSpecTest {
     }
 
     @Test
+    void outOfRangeValueIsCorrectedWithBackupAndSecondLoadIsClean(@TempDir Path dir) throws IOException {
+        TestConfig config = new TestConfig();
+        Path file = dir.resolve("sophisticatedbuilding-test.json");
+        String original = "{\"General\": {\"enabled\": true, \"count\": 500, \"scale\": 0.25, \"names\": [\"a\", \"b\"]}, "
+                + "\"Other\": {\"other\": 5}}";
+        Files.writeString(file, original);
+
+        ConfigFile.load(config.spec, dir, LOGGER);
+
+        assertEquals(100, config.count.get());
+        JsonObject rewritten = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
+        assertEquals(100, rewritten.getAsJsonObject("General").get("count").getAsInt());
+
+        Path backup = dir.resolve("sophisticatedbuilding-test.json.bak");
+        assertTrue(Files.exists(backup));
+        assertEquals(original, Files.readString(backup));
+
+        // The corrected file itself has nothing left to fix.
+        ConfigSpec.LoadResult secondResult = config.spec.load(Files.readString(file));
+        assertTrue(secondResult.warnings().isEmpty());
+        assertFalse(secondResult.missingKeys());
+        assertTrue(secondResult.unknownKeys().isEmpty());
+
+        // A second ConfigFile.load() on the already-corrected file must not create another backup.
+        ConfigFile.load(config.spec, dir, LOGGER);
+        assertFalse(Files.exists(dir.resolve("sophisticatedbuilding-test-1.json.bak")));
+    }
+
+    @Test
+    void wrongTypeIsCorrectedWithBackupAndSecondLoadIsClean(@TempDir Path dir) throws IOException {
+        TestConfig config = new TestConfig();
+        Path file = dir.resolve("sophisticatedbuilding-test.json");
+        String original = "{\"General\": {\"enabled\": \"yes\", \"count\": 10, \"scale\": 0.25, \"names\": [\"a\", \"b\"]}, "
+                + "\"Other\": {\"other\": 5}}";
+        Files.writeString(file, original);
+
+        ConfigFile.load(config.spec, dir, LOGGER);
+
+        assertEquals(true, config.enabled.get());
+        JsonObject rewritten = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
+        assertEquals(true, rewritten.getAsJsonObject("General").get("enabled").getAsBoolean());
+
+        Path backup = dir.resolve("sophisticatedbuilding-test.json.bak");
+        assertTrue(Files.exists(backup));
+        assertEquals(original, Files.readString(backup));
+
+        ConfigSpec.LoadResult secondResult = config.spec.load(Files.readString(file));
+        assertTrue(secondResult.warnings().isEmpty());
+        assertFalse(secondResult.missingKeys());
+        assertTrue(secondResult.unknownKeys().isEmpty());
+
+        ConfigFile.load(config.spec, dir, LOGGER);
+        assertFalse(Files.exists(dir.resolve("sophisticatedbuilding-test-1.json.bak")));
+    }
+
+    @Test
+    void unknownKeyIsDroppedFromFileButKeptInBackupAndReported(@TempDir Path dir) throws IOException {
+        TestConfig config = new TestConfig();
+        Path file = dir.resolve("sophisticatedbuilding-test.json");
+        String original = "{\"General\": {\"enabled\": true, \"count\": 10, \"scale\": 0.25, \"names\": [\"a\", \"b\"], "
+                + "\"legacyOption\": 1}, \"Other\": {\"other\": 5}}";
+        Files.writeString(file, original);
+
+        ConfigSpec.LoadResult directResult = config.spec.load(original);
+        assertEquals(List.of("General.legacyOption"), directResult.unknownKeys());
+        assertTrue(directResult.needsCorrection());
+
+        ConfigFile.load(config.spec, dir, LOGGER);
+
+        assertFalse(Files.readString(file).contains("legacyOption"));
+
+        Path backup = dir.resolve("sophisticatedbuilding-test.json.bak");
+        assertTrue(Files.exists(backup));
+        assertTrue(Files.readString(backup).contains("legacyOption"));
+
+        // Loading the corrected file again reports no more unknown keys.
+        ConfigSpec.LoadResult secondResult = config.spec.load(Files.readString(file));
+        assertTrue(secondResult.unknownKeys().isEmpty());
+        assertFalse(secondResult.needsCorrection());
+    }
+
+    @Test
+    void secondBackupUsesNumberedSuffixWhenFirstAlreadyExists(@TempDir Path dir) throws IOException {
+        TestConfig config = new TestConfig();
+        Path file = dir.resolve("sophisticatedbuilding-test.json");
+        Files.writeString(file, "{\"General\": {\"enabled\": true, \"count\": 500, \"scale\": 0.25, \"names\": [\"a\", \"b\"]}, "
+                + "\"Other\": {\"other\": 5}}");
+        Files.writeString(dir.resolve("sophisticatedbuilding-test.json.bak"), "existing backup");
+
+        ConfigFile.load(config.spec, dir, LOGGER);
+
+        assertTrue(Files.exists(dir.resolve("sophisticatedbuilding-test-1.json.bak")));
+        assertEquals("existing backup", Files.readString(dir.resolve("sophisticatedbuilding-test.json.bak")));
+    }
+
+    @Test
     void serverConfigContainsSurvivalReplaceAndSyncRoundTrips() {
         try {
             JsonObject file = JsonParser.parseString(ServerConfig.spec.toFileJson()).getAsJsonObject();

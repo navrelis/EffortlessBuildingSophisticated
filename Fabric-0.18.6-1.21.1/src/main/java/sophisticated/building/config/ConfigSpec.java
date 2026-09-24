@@ -9,7 +9,9 @@ import com.google.gson.JsonParser;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Schema of one JSON config file: sections (NeoForge {@code push} names) holding options
@@ -71,10 +73,11 @@ public final class ConfigSpec {
             for (Section section : sections) {
                 section.values.stream().filter(value -> !syncOnly || value.isSynced()).forEach(SimpleConfigValue::reset);
             }
-            return new LoadResult(false, false, List.of(), e.getMessage());
+            return new LoadResult(false, false, List.of(), e.getMessage(), List.of());
         }
 
         List<String> warnings = new ArrayList<>();
+        List<String> unknownKeys = new ArrayList<>();
         boolean missingKeys = false;
         for (Section section : sections) {
             List<SimpleConfigValue<?>> values = syncOnly
@@ -104,8 +107,29 @@ public final class ConfigSpec {
                     value.read(valueJson, section.name + "." + value.getKey(), warnings::add);
                 }
             }
+            if (!syncOnly) {
+                unknownKeys.addAll(findUnknownKeys(section, sectionObject));
+            }
         }
-        return new LoadResult(true, missingKeys, Collections.unmodifiableList(warnings), null);
+        return new LoadResult(true, missingKeys, Collections.unmodifiableList(warnings), null, Collections.unmodifiableList(unknownKeys));
+    }
+
+    /** Keys present in {@code sectionObject} that are not one of {@code section}'s defined options. */
+    private static List<String> findUnknownKeys(Section section, JsonObject sectionObject) {
+        Set<String> knownKeys = new HashSet<>();
+        for (SimpleConfigValue<?> value : section.values) {
+            knownKeys.add(value.getKey());
+        }
+        List<String> unknown = new ArrayList<>();
+        for (String key : sectionObject.keySet()) {
+            if (key.equals(COMMENT_KEY) || key.startsWith(COMMENT_KEY + "_")) {
+                continue;
+            }
+            if (!knownKeys.contains(key)) {
+                unknown.add(section.name + "." + key);
+            }
+        }
+        return unknown;
     }
 
     /** Pretty-printed file content with comments and the current values. */
@@ -142,8 +166,15 @@ public final class ConfigSpec {
     /**
      * @param parsed      false if the JSON could not be parsed (all values were reset to defaults)
      * @param missingKeys true if at least one option was missing and got its default
+     * @param unknownKeys keys present in the JSON that are not defined options (e.g. old/typo'd
+     *                    keys); they are dropped when the file is rewritten
      */
-    public record LoadResult(boolean parsed, boolean missingKeys, List<String> warnings, String error) {
+    public record LoadResult(boolean parsed, boolean missingKeys, List<String> warnings, String error, List<String> unknownKeys) {
+
+        /** True if loading found anything that requires the file to be corrected and backed up. */
+        public boolean needsCorrection() {
+            return missingKeys || !warnings.isEmpty() || !unknownKeys.isEmpty();
+        }
     }
 
     private record Section(String name, String comment, List<SimpleConfigValue<?>> values) {
