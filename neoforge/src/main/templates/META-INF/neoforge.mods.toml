@@ -87,11 +87,14 @@ config="${mod_id}.mixins.json"
     side="BOTH"
 
 # Optional dependency on SophisticatedBackpacks for building upgrades
+# Sophisticated Backpacks/Core: the builds this code was compiled and run against (Backpacks 3.26.2, Core 1.5.0; see
+# gradle.properties), not an assumption about the oldest that would work. An installed build outside the range stops
+# the game from loading.
 [[dependencies.${mod_id}]]
     modId="sophisticatedbackpacks"
     type="optional"
     reason="Required for Building Upgrade items to work in backpack upgrade slots"
-    versionRange="[3.22.0,)"
+    versionRange="[3.26.2,)"
     ordering="AFTER"
     side="BOTH"
 
@@ -100,7 +103,7 @@ config="${mod_id}.mixins.json"
     modId="sophisticatedcore"
     type="optional"
     reason="Core library required for SophisticatedBackpacks integration"
-    versionRange="[1.0.0,)"
+    versionRange="[1.5.0,)"
     ordering="AFTER"
     side="BOTH"
 

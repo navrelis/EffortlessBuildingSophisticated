@@ -1,4 +1,4 @@
-# Testing Sophisticated Building 1.21.8
+# Testing Sophisticated Building 1.21.11
 
 Three layers, from fast to real:
 
@@ -11,7 +11,7 @@ Three layers, from fast to real:
 `gradlew build` compiles the smoke harness (so it cannot rot) but never runs it. The harness is dev-only: it lives in
 its own source set, is loaded only by the smoke runs, and never ends up in the mod jar.
 
-On Minecraft 1.21.8 only NeoForge has Sophisticated Backpacks (official build); Fabric and Forge have none, so their
+On Minecraft 1.21.11 only NeoForge has Sophisticated Backpacks (official build); Fabric and Forge have none, so their
 smoke runs have no `sb.*` checks and do not compile the SB fixture.
 
 ## Running the smoke tests
@@ -58,7 +58,7 @@ deleted when the task starts.
 - A skipped check has `"passed": true`, `"skipped": true` and a detail starting with `SKIPPED:`.
 - Checks named `sb.*` are Sophisticated Backpacks checks. A loader build that ships the SB integration
   (`META-INF/services/sophisticated.building.platform.services.IBackpackIntegration`) must report passing `sb.*` checks;
-  on 1.21.8 that is NeoForge only. Fabric and Forge 1.21.8 have no SB and report none.
+  on 1.21.11 that is NeoForge only. Fabric and Forge 1.21.11 have no SB and report none.
 - The file is rewritten after every check (atomically), so a crash or a kill still leaves the checks done so far.
 
 ## Scenarios
@@ -114,8 +114,9 @@ test is its own batch and they run one after the other, as on 1.21.1. The `sb_` 
 `common/src/smoketestBackpacks/resources`, so only loaders with SB run them. The reporter turns only this mod's
 instances into checks (the game test server also runs vanilla's optional `minecraft:always_pass`).
 
-On NeoForge `sb.worn_backpack` is skipped by `runSmokeServer` on 1.21.8: the NeoForge fake player has no Curios `back`
-slot with Curios 12.0.0+1.21.8 (it had one with Curios for 1.21.1). The client run, with a real player, checks it.
+On NeoForge `sb.worn_backpack` is skipped by `runSmokeServer` since 1.21.8: the NeoForge fake player has no Curios `back`
+slot with Curios 12.0.0+1.21.8 or 14.0.0+1.21.11 (it had one with Curios for 1.21.1). The client run, with a real player,
+checks it.
 
 ## Layout
 
@@ -178,7 +179,7 @@ GuiGraphicsAccessor from sophisticatedbuilding.mixins.json into net.minecraft.cl
      `GlobalTestReporter`/`TestReporter`, and whether the loader's game test server works at all (Forge 55 does not,
      Forge 58 does).
      The NBT `DataVersion` of `smoketest_empty.nbt` is 3955 (1.21.1); old templates are upgraded by DataFixer (1.21.4 =
-     4189, 1.21.5 = 4325, 1.21.8 = 4440).
+     4189, 1.21.5 = 4325, 1.21.8 = 4440, 1.21.11 = 4671).
    - Packets: `StreamCodec` round trip in `ServerScenarios#roundTrip` (1.20.5+; older versions use `FriendlyByteBuf`
      write/read methods).
    - Client: `Screenshot.takeScreenshot` (asynchronous since 1.21.5), `KeyMapping.set/click`, `Minecraft#submit`, the
@@ -245,6 +246,28 @@ GuiGraphicsAccessor from sophisticatedbuilding.mixins.json into net.minecraft.cl
 - Unchanged and working: `ClientScenarios`, `ClientDriver` (world creation, asynchronous screenshots), `RadialMenuDriver`,
   `ServerScenarios`, `SophisticatedBackpacksFixture` (SB 1.21.8-3.26.2.2159 API identical), Curios glue (Curios
   12.0.0+1.21.8), the 1.21.1 `smoketest_empty.nbt`.
+
+### What the 1.21.10 -> 1.21.11 adoption changed
+
+- `ClientScenarios#joinFreshWorld`: game rules are typed values in `net.minecraft.world.level.gamerules.GameRules`
+  (`rules.set(GameRules.ADVANCE_TIME, false, null)`, `ADVANCE_WEATHER`, `SPAWN_MOBS`, `RANDOM_TICK_SPEED`; they were
+  `getRule(RULE_DAYLIGHT).set(...)` etc.).
+- `ClientScenarios#mirrorModifier`: the modifier screen is rebuilt with `Screen#init(width, height)` (no `Minecraft`
+  argument any more).
+- `ResourceLocation` -> `Identifier` in `SmokeServerTests` and `SophisticatedBackpacksFixture`.
+- Forge harness mod: `loaderVersion="[61,)"`, `pack.mcmeta` `min_format` `[94, 1]`, `max_format` 94 (1.21.11 data
+  packs are 94.1, resource packs 75; the Forge 61 MDK declares the same, and so does the mod's own `pack.mcmeta`).
+- Unchanged and working: `ClientDriver`, `RadialMenuDriver`, `ServerScenarios`, `VanillaFakePlayers`,
+  `SophisticatedBackpacksFixture` (SB 1.21.11-3.26.2.2155 / Core 1.21.11-1.5.0.2340 API identical), Curios glue
+  (Curios 14.0.0+1.21.11), the 1.21.1 `smoketest_empty.nbt`.
+
+## Findings (1.21.11)
+
+- Results of the 1.21.11 runs: `runSmokeServer` 3 / 9 (1 skipped: `sb.worn_backpack`, see above) / 3 checks,
+  `runSmokeClient` 10 / 17 (8 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing; Fabric `runGametest`
+  "All 18 required tests passed" (17 + `minecraft:always_pass`).
+- As on 1.21.8, NeoForge lists the Sophisticated Backpacks, Core and Curios data packs as `TOO_OLD`; the mod's own data
+  pack is compatible (`client.mod_data_pack_compatible`).
 
 ## Findings (1.21.8)
 

@@ -1,6 +1,6 @@
 # The smoke test harness mod (see TESTING.md). Only loaded by runSmokeClient / runSmokeServer, never packaged.
 modLoader="javafml"
-loaderVersion="[58,)"
+loaderVersion="[61,)"
 license="LGPL-3.0-only"
 
 [[mods]]

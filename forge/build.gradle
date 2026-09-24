@@ -14,7 +14,7 @@ base {
 }
 
 java {
-    // Mojang ships Java 21 to end users in 1.21.8, so mods should target Java 21.
+    // Mojang ships Java 21 to end users in 1.21.11, so mods should target Java 21.
     toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
     withSourcesJar()
 }
@@ -31,7 +31,7 @@ sourceSets {
         java.srcDir "${commonDir}/src/test/java"
     }
     // In-game smoke test harness (runSmokeClient / runSmokeServer, see TESTING.md): loader-neutral scenarios from
-    // ../common/src/smoketest and the Forge glue from src/smoketest. No Sophisticated Backpacks on Forge 1.21.8, so no
+    // ../common/src/smoketest and the Forge glue from src/smoketest. No Sophisticated Backpacks on Forge 1.21.11, so no
     // backpack fixture. Its own mod ("sophisticatedbuilding_smoketest", META-INF/mods.toml), loaded
     // only by the smoke runs (every classpath folder with a mods.toml is a mod in the Forge dev runtime); never packaged.
     smoketest {
@@ -102,6 +102,8 @@ dependencies {
     // The unit tests exercise vanilla types (BlockPos, ...): testImplementation extends implementation, so Minecraft
     // is on their classpath too.
     implementation minecraft.dependency("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
+    // Checks the EventBus 7 listeners (@SubscribeEvent) at compile time, as in the Forge 61 MDK.
+    annotationProcessor 'net.minecraftforge:eventbus-validator:7.0.5'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
