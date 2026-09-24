@@ -14,7 +14,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity;
 import sophisticated.building.SophisticatedBuilding;
 
@@ -30,7 +29,8 @@ public class StorageDataGameTest implements FabricGameTest {
         stack.setHoverName(new TextComponent(NAME));
         CompoundTag contents = new CompoundTag();
         ContainerHelper.saveAllItems(contents, NonNullList.of(ItemStack.EMPTY, new ItemStack(Items.DIAMOND, 7)));
-        BlockItem.setBlockEntityData(stack, BlockEntityType.SHULKER_BOX, contents);
+        // Minecraft 1.17.1 has no BlockItem.setBlockEntityData: the same "BlockEntityTag" it would write
+        stack.addTagElement(BlockItem.BLOCK_ENTITY_TAG, contents);
         return stack;
     }
 

@@ -5,9 +5,9 @@ import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedbackpacks.api.CapabilityBackpackWrapper;
 import net.p3pp3rf1y.sophisticatedbackpacks.upgrades.toolswapper.ToolSwapMode;
 import net.p3pp3rf1y.sophisticatedbackpacks.upgrades.toolswapper.ToolSwapperUpgradeWrapper;
-import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
-import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
+import net.p3pp3rf1y.sophisticatedbackpacks.api.IBackpackWrapper;
+import net.p3pp3rf1y.sophisticatedbackpacks.backpack.wrapper.BackpackInventoryHandler;
+import net.p3pp3rf1y.sophisticatedbackpacks.api.IUpgradeWrapper;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.utilities.BreakToolHelper;
 
@@ -46,7 +46,7 @@ public class ToolSwapperIntegration {
 		}
 
 		try {
-			IStorageWrapper wrapper = backpackStack.getCapability(CapabilityBackpackWrapper.getCapabilityInstance()).resolve().orElse(null);
+			IBackpackWrapper wrapper = backpackStack.getCapability(CapabilityBackpackWrapper.getCapabilityInstance()).resolve().orElse(null);
 			if (wrapper == null) {
 				return;
 			}
@@ -63,7 +63,7 @@ public class ToolSwapperIntegration {
 				return;
 			}
 
-			InventoryHandler inventory = wrapper.getInventoryHandler();
+			BackpackInventoryHandler inventory = wrapper.getInventoryHandler();
 			int slotCount = inventory.getSlots();
 			ToolSwapperUpgradeWrapper finalToolSwapper = toolSwapper;
 			for (int i = 0; i < slotCount; i++) {

@@ -4,7 +4,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -171,10 +170,9 @@ public class BlockHelper {
 	private static void placeRailWithoutUpdate(Level world, BlockState state, BlockPos target) {
 		LevelChunk chunk = world.getChunkAt(target);
 		int idx = chunk.getSectionIndex(target.getY());
-		LevelChunkSection chunksection = chunk.getSection(idx);
+		LevelChunkSection chunksection = chunk.getSections()[idx];
 		if (chunksection == null) {
-			chunksection = new LevelChunkSection(chunk.getSectionYFromSectionIndex(idx), world.registryAccess()
-					.registryOrThrow(Registry.BIOME_REGISTRY));
+			chunksection = new LevelChunkSection(chunk.getSectionYFromSectionIndex(idx));
 			chunk.getSections()[idx] = chunksection;
 		}
 		BlockState old = chunksection.setBlockState(SectionPos.sectionRelative(target.getX()),

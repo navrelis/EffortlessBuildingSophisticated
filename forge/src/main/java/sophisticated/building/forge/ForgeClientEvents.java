@@ -4,8 +4,8 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.client.event.RenderLevelLastEvent;
-import net.minecraftforge.client.event.ScreenOpenEvent;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -37,8 +37,8 @@ public class ForgeClientEvents {
     }
 
     @SubscribeEvent
-    public static void onGuiOpen(ScreenOpenEvent event) {
-        ClientEvents.onGuiOpen(event.getScreen());
+    public static void onGuiOpen(GuiOpenEvent event) {
+        ClientEvents.onGuiOpen(event.getGui());
     }
 
     @SubscribeEvent
@@ -62,17 +62,17 @@ public class ForgeClientEvents {
     }
 
     @SubscribeEvent
-    public static void onRenderLevel(RenderLevelLastEvent event) {
-        // Forge 1.18.1 has no render stages (RenderLevelStageEvent arrives with Forge 40 for 1.18.2): once the whole
+    public static void onRenderLevel(RenderWorldLastEvent event) {
+        // Forge 1.17.1 has no render stages (RenderLevelStageEvent arrives with Forge 40 for 1.18.2): once the whole
         // level is drawn, first the block previews, mirror/array lines and ghost blocks, then the outlines, in the same
         // order as the stages on the other loaders.
-        RenderHandler.onRenderWorld(event.getPoseStack());
-        RenderHandler.onRenderOutlines(event.getPoseStack());
+        RenderHandler.onRenderWorld(event.getMatrixStack());
+        RenderHandler.onRenderOutlines(event.getMatrixStack());
     }
 
     @SubscribeEvent
     public static void onRenderGui(RenderGameOverlayEvent.Post event) {
-        // Once per frame, after the whole HUD (Forge 1.18.1 also posts this event for single HUD elements)
+        // Once per frame, after the whole HUD (Forge 1.17.1 also posts this event for single HUD elements)
         if (event.getType() == RenderGameOverlayEvent.ElementType.ALL) {
             RenderHandler.onRenderGui(new GuiGraphics(event.getMatrixStack()));
         }

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -64,7 +65,8 @@ public final class ConfigSpec {
     private LoadResult load(String json, boolean syncOnly) {
         JsonObject root;
         try {
-            JsonElement parsed = JsonParser.parseString(json);
+            // Minecraft 1.17.1 ships Gson 2.8.0, which has no static JsonParser.parseString
+            JsonElement parsed = new JsonParser().parse(json);
             if (!parsed.isJsonObject()) {
                 throw new JsonParseException("top level is not a JSON object");
             }
@@ -121,7 +123,8 @@ public final class ConfigSpec {
             knownKeys.add(value.getKey());
         }
         List<String> unknown = new ArrayList<>();
-        for (String key : sectionObject.keySet()) {
+        for (Map.Entry<String, JsonElement> entry : sectionObject.entrySet()) { // Gson 2.8.0: no JsonObject.keySet
+            String key = entry.getKey();
             if (key.equals(COMMENT_KEY) || key.startsWith(COMMENT_KEY + "_")) {
                 continue;
             }

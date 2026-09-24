@@ -3,7 +3,7 @@ package sophisticated.building.forge;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.client.ClientRegistry;
+import net.minecraftforge.fmlclient.registry.ClientRegistry;
 import net.minecraftforge.client.gui.ForgeIngameGui;
 import net.minecraftforge.client.gui.OverlayRegistry;
 import net.minecraftforge.eventbus.api.IEventBus;

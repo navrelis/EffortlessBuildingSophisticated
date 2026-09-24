@@ -1,15 +1,15 @@
 package sophisticated.building.item.upgrade;
 
 import net.minecraft.world.item.ItemStack;
-import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
+import net.p3pp3rf1y.sophisticatedbackpacks.api.IBackpackWrapper;
+import net.p3pp3rf1y.sophisticatedbackpacks.upgrades.UpgradeWrapperBase;
 
 import java.util.function.Consumer;
 
 public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWrapper, BuildingUpgradeItem> {
 
-    public BuildingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
-        super(storageWrapper, upgrade, upgradeSaveHandler);
+    public BuildingUpgradeWrapper(IBackpackWrapper backpackWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
+        super(backpackWrapper, upgrade, upgradeSaveHandler);
     }
 
     /**
@@ -27,10 +27,10 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
     }
 
     /**
-     * @return The storage wrapper (backpack) this upgrade is installed in
+     * @return The backpack wrapper this upgrade is installed in
      */
-    public IStorageWrapper getStorageWrapper() {
-        return storageWrapper;
+    public IBackpackWrapper getBackpackWrapper() {
+        return backpackWrapper;
     }
 
     /**
@@ -41,7 +41,7 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
             return ItemStack.EMPTY;
         }
 
-        var inventoryHandler = storageWrapper.getInventoryHandler();
+        var inventoryHandler = backpackWrapper.getInventoryHandler();
         int slots = inventoryHandler.getSlots();
         int totalExtracted = 0;
         ItemStack result = ItemStack.EMPTY;
@@ -85,7 +85,7 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
             return 0;
         }
 
-        var inventoryHandler = storageWrapper.getInventoryHandler();
+        var inventoryHandler = backpackWrapper.getInventoryHandler();
         int slots = inventoryHandler.getSlots();
         int count = 0;
 
@@ -107,7 +107,7 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
             return false;
         }
 
-        var inventoryHandler = storageWrapper.getInventoryHandler();
+        var inventoryHandler = backpackWrapper.getInventoryHandler();
         int slots = inventoryHandler.getSlots();
 
         for (int i = 0; i < slots; i++) {

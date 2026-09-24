@@ -3,16 +3,18 @@ package sophisticated.building.item.upgrade;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
-import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeSlotChangeResult;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
+import net.p3pp3rf1y.sophisticatedbackpacks.api.IBackpackWrapper;
+import net.p3pp3rf1y.sophisticatedbackpacks.api.UpgradeSlotChangeResult;
+import net.p3pp3rf1y.sophisticatedbackpacks.upgrades.UpgradeItemBase;
+import net.p3pp3rf1y.sophisticatedbackpacks.api.UpgradeType;
 import sophisticated.building.SophisticatedBuilding;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -43,7 +45,9 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
      * @param maxBlocks Maximum blocks that can be placed at once with this upgrade
      */
     public BuildingUpgradeItem(int tier, int maxBlocks) {
-        super(SophisticatedBuilding.CREATIVE_TAB);
+        // Sophisticated Backpacks 1.17.1 creates every upgrade item in its own creative tab (no-arg constructor); the
+        // tab is moved to this mod's in allowdedIn / getCreativeTabs below
+        super();
         this.tier = tier;
         this.maxBlocks = maxBlocks;
     }
@@ -56,6 +60,17 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
         return maxBlocks;
     }
     
+    // Listed in this mod's creative tab (and the search tab) only, like the other items of the mod
+    @Override
+    protected boolean allowdedIn(CreativeModeTab tab) {
+        return tab == CreativeModeTab.TAB_SEARCH || tab == SophisticatedBuilding.CREATIVE_TAB;
+    }
+
+    @Override
+    public Collection<CreativeModeTab> getCreativeTabs() {
+        return Collections.singletonList(SophisticatedBuilding.CREATIVE_TAB);
+    }
+
     @Override
     public UpgradeType<BuildingUpgradeWrapper> getType() {
         return TYPE;
@@ -73,13 +88,13 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
                 .withStyle(ChatFormatting.DARK_GRAY));
     }
     
-    // Sophisticated Backpacks 1.18.1 has no upgrade count limits or groups (they arrive with Sophisticated Core on
+    // Sophisticated Backpacks 1.17.1 has no upgrade count limits or groups (they arrive with Sophisticated Core on
     // 1.18.2): only one building upgrade per backpack, refused the way SB refuses a second battery or tool swapper
     // upgrade. The slot being filled is not known here, so a tier is changed by taking the old upgrade out first.
     @Override
-    public UpgradeSlotChangeResult canAddUpgradeTo(IStorageWrapper storageWrapper, ItemStack upgradeStack, boolean firstLevelStorage) {
+    public UpgradeSlotChangeResult canAddUpgradeTo(IBackpackWrapper backpackWrapper, ItemStack upgradeStack, boolean firstLevelStorage) {
         Set<Integer> errorUpgradeSlots = new HashSet<>();
-        storageWrapper.getUpgradeHandler().getSlotWrappers().forEach((slot, wrapper) -> {
+        backpackWrapper.getUpgradeHandler().getSlotWrappers().forEach((slot, wrapper) -> {
             if (wrapper instanceof BuildingUpgradeWrapper) {
                 errorUpgradeSlots.add(slot);
             }
@@ -92,16 +107,16 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
     }
     
     @Override
-    public UpgradeSlotChangeResult canRemoveUpgradeFrom(IStorageWrapper storageWrapper) {
+    public UpgradeSlotChangeResult canRemoveUpgradeFrom(IBackpackWrapper backpackWrapper) {
         return new UpgradeSlotChangeResult.Success();
     }
     
     @Override
-    public UpgradeSlotChangeResult canSwapUpgradeFor(ItemStack upgradeStackToPut, IStorageWrapper storageWrapper) {
+    public UpgradeSlotChangeResult canSwapUpgradeFor(ItemStack upgradeStackToPut, IBackpackWrapper backpackWrapper) {
         // Allow swapping building upgrades for other building upgrades (upgrading tiers)
         if (upgradeStackToPut.getItem() instanceof BuildingUpgradeItem) {
             return new UpgradeSlotChangeResult.Success();
         }
-        return super.canSwapUpgradeFor(upgradeStackToPut, storageWrapper);
+        return super.canSwapUpgradeFor(upgradeStackToPut, backpackWrapper);
     }
 }

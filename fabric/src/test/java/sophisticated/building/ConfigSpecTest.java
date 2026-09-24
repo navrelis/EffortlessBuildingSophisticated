@@ -69,9 +69,9 @@ class ConfigSpecTest {
         assertTrue(result.warnings().isEmpty());
         assertEquals(10, config.count.get());
         assertEquals(List.of("a", "b"), config.names.get());
-        JsonObject general = JsonParser.parseString(json).getAsJsonObject().getAsJsonObject("General");
+        JsonObject general = new JsonParser().parse(json).getAsJsonObject().getAsJsonObject("General");
         assertEquals("Count. Range: 1 ~ 100. Default: 10", general.get("_comment_count").getAsString());
-        assertEquals("Second section.", JsonParser.parseString(json).getAsJsonObject()
+        assertEquals("Second section.", new JsonParser().parse(json).getAsJsonObject()
                 .getAsJsonObject("Other").get("_comment").getAsString());
     }
 
@@ -147,7 +147,7 @@ class ConfigSpecTest {
         Files.writeString(file, "{\"General\": {\"count\": 42}}");
         ConfigFile.load(config.spec, dir, LOGGER);
         assertEquals(42, config.count.get());
-        JsonObject rewritten = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
+        JsonObject rewritten = new JsonParser().parse(Files.readString(file)).getAsJsonObject();
         assertEquals(42, rewritten.getAsJsonObject("General").get("count").getAsInt());
         assertEquals(5, rewritten.getAsJsonObject("Other").get("other").getAsInt());
 
@@ -169,7 +169,7 @@ class ConfigSpecTest {
         ConfigFile.load(config.spec, dir, LOGGER);
 
         assertEquals(100, config.count.get());
-        JsonObject rewritten = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
+        JsonObject rewritten = new JsonParser().parse(Files.readString(file)).getAsJsonObject();
         assertEquals(100, rewritten.getAsJsonObject("General").get("count").getAsInt());
 
         Path backup = dir.resolve("sophisticatedbuilding-test.json.bak");
@@ -198,7 +198,7 @@ class ConfigSpecTest {
         ConfigFile.load(config.spec, dir, LOGGER);
 
         assertEquals(true, config.enabled.get());
-        JsonObject rewritten = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
+        JsonObject rewritten = new JsonParser().parse(Files.readString(file)).getAsJsonObject();
         assertEquals(true, rewritten.getAsJsonObject("General").get("enabled").getAsBoolean());
 
         Path backup = dir.resolve("sophisticatedbuilding-test.json.bak");
@@ -257,7 +257,7 @@ class ConfigSpecTest {
     @Test
     void serverConfigContainsSurvivalReplaceAndSyncRoundTrips() {
         try {
-            JsonObject file = JsonParser.parseString(serverSpec().toFileJson()).getAsJsonObject();
+            JsonObject file = new JsonParser().parse(serverSpec().toFileJson()).getAsJsonObject();
             assertFalse(file.getAsJsonObject("SurvivalReplace").get("enabled").getAsBoolean());
             assertFalse(ServerConfig.survivalReplace.enabled.get());
 
@@ -283,7 +283,7 @@ class ConfigSpecTest {
             simple(ServerConfig.validation.whitelist).set(List.of("SecretAdmin"));
             String sync = serverSpec().toSyncJson();
 
-            JsonObject validation = JsonParser.parseString(sync).getAsJsonObject().getAsJsonObject("Validation");
+            JsonObject validation = new JsonParser().parse(sync).getAsJsonObject().getAsJsonObject("Validation");
             assertFalse(validation.has("whitelist"));
             assertTrue(validation.has("allowInSurvival"));
             assertFalse(sync.contains("SecretAdmin"));

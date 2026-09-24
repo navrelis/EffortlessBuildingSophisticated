@@ -10,7 +10,7 @@ import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingEquipmentChangeEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.server.ServerStoppedEvent;
+import net.minecraftforge.fmlserverevents.FMLServerStoppedEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -36,7 +36,7 @@ public class ForgeCommonEvents {
 	}
 
 	@SubscribeEvent
-	public static void onServerStopped(ServerStoppedEvent event) {
+	public static void onServerStopped(FMLServerStoppedEvent event) {
 		CommonEvents.onServerStopped();
 	}
 

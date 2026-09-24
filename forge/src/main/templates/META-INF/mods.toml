@@ -1,6 +1,6 @@
 # The mod metadata read by Forge. Generated from this template by the
 # generateModMetadata task (values from ../gradle/shared.properties and gradle.properties).
-# See https://docs.minecraftforge.net/en/1.18.x/gettingstarted/modfiles/#modstoml
+# See https://docs.minecraftforge.net/en/1.17.x/gettingstarted/modfiles/#modstoml
 
 # The name of the mod loader type to load - for regular FML @Mod mods it should be javafml
 modLoader="javafml" #mandatory
@@ -51,18 +51,11 @@ description='''${mod_description}'''
     ordering="NONE"
     side="BOTH"
 
-# Optional dependency on SophisticatedBackpacks for building upgrades
+# Optional dependency on SophisticatedBackpacks for building upgrades (on 1.17.1 there is no separate
+# SophisticatedCore mod: the upgrade framework is part of sophisticatedbackpacks)
 [[dependencies.${mod_id}]]
     modId="sophisticatedbackpacks"
     mandatory=false
-    versionRange="[1.18.1-3.15.15,)"
-    ordering="AFTER"
-    side="BOTH"
-
-# Optional dependency on SophisticatedCore (required by SophisticatedBackpacks)
-[[dependencies.${mod_id}]]
-    modId="sophisticatedcore"
-    mandatory=false
-    versionRange="[1.18.1-3.15.15,)"
+    versionRange="[1.17.1-3.12.3,)"
     ordering="AFTER"
     side="BOTH"

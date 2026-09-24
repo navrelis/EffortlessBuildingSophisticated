@@ -76,7 +76,7 @@ public abstract class AbstractSimiWidget extends AbstractWidget implements Ticka
 		beforeRender(graphics, mouseX, mouseY, partialTicks);
 		doRender(graphics, mouseX, mouseY, partialTicks);
 		afterRender(graphics, mouseX, mouseY, partialTicks);
-		wasHovered = isHoveredOrFocused();
+		wasHovered = isHovered || isFocused();
 	}
 
 	protected void beforeRender(@Nonnull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {

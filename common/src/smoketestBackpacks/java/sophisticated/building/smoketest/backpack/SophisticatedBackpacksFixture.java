@@ -6,21 +6,19 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.p3pp3rf1y.sophisticatedbackpacks.backpack.wrapper.BackpackWrapper;
-import net.p3pp3rf1y.sophisticatedbackpacks.backpack.wrapper.IBackpackWrapper;
-import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
+import net.p3pp3rf1y.sophisticatedbackpacks.api.IBackpackWrapper;
+import net.p3pp3rf1y.sophisticatedbackpacks.api.IUpgradeWrapper;
+import net.p3pp3rf1y.sophisticatedbackpacks.backpack.wrapper.BackpackInventoryHandler;
 import sophisticated.building.SophisticatedBuilding;
 
 import java.util.List;
 import java.util.Optional;
 
 /**
- * {@link SmokeBackpacks} against the Sophisticated Backpacks/Core API. The same source compiles against the official
- * Forge builds and the unofficial Fabric port for Minecraft 1.20.1 (their wrapper/upgrade APIs match, except the
- * wrapper lookup, see wrapper, the name of the inventory slot count, see slotCount, and inserting: the Fabric port's
- * inventory only takes items through the Fabric Transfer API, so the contents are put into empty slots with
- * setStackInSlot, which both have); a port whose Sophisticated Backpacks API differs copies this class into its
- * loader's smoke source set and adapts it.
+ * {@link SmokeBackpacks} against the Sophisticated Backpacks API of Minecraft 1.17.1 (only the official Forge build exists;
+ * no Sophisticated Core yet, so the wrapper, upgrade wrapper and inventory types live in net.p3pp3rf1y.sophisticatedbackpacks).
+ * The wrapper lookup and slot count stay reflective as on the newer branches, where the same class also compiles against
+ * the unofficial Fabric port.
  */
 public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
 
@@ -39,7 +37,7 @@ public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
         IBackpackWrapper wrapper = wrapper(backpack);
         // The inventory first: it gives the new backpack its storage UUID. Without one the wrapper hands out (and
         // keeps) an empty no-op upgrade handler.
-        InventoryHandler inventory = wrapper.getInventoryHandler();
+        BackpackInventoryHandler inventory = wrapper.getInventoryHandler();
 
         int upgradeSlot = 0;
         if (buildingUpgradeTier > 0) {
@@ -66,7 +64,7 @@ public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
 
     @Override
     public int count(ItemStack backpack, Item item) {
-        InventoryHandler inventory = wrapper(backpack).getInventoryHandler();
+        BackpackInventoryHandler inventory = wrapper(backpack).getInventoryHandler();
         int total = 0;
         for (int slot = 0; slot < slotCount(inventory); slot++) {
             ItemStack stack = inventory.getStackInSlot(slot);
@@ -77,7 +75,7 @@ public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
 
     @Override
     public ItemStack find(ItemStack backpack, Item item) {
-        InventoryHandler inventory = wrapper(backpack).getInventoryHandler();
+        BackpackInventoryHandler inventory = wrapper(backpack).getInventoryHandler();
         for (int slot = 0; slot < slotCount(inventory); slot++) {
             ItemStack stack = inventory.getStackInSlot(slot);
             if (stack.is(item)) return stack;
@@ -123,7 +121,7 @@ public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
     }
 
     /** int getSlots() on Forge (IItemHandler), int getSlotCount() on the Fabric port (Porting Lib; its getSlots() is a list). */
-    private static int slotCount(InventoryHandler inventory) {
+    private static int slotCount(BackpackInventoryHandler inventory) {
         for (String name : new String[] {"getSlotCount", "getSlots"}) {
             try {
                 java.lang.reflect.Method method = inventory.getClass().getMethod(name);
@@ -135,7 +133,7 @@ public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
                 throw new IllegalStateException(e);
             }
         }
-        throw new IllegalStateException("InventoryHandler has neither getSlots() nor getSlotCount()");
+        throw new IllegalStateException("BackpackInventoryHandler has neither getSlots() nor getSlotCount()");
     }
 
     private static Item buildingUpgrade(int tier) {

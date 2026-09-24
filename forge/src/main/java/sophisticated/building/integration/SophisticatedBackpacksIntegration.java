@@ -2,8 +2,8 @@ package sophisticated.building.integration;
 
 import net.minecraft.core.Registry;
 import net.minecraft.world.item.Item;
-import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerRegistry;
-import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerType;
+import net.p3pp3rf1y.sophisticatedbackpacks.common.gui.UpgradeContainerRegistry;
+import net.p3pp3rf1y.sophisticatedbackpacks.common.gui.UpgradeContainerType;
 import sophisticated.building.gui.BuildingUpgradeContainer;
 import sophisticated.building.item.upgrade.BuildingUpgradeItem;
 import sophisticated.building.item.upgrade.BuildingUpgradeWrapper;

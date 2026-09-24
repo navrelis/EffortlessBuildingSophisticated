@@ -10,9 +10,9 @@ import sophisticated.building.compatibility.CuriosCompatHelper;
 import sophisticated.building.integration.BackpackScanCompat;
 import net.p3pp3rf1y.sophisticatedbackpacks.api.CapabilityBackpackWrapper;
 import net.p3pp3rf1y.sophisticatedbackpacks.util.PlayerInventoryProvider;
-import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
+import net.p3pp3rf1y.sophisticatedbackpacks.api.IBackpackWrapper;
+import net.p3pp3rf1y.sophisticatedbackpacks.api.IUpgradeWrapper;
+import net.p3pp3rf1y.sophisticatedbackpacks.backpack.wrapper.BackpackUpgradeHandler;
 import sophisticated.building.SophisticatedBuilding;
 
 import javax.annotation.Nullable;
@@ -134,7 +134,7 @@ public class BuildingUpgradeHelper {
      * {@link ItemStack} instance the provider's scan already saw (true for the built-in
      * {@code ItemStackHandler}-backed slot storage Curios uses). As a second safety net in case a
      * given Curios/Backpacks build instead hands back a copy, it falls back to comparing the
-     * backpack's persistent contents UUID ({@link IStorageWrapper#getContentsUuid()}), which is
+     * backpack's persistent contents UUID ({@link IBackpackWrapper#getContentsUuid()}), which is
      * stable across copies of the same backpack stack.
      */
     private static boolean alreadyVisited(ItemStack curiosStack, Set<ItemStack> visitedStacks, Set<UUID> visitedContentsUuids) {
@@ -150,7 +150,7 @@ public class BuildingUpgradeHelper {
 
     private static Optional<UUID> backpackContentsUuid(BuildingUpgradeWrapper wrapper) {
         try {
-            return wrapper.getStorageWrapper().getContentsUuid();
+            return wrapper.getBackpackWrapper().getContentsUuid();
         } catch (Exception | LinkageError e) {
             return Optional.empty();
         }
@@ -158,7 +158,7 @@ public class BuildingUpgradeHelper {
 
     private static Optional<UUID> backpackContentsUuid(ItemStack backpackStack) {
         try {
-            return backpackStack.getCapability(CapabilityBackpackWrapper.getCapabilityInstance()).resolve().flatMap(IStorageWrapper::getContentsUuid);
+            return backpackStack.getCapability(CapabilityBackpackWrapper.getCapabilityInstance()).resolve().flatMap(IBackpackWrapper::getContentsUuid);
         } catch (Exception | LinkageError e) {
             return Optional.empty();
         }
@@ -177,12 +177,12 @@ public class BuildingUpgradeHelper {
         }
 
         try {
-            IStorageWrapper wrapper = backpackStack.getCapability(CapabilityBackpackWrapper.getCapabilityInstance()).resolve().orElse(null);
+            IBackpackWrapper wrapper = backpackStack.getCapability(CapabilityBackpackWrapper.getCapabilityInstance()).resolve().orElse(null);
             if (wrapper == null) {
                 return null;
             }
 
-            UpgradeHandler upgradeHandler = wrapper.getUpgradeHandler();
+            BackpackUpgradeHandler upgradeHandler = wrapper.getUpgradeHandler();
             var typeWrappers = upgradeHandler.getTypeWrappers(BuildingUpgradeItem.TYPE);
             if (!typeWrappers.isEmpty()) {
                 return typeWrappers.get(0);
