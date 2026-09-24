@@ -12,6 +12,7 @@ common/                    loader-neutral code and assets, no build of its own
   src/main/java              mod logic; loader APIs only through sophisticated.building.platform.Services
   src/main/resources         assets, data (recipes carry both Fabric and NeoForge load conditions), mixin config
   src/test/java              unit tests, run by every loader build
+  src/smoketest              in-game smoke test harness (dev-only, see TESTING.md); src/smoketestBackpacks: its SB fixture
 fabric/                    Fabric build (Loom): entry points, platform services, JSON config backend,
                            Sophisticated Backpacks integration (unofficial Fabric port), GameTests (src/gametest)
 neoforge/                  NeoForge build (ModDevGradle): entry points, platform services, ModConfigSpec configs,
@@ -56,7 +57,10 @@ wherever the game allows:
   its weights in `SlotWeights`; "a stack with data" (placement templates) means a non-empty tag.
 * Payloads are vanilla 1.20.4 `CustomPacketPayload`s with `write(FriendlyByteBuf)`, a reading constructor and a
   `ResourceLocation` id (same ids and fields as on 1.21.1). Fabric sends them on the channel named by the id,
-  NeoForge registers them with `RegisterPayloadHandlerEvent`/`IPayloadRegistrar`.
+  NeoForge registers them with `RegisterPayloadHandlerEvent`/`IPayloadRegistrar`. Minecraft 1.20.4 does not encode
+  packets on the in-memory (singleplayer) connection, so NeoForge sends a decoded copy of every payload
+  (`NeoForgeNetworkHelper`); otherwise the integrated server would get the client's live block set, which the client
+  clears on its next tick (1.20.5+ encodes in memory too; Fabric always encodes).
 * Rendering uses the 1.20.4 vertex API (`vertex(...)...endVertex()`, `Tesselator.getBuilder()`, `BufferBuilder`
   buffers). Fabric draws the ghost block quads with its own copy of vanilla's `putBulkData` loop so the preview alpha
   is kept (vanilla 1.20.4 always writes alpha 1). The frozen-while-paused partial tick is the last value read before
@@ -83,6 +87,15 @@ cd neoforge && ./gradlew build          # jar in neoforge/build/libs, runs the c
 
 `runGametest` also runs the self-test that the Porting Lib gametest module nested in Sophisticated Core registers
 (`porting_lib_gametest:Tests.test`), so it reports one more required test than this mod has.
+
+## In-game smoke tests
+
+`gradlew runSmokeClient -PsmoketestOut=<dir>` (real client, fresh world) and `gradlew runSmokeServer -PsmoketestOut=<dir>`
+(headless game test server) in either loader folder run the in-game smoke scenarios, including the Sophisticated
+Backpacks integration on both loaders, and write `<dir>/smoketest-result.json`; the game exits by itself. The
+harness (`common/src/smoketest`, `common/src/smoketestBackpacks`, `<loader>/src/smoketest`, `gradle/smoketest.gradle`)
+is dev-only and never packaged. See [TESTING.md](TESTING.md) for the scenarios, the result contract and how a port
+adopts it.
 
 ## Run
 
