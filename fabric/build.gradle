@@ -220,6 +220,16 @@ loom {
 tasks.named('runSmokeClient') { verifySmokeRun(it, smoketestOutDir('client')) }
 tasks.named('runSmokeServer') { verifySmokeRun(it, smoketestOutDir('server')) }
 
+// fabric.mod.json takes a version predicate, not the Maven range of shared.properties:
+// [1.21,1.21.1] -> ">=1.21 <=1.21.1", [1.21.1] -> "1.21.1"
+def fabricVersionPredicate = { String range ->
+    def single = range =~ /^\[([^,\]]+)\]$/
+    if (single.matches()) return single.group(1)
+    def closed = range =~ /^\[([^,\]]+),([^,\]]+)\]$/
+    if (closed.matches()) return ">=${closed.group(1)} <=${closed.group(2)}"
+    throw new GradleException("minecraft_version_range ${range} has no fabric.mod.json equivalent here")
+}
+
 processResources {
     var expandProps = [
             version                  : project.version,
@@ -228,7 +238,7 @@ processResources {
             mod_description          : mod_description,
             mod_authors              : mod_authors,
             mod_license              : mod_license,
-            minecraft_version        : minecraft_version,
+            minecraft_dependency     : fabricVersionPredicate(minecraft_version_range),
             fabric_loader_version_min: fabric_loader_version_min,
             java_version             : java_version
     ]

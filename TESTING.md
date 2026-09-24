@@ -167,3 +167,25 @@ Loader glue per build:
   (data packs are 48 in 1.21.1). Now `supported_formats: [34, 48]`; checked by `client.mod_data_pack_compatible`.
 - The Fabric SB port rescans Trinkets slots for backpacks only every 100 ticks: a backpack put into a Trinkets slot
   supplies blocks after up to 5 s.
+
+## Minecraft 1.21 check (one jar for 1.21 and 1.21.1)
+
+The release jars built from this branch (compiled against 1.21.1) were run in a Minecraft 1.21 runtime: a scratch copy
+of the branch switched to the 1.21 loader/game versions, with the mod sources replaced by the release jar (its
+`fabric.mod.json` / `neoforge.mods.toml` / `mods.toml` already declaring the 1.21 range) and the smoke harness
+compiled against that jar.
+
+| Loader | Runtime | Result |
+|---|---|---|
+| NeoForge | NeoForge 21.0.167, Sophisticated Backpacks 1.21-3.20.26.1151 + Core 1.21-0.7.13.797, no Curios (no build for NeoForge 21.0) | `runSmokeServer` 9 checks passed (1 skipped: `sb.worn_backpack`, no Curios), `runSmokeClient` 17 checks passed (same skip); every other `sb.*` check passes against the old Backpacks API |
+| Fabric | Fabric Loader 0.19.5, Fabric API 0.108.0+1.21.1 (runs on 1.21), no Sophisticated Backpacks (the Fabric port needs exactly 1.21.1; the `sb_*` game tests were left out) | `runSmokeServer` 3 checks passed, `runSmokeClient` 10 checks passed |
+| Forge | Forge 51.0.33 | The jar does not load: `NoSuchMethodException: SophisticatedBuildingForge.<init>()` (constructor injection of `FMLJavaModLoadingContext` is Forge 52+), and `AddGuiOverlayLayersEvent`/`ForgeLayeredDraw` do not exist in Forge 51 |
+
+Hence `minecraft_version_range=[1.21,1.21.1]` (Fabric: `>=1.21 <=1.21.1`), Forge `forge_minecraft_version_range=[1.21.1]`,
+NeoForge floor 21.0.167, NeoForge optional Backpacks `[3.20.26,)` / Core `[0.7.13,)` (the last 1.21 builds), Fabric
+`"fabric-api": ">=0.108.0"`: the newest Fabric API tagged for 1.21 (0.102.0+1.21) has no `ClientWorldEvents` and the jar
+crashed at client start with it (`NoClassDefFoundError`); with the floor Fabric Loader reports the missing update instead.
+The Fabric API 1.21.1 builds before 0.108.0 lack it as well, so the floor also fixes those on 1.21.1.
+
+Running Forge 51.0.33 in dev needs ForgeGradle 6 with `jopt-simple` forced to 5.0.4 (its `bootstrap-api` pulls
+6.0-alpha-3, module `joptsimple`, while modlauncher requires `jopt.simple`); ForgeGradle 7 stopped with the same error (the override was not tried there).

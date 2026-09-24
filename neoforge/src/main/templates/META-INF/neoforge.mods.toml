@@ -87,11 +87,13 @@ config="${mod_id}.mixins.json"
     side="BOTH"
 
 # Optional dependency on SophisticatedBackpacks for building upgrades
+# Sophisticated Backpacks/Core: the oldest builds the integration was smoke-tested with are the last Minecraft 1.21 ones
+# (Backpacks 3.20.26, Core 0.7.13; see TESTING.md). An installed build outside the range stops the game from loading.
 [[dependencies.${mod_id}]]
     modId="sophisticatedbackpacks"
     type="optional"
     reason="Required for Building Upgrade items to work in backpack upgrade slots"
-    versionRange="[3.22.0,)"
+    versionRange="[3.20.26,)"
     ordering="AFTER"
     side="BOTH"
 
@@ -100,7 +102,7 @@ config="${mod_id}.mixins.json"
     modId="sophisticatedcore"
     type="optional"
     reason="Core library required for SophisticatedBackpacks integration"
-    versionRange="[1.0.0,)"
+    versionRange="[0.7.13,)"
     ordering="AFTER"
     side="BOTH"
 

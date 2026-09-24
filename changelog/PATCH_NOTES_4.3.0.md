@@ -14,6 +14,13 @@ previous releases were named `sophisticatedbuilding-<loader>-<version>.jar` with
 
 ## New
 
+### Minecraft 1.21 (Fabric and NeoForge)
+
+The Fabric and NeoForge jars now also run on Minecraft 1.21 (not only 1.21.1). On NeoForge 1.21 the Sophisticated
+Backpacks integration works with the last 1.21 builds (Backpacks 3.20.26, Core 0.7.13). On Fabric 1.21 there is no
+Sophisticated Backpacks port; use Fabric API 0.108.0 or newer (its 1.21.1 builds run on 1.21). The Forge jar stays
+1.21.1 only, since Forge for 1.21 lacks APIs it needs.
+
 ### Forge build for 1.21.1 *(placeholder, lead to confirm)*
 
 Sophisticated Building is now available on Forge for 1.21.1. This build has no Sophisticated
@@ -51,14 +58,18 @@ This release reorganizes the mod internally; there is no change to how it plays.
 
 * Requires Fabric Loader 0.18.6 or newer (was tested against and previously required 0.18.6;
   now built against 0.19.5).
-* Fabric API: 0.116.6+1.21.1 → 0.116.17+1.21.1.
+* Fabric API: 0.116.6+1.21.1 → 0.116.17+1.21.1; the jar now requires Fabric API 0.108.0 or newer (older ones lack
+  an event the mod uses and crashed the client at start).
+* Minecraft: 1.21 or 1.21.1 (was: 1.21.1 and every later 1.21.x, which it was never tested on).
 * Sophisticated Core/Backpacks (unofficial Fabric port): unchanged, still the frozen Core file
   7344653 / Backpacks file 6844426.
 
 ### NeoForge
 
-* Requires NeoForge 21.1.217 or newer (built and tested against 21.1.251, the latest 1.21.1
-  release).
+* Minecraft 1.21 or 1.21.1 (was: 1.21.1).
+* Requires NeoForge 21.0.167 (Minecraft 1.21) or newer (built against 21.1.251, the latest 1.21.1 release; tested on
+  21.0.167 and 21.1.251).
+* Optional Sophisticated Backpacks/Core: Backpacks 3.20.26 / Core 0.7.13 or newer (the last 1.21 builds) are accepted.
 * Sophisticated Core/Backpacks (official NeoForge build): unchanged, still Core 1.21.1-1.5.1.2341
   / Backpacks 1.21.1-3.26.3.2158.
 * Curios API (compile-only, worn-backpack fallback scan): unchanged, still 9.5.1+1.21.1.

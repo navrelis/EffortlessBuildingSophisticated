@@ -4,6 +4,10 @@ This branch (`mc/1.21.1`) holds Sophisticated Building for Minecraft 1.21.1 on F
 reference layout for the other Minecraft versions: loader-neutral code lives once in `common/`, and every loader
 folder is a standalone Gradle build that compiles `common/` together with its own sources into one mod jar.
 
+The Fabric and NeoForge jars also run on Minecraft 1.21 (declared `[1.21,1.21.1]`; Fabric needs Fabric API 0.108.0 or
+newer, i.e. a `+1.21.1` Fabric API build, which runs on 1.21 too). The Forge jar is 1.21.1 only: Forge 51 (1.21) cannot
+load it. See TESTING.md, "Minecraft 1.21 check".
+
 ## Layout
 
 ```
