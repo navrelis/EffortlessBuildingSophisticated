@@ -1,4 +1,4 @@
-# Testing Sophisticated Building 1.21.11
+# Testing Sophisticated Building 26.1.2
 
 Three layers, from fast to real:
 
@@ -11,7 +11,7 @@ Three layers, from fast to real:
 `gradlew build` compiles the smoke harness (so it cannot rot) but never runs it. The harness is dev-only: it lives in
 its own source set, is loaded only by the smoke runs, and never ends up in the mod jar.
 
-On Minecraft 1.21.11 only NeoForge has Sophisticated Backpacks (official build); Fabric and Forge have none, so their
+On Minecraft 26.1.2 only NeoForge has Sophisticated Backpacks (official build); Fabric and Forge have none, so their
 smoke runs have no `sb.*` checks and do not compile the SB fixture.
 
 ## Running the smoke tests
@@ -58,7 +58,7 @@ deleted when the task starts.
 - A skipped check has `"passed": true`, `"skipped": true` and a detail starting with `SKIPPED:`.
 - Checks named `sb.*` are Sophisticated Backpacks checks. A loader build that ships the SB integration
   (`META-INF/services/sophisticated.building.platform.services.IBackpackIntegration`) must report passing `sb.*` checks;
-  on 1.21.11 that is NeoForge only. Fabric and Forge 1.21.11 have no SB and report none.
+  on 26.1.2 that is NeoForge only. Fabric and Forge 26.1.2 have no SB and report none.
 - The file is rewritten after every check (atomically), so a crash or a kill still leaves the checks done so far.
 
 ## Scenarios
@@ -115,7 +115,7 @@ test is its own batch and they run one after the other, as on 1.21.1. The `sb_` 
 instances into checks (the game test server also runs vanilla's optional `minecraft:always_pass`).
 
 On NeoForge `sb.worn_backpack` is skipped by `runSmokeServer` since 1.21.8: the NeoForge fake player has no Curios
-`back` slot with Curios 12.0.0+1.21.8, 13.0.0+1.21.10 and 14.0.0+1.21.11 (it had one with Curios for 1.21.1). The
+`back` slot with Curios 12.0.0+1.21.8, 13.0.0+1.21.10, 14.0.0+1.21.11 and 15.0.0+26.1.2 (it had one with Curios for 1.21.1). The
 client run, with a real player, checks it.
 
 ## Layout
@@ -177,9 +177,9 @@ GuiGraphicsAccessor from sophisticatedbuilding.mixins.json into net.minecraft.cl
    - Game test API (1.21.5+ shape): test functions in `Registries.TEST_FUNCTION`, data-driven `test_instance` /
      `test_environment`, `GameTestInfo#id()`, `GameTestHelper#fail/assertTrue` taking a `Component`,
      `GlobalTestReporter`/`TestReporter`, and whether the loader's game test server works at all (Forge 55 does not,
-     Forge 58, 60 and 61 do).
+     Forge 58, 60, 61 and 64 do).
      The NBT `DataVersion` of `smoketest_empty.nbt` is 3955 (1.21.1); old templates are upgraded by DataFixer (1.21.4 =
-     4189, 1.21.5 = 4325, 1.21.8 = 4440, 1.21.10 = 4556, 1.21.11 = 4671).
+     4189, 1.21.5 = 4325, 1.21.8 = 4440, 1.21.10 = 4556, 1.21.11 = 4671, 26.1.2 = 4790).
    - Packets: `StreamCodec` round trip in `ServerScenarios#roundTrip` (1.20.5+; older versions use `FriendlyByteBuf`
      write/read methods).
    - Client: `Screenshot.takeScreenshot` (asynchronous since 1.21.5), `KeyMapping.set/click`, `Minecraft#submit`, the

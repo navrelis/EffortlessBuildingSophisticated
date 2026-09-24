@@ -2,7 +2,6 @@ package sophisticated.building.forge;
 
 import com.mojang.blaze3d.framegraph.FramePass;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.LevelTargetBundle;
 import net.minecraft.client.renderer.state.level.LevelRenderState;
 import net.minecraftforge.api.distmarker.Dist;
@@ -73,12 +72,18 @@ public class ForgeClientEvents {
      * draws the block previews, mirror/array lines and ghost blocks, then the outlines, into the main target. The camera
      * rotation is already on the model view stack while the frame graph runs, so the handlers start from an identity
      * pose (as on Fabric and NeoForge).
+     * <p>
+     * The pass binds the main target in {@code extracts(LevelTargetBundle, FramePass)}: Forge 62 (Minecraft 26.1) and 63
+     * (26.1.1) have only that method, abstract; Forge 64 added the {@code DeltaTracker} overload, which by default calls it
+     * (and deprecated it for removal in 26.2). Overriding the new overload made the jar fail on Forge 62 with an
+     * {@code AbstractMethodError}.
      */
     @SubscribeEvent
     public static void onAddFramePass(AddFramePassEvent event) {
         event.addPass(SophisticatedBuilding.asResource("previews"), new FramePassManager.PassDefinition() {
             @Override
-            public void extracts(LevelTargetBundle bundle, FramePass pass, DeltaTracker tracker) {
+            @SuppressWarnings("removal")
+            public void extracts(LevelTargetBundle bundle, FramePass pass) {
                 bundle.main = pass.readsAndWrites(bundle.main);
             }
 
