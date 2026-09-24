@@ -4,7 +4,9 @@
   "package": "sophisticated.building.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [],
-  "client": [],
+  "client": [
+    "GuiGraphicsAccessor"
+  ],
   "injectors": {
     "defaultRequire": 1
   }

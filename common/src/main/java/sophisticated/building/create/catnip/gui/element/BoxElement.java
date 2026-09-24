@@ -1,13 +1,9 @@
 package sophisticated.building.create.catnip.gui.element;
 
-import org.joml.Matrix4f;
-
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
+import sophisticated.building.client.gui.GuiQuads;
 import sophisticated.building.create.catnip.data.Couple;
 import sophisticated.building.create.catnip.theme.Color;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderType;
 
 /**
  * Adapted from Catnip ({@code sophisticated.building.create.catnip.gui.element.BoxElement}, MIT License, Copyright (c) 2022
@@ -97,60 +93,57 @@ public class BoxElement extends AbstractRenderElement {
 		*         |_____________|
 		*
 		* */
-		PoseStack ms = graphics.pose();
-		Matrix4f model = ms.last().pose();
 		int f = borderOffset;
 		Color c1 = background.copy().scaleAlpha(alpha);
 		Color c2 = borderTop.copy().scaleAlpha(alpha);
 		Color c3 = borderBot.copy().scaleAlpha(alpha);
-		graphics.drawSpecial(buffers -> {
-			VertexConsumer b = buffers.getBuffer(RenderType.gui());
+		GuiQuads quads = GuiQuads.colored(graphics);
 
-			//outer top
-			b.addVertex(model, x - f - 1, y - f - 2, z).setColor(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha());
-			b.addVertex(model, x - f - 1, y - f - 1, z).setColor(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha());
-			b.addVertex(model, x + f + 1 + width, y - f - 1, z).setColor(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha());
-			b.addVertex(model, x + f + 1 + width, y - f - 2, z).setColor(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha());
-			//outer left
-			b.addVertex(model, x - f - 2, y - f - 1, z).setColor(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha());
-			b.addVertex(model, x - f - 2, y + f + 1 + height, z).setColor(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha());
-			b.addVertex(model, x - f - 1, y + f + 1 + height, z).setColor(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha());
-			b.addVertex(model, x - f - 1, y - f - 1, z).setColor(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha());
-			//outer bottom
-			b.addVertex(model, x - f - 1, y + f + 1 + height, z).setColor(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha());
-			b.addVertex(model, x - f - 1, y + f + 2 + height, z).setColor(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha());
-			b.addVertex(model, x + f + 1 + width, y + f + 2 + height, z).setColor(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha());
-			b.addVertex(model, x + f + 1 + width, y + f + 1 + height, z).setColor(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha());
-			//outer right
-			b.addVertex(model, x + f + 1 + width, y - f - 1, z).setColor(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha());
-			b.addVertex(model, x + f + 1 + width, y + f + 1 + height, z).setColor(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha());
-			b.addVertex(model, x + f + 2 + width, y + f + 1 + height, z).setColor(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha());
-			b.addVertex(model, x + f + 2 + width, y - f - 1, z).setColor(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha());
-			//inner background - also render behind the inner edges
-			b.addVertex(model, x - f - 1, y - f - 1, z).setColor(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha());
-			b.addVertex(model, x - f - 1, y + f + 1 + height, z).setColor(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha());
-			b.addVertex(model, x + f + 1 + width, y + f + 1 + height, z).setColor(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha());
-			b.addVertex(model, x + f + 1 + width, y - f - 1, z).setColor(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha());
-			//inner top - includes corners
-			b.addVertex(model, x - f - 1, y - f - 1, z).setColor(c2.getRed(), c2.getGreen(), c2.getBlue(), c2.getAlpha());
-			b.addVertex(model, x - f - 1, y - f, z).setColor(c2.getRed(), c2.getGreen(), c2.getBlue(), c2.getAlpha());
-			b.addVertex(model, x + f + 1 + width, y - f, z).setColor(c2.getRed(), c2.getGreen(), c2.getBlue(), c2.getAlpha());
-			b.addVertex(model, x + f + 1 + width, y - f - 1, z).setColor(c2.getRed(), c2.getGreen(), c2.getBlue(), c2.getAlpha());
-			//inner left - excludes corners
-			b.addVertex(model, x - f - 1, y - f, z).setColor(c2.getRed(), c2.getGreen(), c2.getBlue(), c2.getAlpha());
-			b.addVertex(model, x - f - 1, y + f + height, z).setColor(c3.getRed(), c3.getGreen(), c3.getBlue(), c3.getAlpha());
-			b.addVertex(model, x - f, y + f + height, z).setColor(c3.getRed(), c3.getGreen(), c3.getBlue(), c3.getAlpha());
-			b.addVertex(model, x - f, y - f, z).setColor(c2.getRed(), c2.getGreen(), c2.getBlue(), c2.getAlpha());
-			//inner bottom - includes corners
-			b.addVertex(model, x - f - 1, y + f + height, z).setColor(c3.getRed(), c3.getGreen(), c3.getBlue(), c3.getAlpha());
-			b.addVertex(model, x - f - 1, y + f + 1 + height, z).setColor(c3.getRed(), c3.getGreen(), c3.getBlue(), c3.getAlpha());
-			b.addVertex(model, x + f + 1 + width, y + f + 1 + height, z).setColor(c3.getRed(), c3.getGreen(), c3.getBlue(), c3.getAlpha());
-			b.addVertex(model, x + f + 1 + width, y + f + height, z).setColor(c3.getRed(), c3.getGreen(), c3.getBlue(), c3.getAlpha());
-			//inner right - excludes corners
-			b.addVertex(model, x + f + width, y - f, z).setColor(c2.getRed(), c2.getGreen(), c2.getBlue(), c2.getAlpha());
-			b.addVertex(model, x + f + width, y + f + height, z).setColor(c3.getRed(), c3.getGreen(), c3.getBlue(), c3.getAlpha());
-			b.addVertex(model, x + f + 1 + width, y + f + height, z).setColor(c3.getRed(), c3.getGreen(), c3.getBlue(), c3.getAlpha());
-			b.addVertex(model, x + f + 1 + width, y - f, z).setColor(c2.getRed(), c2.getGreen(), c2.getBlue(), c2.getAlpha());
-		});
+		//outer top
+		quads.vertex(x - f - 1, y - f - 2, c1.getRGB());
+		quads.vertex(x - f - 1, y - f - 1, c1.getRGB());
+		quads.vertex(x + f + 1 + width, y - f - 1, c1.getRGB());
+		quads.vertex(x + f + 1 + width, y - f - 2, c1.getRGB());
+		//outer left
+		quads.vertex(x - f - 2, y - f - 1, c1.getRGB());
+		quads.vertex(x - f - 2, y + f + 1 + height, c1.getRGB());
+		quads.vertex(x - f - 1, y + f + 1 + height, c1.getRGB());
+		quads.vertex(x - f - 1, y - f - 1, c1.getRGB());
+		//outer bottom
+		quads.vertex(x - f - 1, y + f + 1 + height, c1.getRGB());
+		quads.vertex(x - f - 1, y + f + 2 + height, c1.getRGB());
+		quads.vertex(x + f + 1 + width, y + f + 2 + height, c1.getRGB());
+		quads.vertex(x + f + 1 + width, y + f + 1 + height, c1.getRGB());
+		//outer right
+		quads.vertex(x + f + 1 + width, y - f - 1, c1.getRGB());
+		quads.vertex(x + f + 1 + width, y + f + 1 + height, c1.getRGB());
+		quads.vertex(x + f + 2 + width, y + f + 1 + height, c1.getRGB());
+		quads.vertex(x + f + 2 + width, y - f - 1, c1.getRGB());
+		//inner background - also render behind the inner edges
+		quads.vertex(x - f - 1, y - f - 1, c1.getRGB());
+		quads.vertex(x - f - 1, y + f + 1 + height, c1.getRGB());
+		quads.vertex(x + f + 1 + width, y + f + 1 + height, c1.getRGB());
+		quads.vertex(x + f + 1 + width, y - f - 1, c1.getRGB());
+		//inner top - includes corners
+		quads.vertex(x - f - 1, y - f - 1, c2.getRGB());
+		quads.vertex(x - f - 1, y - f, c2.getRGB());
+		quads.vertex(x + f + 1 + width, y - f, c2.getRGB());
+		quads.vertex(x + f + 1 + width, y - f - 1, c2.getRGB());
+		//inner left - excludes corners
+		quads.vertex(x - f - 1, y - f, c2.getRGB());
+		quads.vertex(x - f - 1, y + f + height, c3.getRGB());
+		quads.vertex(x - f, y + f + height, c3.getRGB());
+		quads.vertex(x - f, y - f, c2.getRGB());
+		//inner bottom - includes corners
+		quads.vertex(x - f - 1, y + f + height, c3.getRGB());
+		quads.vertex(x - f - 1, y + f + 1 + height, c3.getRGB());
+		quads.vertex(x + f + 1 + width, y + f + 1 + height, c3.getRGB());
+		quads.vertex(x + f + 1 + width, y + f + height, c3.getRGB());
+		//inner right - excludes corners
+		quads.vertex(x + f + width, y - f, c2.getRGB());
+		quads.vertex(x + f + width, y + f + height, c3.getRGB());
+		quads.vertex(x + f + 1 + width, y + f + height, c3.getRGB());
+		quads.vertex(x + f + 1 + width, y - f, c2.getRGB());
+		quads.submit(graphics);
 	}
 }

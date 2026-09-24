@@ -1,6 +1,5 @@
 package sophisticated.building.create.foundation.gui.widget;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -22,7 +21,7 @@ public class Label extends AbstractSimiWidget {
 		super(x, y, Minecraft.getInstance().font.width(text), 10);
 		font = Minecraft.getInstance().font;
 		this.text = Components.literal("Label");
-		color = 0xFFFFFF;
+		color = 0xFFFFFFFF;
 		hasShadow = false;
 		suffix = "";
 	}
@@ -74,7 +73,6 @@ public class Label extends AbstractSimiWidget {
 		if (text == null || text.getString().isEmpty())
 			return;
 
-		RenderSystem.setShaderColor(1, 1, 1, 1);
 		MutableComponent copy = text.plainCopy();
 		if (suffix != null && !suffix.isEmpty())
 			copy.append(suffix);

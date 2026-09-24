@@ -1,7 +1,7 @@
 package sophisticated.building.gui;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -40,15 +40,15 @@ public class DiamondRandomizerBagScreen extends AbstractContainerScreen<DiamondR
 
 	@Override
 	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		guiGraphics.drawString(this.font, this.title, 8, 6, 0x404040, false);
-		guiGraphics.drawString(this.font, this.playerInventoryTitle, 8, imageHeight - 96 + 2, 0x404040, false);
+		guiGraphics.drawString(this.font, this.title, 8, 6, 0xFF404040, false);
+		guiGraphics.drawString(this.font, this.playerInventoryTitle, 8, imageHeight - 96 + 2, 0xFF404040, false);
 	}
 
 	@Override
 	protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
 		int marginHorizontal = (width - imageWidth) / 2;
 		int marginVertical = (height - imageHeight) / 2;
-		guiGraphics.blit(RenderType::guiTextured, guiTextures, marginHorizontal, marginVertical, 0, 0, imageWidth, imageHeight, 256, 256);
+		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, guiTextures, marginHorizontal, marginVertical, 0, 0, imageWidth, imageHeight, 256, 256);
 		
 		// Render red overlay on slots where player doesn't have the item in inventory
 		renderMissingItemOverlays(guiGraphics);

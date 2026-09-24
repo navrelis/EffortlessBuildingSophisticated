@@ -44,10 +44,10 @@ public class DelegatedStencilElement extends AbstractRenderElement {
 		if (stencil == null)
 			return;
 
-		graphics.pose().pushPose();
-		graphics.pose().translate(getX(), getY(), getZ());
+		graphics.pose().pushMatrix();
+		graphics.pose().translate(getX(), getY());
 		UIRenderHelper.stencilledGradient(graphics, stencil, element.gradient(width, height, alpha));
-		graphics.pose().popPose();
+		graphics.pose().popMatrix();
 	}
 
 }

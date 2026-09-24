@@ -1,13 +1,14 @@
 package sophisticated.building.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
@@ -137,15 +138,15 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 
 	@Override
 	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		guiGraphics.drawString(this.font, this.title, 8, 6, 0x404040, false);
-		guiGraphics.drawString(this.font, this.playerInventoryTitle, 8, imageHeight - 94, 0x404040, false);
+		guiGraphics.drawString(this.font, this.title, 8, 6, 0xFF404040, false);
+		guiGraphics.drawString(this.font, this.playerInventoryTitle, 8, imageHeight - 94, 0xFF404040, false);
 	}
 
 	@Override
 	protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
 		int marginHorizontal = (width - imageWidth) / 2;
 		int marginVertical = (height - imageHeight) / 2;
-		guiGraphics.blit(RenderType::guiTextured, guiTextures, marginHorizontal, marginVertical, 0, 0, imageWidth, imageHeight, 256, 256);
+		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, guiTextures, marginHorizontal, marginVertical, 0, 0, imageWidth, imageHeight, 256, 256);
 		
 		// Render red overlay on slots where player doesn't have the item in inventory
 		renderMissingItemOverlays(guiGraphics);
@@ -200,7 +201,6 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 		if (!(heldBag.getItem() instanceof OmegaRandomizerBagItem omegaBag)) return;
 		
 		Font font = Minecraft.getInstance().font;
-		PoseStack ms = guiGraphics.pose();
 		
 		// Calculate total weight for percentage tooltip
 		int totalWeight = 0;
@@ -217,6 +217,7 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 		}
 		
 		// Render weight badges
+		List<Component> hoveredTooltip = null;
 		for (int i = 0; i < OmegaRandomizerBagItem.INV_SIZE; i++) {
 			Slot slot = this.menu.getSlot(i);
 			if (slot == null || slot.getItem().isEmpty()) continue;
@@ -226,9 +227,6 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 			int slotY = topPos + slot.y;
 			
 			// Render weight badge in top-right corner of slot
-			ms.pushPose();
-			ms.translate(0, 0, 400); // draw above slot contents
-			
 			String weightText = String.valueOf(weight);
 			int textWidth = font.width(weightText);
 			int badgeX = slotX + 16 - textWidth - 2;
@@ -247,12 +245,9 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 			else color = 0xFFCC0000; // Dark red for 71+
 			
 			// Draw a subtle background behind the weight for readability
-			guiGraphics.fill(RenderType.guiOverlay(), badgeX - 2, badgeY - 1, badgeX + textWidth + 2, badgeY + badgeHeight, 0xAA000000);
+			guiGraphics.fill(badgeX - 2, badgeY - 1, badgeX + textWidth + 2, badgeY + badgeHeight, 0xAA000000);
 
-			// Drawn through the GUI buffer source (no buffer of its own per badge and frame).
 			guiGraphics.drawString(font, weightText, badgeX, badgeY, color, true);
-			
-			ms.popPose();
 			
 			// Check if mouse is hovering over this slot for tooltip
 			if (mouseX >= slotX && mouseX < slotX + 16 && mouseY >= slotY && mouseY < slotY + 16 && totalWeight > 0) {
@@ -262,9 +257,16 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 				tooltip.add(Component.literal(String.format("Chance: %.1f%%", percentage)).withStyle(ChatFormatting.YELLOW));
 				tooltip.add(Component.literal("Scroll to adjust").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC));
 				
-				// Offset tooltip to not overlap with item name tooltip (render below and to the right)
-				guiGraphics.renderComponentTooltip(font, tooltip, (int)mouseX + 12, (int)mouseY + 24);
+				hoveredTooltip = tooltip;
 			}
+		}
+
+		if (hoveredTooltip != null) {
+			// Offset tooltip to not overlap with item name tooltip (render below and to the right). GuiGraphics keeps only
+			// one deferred tooltip per frame (the item tooltip), so this one is drawn now, in a stratum above the badges.
+			guiGraphics.nextStratum();
+			guiGraphics.renderTooltip(font, hoveredTooltip.stream().map(line -> ClientTooltipComponent.create(line.getVisualOrderText())).toList(),
+				mouseX + 12, mouseY + 24, DefaultTooltipPositioner.INSTANCE, null);
 		}
 	}
 }

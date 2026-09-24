@@ -3,7 +3,7 @@ package sophisticated.building.gui.elements;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -32,17 +32,17 @@ public class GuiCheckBoxFixed extends Button {
 	@Override
 	public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partial) {
 		// Use blitSprite for modern nine-slice rendering
-		guiGraphics.blitSprite(RenderType::guiTextured, CHECKBOX_SPRITE, this.getX(), this.getY(), this.boxWidth, this.height);
-		int color = 14737632;
+		guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, CHECKBOX_SPRITE, this.getX(), this.getY(), this.boxWidth, this.height);
+		int color = 0xFFE0E0E0;
 
 		if (!this.active) {
-			color = 10526880;
+			color = 0xFFA0A0A0;
 		}
 
 		Font font = Minecraft.getInstance().font;
 
 		if (this.isChecked)
-			guiGraphics.drawCenteredString(font, "x", this.getX() + this.boxWidth / 2 + 1, this.getY() + 1, 14737632);
+			guiGraphics.drawCenteredString(font, "x", this.getX() + this.boxWidth / 2 + 1, this.getY() + 1, 0xFFE0E0E0);
 
 		guiGraphics.drawString(font, getMessage(), this.getX() + this.boxWidth + 2, this.getY() + 2, color, false);
 	}

@@ -1,6 +1,6 @@
 package sophisticated.building.create.catnip.gui.widget;
 
-import com.mojang.blaze3d.vertex.PoseStack;
+import org.joml.Matrix3x2fStack;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import sophisticated.building.create.catnip.animation.LerpedFloat;
@@ -126,28 +126,28 @@ public class ElementWidget extends AbstractSimiWidget {
 		float fadeValue = fade.getValue(partialTicks);
 		element.withAlpha(fadeValue);
 		if (fadeValue < 1) {
-			graphics.pose().translate((1 - fadeValue) * fadeModX, (1 - fadeValue) * fadeModY, 0);
+			graphics.pose().translate((1 - fadeValue) * fadeModX, (1 - fadeValue) * fadeModY);
 		}
 	}
 
 	@Override
 	public void doRender(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-		PoseStack poseStack = graphics.pose();
-		poseStack.pushPose();
-		poseStack.translate(getX() + paddingX, getY() + paddingY, z);
+		Matrix3x2fStack poseStack = graphics.pose();
+		poseStack.pushMatrix();
+		poseStack.translate(getX() + paddingX, getY() + paddingY);
 		float innerWidth = width - 2 * paddingX;
 		float innerHeight = height - 2 * paddingY;
 		float eX = element.getX(), eY = element.getY();
 		if (rescaleElement) {
 			float xScale = innerWidth / rescaleSizeX;
 			float yScale = innerHeight / rescaleSizeY;
-			poseStack.scale(xScale, yScale, 1);
+			poseStack.scale(xScale, yScale);
 			element.at(eX / xScale, eY / yScale);
 			innerWidth /= xScale;
 			innerHeight /= yScale;
 		}
 		element.withBounds((int) innerWidth, (int) innerHeight).render(graphics);
-		poseStack.popPose();
+		poseStack.popMatrix();
 		if (rescaleElement) {
 			element.at(eX, eY);
 		}

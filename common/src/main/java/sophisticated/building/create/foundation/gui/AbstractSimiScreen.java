@@ -1,7 +1,7 @@
 package sophisticated.building.create.foundation.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.vertex.PoseStack;
+import org.joml.Matrix3x2fStack;
 import sophisticated.building.create.catnip.animation.AnimationTickHolder;
 import sophisticated.building.create.catnip.gui.TickableGuiEventListener;
 import net.minecraft.client.gui.GuiGraphics;
@@ -107,9 +107,9 @@ public abstract class AbstractSimiScreen extends Screen {
 	@Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
 		partialTicks = AnimationTickHolder.getPartialTicksUI();
-		PoseStack ms = graphics.pose();
+		Matrix3x2fStack ms = graphics.pose();
 		
-		ms.pushPose();
+		ms.pushMatrix();
 
 		prepareFrame();
 
@@ -120,7 +120,7 @@ public abstract class AbstractSimiScreen extends Screen {
 
 		endFrame();
 
-		ms.popPose();
+		ms.popMatrix();
 	}
 
 	@Override
@@ -161,7 +161,7 @@ public abstract class AbstractSimiScreen extends Screen {
 					}
 					int ttx = simiWidget.lockedTooltipX == -1 ? mouseX : simiWidget.lockedTooltipX + simiWidget.getX();
 					int tty = simiWidget.lockedTooltipY == -1 ? mouseY : simiWidget.lockedTooltipY + simiWidget.getY();
-					graphics.renderComponentTooltip(font, tooltip, ttx, tty);
+					graphics.setComponentTooltipForNextFrame(font, tooltip, ttx, tty);
 				}
 
 				if (widget instanceof ModifiersScreenList list) {

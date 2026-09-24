@@ -8,6 +8,8 @@ import sophisticated.building.ServerConfig;
 
 public class PowerLevel {
 	public static final int MAX_POWER_LEVEL = 3; //Common access
+	/** Key of the level in the saved player data (NBT here, a value output on NeoForge 1.21.6+). */
+	public static final String SAVE_KEY = "powerLevel";
 
 	public PowerLevel() {
 	}
@@ -100,11 +102,11 @@ public class PowerLevel {
 
 	public CompoundTag serializeNBT(Provider provider) {
 		CompoundTag tag = new CompoundTag();
-		tag.putInt("powerLevel", getPowerLevel());
+		tag.putInt(SAVE_KEY, getPowerLevel());
 		return tag;
 	}
 
 	public void deserializeNBT(Provider provider, CompoundTag nbt) {
-		setPowerLevel(nbt.getIntOr("powerLevel", 0));
+		setPowerLevel(nbt.getIntOr(SAVE_KEY, 0));
 	}
 }

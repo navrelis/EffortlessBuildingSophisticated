@@ -1,7 +1,7 @@
 package sophisticated.building.neoforge;
 
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.attachment.IAttachmentHolder;
@@ -16,7 +16,8 @@ import java.util.function.Supplier;
 /**
  * The player's {@code sophisticatedbuilding:power_level} attachment, saved with the player. The
  * serializer writes exactly what {@code AttachmentType.serializable} wrote while {@link PowerLevel}
- * implemented {@code INBTSerializable}, so existing player data keeps loading.
+ * implemented {@code INBTSerializable} (the attachment's compound holds {@link PowerLevel#SAVE_KEY}),
+ * so existing player data keeps loading.
  */
 public final class NeoForgeAttachments {
 
@@ -32,17 +33,20 @@ public final class NeoForgeAttachments {
         ATTACHMENT_TYPES.register(modEventBus);
     }
 
-    private static final class PowerLevelSerializer implements IAttachmentSerializer<CompoundTag, PowerLevel> {
+    // NeoForge 21.6+ serializes attachments through value inputs/outputs; each attachment gets its own child of the
+    // holder's attachment compound, as the CompoundTag of the earlier serializer.
+    private static final class PowerLevelSerializer implements IAttachmentSerializer<PowerLevel> {
         @Override
-        public PowerLevel read(IAttachmentHolder holder, CompoundTag tag, HolderLookup.Provider provider) {
+        public PowerLevel read(IAttachmentHolder holder, ValueInput input) {
             PowerLevel powerLevel = new PowerLevel();
-            powerLevel.deserializeNBT(provider, tag);
+            powerLevel.setPowerLevel(input.getIntOr(PowerLevel.SAVE_KEY, 0));
             return powerLevel;
         }
 
         @Override
-        public CompoundTag write(PowerLevel attachment, HolderLookup.Provider provider) {
-            return attachment.serializeNBT(provider);
+        public boolean write(PowerLevel attachment, ValueOutput output) {
+            output.putInt(PowerLevel.SAVE_KEY, attachment.getPowerLevel());
+            return true;
         }
     }
 }

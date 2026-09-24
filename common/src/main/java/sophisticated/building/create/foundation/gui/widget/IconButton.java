@@ -1,9 +1,8 @@
 package sophisticated.building.create.foundation.gui.widget;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import sophisticated.building.gui.ScreenElement;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import sophisticated.building.create.foundation.gui.AllGuiTextures;
 
@@ -28,14 +27,13 @@ public class IconButton extends AbstractSimiWidget {
 			AllGuiTextures button = !active ? AllGuiTextures.BUTTON_DOWN
 				: isMouseOver(mouseX, mouseY) ? AllGuiTextures.BUTTON_HOVER : AllGuiTextures.BUTTON;
 
-			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 			drawBg(graphics, button);
 			icon.render(graphics, getX() + 1, getY() + 1);
 		}
 	}
 
 	protected void drawBg(GuiGraphics graphics, AllGuiTextures button) {
-		graphics.blit(RenderType::guiTextured, button.location, getX(), getY(), button.startX, button.startY, button.width, button.height, 256, 256);
+		graphics.blit(RenderPipelines.GUI_TEXTURED, button.location, getX(), getY(), button.startX, button.startY, button.width, button.height, 256, 256);
 	}
 
 	public void setToolTip(Component text) {

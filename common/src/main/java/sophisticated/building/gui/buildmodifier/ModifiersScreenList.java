@@ -149,7 +149,7 @@ public class ModifiersScreenList extends ObjectSelectionList<ModifiersScreenList
                         continue;
                     int ttx = simiWidget.lockedTooltipX == -1 ? mouseX : simiWidget.lockedTooltipX + simiWidget.getX();
                     int tty = simiWidget.lockedTooltipY == -1 ? mouseY : simiWidget.lockedTooltipY + simiWidget.getY();
-                    guiGraphics.renderComponentTooltip(getFont(), tooltip, ttx, tty);
+                    guiGraphics.setComponentTooltipForNextFrame(getFont(), tooltip, ttx, tty);
                 }
             }
         }

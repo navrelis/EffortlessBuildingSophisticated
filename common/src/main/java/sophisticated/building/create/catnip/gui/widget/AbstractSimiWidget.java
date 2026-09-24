@@ -120,19 +120,19 @@ public abstract class AbstractSimiWidget extends AbstractWidget implements Ticka
 			int tty = this.lockedTooltipY == -1 ? mouseY : this.lockedTooltipY + this.getY();
 
 			Font font = Minecraft.getInstance().font;
-			graphics.renderComponentTooltip(font, tooltip, ttx, tty);
+			graphics.setComponentTooltipForNextFrame(font, tooltip, ttx, tty);
 		}
 	}
 
 	protected void beforeRender(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-		graphics.pose().pushPose();
+		graphics.pose().pushMatrix();
 	}
 
 	protected void doRender(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
 	}
 
 	protected void afterRender(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-		graphics.pose().popPose();
+		graphics.pose().popMatrix();
 	}
 
 	public void runCallback(double mouseX, double mouseY) {

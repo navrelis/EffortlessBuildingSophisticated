@@ -6,7 +6,6 @@ import net.minecraft.Util;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.TriState;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.create.AllSpecialTextures;
 
@@ -22,7 +21,7 @@ public abstract class OutlineRenderTypes extends RenderType {
 
 	private static final RenderType OUTLINE_SOLID =
 		RenderType.create(createLayerName("outline_solid"), 256, false, false, RenderPipelines.ENTITY_SOLID, CompositeState.builder()
-			.setTextureState(new TextureStateShard(AllSpecialTextures.BLANK.getLocation(), TriState.FALSE, false))
+			.setTextureState(new TextureStateShard(AllSpecialTextures.BLANK.getLocation(), false))
 			.setLightmapState(LIGHTMAP)
 			.setOverlayState(OVERLAY)
 			.createCompositeState(false));
@@ -39,7 +38,7 @@ public abstract class OutlineRenderTypes extends RenderType {
 
 	private static final BiFunction<ResourceLocation, Boolean, RenderType> OUTLINE_TRANSLUCENT = Util.memoize((texture, cull) ->
 		RenderType.create(createLayerName("outline_translucent" + (cull ? "_cull" : "")), 256, false, true, TRANSLUCENT_PIPELINE.apply(cull), CompositeState.builder()
-			.setTextureState(new TextureStateShard(texture, TriState.FALSE, false))
+			.setTextureState(new TextureStateShard(texture, false))
 			.setLightmapState(LIGHTMAP)
 			.setOverlayState(OVERLAY)
 			.createCompositeState(false)));

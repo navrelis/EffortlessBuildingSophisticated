@@ -7,7 +7,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.util.Mth;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -82,7 +81,7 @@ public class GuiScrollPane extends SlotGui {
 			//All entries
 			this.renderList(guiGraphics, insideLeft, insideTop, mouseXIn, mouseYIn, partialTicks);
 
-			//Draw scrollbar (without depth test, over the entries)
+			//Draw scrollbar (submitted after the entries, so it is layered over them)
 			int maxScroll = this.getMaxScroll();
 			if (maxScroll > 0) {
 				int k1 = (int) ((float) ((this.y1 - this.y0) * (this.y1 - this.y0)) / (float) this.getMaxPosition());
@@ -92,9 +91,9 @@ public class GuiScrollPane extends SlotGui {
 					l1 = this.y0;
 				}
 
-				guiGraphics.fill(RenderType.guiOverlay(), scrollbarLeft, this.y0, scrollbarRight, this.y1, 0xFF000000);
-				guiGraphics.fill(RenderType.guiOverlay(), scrollbarLeft, l1, scrollbarRight, l1 + k1, 0xFF808080);
-				guiGraphics.fill(RenderType.guiOverlay(), scrollbarLeft, l1, scrollbarRight - 1, l1 + k1 - 1, 0xFFC0C0C0);
+				guiGraphics.fill(scrollbarLeft, this.y0, scrollbarRight, this.y1, 0xFF000000);
+				guiGraphics.fill(scrollbarLeft, l1, scrollbarRight, l1 + k1, 0xFF808080);
+				guiGraphics.fill(scrollbarLeft, l1, scrollbarRight - 1, l1 + k1 - 1, 0xFFC0C0C0);
 			}
 		}
 	}

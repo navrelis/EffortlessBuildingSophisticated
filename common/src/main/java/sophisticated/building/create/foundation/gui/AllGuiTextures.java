@@ -3,7 +3,7 @@ package sophisticated.building.create.foundation.gui;
 import sophisticated.building.gui.ScreenElement;
 import sophisticated.building.utilities.Color;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.ResourceLocation;
 import sophisticated.building.create.Create;
 
@@ -66,11 +66,11 @@ public enum AllGuiTextures implements ScreenElement {
 	}
 
 	public void render(GuiGraphics graphics, int x, int y) {
-		graphics.blit(RenderType::guiTextured, location, x, y, startX, startY, width, height, 256, 256);
+		graphics.blit(RenderPipelines.GUI_TEXTURED, location, x, y, startX, startY, width, height, 256, 256);
 	}
 
 	public void render(GuiGraphics graphics, int x, int y, Color c) {
-		graphics.blit(RenderType::guiTextured, location, x, y, startX, startY, width, height, 256, 256, c.toARGB());
+		graphics.blit(RenderPipelines.GUI_TEXTURED, location, x, y, startX, startY, width, height, 256, 256, c.toARGB());
 	}
 
 }

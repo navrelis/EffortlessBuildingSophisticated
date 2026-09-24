@@ -7,6 +7,7 @@ import sophisticated.building.gui.ScreenElement;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
@@ -110,7 +111,7 @@ public class AllIcons implements ScreenElement {
     }
 
     public void render(GuiGraphics guiGraphics, int x, int y) {
-        guiGraphics.blit(RenderType::guiTextured, ICON_ATLAS, x, y, iconX, iconY, 16, 16, 256, 256);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ICON_ATLAS, x, y, iconX, iconY, 16, 16, 256, 256);
     }
 
     public void render(PoseStack ms, MultiBufferSource buffer, int color) {

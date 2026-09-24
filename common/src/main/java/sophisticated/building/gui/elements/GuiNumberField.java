@@ -127,7 +127,7 @@ public class GuiNumberField {
 			textLines.add(Component.literal("Hold ").append(Component.literal("ctrl ").withStyle(ChatFormatting.DARK_GREEN)).append("for ")
 				.append(Component.literal("5").withStyle(ChatFormatting.RED)));
 		}
-		graphics.renderComponentTooltip(Minecraft.getInstance().font, textLines, mouseX - 10, mouseY + 25);
+		graphics.setComponentTooltipForNextFrame(Minecraft.getInstance().font, textLines, mouseX - 10, mouseY + 25);
 	}
 
 	public void update() {

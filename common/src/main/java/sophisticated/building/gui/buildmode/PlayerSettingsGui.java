@@ -88,10 +88,10 @@ public class PlayerSettingsGui extends Screen {
 		super.render(guiGraphics, mouseX, mouseY, partialTicks);
 
 		int yy = top;
-		guiGraphics.drawString(font, "Shader type", left, yy + 5, 0xFFFFFF, false);
+		guiGraphics.drawString(font, "Shader type", left, yy + 5, 0xFFFFFFFF, false);
 
 		yy += 50;
-		guiGraphics.drawString(font, "Shader speed", left, yy + 5, 0xFFFFFF, false);
+		guiGraphics.drawString(font, "Shader speed", left, yy + 5, 0xFFFFFFFF, false);
 
 		if (showShaderList)
 			this.shaderTypeList.render(guiGraphics, mouseX, mouseY, partialTicks);
@@ -213,7 +213,7 @@ public class PlayerSettingsGui extends Screen {
 			@Override
 			public void render(GuiGraphics guiGraphics, int itemIndex, int rowTop, int rowLeft, int rowWidth, int rowHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
 				if (rowTop + 10 > ShaderTypeList.this.getY() && rowTop + rowHeight - 5 < (ShaderTypeList.this.getY() + ShaderTypeList.this.getHeight()))
-					guiGraphics.drawString(font, shaderType.name, ShaderTypeList.this.getX() + 8, rowTop + 4, 0xFFFFFF, false);
+					guiGraphics.drawString(font, shaderType.name, ShaderTypeList.this.getX() + 8, rowTop + 4, 0xFFFFFFFF, false);
 			}
 
 			@Override

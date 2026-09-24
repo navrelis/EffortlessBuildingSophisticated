@@ -2,6 +2,7 @@ package sophisticated.building.render;
 
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
+import org.joml.Matrix3x2fStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -10,6 +11,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -114,12 +116,12 @@ public class RenderHandler {
 		int screenHeight = mc.getWindow().getGuiScaledHeight();
 		var font = mc.font;
 
-		PoseStack ms = guiGraphics.pose();
-		ms.pushPose();
-		ms.translate(screenWidth / 2.0, screenHeight - 54, 0.0D);
+		Matrix3x2fStack ms = guiGraphics.pose();
+		ms.pushMatrix();
+		ms.translate(screenWidth / 2.0f, screenHeight - 54);
 		int l = font.width(text);
 		guiGraphics.drawString(font, text, (int)((float)(-l / 2)), -4, 0xffffffff, true);
-		ms.popPose();
+		ms.popMatrix();
 	}
 
 	//Draw item stacks at cursor, showing what will be used and what is missing
@@ -246,14 +248,10 @@ public class RenderHandler {
 	private static void drawItemStack(GuiGraphics guiGraphics, ItemStack stack, int x, int y, boolean missing) {
 		guiGraphics.renderItem(stack, x, y);
 
-		// Draw count text, red if missing.
-		PoseStack ms = guiGraphics.pose();
-		ms.pushPose();
+		// Draw count text, red if missing (above the item: the GUI render state layers it over the item it intersects).
 		Font font = Minecraft.getInstance().font;
 		String text = String.valueOf(stack.getCount());
-		ms.translate(0.0D, 0.0D, 200.0F);
-		guiGraphics.drawString(font, text, x + 19 - 2 - font.width(text), y + 6 + 3, missing ? ChatFormatting.RED.getColor() : ChatFormatting.WHITE.getColor(), true);
-		ms.popPose();
+		guiGraphics.drawString(font, text, x + 19 - 2 - font.width(text), y + 6 + 3, ARGB.opaque(missing ? ChatFormatting.RED.getColor() : ChatFormatting.WHITE.getColor()), true);
 	}
 
 	protected static VertexConsumer beginLines(MultiBufferSource.BufferSource renderTypeBuffer) {
@@ -374,10 +372,10 @@ public class RenderHandler {
 	 * Draw a single item stack for the randomizer bag HUD with custom count.
 	 */
 	private static void drawRandomizerHUDItem(GuiGraphics guiGraphics, ItemStack stack, int x, int y, int count, float scale) {
-		PoseStack ms = guiGraphics.pose();
-		ms.pushPose();
-		ms.translate(x, y, 0);
-		ms.scale(scale, scale, 1.0f);
+		Matrix3x2fStack ms = guiGraphics.pose();
+		ms.pushMatrix();
+		ms.translate(x, y);
+		ms.scale(scale, scale);
 		
 		// Render item at origin (since we've translated)
 		guiGraphics.renderItem(stack, 0, 0);
@@ -385,20 +383,19 @@ public class RenderHandler {
 		// Draw count text
 		Font font = Minecraft.getInstance().font;
 		String text = formatCount(count);
-		ms.translate(0.0D, 0.0D, 200.0F);
 		
 		// Color based on count: red if 0, yellow if low (<=31), white otherwise (32+)
 		int color;
 		if (count == 0) {
-			color = ChatFormatting.RED.getColor();
+			color = ARGB.opaque(ChatFormatting.RED.getColor());
 		} else if (count <= 31) {
-			color = ChatFormatting.YELLOW.getColor();
+			color = ARGB.opaque(ChatFormatting.YELLOW.getColor());
 		} else {
-			color = ChatFormatting.WHITE.getColor();
+			color = ARGB.opaque(ChatFormatting.WHITE.getColor());
 		}
 		
 		guiGraphics.drawString(font, text, 16 - 2 - font.width(text), 6 + 3, color, true);
-		ms.popPose();
+		ms.popMatrix();
 	}
 
 }

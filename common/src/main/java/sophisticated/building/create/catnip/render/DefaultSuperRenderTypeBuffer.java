@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.SectionBufferBuilderPack;
 import net.minecraft.client.renderer.Sheets;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.resources.model.ModelBakery;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -66,10 +67,10 @@ public class DefaultSuperRenderTypeBuffer implements SuperRenderTypeBuffer {
 		// Visible clones from RenderBuffers
 		private final SectionBufferBuilderPack fixedBufferPack = new SectionBufferBuilderPack();
 		private final SortedMap<RenderType, ByteBufferBuilder> fixedBuffers = Util.make(new Object2ObjectLinkedOpenHashMap<>(), map -> {
-			map.put(Sheets.solidBlockSheet(), fixedBufferPack.buffer(RenderType.solid()));
-			map.put(Sheets.cutoutBlockSheet(), fixedBufferPack.buffer(RenderType.cutout()));
-			map.put(Sheets.bannerSheet(), fixedBufferPack.buffer(RenderType.cutoutMipped()));
-			map.put(Sheets.translucentItemSheet(), fixedBufferPack.buffer(RenderType.translucent()));
+			map.put(Sheets.solidBlockSheet(), fixedBufferPack.buffer(ChunkSectionLayer.SOLID));
+			map.put(Sheets.cutoutBlockSheet(), fixedBufferPack.buffer(ChunkSectionLayer.CUTOUT));
+			map.put(Sheets.bannerSheet(), fixedBufferPack.buffer(ChunkSectionLayer.CUTOUT_MIPPED));
+			map.put(Sheets.translucentItemSheet(), fixedBufferPack.buffer(ChunkSectionLayer.TRANSLUCENT));
 			put(map, Sheets.shieldSheet());
 			put(map, Sheets.bedSheet());
 			put(map, Sheets.shulkerBoxSheet());

@@ -61,15 +61,16 @@ public class NeoForgeClientEvents {
         sophisticated.building.create.events.ClientEvents.onUnloadWorld(event.getLevel());
     }
 
+    // Block previews, mirror/array lines and ghost blocks after the translucent blocks; the outlines
+    // after the particles, where Catnip drew its outliner on NeoForge (one event per stage since NeoForge 21.6).
     @SubscribeEvent
-    public static void onRenderLevel(RenderLevelStageEvent event) {
-        // Block previews, mirror/array lines and ghost blocks after the translucent blocks; the outlines
-        // after the particles, where Catnip drew its outliner on NeoForge.
-        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
-            RenderHandler.onRenderWorld(event.getPoseStack());
-        } else if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
-            RenderHandler.onRenderOutlines(event.getPoseStack());
-        }
+    public static void onRenderLevelAfterTranslucentBlocks(RenderLevelStageEvent.AfterTranslucentBlocks event) {
+        RenderHandler.onRenderWorld(event.getPoseStack());
+    }
+
+    @SubscribeEvent
+    public static void onRenderLevelAfterParticles(RenderLevelStageEvent.AfterParticles event) {
+        RenderHandler.onRenderOutlines(event.getPoseStack());
     }
 
     @SubscribeEvent

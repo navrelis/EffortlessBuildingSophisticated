@@ -77,7 +77,7 @@ public abstract class GhostBlockRenderer {
 			Color color = params.rgbSupplier.get();
 
 			BlockStateModel model = dispatcher.getBlockModel(state);
-			RenderType layer = RenderType.translucent();
+			RenderType layer = RenderType.translucentMovingBlock();
 			VertexConsumer vb = buffer.getEarlyBuffer(layer);
 
 			ms.pushPose();

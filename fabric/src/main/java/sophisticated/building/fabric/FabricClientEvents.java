@@ -4,8 +4,8 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -95,7 +95,8 @@ public final class FabricClientEvents {
             RenderHandler.onRenderOutlines(context.matrixStack());
         });
 
-        HudRenderCallback.EVENT.register((guiGraphics, deltaTracker) -> {
+        // Last HUD element, where the deprecated HudRenderCallback drew (Fabric API for 1.21.6+).
+        HudElementRegistry.addLast(SophisticatedBuilding.asResource("hud"), (guiGraphics, deltaTracker) -> {
             RenderHandler.onRenderGui(guiGraphics);
             MATERIAL_COST_OVERLAY.render(guiGraphics, deltaTracker);
         });

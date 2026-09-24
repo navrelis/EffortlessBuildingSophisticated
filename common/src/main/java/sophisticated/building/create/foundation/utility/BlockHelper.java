@@ -14,6 +14,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -39,6 +40,7 @@ import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.storage.TagValueInput;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.platform.Services;
 
@@ -258,7 +260,7 @@ public class BlockHelper {
 				data.putInt("x", target.getX());
 				data.putInt("y", target.getY());
 				data.putInt("z", target.getZ());
-				blockEntity.loadWithComponents(data, world.registryAccess());
+				blockEntity.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, world.registryAccess(), data));
 			}
 		}
 

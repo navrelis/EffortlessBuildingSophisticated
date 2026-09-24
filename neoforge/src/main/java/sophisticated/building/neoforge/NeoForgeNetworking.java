@@ -3,7 +3,6 @@ package sophisticated.building.neoforge;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.network.handling.DirectionalPayloadHandler;
 import net.neoforged.neoforge.network.handling.IPayloadHandler;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import sophisticated.building.SophisticatedBuilding;
@@ -59,7 +58,7 @@ public final class NeoForgeNetworking {
 	@SuppressWarnings("unchecked")
 	private static <T extends CustomPacketPayload> void registerBidirectional(PayloadRegistrar registrar, PacketHandler.Payload<T> serverbound, PacketHandler.Payload<?> clientbound) {
 		PacketHandler.Payload<T> toClient = (PacketHandler.Payload<T>) clientbound;
-		registrar.playBidirectional(serverbound.type(), serverbound.codec(), new DirectionalPayloadHandler<>(handler(toClient), handler(serverbound)));
+		registrar.playBidirectional(serverbound.type(), serverbound.codec(), handler(serverbound), handler(toClient));
 	}
 
 	private static <T extends CustomPacketPayload> IPayloadHandler<T> handler(PacketHandler.Payload<T> payload) {

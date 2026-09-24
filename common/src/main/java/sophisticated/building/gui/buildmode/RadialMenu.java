@@ -1,14 +1,13 @@
 package sophisticated.building.gui.buildmode;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
+import org.joml.Matrix3x2fStack;
+import sophisticated.building.client.gui.GuiQuads;
 import sophisticated.building.utilities.Color;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.Direction;
@@ -16,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.RandomSource;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuildingClient;
@@ -112,12 +112,18 @@ public class RadialMenu extends Screen {
 		}
 	}
 
+	// Minecraft 1.21.6 draws the screen background (blur and menu background) before render; the radial menu only has its
+	// own fading gradient, drawn in render.
+	@Override
+	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+	}
+
 	@Override
 	public void render(GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float partialTicks) {
 		BuildModeEnum currentBuildMode = SophisticatedBuildingClient.BUILD_MODES.getBuildMode();
 
-		PoseStack ms = guiGraphics.pose();
-		ms.pushPose();
+		Matrix3x2fStack ms = guiGraphics.pose();
+		ms.pushMatrix();
 
 		visibility += fadeSpeed * partialTicks;
 		if (visibility > 1f) visibility = 1f;
@@ -193,25 +199,22 @@ public class RadialMenu extends Screen {
 		switchTo = null;
 		doAction = null;
 
-		//Draw buildmode and action backgrounds (same GUI batch as the background gradient, drawn before the icons)
-		final double buttonRadians = mouseRadians;
-		guiGraphics.drawSpecial(buffers -> {
-			VertexConsumer buffer = buffers.getBuffer(RenderType.gui());
-			drawRadialButtonBackgrounds(currentBuildMode, buffer, middleX, middleY, mouseXCenter, mouseYCenter, buttonRadians,
-					quarterCircle, modes);
-			drawSideButtonBackgrounds(buffer, middleX, middleY, mouseXCenter, mouseYCenter, buttons);
-		});
-
-		ms.translate(0, 0, 200);
+		//Draw buildmode and action backgrounds (one GUI element above the background gradient; the icons and texts
+		//submitted after it are layered above it)
+		GuiQuads backgrounds = GuiQuads.colored(guiGraphics);
+		drawRadialButtonBackgrounds(currentBuildMode, backgrounds, middleX, middleY, mouseXCenter, mouseYCenter, mouseRadians,
+				quarterCircle, modes);
+		drawSideButtonBackgrounds(backgrounds, middleX, middleY, mouseXCenter, mouseYCenter, buttons);
+		backgrounds.submit(guiGraphics);
 		
 		drawIcons(guiGraphics, middleX, middleY, modes, buttons);
 
 		drawTexts(guiGraphics, currentBuildMode, middleX, middleY, modes, buttons, options, mouseXX, mouseYY);
 
-		ms.popPose();
+		ms.popMatrix();
 	}
 
-	private void drawRadialButtonBackgrounds(BuildModeEnum currentBuildMode, VertexConsumer buffer, double middleX, double middleY,
+	private void drawRadialButtonBackgrounds(BuildModeEnum currentBuildMode, GuiQuads buffer, double middleX, double middleY,
 											 double mouseXCenter, double mouseYCenter, double mouseRadians, double quarterCircle, ArrayList<MenuRegion> modes) {
 		if (!modes.isEmpty()) {
 			final int totalModes = Math.max(3, modes.size());
@@ -254,10 +257,10 @@ public class RadialMenu extends Screen {
 					switchTo = menuRegion.mode;
 				}
 
-				buffer.addVertex((float)(middleX + x1m1), (float)(middleY + y1m1), 20f).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-				buffer.addVertex((float)(middleX + x2m1), (float)(middleY + y2m1), 20f).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-				buffer.addVertex((float)(middleX + x2m2), (float)(middleY + y2m2), 20f).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-				buffer.addVertex((float)(middleX + x1m2), (float)(middleY + y1m2), 20f).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+				buffer.vertex((float)(middleX + x1m1), (float)(middleY + y1m1), color.toARGB());
+				buffer.vertex((float)(middleX + x2m1), (float)(middleY + y2m1), color.toARGB());
+				buffer.vertex((float)(middleX + x2m2), (float)(middleY + y2m2), color.toARGB());
+				buffer.vertex((float)(middleX + x1m2), (float)(middleY + y1m2), color.toARGB());
 
 				//Category line
 				color = menuRegion.mode.category.color;
@@ -268,15 +271,15 @@ public class RadialMenu extends Screen {
 				final double y1m3 = Math.sin(beginRadians + fragment) * categoryLineOuterEdge;
 				final double y2m3 = Math.sin(endRadians - fragment) * categoryLineOuterEdge;
 
-				buffer.addVertex((float)(middleX + x1m1), (float)(middleY + y1m1), 200).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-				buffer.addVertex((float)(middleX + x2m1), (float)(middleY + y2m1), 200).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-				buffer.addVertex((float)(middleX + x2m3), (float)(middleY + y2m3), 200).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-				buffer.addVertex((float)(middleX + x1m3), (float)(middleY + y1m3), 200).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+				buffer.vertex((float)(middleX + x1m1), (float)(middleY + y1m1), color.toARGB());
+				buffer.vertex((float)(middleX + x2m1), (float)(middleY + y2m1), color.toARGB());
+				buffer.vertex((float)(middleX + x2m3), (float)(middleY + y2m3), color.toARGB());
+				buffer.vertex((float)(middleX + x1m3), (float)(middleY + y1m3), color.toARGB());
 			}
 		}
 	}
 
-	private void drawSideButtonBackgrounds(VertexConsumer buffer, double middleX, double middleY, double mouseXCenter, double mouseYCenter, ArrayList<MenuButton> buttons) {
+	private void drawSideButtonBackgrounds(GuiQuads buffer, double middleX, double middleY, double mouseXCenter, double mouseYCenter, ArrayList<MenuButton> buttons) {
 		for (final MenuButton btn : buttons) {
 
 			final boolean isHighlighted = btn.x1 <= mouseXCenter && btn.x2 >= mouseXCenter && btn.y1 <= mouseYCenter && btn.y2 >= mouseYCenter;
@@ -302,18 +305,15 @@ public class RadialMenu extends Screen {
 				doAction = btn.action;
 			}
 
-			buffer.addVertex((float)(middleX + btn.x1), (float)(middleY + btn.y1), 200).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-			buffer.addVertex((float)(middleX + btn.x1), (float)(middleY + btn.y2), 200).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-			buffer.addVertex((float)(middleX + btn.x2), (float)(middleY + btn.y2), 200).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-			buffer.addVertex((float)(middleX + btn.x2), (float)(middleY + btn.y1), 200).setColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+			buffer.vertex((float)(middleX + btn.x1), (float)(middleY + btn.y1), color.toARGB());
+			buffer.vertex((float)(middleX + btn.x1), (float)(middleY + btn.y2), color.toARGB());
+			buffer.vertex((float)(middleX + btn.x2), (float)(middleY + btn.y2), color.toARGB());
+			buffer.vertex((float)(middleX + btn.x2), (float)(middleY + btn.y1), color.toARGB());
 		}
 	}
 
 	private void drawIcons(GuiGraphics guiGraphics, double middleX, double middleY,
 						   ArrayList<MenuRegion> modes, ArrayList<MenuButton> buttons) {
-		PoseStack ms = guiGraphics.pose();
-		ms.pushPose();
-
 		//Draw buildmode icons
 		for (final MenuRegion menuRegion : modes) {
 
@@ -331,8 +331,6 @@ public class RadialMenu extends Screen {
 
 			button.action.icon.render(guiGraphics, (int) (middleX + x - 8), (int) (middleY + y - 8));
 		}
-
-		ms.popPose();
 	}
 
 	private void drawTexts(GuiGraphics guiGraphics, BuildModeEnum currentBuildMode, double middleX, double middleY, ArrayList<MenuRegion> modes, ArrayList<MenuButton> buttons, OptionEnum[] options, int mouseX, int mouseY) {
@@ -348,7 +346,7 @@ public class RadialMenu extends Screen {
 		//Draw power level info
 		String powerLevelValue = minecraft.player.isCreative() ? "Creative" : String.valueOf(AttachmentHandler.getPowerLevel(minecraft.player));
 		String powerLevelText = I18n.get("key.sophisticatedbuilding.power_level") + ": " + powerLevelValue;
-		guiGraphics.drawString(font, powerLevelText, width - font.width(powerLevelText) - 4, height - 22, minecraft.player.isCreative() ? watermarkTextColor : ChatFormatting.DARK_PURPLE.getColor());
+		guiGraphics.drawString(font, powerLevelText, width - font.width(powerLevelText) - 4, height - 22, minecraft.player.isCreative() ? watermarkTextColor : ARGB.opaque(ChatFormatting.DARK_PURPLE.getColor()));
 
 		//if hover over power level info, show tooltip
 		if (mouseX >= width - font.width(powerLevelText) - 14 && mouseX <= width && mouseY >= height - 24 && mouseY <= height) {
@@ -371,7 +369,7 @@ public class RadialMenu extends Screen {
 				tooltip.addAll(TooltipHelper.cutTextComponent(Components.translatable("key.sophisticatedbuilding.next_power_level_how"), ChatFormatting.GRAY, ChatFormatting.WHITE));
 			}
 
-			guiGraphics.renderComponentTooltip(font, tooltip, mouseX, mouseY);
+			guiGraphics.setComponentTooltipForNextFrame(font, tooltip, mouseX, mouseY);
 		}
 
 		//Draw buildmode text
@@ -418,7 +416,7 @@ public class RadialMenu extends Screen {
 				var keybind = findKeybind(button);
 				if (keybind != null)
 					tooltip.add(Lang.translateDirect("tooltip.keybind", keybind.withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY));
-				guiGraphics.renderComponentTooltip(font, tooltip, mouseX, mouseY);
+				guiGraphics.setComponentTooltipForNextFrame(font, tooltip, mouseX, mouseY);
 			}
 		}
 	}
