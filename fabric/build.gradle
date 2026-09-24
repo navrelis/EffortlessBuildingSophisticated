@@ -1,0 +1,213 @@
+plugins {
+    id 'fabric-loom' version '1.10.1'
+    id 'java-library'
+    id 'idea'
+}
+
+version = mod_version
+group = mod_group
+
+base {
+    archivesName = "${mod_id}-fabric-${minecraft_version}"
+}
+
+java {
+    // Mojang ships Java 21 to end users in 1.21.1, so mods should target Java 21.
+    toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
+    withSourcesJar()
+}
+
+// The loader-neutral code and assets in ../common are compiled and packaged into this jar.
+def commonDir = file('../common')
+
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
+}
+
+sourceSets {
+    main {
+        java.srcDir "${commonDir}/src/main/java"
+        resources.srcDir "${commonDir}/src/main/resources"
+    }
+    test {
+        java.srcDir "${commonDir}/src/test/java"
+    }
+    // In-world tests of the server-side building rules (Fabric GameTest). Own fabric.mod.json with a
+    // "fabric-gametest" entrypoint; only loaded by the gametest run, never packaged into the mod jar.
+    gametest {
+        compileClasspath += main.compileClasspath + main.output
+        runtimeClasspath += main.runtimeClasspath + main.output
+    }
+    // Empty source set of the clientExported run: Minecraft and Fabric Loader only, so every mod (this one included)
+    // comes from run-exported/mods. This project, its remapped mod dependencies (resolved lazily, Loom creates that
+    // configuration later) and the dev-only libraries are left out.
+    exportedStub {
+        def excluded = main.output + files({ configurations.modRuntimeClasspathMainMapped }) + configurations.localRuntime
+        runtimeClasspath = main.runtimeClasspath.filter { file -> file.name.startsWith('fabric-loader-') || !excluded.contains(file) }
+    }
+}
+
+repositories {
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'CurseMaven'
+                url = 'https://www.cursemaven.com'
+            }
+        }
+        filter { includeGroup('curse.maven') }
+    }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'Fabricators of Create'
+                url = 'https://mvn.devos.one/snapshots'
+            }
+        }
+        filter { includeGroup('io.github.fabricators_of_create.Porting-Lib') }
+    }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'Fuzss'
+                url = 'https://raw.githubusercontent.com/Fuzss/modresources/main/maven'
+            }
+        }
+        filter { includeGroup('fuzs.forgeconfigapiport') }
+    }
+    mavenCentral()
+}
+
+// Porting Lib modules nested in the Sophisticated Core jar (see gradle.properties).
+def portingLibModules = ['core', 'transfer', 'fluids', 'item_abilities', 'loot', 'level_events', 'render_types',
+                         'model_loader', 'lazy_registration', 'conditions']
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+
+    // Sophisticated Core/Backpacks: compiled against, and present in the dev runs so runClient/runServer start with
+    // the backpack integration active. Optional for players.
+    modCompileOnly "curse.maven:${sophisticatedcore_cf}"
+    modCompileOnly "curse.maven:${sophisticatedbackpacks_cf}"
+    modLocalRuntime "curse.maven:${sophisticatedcore_cf}"
+    modLocalRuntime "curse.maven:${sophisticatedbackpacks_cf}"
+    portingLibModules.each { module ->
+        modCompileOnly("io.github.fabricators_of_create.Porting-Lib:${module}:${porting_lib_version}") { transitive = false }
+        modLocalRuntime("io.github.fabricators_of_create.Porting-Lib:${module}:${porting_lib_version}") { transitive = false }
+    }
+    modLocalRuntime("fuzs.forgeconfigapiport:forgeconfigapiport-fabric:${forgeconfigapiport_version}") { transitive = false }
+    modLocalRuntime("teamreborn:energy:${team_reborn_energy_version}") { transitive = false }
+    // Forge Config API Port nests Night Config; plain libraries, so they come from Maven Central.
+    localRuntime "com.electronwill.night-config:core:${night_config_version}"
+    localRuntime "com.electronwill.night-config:toml:${night_config_version}"
+
+    compileOnly 'javax.annotation:javax.annotation-api:1.3.2'
+    compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+loom {
+    // Keep the dev Minecraft jar free of the interfaces other mods inject (Fabric API, Sophisticated Core): the code
+    // does not use them, and without them the clientExported run works with whatever set of mods is in its folder.
+    interfaceInjection {
+        enableDependencyInterfaceInjection = false
+    }
+    mixin {
+        defaultRefmapName.set("${mod_id}.refmap.json")
+    }
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+            vmArgs '-Dfabric.log.level=debug'
+        }
+        // Client that loads only the jars in run-exported/mods (production jars, e.g. an exported build of this mod,
+        // Fabric API and Sophisticated Backpacks/Core); nothing from this project or its dev dependencies.
+        clientExported {
+            client()
+            configName = 'Minecraft Client (exported jars)'
+            runDir 'run-exported'
+            source sourceSets.exportedStub
+        }
+        // Headless game test server: runs every @GameTest of src/gametest, writes a JUnit report and
+        // exits non-zero if a required test fails. Run with: gradlew runGametest (not part of build).
+        gametest {
+            server()
+            configName = 'Game Test'
+            vmArg '-Dfabric-api.gametest'
+            vmArg "-Dfabric-api.gametest.report-file=${project.layout.buildDirectory.file('gametest/junit.xml').get().asFile}"
+            runDir 'build/gametest'
+            source sourceSets.gametest
+        }
+    }
+}
+
+processResources {
+    var expandProps = [
+            version              : project.version,
+            mod_id               : mod_id,
+            mod_name             : mod_name,
+            mod_description      : mod_description,
+            mod_authors          : mod_authors,
+            mod_license          : mod_license,
+            minecraft_version    : minecraft_version,
+            fabric_loader_version: fabric_loader_version,
+            java_version         : java_version
+    ]
+    inputs.properties expandProps
+    filteringCharset = 'UTF-8'
+    filesMatching('fabric.mod.json') {
+        expand expandProps
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = java_version as int
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+}
+
+// ../common must stay loader-neutral: loader APIs are only reached through the platform services.
+tasks.register('checkCommonIsLoaderNeutral') {
+    def sources = fileTree("${commonDir}/src/main/java") { include '**/*.java' }
+    inputs.files sources
+    doLast {
+        def forbidden = ~/^\s*import\s+(static\s+)?(net\.fabricmc|net\.neoforged|net\.minecraftforge|net\.p3pp3rf1y|net\.createmod|dev\.engine_room)\./
+        def offenders = sources.files.collectMany { file ->
+            file.readLines('UTF-8').findAll { it =~ forbidden }.collect { "${file.path}: ${it.trim()}" }
+        }
+        if (!offenders.isEmpty()) {
+            throw new GradleException("common/ must not import loader or optional-mod APIs:\n" + offenders.join('\n'))
+        }
+    }
+}
+
+// build compiles the game tests (so they cannot rot) but never runs them; that is runGametest's job.
+tasks.named('check') {
+    dependsOn tasks.named('gametestClasses'), tasks.named('checkCommonIsLoaderNeutral')
+}
+
+// Resolved while configuring: the configuration cache cannot read project properties at execution time.
+def licenseFileName = "LICENSE_${mod_id}.txt"
+tasks.named('jar', Jar) {
+    from(file('../LICENSE.txt')) {
+        rename { licenseFileName }
+    }
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}

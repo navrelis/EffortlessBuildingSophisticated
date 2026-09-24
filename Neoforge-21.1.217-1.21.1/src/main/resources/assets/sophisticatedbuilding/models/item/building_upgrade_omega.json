@@ -1,6 +1,0 @@
-{
-    "parent": "item/generated",
-    "textures": {
-        "layer0": "sophisticatedbuilding:item/building_upgrade_omega"
-    }
-}
