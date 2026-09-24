@@ -205,6 +205,11 @@ full changelog of every vanilla or loader change in that version.
   (`configurations.configureEach { resolutionStrategy.force 'net.sf.jopt-simple:jopt-simple:5.0.4' }`); the same
   happens with FG6. Its game test server also never runs `ServerLifecycleHooks.handleServerAboutToStart`, so SERVER
   configs stay unloaded in game tests unless the test mod calls it (see `forge-1.21/src/smoketest` on `mc/1.21.1`).
+- NeoForge 20.2–20.4 (Minecraft 1.20.2–1.20.4): the in-memory (singleplayer) connection hands packets to the other side
+  without encoding them, so the receiver gets the sender's own payload object, e.g. the client's live `BlockSet` that
+  it clears on its next tick (in singleplayer no multi-block build was placed). Minecraft 1.20.5+ encodes in memory
+  too, Fabric always encodes, dedicated servers are unaffected. Send a decoded copy of every payload
+  (`NeoForgeNetworkHelper` on `mc/1.20.4`: `payload.write(buf)` then the payload's reader).
 - Don't run two ForgeGradle 7 builds in parallel against a cold Gradle cache — it can truncate the
   shared fatjar mid-write. The first FG7 configuration on a clean machine takes 6–8 minutes; that's
   expected, not a hang.

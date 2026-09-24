@@ -25,7 +25,7 @@ Status: open / in progress / in review / done. Chains: forward (1.21.1 -> 26.2) 
 | B2 | Forge 1.21.1 client crash (LootModifierManager; data pack flagged incompatible) | Opus (inside T1) | - | - | done (Forge upstream bug; our pack.mcmeta fixed) |
 | P-F2 | Port mc/1.21.5 (RenderPipeline rewrite, GameTest rework, B1 folded in) | Opus+Sonnet | P-F1 | with T1 | done (7a462c3, CI green) |
 | B1b | Leak fix on 1.21.4 | Sonnet | - | with P-F2 | done |
-| P-B2 | Port mc/1.20.1 (forge incl. NeoForge 1.20.1 compat, fabric SB port) | Opus | P-B1 | with P-F2 | partial (WIP local, not compiling) |
+| P-B2 | Port mc/1.20.1 (forge incl. NeoForge 1.20.1 compat, fabric SB port) | Opus | P-B1 | with P-F2 | done (cfa2acb, CI green) |
 | H1 | Adopt smoke harness on 1.21.4 (+ the 2 T1 prod fixes) | Opus | T1 | with P-F2, P-B2 | done (13e138d) |
 | B1c+CI-S | Leak fix on 1.21.1; CI template runs runSmokeServer; docs; stale-log fix | Sonnet | T1 | with H1 | done (main + mc/1.21.1 5d90c3b); sync other branches as each gets the harness |
 | H* | Adopt the smoke harness: 1.20.4 done (H2, e7dd5ce), 1.21.5 (H3) in progress, then every port | Opus | H1 | - | in progress |
@@ -43,7 +43,7 @@ Status: open / in progress / in review / done. Chains: forward (1.21.1 -> 26.2) 
 | mc/1.21.1 | 1.21, 1.21.1 | yes (F2) | SB | SB (port) | base |
 | mc/1.21.4 | 1.21.4 | yes | SB | yes | fwd 1 |
 | mc/1.21.5 | 1.21.5 | yes | SB | yes | fwd 2 |
-| mc/1.21.8 | 1.21.8 | yes | SB | yes | fwd 3 |
+| mc/1.21.8 | 1.21.8 | yes | SB | yes | fwd 3 (done 6c19f36) |
 | mc/1.21.10 | 1.21.10 | yes | SB | yes | fwd 4 |
 | mc/1.21.11 | 1.21.11 | yes | SB | yes | fwd 5 |
 | mc/26.1.2 | 26.1-26.1.2 (NeoForge 26.1.2 only) | yes | SB | yes | fwd 6 |
@@ -60,3 +60,7 @@ Toolchains per cell: scratchpad TOOLCHAINS.md (R3); copied into the hub porting 
 
 
 Session stopped early by the user on 2026-09-24; continue from handoff.md.
+| V1 | 1.21.1 jars on MC 1.21 (Fabric, NeoForge yes; Forge no) | Opus | - | - | done (f0dbd72) |
+| V2 | Forge 1.21 jar (forge-1.21/ on mc/1.21.1) | Opus | V1 | - | done (58ea037) |
+| B4 | 1.20.1 Forge unit tests fail on CI only (SecurityException signed IForgePlayer) | Opus | - | - | done |
+| B5 | fabric-api floor = tested version on every branch (was "*") | tbd | ports | - | in progress (finished branches) |

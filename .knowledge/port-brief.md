@@ -66,3 +66,15 @@ shows every file. Port it to your branch with the smallest possible API adaptati
 
 ## Agent limit (user, 2026-09-25)
 At most 10 agents run in the whole session. Do NOT spawn your own subagents; do the work yourself, sequentially.
+
+## Scratch files and process load (2026-09-25)
+- All agents share one session scratchpad: always write into your own subfolder `<scratchpad>\<task id>\`, never into its root.
+- The user saw "cmd.exe - Application Error 0xc0000142" popups (console processes failing to start when too many run).
+  Keep process count low: one Gradle invocation at a time per agent, no background Gradle runs you do not wait for,
+  and never leave servers/clients running after a check.
+
+## ModDevGradle Legacy on CI (B4)
+MDG Legacy skips recompiling Minecraft when the env var `CI=true` (GitHub Actions) and then keeps Forge's jar signature
+on remapped classes -> unit tests fail on CI only ("SHA-256 digest error for ...IForgePlayer.class"). Every MDG Legacy
+forge build must use `legacyForge { enable { forgeVersion = "..."; disableRecompilation = false } }` (see mc/1.20.1
+forge/build.gradle) and be checked once with `CI=true` set locally.
