@@ -272,7 +272,7 @@ public abstract class AbstractRandomizerBagItem extends Item {
 
 		if (availableTemplates.isEmpty()) {
 			// No available blocks - notify player
-			if (!player.level().isClientSide) {
+			if (!player.level().isClientSide()) {
 				player.displayClientMessage(
 					Component.literal("Missing blocks in inventory for randomizer bag!").withStyle(ChatFormatting.RED),
 					true
@@ -333,11 +333,11 @@ public abstract class AbstractRandomizerBagItem extends Item {
 		if (player == null) return InteractionResult.FAIL;
 
 		if (ctx.getPlayer() != null && ctx.getPlayer().isShiftKeyDown()) { //ctx.isPlacerSneaking()
-			if (world.isClientSide) return InteractionResult.SUCCESS;
+			if (world.isClientSide()) return InteractionResult.SUCCESS;
 			//Open inventory
 			player.openMenu(getContainerProvider(item));
 		} else {
-			if (world.isClientSide) return InteractionResult.SUCCESS;
+			if (world.isClientSide()) return InteractionResult.SUCCESS;
 
 			//---Only place manually if in normal vanilla mode---
 			if (!ServerBuildState.isLikeVanilla(player)) {
@@ -374,7 +374,7 @@ public abstract class AbstractRandomizerBagItem extends Item {
 		ItemStack bag = player.getItemInHand(hand);
 
 		if (player.isShiftKeyDown()) {
-			if (world.isClientSide) return InteractionResult.SUCCESS;
+			if (world.isClientSide()) return InteractionResult.SUCCESS;
 			//Open inventory
 			player.openMenu(getContainerProvider(bag));
 		} else {

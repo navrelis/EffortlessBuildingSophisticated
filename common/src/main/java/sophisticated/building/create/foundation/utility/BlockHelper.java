@@ -6,7 +6,6 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -176,8 +175,7 @@ public class BlockHelper {
 		int idx = chunk.getSectionIndex(target.getY());
 		LevelChunkSection chunksection = chunk.getSection(idx);
 		if (chunksection == null) {
-			chunksection = new LevelChunkSection(world.registryAccess()
-					.lookupOrThrow(Registries.BIOME));
+			chunksection = new LevelChunkSection(world.palettedContainerFactory());
 			chunk.getSections()[idx] = chunksection;
 		}
 		BlockState old = chunksection.setBlockState(SectionPos.sectionRelative(target.getX()),

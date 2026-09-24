@@ -30,7 +30,7 @@ final class ClientWindow {
     static String muteAndMoveAside(Minecraft mc) {
         mc.options.getSoundSourceOptionInstance(SoundSource.MASTER).set(0.0);
 
-        long window = mc.getWindow().getWindow();
+        long window = mc.getWindow().handle();
         detachInput(window);
         long primary = GLFW.glfwGetPrimaryMonitor();
         PointerBuffer monitors = GLFW.glfwGetMonitors();

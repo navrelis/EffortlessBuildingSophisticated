@@ -9,6 +9,8 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -39,15 +41,15 @@ public class GuiNumberField {
 		textField = new EditBox(font, x + buttonWidth + 1, y + 1, width - 2 * buttonWidth - 2, height - 2, Component.empty());
 		minusButton = Button.builder(Component.literal("-"), button -> {
 			float valueChanged = 1f;
-			if (Screen.hasControlDown()) valueChanged = 5f;
-			if (Screen.hasShiftDown()) valueChanged = 10f;
+			if (Minecraft.getInstance().hasControlDown()) valueChanged = 5f;
+			if (Minecraft.getInstance().hasShiftDown()) valueChanged = 10f;
 
 			setNumber(getNumber() - valueChanged);
 		}).bounds(x, y - 1, buttonWidth, height + 2).build();
 		plusButton = Button.builder(Component.literal("+"), button -> {
 			float valueChanged = 1f;
-			if (Screen.hasControlDown()) valueChanged = 5f;
-			if (Screen.hasShiftDown()) valueChanged = 10f;
+			if (Minecraft.getInstance().hasControlDown()) valueChanged = 5f;
+			if (Minecraft.getInstance().hasShiftDown()) valueChanged = 10f;
 
 			setNumber(getNumber() + valueChanged);
 		}).bounds(x + width - buttonWidth, y - 1, buttonWidth, height + 2).build();
@@ -77,14 +79,16 @@ public class GuiNumberField {
 		this.tooltip = tooltip;
 	}
 
-	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
-		boolean result = textField.mouseClicked(mouseX, mouseY, mouseButton);
+	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+		double mouseX = event.x();
+		double mouseY = event.y();
+		boolean result = textField.mouseClicked(event, doubleClick);
 
 		//Check if clicked inside textfield
 		boolean flag = mouseX >= x + buttonWidth && mouseX < x + width - buttonWidth && mouseY >= y && mouseY < y + height;
 
 		//Rightclicked inside textfield
-		if (flag && mouseButton == 1) {
+		if (flag && event.button() == 1) {
 			textField.setValue("");
 			textField.setFocused(true);
 			result = true;
@@ -133,9 +137,9 @@ public class GuiNumberField {
 	public void update() {
 	}
 
-	public boolean charTyped(char typedChar, int keyCode) {
+	public boolean charTyped(CharacterEvent event) {
 		if (!textField.isFocused()) return false;
-		return textField.charTyped(typedChar, keyCode);
+		return textField.charTyped(event);
 	}
 }
 

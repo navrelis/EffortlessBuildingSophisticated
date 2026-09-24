@@ -87,11 +87,11 @@ public final class GuiQuads implements GuiElementRenderState {
 	}
 
 	@Override
-	public void buildVertices(VertexConsumer consumer, float z) {
+	public void buildVertices(VertexConsumer consumer) {
 		int quadVertices = colors.size() - colors.size() % 4;
 		for (int i = 0; i < quadVertices; i++) {
 			int offset = i * 4;
-			VertexConsumer vertex = consumer.addVertexWith2DPose(pose, vertices.getFloat(offset), vertices.getFloat(offset + 1), z);
+			VertexConsumer vertex = consumer.addVertexWith2DPose(pose, vertices.getFloat(offset), vertices.getFloat(offset + 1));
 			if (textured) {
 				vertex.setUv(vertices.getFloat(offset + 2), vertices.getFloat(offset + 3));
 			}

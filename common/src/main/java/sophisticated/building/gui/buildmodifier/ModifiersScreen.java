@@ -3,6 +3,7 @@ package sophisticated.building.gui.buildmodifier;
 import sophisticated.building.create.catnip.gui.widget.BoxWidget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuildingClient;
@@ -16,7 +17,6 @@ import sophisticated.building.create.foundation.utility.Components;
 import sophisticated.building.platform.ClientServices;
 
 import javax.annotation.Nonnull;
-import java.util.Collections;
 
 public class ModifiersScreen extends AbstractSimiScreen {
 	protected ModifiersScreenList list;
@@ -78,12 +78,12 @@ public class ModifiersScreen extends AbstractSimiScreen {
 
 	private void initScrollEntries() {
 
-		list.children().clear();
+		list.clearModifierEntries();
 		var modifierSettingsList = SophisticatedBuildingClient.BUILD_MODIFIERS.getModifierSettingsList();
 		for (BaseModifier modifier : modifierSettingsList) {
 			var entry = createModifierPanel(modifier);
 			if (entry != null) {
-				list.children().add(entry);
+				list.addModifierEntry(entry);
 			}
 		}
 	}
@@ -103,13 +103,13 @@ public class ModifiersScreen extends AbstractSimiScreen {
 	private void addModifier(BaseModifier modifier) {
 		var entry = createModifierPanel(modifier);
 		if (entry != null) {
-			list.children().add(entry);
+			list.addModifierEntry(entry);
 		}
 		SophisticatedBuildingClient.BUILD_MODIFIERS.addModifierSettings(modifier);
 	}
 	
 	public void removeModifier(BaseModifierEntry entry) {
-		list.children().remove(entry);
+		list.removeModifierEntry(entry);
 		SophisticatedBuildingClient.BUILD_MODIFIERS.removeModifierSettings(entry.modifier);
 	}
 	
@@ -127,7 +127,7 @@ public class ModifiersScreen extends AbstractSimiScreen {
 		int index = list.children().indexOf(modifierEntry);
 		if (index == 0) return;
 		
-		Collections.swap(list.children(), index, index - 1);
+		list.swapModifierEntries(index, index - 1);
 		SophisticatedBuildingClient.BUILD_MODIFIERS.moveUp(modifierEntry.modifier);
 	}
 	
@@ -135,7 +135,7 @@ public class ModifiersScreen extends AbstractSimiScreen {
 		int index = list.children().indexOf(modifierEntry);
 		if (index == list.children().size() - 1) return;
 		
-		Collections.swap(list.children(), index, index + 1);
+		list.swapModifierEntries(index, index + 1);
 		SophisticatedBuildingClient.BUILD_MODIFIERS.moveDown(modifierEntry.modifier);
 	}
 	
@@ -158,13 +158,13 @@ public class ModifiersScreen extends AbstractSimiScreen {
 	}
 	
 	@Override
-	public boolean keyPressed(int keyCode, int p_96553_, int p_96554_) {
-		if (ClientServices.CLIENT.matchesKey(ClientEvents.keyBindings[1], keyCode, p_96553_)) {
+	public boolean keyPressed(KeyEvent event) {
+		if (ClientServices.CLIENT.matchesKey(ClientEvents.keyBindings[1], event)) {
 			onClose();
 			return true;
 		}
 
-		return super.keyPressed(keyCode, p_96553_, p_96554_);
+		return super.keyPressed(event);
 	}
 }
 

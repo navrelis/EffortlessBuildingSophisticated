@@ -80,12 +80,12 @@ public abstract class BaseModifierEntry<T extends BaseModifier> extends Modifier
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int index, int y, int x, int width, int height, int mouseX, int mouseY, boolean hovering, float partialTicks) {
+    public void renderContent(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean hovering, float partialTicks) {
 
-        left = x + width / 2 - BACKGROUND_WIDTH / 2;
-        right = x + width / 2 + BACKGROUND_WIDTH / 2;
-        top = y;
-        bottom = y + BACKGROUND_HEIGHT;
+        left = getX() + getWidth() / 2 - BACKGROUND_WIDTH / 2;
+        right = getX() + getWidth() / 2 + BACKGROUND_WIDTH / 2;
+        top = getContentY() + ModifiersScreenList.HEADER_GAP;
+        bottom = top + BACKGROUND_HEIGHT;
         
         background.render(guiGraphics, left, top);
         

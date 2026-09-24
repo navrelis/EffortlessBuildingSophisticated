@@ -3,6 +3,8 @@ package sophisticated.building.gui.elements;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import sophisticated.building.create.foundation.gui.widget.Label;
 import sophisticated.building.create.foundation.gui.widget.ScrollInput;
@@ -55,22 +57,22 @@ public class LabeledScrollInput extends ScrollInput {
         // Draw focus indicator when focused
         if (focused && visible) {
             int borderColor = 0xFFFFFF55; // Yellow tint for focus
-            guiGraphics.renderOutline(getX() - 1, getY() - 1, width + 2, height + 2, borderColor);
+            guiGraphics.submitOutline(getX() - 1, getY() - 1, width + 2, height + 2, borderColor);
         }
     }
     
     @Override
-    public void onClick(double mouseX, double mouseY) {
-        super.onClick(mouseX, mouseY);
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
+        super.onClick(event, doubleClick);
         // Toggle focus on click
         focused = true;
     }
     
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         if (this.visible && this.isHovered) {
             focused = true;
-            return super.mouseClicked(mouseX, mouseY, button);
+            return super.mouseClicked(event, doubleClick);
         } else {
             // Clicked elsewhere, unfocus
             focused = false;
@@ -83,7 +85,7 @@ public class LabeledScrollInput extends ScrollInput {
      * Works when widget is hovered OR focused.
      */
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
         if (!this.visible) return false;
         if (!this.isHovered && !focused) return false;
         
@@ -92,7 +94,7 @@ public class LabeledScrollInput extends ScrollInput {
         int stepSize = shifted ? shiftStep : 1;
         int largeStep = shiftStep * 5; // For PageUp/PageDown
         
-        switch (keyCode) {
+        switch (event.key()) {
             case GLFW.GLFW_KEY_UP:
             case GLFW.GLFW_KEY_RIGHT:
             case GLFW.GLFW_KEY_KP_ADD:
@@ -124,7 +126,7 @@ public class LabeledScrollInput extends ScrollInput {
                 break;
                 
             default:
-                return super.keyPressed(keyCode, scanCode, modifiers);
+                return super.keyPressed(event);
         }
         
         clampState();

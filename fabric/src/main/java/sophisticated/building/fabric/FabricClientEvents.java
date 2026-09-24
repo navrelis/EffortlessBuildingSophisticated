@@ -4,7 +4,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.Screen;
@@ -86,13 +86,14 @@ public final class FabricClientEvents {
 
     private static void registerRenderEvents() {
         // Block previews, mirror/array lines, ghost blocks and outlines all after the translucent
-        // blocks, where Catnip drew its outliner on Fabric.
-        WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
-            if (context.matrixStack() == null) {
+        // blocks, where Catnip drew its outliner on Fabric (Fabric API for 1.21.9+: the end of the main pass, which
+        // follows the translucent terrain; AFTER_TRANSLUCENT is gone).
+        WorldRenderEvents.END_MAIN.register(context -> {
+            if (context.matrices() == null) {
                 return;
             }
-            RenderHandler.onRenderWorld(context.matrixStack());
-            RenderHandler.onRenderOutlines(context.matrixStack());
+            RenderHandler.onRenderWorld(context.matrices());
+            RenderHandler.onRenderOutlines(context.matrices());
         });
 
         // Last HUD element, where the deprecated HudRenderCallback drew (Fabric API for 1.21.6+).

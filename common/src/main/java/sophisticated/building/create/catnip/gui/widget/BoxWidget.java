@@ -11,6 +11,7 @@ import sophisticated.building.create.catnip.gui.element.BoxElement;
 import sophisticated.building.create.catnip.gui.element.DelegatedStencilElement;
 import sophisticated.building.create.catnip.theme.Color;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.MouseButtonEvent;
 
 /**
  * Adapted from Catnip ({@code sophisticated.building.create.catnip.gui.widget.BoxWidget}, MIT License, Copyright (c) 2022
@@ -113,8 +114,8 @@ public class BoxWidget extends ElementWidget {
 	}
 
 	@Override
-	public void onClick(double x, double y) {
-		super.onClick(x, y);
+	public void onClick(MouseButtonEvent event, boolean doubleClick) {
+		super.onClick(event, doubleClick);
 
 		gradientColor = getColorClick();
 		startGradientAnimation(getColorForState(), 0.15);

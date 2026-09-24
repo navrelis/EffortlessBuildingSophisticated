@@ -64,7 +64,7 @@ public final class GameTestSupport {
         ServerBuildState.setIsUsingBuildMode(player, false);
         ServerBuildState.setIsQuickReplacing(player, false);
         SophisticatedBuilding.UNDO_REDO.clear(player);
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.level().getServer();
         if (server != null && server.getPlayerList().getPlayer(player.getUUID()) != null) {
             server.getPlayerList().remove(player);
         }

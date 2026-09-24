@@ -384,7 +384,7 @@ public class ServerBlockPlacer {
         if (!ServerConfig.validation.allowInSurvival.get() && !player.isCreative()) return false;
 
         if (ServerConfig.validation.useWhitelist.get()) {
-            return ServerConfig.validation.whitelist.get().contains(player.getGameProfile().getName());
+            return ServerConfig.validation.whitelist.get().contains(player.getGameProfile().name());
         }
 
         return true;

@@ -12,6 +12,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 
@@ -140,8 +141,8 @@ public abstract class AbstractSimiWidget extends AbstractWidget implements Ticka
 	}
 
 	@Override
-	public void onClick(double mouseX, double mouseY) {
-		runCallback(mouseX, mouseY);
+	public void onClick(MouseButtonEvent event, boolean doubleClick) {
+		runCallback(event.x(), event.y());
 	}
 
 	@Override

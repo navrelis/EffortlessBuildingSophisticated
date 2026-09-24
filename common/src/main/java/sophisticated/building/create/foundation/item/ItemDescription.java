@@ -1,7 +1,7 @@
 package sophisticated.building.create.foundation.item;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import sophisticated.building.create.foundation.utility.Components;
@@ -166,12 +166,12 @@ public class ItemDescription {
 	}
 
 	public List<Component> addInformation(List<Component> tooltip) {
-		if (Screen.hasShiftDown()) {
+		if (Minecraft.getInstance().hasShiftDown()) {
 			tooltip.addAll(linesOnShift);
 			return tooltip;
 		}
 
-		if (Screen.hasControlDown()) {
+		if (Minecraft.getInstance().hasControlDown()) {
 			tooltip.addAll(linesOnCtrl);
 			return tooltip;
 		}

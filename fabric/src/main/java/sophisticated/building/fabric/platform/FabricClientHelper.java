@@ -5,11 +5,13 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 import sophisticated.building.platform.services.IClientHelper;
@@ -20,13 +22,18 @@ import java.util.Locale;
 public final class FabricClientHelper implements IClientHelper {
 
     @Override
-    public KeyMapping createKeyMapping(String name, int keyCode, boolean controlModifier, String category) {
+    public KeyMapping.Category createKeyCategory(ResourceLocation id) {
+        return KeyMapping.Category.register(id);
+    }
+
+    @Override
+    public KeyMapping createKeyMapping(String name, int keyCode, boolean controlModifier, KeyMapping.Category category) {
         return new KeyMapping(name, InputConstants.Type.KEYSYM, keyCode, category);
     }
 
     @Override
     public boolean isControlModifierSatisfied() {
-        return Screen.hasControlDown();
+        return Minecraft.getInstance().hasControlDown();
     }
 
     @Override
@@ -35,13 +42,13 @@ public final class FabricClientHelper implements IClientHelper {
     }
 
     @Override
-    public boolean matchesKey(KeyMapping keyMapping, int keyCode, int scanCode) {
-        return keyMapping.matches(keyCode, scanCode);
+    public boolean matchesKey(KeyMapping keyMapping, KeyEvent event) {
+        return keyMapping.matches(event);
     }
 
     @Override
-    public boolean isActiveAndMatches(KeyMapping keyMapping, int keyCode, int scanCode) {
-        return keyMapping.matches(keyCode, scanCode);
+    public boolean isActiveAndMatches(KeyMapping keyMapping, KeyEvent event) {
+        return keyMapping.matches(event);
     }
 
     @Override

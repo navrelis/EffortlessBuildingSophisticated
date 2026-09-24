@@ -3,6 +3,7 @@ package sophisticated.building.gui.elements;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
@@ -48,7 +49,7 @@ public class GuiCheckBoxFixed extends Button {
 	}
 
 	@Override
-	public void onPress() {
+	public void onPress(InputWithModifiers input) {
 		this.isChecked = !this.isChecked;
 	}
 

@@ -1,6 +1,7 @@
 package sophisticated.building;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
@@ -25,6 +26,8 @@ import org.lwjgl.glfw.GLFW;
  */
 public class ClientEvents {
 
+    /** The category of the mod's key mappings (translation key key.category.sophisticatedbuilding.main). */
+    public static final KeyMapping.Category KEY_CATEGORY = ClientServices.CLIENT.createKeyCategory(SophisticatedBuilding.asResource("main"));
     public static KeyMapping[] keyBindings;
     public static int ticksInGame = 0;
     private static int placeCooldown = 0;
@@ -33,12 +36,12 @@ public class ClientEvents {
     // Static initializer to set up keybindings
     static {
         keyBindings = new KeyMapping[6];
-        keyBindings[0] = ClientServices.CLIENT.createKeyMapping("key.sophisticatedbuilding.mode.desc", GLFW.GLFW_KEY_LEFT_ALT, false, "key.sophisticatedbuilding.category");
-        keyBindings[1] = ClientServices.CLIENT.createKeyMapping("key.sophisticatedbuilding.hud.desc", GLFW.GLFW_KEY_KP_ADD, false, "key.sophisticatedbuilding.category");
-        keyBindings[2] = ClientServices.CLIENT.createKeyMapping("key.sophisticatedbuilding.undo.desc", GLFW.GLFW_KEY_Z, true, "key.sophisticatedbuilding.category");
-        keyBindings[3] = ClientServices.CLIENT.createKeyMapping("key.sophisticatedbuilding.redo.desc", GLFW.GLFW_KEY_Y, true, "key.sophisticatedbuilding.category");
-        keyBindings[4] = ClientServices.CLIENT.createKeyMapping("key.sophisticatedbuilding.previous_build_mode.desc", InputConstants.UNKNOWN.getValue(), false, "key.sophisticatedbuilding.category");
-        keyBindings[5] = ClientServices.CLIENT.createKeyMapping("key.sophisticatedbuilding.disable_build_mode_toggle.desc", InputConstants.UNKNOWN.getValue(), false, "key.sophisticatedbuilding.category");
+        keyBindings[0] = ClientServices.CLIENT.createKeyMapping("key.sophisticatedbuilding.mode.desc", GLFW.GLFW_KEY_LEFT_ALT, false, KEY_CATEGORY);
+        keyBindings[1] = ClientServices.CLIENT.createKeyMapping("key.sophisticatedbuilding.hud.desc", GLFW.GLFW_KEY_KP_ADD, false, KEY_CATEGORY);
+        keyBindings[2] = ClientServices.CLIENT.createKeyMapping("key.sophisticatedbuilding.undo.desc", GLFW.GLFW_KEY_Z, true, KEY_CATEGORY);
+        keyBindings[3] = ClientServices.CLIENT.createKeyMapping("key.sophisticatedbuilding.redo.desc", GLFW.GLFW_KEY_Y, true, KEY_CATEGORY);
+        keyBindings[4] = ClientServices.CLIENT.createKeyMapping("key.sophisticatedbuilding.previous_build_mode.desc", InputConstants.UNKNOWN.getValue(), false, KEY_CATEGORY);
+        keyBindings[5] = ClientServices.CLIENT.createKeyMapping("key.sophisticatedbuilding.disable_build_mode_toggle.desc", InputConstants.UNKNOWN.getValue(), false, KEY_CATEGORY);
     }
 
     public static void onClientTickPre() {
@@ -207,9 +210,9 @@ public class ClientEvents {
         // screen on Fabric warps the OS cursor). Fall back to the actually bound key/button rather
         // than a hard-coded GLFW_KEY_LEFT_ALT, so a rebound radial key still works.
         InputConstants.Key boundKey = ClientServices.CLIENT.getBoundKey(keyMapping);
-        long window = Minecraft.getInstance().getWindow().getWindow();
+        Window window = Minecraft.getInstance().getWindow();
         if (boundKey.getType() == InputConstants.Type.MOUSE) {
-            return GLFW.glfwGetMouseButton(window, boundKey.getValue()) == GLFW.GLFW_PRESS;
+            return GLFW.glfwGetMouseButton(window.handle(), boundKey.getValue()) == GLFW.GLFW_PRESS;
         }
         if (boundKey.getType() == InputConstants.Type.KEYSYM || boundKey.getType() == InputConstants.Type.SCANCODE) {
             return InputConstants.isKeyDown(window, boundKey.getValue());

@@ -7,6 +7,7 @@ import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -98,10 +99,10 @@ public class PlayerSettingsGui extends Screen {
 	}
 
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
-		super.mouseClicked(mouseX, mouseY, mouseButton);
+	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+		super.mouseClicked(event, doubleClick);
 		if (showShaderList) {
-			if (!shaderTypeList.isMouseOver(mouseX, mouseY) && !shaderTypeButton.isMouseOver(mouseX, mouseY))
+			if (!shaderTypeList.isMouseOver(event.x(), event.y()) && !shaderTypeButton.isMouseOver(event.x(), event.y()))
 				showShaderList = false;
 		}
 		return true;
@@ -165,21 +166,21 @@ public class PlayerSettingsGui extends Screen {
 		}
 
 		@Override
-		public boolean mouseClicked(double mouseX, double mouseY, int pButton) {
+		public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
 			if (!showShaderList) return false;
-			return super.mouseClicked(mouseX, mouseY, pButton);
+			return super.mouseClicked(event, doubleClick);
 		}
 
 		@Override
-		public boolean mouseReleased(double mouseX, double mouseY, int button) {
+		public boolean mouseReleased(MouseButtonEvent event) {
 			if (!showShaderList) return false;
-			return super.mouseReleased(mouseX, mouseY, button);
+			return super.mouseReleased(event);
 		}
 
 		@Override
-		public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+		public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
 			if (!showShaderList) return false;
-			return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+			return super.mouseDragged(event, dragX, dragY);
 		}
 
 		@Override
@@ -211,14 +212,16 @@ public class PlayerSettingsGui extends Screen {
 			}
 
 			@Override
-			public void render(GuiGraphics guiGraphics, int itemIndex, int rowTop, int rowLeft, int rowWidth, int rowHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
+			public void renderContent(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean hovered, float partialTicks) {
+				int rowTop = getContentY();
+				int rowHeight = getContentHeight();
 				if (rowTop + 10 > ShaderTypeList.this.getY() && rowTop + rowHeight - 5 < (ShaderTypeList.this.getY() + ShaderTypeList.this.getHeight()))
 					guiGraphics.drawString(font, shaderType.name, ShaderTypeList.this.getX() + 8, rowTop + 4, 0xFFFFFFFF, false);
 			}
 
 			@Override
-			public boolean mouseClicked(double p_mouseClicked_1_, double p_mouseClicked_3_, int p_mouseClicked_5_) {
-				if (p_mouseClicked_5_ == 0) {
+			public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+				if (event.button() == 0) {
 					setSelected(this);
 					return true;
 				} else {

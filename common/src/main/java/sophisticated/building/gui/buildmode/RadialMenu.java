@@ -8,6 +8,7 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.Direction;
@@ -406,8 +407,8 @@ public class RadialMenu extends Screen {
 
 				//Add description when holding shift
 				if (!button.description.isEmpty()) {
-					tooltip.add(TooltipHelper.holdShift(ItemDescription.Palette.Blue, hasShiftDown()));
-					if (hasShiftDown()) {
+					tooltip.add(TooltipHelper.holdShift(ItemDescription.Palette.Blue, minecraft.hasShiftDown()));
+					if (minecraft.hasShiftDown()) {
 						tooltip.addAll(TooltipHelper.cutStringTextComponent(button.description, ChatFormatting.GRAY, ChatFormatting.WHITE));
 					}
 				}
@@ -467,10 +468,10 @@ public class RadialMenu extends Screen {
 	}
 
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
+	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
 		performAction(true);
 
-		return super.mouseClicked(mouseX, mouseY, mouseButton);
+		return super.mouseClicked(event, doubleClick);
 	}
 
 	@Override

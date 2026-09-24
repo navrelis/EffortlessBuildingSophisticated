@@ -4,6 +4,7 @@ import sophisticated.building.create.catnip.gui.TickableGuiEventListener;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import sophisticated.building.create.foundation.utility.Components;
 
@@ -89,8 +90,8 @@ public abstract class AbstractSimiWidget extends AbstractWidget implements Ticka
 	}
 
 	@Override
-	public void onClick(double mouseX, double mouseY) {
-		runCallback(mouseX, mouseY);
+	public void onClick(MouseButtonEvent event, boolean doubleClick) {
+		runCallback(event.x(), event.y());
 	}
 
 	@Override

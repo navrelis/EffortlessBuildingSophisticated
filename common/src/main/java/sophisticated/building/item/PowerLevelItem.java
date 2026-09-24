@@ -34,7 +34,7 @@ public class PowerLevelItem extends Item {
         PowerLevel powerLevel = AttachmentHandler.getOrCreatePowerLevel(player);
         if (powerLevel != null) {
             if (powerLevel.canIncreasePowerLevel()) {
-                if (!world.isClientSide) {
+                if (!world.isClientSide()) {
                     powerLevel.increasePowerLevel();
                     AttachmentHandler.setPowerLevel(player, powerLevel);
                     SophisticatedBuilding.log(player, "Upgraded power level to " + powerLevel.getPowerLevel());
@@ -48,7 +48,7 @@ public class PowerLevelItem extends Item {
 
                 return InteractionResult.SUCCESS;
             } else {
-                if (!world.isClientSide) {
+                if (!world.isClientSide()) {
                     SophisticatedBuilding.log(player, "Already reached maximum power level!");
 
                     world.playSound((Player) null, player.blockPosition(), SoundEvents.ARMOR_EQUIP_LEATHER.value(), SoundSource.PLAYERS, 1f, 1f);

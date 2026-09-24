@@ -138,8 +138,8 @@ public class RadialMirrorEntry extends BaseModifierEntry<RadialMirror> {
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int index, int y, int x, int width, int height, int mouseX, int mouseY, boolean hovering, float partialTicks) {
-		super.render(guiGraphics, index, y, x, width, height, mouseX, mouseY, hovering, partialTicks);
+	public void renderContent(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean hovering, float partialTicks) {
+		super.renderContent(guiGraphics, mouseX, mouseY, hovering, partialTicks);
 
 		//draw position inputs
 		for (int i = 0; i < 3; i++) {

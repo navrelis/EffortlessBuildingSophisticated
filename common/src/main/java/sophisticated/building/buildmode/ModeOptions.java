@@ -127,7 +127,7 @@ public class ModeOptions {
 			case TERRAIN_WALL -> terrainType = ActionEnum.TERRAIN_WALL;
 		}
 
-		if (player.level().isClientSide &&
+		if (player.level().isClientSide() &&
 			action != ActionEnum.OPEN_MODIFIER_SETTINGS &&
 			action != ActionEnum.OPEN_PLAYER_SETTINGS &&
 			action != ActionEnum.PREVIOUS_BUILD_MODE &&

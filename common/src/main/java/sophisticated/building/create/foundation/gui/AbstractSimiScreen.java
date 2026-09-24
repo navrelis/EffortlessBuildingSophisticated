@@ -10,6 +10,8 @@ import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import sophisticated.building.create.foundation.gui.widget.AbstractSimiWidget;
 import sophisticated.building.create.foundation.utility.Components;
@@ -67,10 +69,10 @@ public abstract class AbstractSimiScreen extends Screen {
 	}
 
 	@Override
-	public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
-		if (getFocused() != null && !getFocused().isMouseOver(pMouseX, pMouseY))
+	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+		if (getFocused() != null && !getFocused().isMouseOver(event.x(), event.y()))
 			setFocused(null);
-		return super.mouseClicked(pMouseX, pMouseY, pButton);
+		return super.mouseClicked(event, doubleClick);
 	}
 	
 	@Override
@@ -128,12 +130,12 @@ public abstract class AbstractSimiScreen extends Screen {
 	}
 
 	@Override
-	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-		boolean keyPressed = super.keyPressed(keyCode, scanCode, modifiers);
+	public boolean keyPressed(KeyEvent event) {
+		boolean keyPressed = super.keyPressed(event);
 		if (keyPressed || getFocused() instanceof EditBox)
 			return keyPressed;
 
-		if (ClientServices.CLIENT.isActiveAndMatches(this.minecraft.options.keyInventory, keyCode, scanCode)) {
+		if (ClientServices.CLIENT.isActiveAndMatches(this.minecraft.options.keyInventory, event)) {
 			this.onClose();
 			return true;
 		}

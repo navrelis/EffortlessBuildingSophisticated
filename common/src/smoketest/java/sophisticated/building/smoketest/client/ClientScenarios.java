@@ -184,7 +184,7 @@ final class ClientScenarios {
                 }
             }
             ServerPlayer player = ClientDriver.serverPlayer(server);
-            return "Joined fresh superflat world '" + WORLD_NAME + "' as " + player.getGameProfile().getName()
+            return "Joined fresh superflat world '" + WORLD_NAME + "' as " + player.getGameProfile().name()
                     + " (" + player.gameMode.getGameModeForPlayer() + "), ground y=" + groundY + ", site at " + base.toShortString();
         });
         worldReady = true;
@@ -386,7 +386,7 @@ final class ClientScenarios {
         String name = d.server(server -> {
             ServerPlayer player = ClientDriver.serverPlayer(server);
             player.setGameMode(GameType.SURVIVAL);
-            return player.getGameProfile().getName();
+            return player.getGameProfile().name();
         });
         // The mod's own command, as an operator would run it: survival reach 32, 32 blocks per axis
         d.command("powerlevel set " + name + " 3");

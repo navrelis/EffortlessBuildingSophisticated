@@ -36,7 +36,7 @@ public class ReachUpgrade1Item extends Item {
 		if (powerLevel != null) {
 			int currentLevel = powerLevel.getPowerLevel();
 			if (currentLevel == 0) {
-				if (!world.isClientSide) {
+				if (!world.isClientSide()) {
 					powerLevel.increasePowerLevel();
 					AttachmentHandler.setPowerLevel(player, powerLevel);
 					SophisticatedBuilding.log(player, "Upgraded power level to " + powerLevel.getPowerLevel());
@@ -49,7 +49,7 @@ public class ReachUpgrade1Item extends Item {
 				}
 				return InteractionResult.SUCCESS;
 			} else if (currentLevel > 0) {
-				if (!world.isClientSide && hand == InteractionHand.MAIN_HAND) {
+				if (!world.isClientSide() && hand == InteractionHand.MAIN_HAND) {
 					SophisticatedBuilding.log(player, "Already used this upgrade! Current power level is " + powerLevel.getPowerLevel() + ".");
 
 					world.playSound((Player) null, player.blockPosition(), SoundEvents.ARMOR_EQUIP_LEATHER.value(), SoundSource.PLAYERS, 1f, 1f);
