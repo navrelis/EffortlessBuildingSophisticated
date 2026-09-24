@@ -50,8 +50,13 @@ jobs:
             gametest=false
             [[ -d "$loader/src/gametest" ]] && gametest=true
 
-            loaders=$(jq -c --arg loader "$loader" --arg jdk "$jdk" --argjson gametest "$gametest" \
-              '. + [{"loader": $loader, "gradle_jdk": $jdk, "has_gametest": $gametest}]' <<<"$loaders")
+            # In-game smoke harness (see TESTING.md): a smoketest source set under <loader>/src/smoketest.
+            # Only the headless runSmokeServer task runs in CI; runSmokeClient needs a display.
+            smoke=false
+            [[ -d "$loader/src/smoketest" ]] && smoke=true
+
+            loaders=$(jq -c --arg loader "$loader" --arg jdk "$jdk" --argjson gametest "$gametest" --argjson smoke "$smoke" \
+              '. + [{"loader": $loader, "gradle_jdk": $jdk, "has_gametest": $gametest, "has_smoke": $smoke}]' <<<"$loaders")
           done
 
           echo "Discovered loaders:"
@@ -93,6 +98,20 @@ jobs:
         if: matrix.has_gametest
         working-directory: ${{ matrix.loader }}
         run: ./gradlew runGametest --no-daemon --stacktrace
+
+      - name: gradlew runSmokeServer
+        if: matrix.has_smoke
+        working-directory: ${{ matrix.loader }}
+        run: ./gradlew runSmokeServer -PsmoketestOut=${{ github.workspace }}/smoke/${{ matrix.loader }} --no-daemon --stacktrace
+
+      - name: Upload smoke test results
+        if: matrix.has_smoke && always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.loader }}-smoketest
+          path: smoke/${{ matrix.loader }}/**
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Upload jar
         if: always()
