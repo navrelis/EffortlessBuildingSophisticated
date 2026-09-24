@@ -16,7 +16,7 @@
 | L4 | Fabric GameTests for server-side rules | Fabric | Opus | L1 | - | done |
 | L4b | Keep failed undo/redo entries on their stack + message; single-item removal keeps stack data; GameTests | both | Sonnet | L4 | - | done |
 | L5 | Release 4.2.1 (patch notes, export) + smoke test | both | Sonnet | L1-L4 | - | done |
-| L6 | Final: graph, report, push, memory | - | lead | L5 | - | in progress |
+| L6 | Final: graph, report, push, memory | - | lead | L5 | - | done |
 
 ## Definition of done (per task)
 - T1: config files are created with defaults on first start, missing keys filled, invalid JSON logged and defaults kept, values clamped to the NeoForge ranges; all existing call sites unchanged; client gets the server's ServerConfig values on join and restores its own on disconnect; Fabric build + tests green.

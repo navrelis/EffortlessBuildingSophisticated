@@ -14,3 +14,4 @@
 - Version 4.2.1 for the limitation fixes. Reason: 4.2.0 jars may already be published by the user; a new version is safe either way.
 - The Fabric startup ERROR 'No data fixer registered for' is left alone: it comes from the unofficial Sophisticated Backpacks Fabric port (empty EntityType id), not from this mod.
 - Survival mod-breaking still refuses hardness>0 blocks without a tool (4.1.0 design, documented in ToolSelector); not changed. Reason: deliberate balance decision from the survival-breaking design, not a defect.
+- (Round 2, supersedes the NeoForge 'uncapped supply' decision above) NeoForge now caps Building Upgrade supply per build and keeps the held-block anchor like Fabric; tooltip restored. Reason: user asked to remove the loader difference.

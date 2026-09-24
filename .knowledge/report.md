@@ -1,4 +1,34 @@
-# Report: Sophisticated Building 4.2.0 (session 2026-09-24)
+# Report: Sophisticated Building 4.2.0 + 4.2.1 (session 2026-09-24)
+
+## Round 2 (4.2.1): the known limitations fixed
+The user asked to fix the limitations listed at the end of the 4.2.0 report. Status per item:
+
+| 4.2.0 limitation | 4.2.1 result | Commit |
+|---|---|---|
+| Survival undo charged 1 item for multi-item blocks (dupe) | Undo/redo charge the real count (double slab 2, candles/pickles/eggs/snow layers/petals N), all or nothing; restoring over the same block without mining charges only the difference. Redo has its own entry point, normal building unchanged. | 1ee43a6 |
+| Merge rule accepted any +1 integer property (crop age etc.) | Only slab->double and +1 on CANDLES/PICKLES/EGGS/LAYERS/FLOWER_AMOUNT | 1ee43a6 |
+| Server `skipFirst` compared by identity (never matched) | Means "vanilla handled the first block" (Disable mode without Quick Replace); compared by value; server honours it only while vanilla was not cancelled; single-block Disable clicks are not sent | 1ee43a6 |
+| Normal placements skipped spawn protection | Spawn protection, world border and adventure-mode checks for every build-mode placement and break in every game mode; placement flag reset in `finally` | 1ee43a6 |
+| NeoForge supply not capped by tier | NeoForge caps per build like Fabric, keeps the held-block anchor, tooltip restored, dead helper removed | 662285e |
+| Fabric configs warned on every load / dropped unknown keys silently | Corrected automatically with `<name>.json.bak` (`-1`, `-2` ...) backup; unknown keys reported once | 4c81b1b |
+| Only a login smoke test | 17 Fabric GameTests (`gradlew runGametest`) run the server-side rules in a real world: storage data, survival replace on/off/bedrock/no tool/delay, merges, undo counts and retry, skipFirst, world border, adventure mode, stack data on removal | 6ff2cb2, dc659fd |
+| "No data fixer registered for" ERROR | Traced to the unofficial Sophisticated Backpacks Fabric port (`ModItems`: `EntityType.Builder...build("")`), not this mod; documented as a known issue | - |
+| Found by the GameTests | Failed undo/redo entries now stay on their stack and are retried (message when nothing could be done); single-item inventory removal keeps stack data | dc659fd |
+
+Release 4.2.1 (78e1a21): both jars exported, Fabric 77 unit tests + 17/17 GameTests, NeoForge build green, runtime smoke test on both loaders (world loads, player joins, no errors from this mod, no config backups created for valid files).
+
+Remaining, deliberately unchanged:
+- Survival mod-breaking refuses blocks with hardness > 0 without a tool (4.1.0 balance design in `ToolSelector`).
+- Undoing a snow-layer merge (no mining) removes the extra layer without refunding it (loss of 1 snow, no dupe).
+- Spawn protection cannot be exercised in the GameTest server (its check always returns false there); covered by the world-border test and code review.
+- Disable mode + Quick Replace on a single block shows no preview outline (`BlockPreviews` hides single-block Disable previews); functional behaviour is correct.
+- A failed normal placement (not undo) still counts toward the item charge, as before 4.2.0.
+
+Additional manual checks for 4.2.1: Disable mode plain / with mirror / with Quick Replace (creative and survival), multi-item undo cycles (double slab, 3 candles, 4 pickles), building over crops/composter/respawn anchor, NeoForge Building Upgrade tier cap and anchor, a Fabric config with an out-of-range value (backup created once, quiet afterwards).
+
+---
+
+# 4.2.0 report
 
 ## What was implemented, per requirement
 
