@@ -1,13 +1,13 @@
-# Graph Report - EffortlessBuildingSophisticated  (2026-09-15)
+# Graph Report - EffortlessBuildingSophisticated  (2026-09-24)
 
 ## Corpus Check
-- 2 files · ~198,812 words
+- 541 files · ~215,057 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 5097 nodes · 13755 edges · 226 communities (175 shown, 44 thin omitted)
-- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 181 edges (avg confidence: 0.84)
-- Token cost: 0 input · 0 output
+- 5634 nodes · 14992 edges · 255 communities (168 shown, 87 thin omitted)
+- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 259 edges (avg confidence: 0.83)
+- Token cost: 140,935 input · 0 output
 
 ## Community Hubs (Navigation)
 - Misc: ThreeClicksBuildMode
@@ -174,7 +174,6 @@
 - Misc: GNU Lesser General Public License v3
 - Misc: Cone
 - Radial Mirror Modifier
-- Misc: AllIcons
 - Misc: MenuBase
 - Radial Build Menu & Client Events (F1/F2/F8, T5)
 - Circle Build Mode
@@ -215,28 +214,57 @@
 - New: F5 - PlayerSettingsGui is an abandoned draft (alpha, deferred)
 - Misc: gradlew script
 - Block Placer Helper (Fabric)
-- Misc: gradlew script
-- Misc: IClearableMenu
 - Block Placer Helper (NeoForge)
 - New: item.upgrade.BuildingUpgradeItem
 - New: common.gui.StorageContainerMenuBase
 - GUI Textures, Keys & Vertex Helpers
+- Misc: run_dev_fabric_from_export.ps1
+- Misc: run_dev_neoforge_from_export.ps1
 - New: common.gui.UpgradeContainerRegistry
 - New: client.gui.UpgradeGuiManager
-- Design D2 Vanilla Durability & Drops
-- Design D7 Survival Breaking Config
 - Design D8 Out-of-Scope Items
+- Community 160
+- Community 161
 - New: Key
 - Tick Pre Event Stub
+- Misc: ItemHandlerCapabilityProvider.java
 - New: net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper
+- Misc: ItemStack
+- Misc: CompressedBlockItem
+- Misc: DiamondRandomizerBagItem
+- Misc: GoldenRandomizerBagItem
+- Misc: Item
+- Misc: Items
+- Misc: MenuType
+- Misc: OmegaRandomizerBagItem
+- Misc: RandomizerBagItem
+- Misc: ReachUpgrade1Item
+- Misc: ReachUpgrade2Item
+- Misc: ReachUpgrade3Item
+- Misc: net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper
+- Misc: CompoundTag
+- Misc: CompoundTag
+- Misc: ItemStack
+- Misc: BuildingUpgradeWrapper
+- Misc: ItemStack
+- Misc: BlockEntry
+- Misc: BlockSet
+- Misc: BlockEntry
+- Misc: BlockSet
+- Misc: ItemStack
+- Misc: Post
+- Misc: RC2: Server-Authoritative Upgrade State
+- Misc: RC3: Wrapper Aligned With Core
+- Misc: RC4: Fabric Dependency Setup
+- Misc: sophisticated.building.config.SimpleConfigValue
 
 ## God Nodes (most connected - your core abstractions)
-1. `SophisticatedBuilding` - 107 edges
+1. `SophisticatedBuilding` - 110 edges
 2. `BlockSet` - 102 edges
-3. `SophisticatedBuilding` - 100 edges
-4. `VirtualRenderWorld` - 86 edges
-5. `VirtualRenderWorld` - 75 edges
-6. `BlockEntry` - 66 edges
+3. `SophisticatedBuilding` - 99 edges
+4. `BlockEntry` - 97 edges
+5. `VirtualRenderWorld` - 86 edges
+6. `VirtualRenderWorld` - 75 edges
 7. `ActionEnum` - 65 edges
 8. `AttachmentHandler` - 61 edges
 9. `AttachmentHandler` - 56 edges
@@ -245,751 +273,724 @@
 ## Surprising Connections (you probably didn't know these)
 - `Fabric Build GitHub Actions Workflow` --semantically_similar_to--> `NeoForge Build GitHub Actions Workflow`  [INFERRED] [semantically similar]
   Fabric-0.18.6-1.21.1/.github/workflows/build.yml → Neoforge-21.1.217-1.21.1/.github/workflows/build.yml
-- `Radial build menu (Alt key) fixes` --references--> `T5 - Radial menu fixes (F1, F2, F8)`  [INFERRED]
-  ExportedJars/PATCH_NOTES_4.1.0.md → ANALYSIS_AND_INSTRUCTIONS/05_IMPLEMENTATION_TASKS.md
-- `GNU Lesser General Public License v3` --references--> `GNU LGPL v3 (Fabric special textures license)`  [INFERRED]
-  LICENSE.txt → Fabric-0.18.6-1.21.1/src/main/resources/assets/sophisticatedbuilding/textures/special/license.txt
-- `GNU Lesser General Public License v3` --references--> `GNU LGPL v3 (Fabric project template license)`  [INFERRED]
-  LICENSE.txt → Fabric-0.18.6-1.21.1/TEMPLATE_LICENSE.txt
-- `GNU Lesser General Public License v3` --references--> `GNU LGPL v3 (NeoForge GUI textures license)`  [INFERRED]
-  LICENSE.txt → Neoforge-21.1.217-1.21.1/src/main/resources/assets/sophisticatedbuilding/textures/gui/license.txt
+- `Patch Notes: Survival Replace (root copy)` --semantically_similar_to--> `Patch Notes: Survival Replace (ExportedJars copy)`  [INFERRED] [semantically similar]
+  PATCH_NOTES_4.2.0.md → ExportedJars/PATCH_NOTES_4.2.0.md
+- `Patch Notes: Fabric Config Files (root copy)` --semantically_similar_to--> `Patch Notes: Fabric Config Files (ExportedJars copy)`  [INFERRED] [semantically similar]
+  PATCH_NOTES_4.2.0.md → ExportedJars/PATCH_NOTES_4.2.0.md
+- `Patch Notes: Storage Block Fix #4 (root copy)` --semantically_similar_to--> `Patch Notes: Storage Block Fix #4 (ExportedJars copy)`  [INFERRED] [semantically similar]
+  PATCH_NOTES_4.2.0.md → ExportedJars/PATCH_NOTES_4.2.0.md
+- `Patch Notes: Preview Hardening #1 (root copy)` --semantically_similar_to--> `Patch Notes: Preview Hardening #1 (ExportedJars copy)`  [INFERRED] [semantically similar]
+  PATCH_NOTES_4.2.0.md → ExportedJars/PATCH_NOTES_4.2.0.md
 
 ## Import Cycles
 - None detected.
 
 ## Hyperedges (group relationships)
 - **Survival breaking design decisions D1-D8 forming the balance contract** — analysis_and_instructions_08_survival_breaking_analysis_d1, analysis_and_instructions_08_survival_breaking_analysis_d2, analysis_and_instructions_08_survival_breaking_analysis_d3, analysis_and_instructions_08_survival_breaking_analysis_d4, analysis_and_instructions_08_survival_breaking_analysis_d5 [EXTRACTED 0.90]
+- **Survival Breaking Tool Selection Flow** — session_log_toolselector, session_log_breaktoolhelper, session_log_toolswapperintegration, session_log_clientbackpacktoolcache [EXTRACTED 0.90]
 - **T-S10 countdown feature (packet, client cache, HUD render, preview, patch notes)** — analysis_and_instructions_09_survival_breaking_tasks_renderhandler_drawbreakcountdown, patch_notes_4_1_0_survival_mass_breaking [EXTRACTED 0.90]
 - **Tool-selection execution pipeline: ToolSelector -> BreakToolHelper -> ToolSwapperIntegration -> BlockPlacerHelper.breakBlock -> BlockHelper.destroyBlockAs** — analysis_and_instructions_08_survival_breaking_analysis_toolselector_api, analysis_and_instructions_08_survival_breaking_analysis_breaktoolhelper, analysis_and_instructions_08_survival_breaking_analysis_toolswapperintegration, analysis_and_instructions_08_survival_breaking_analysis_blockplacerhelper_breakblock, analysis_and_instructions_08_survival_breaking_analysis_blockhelper_destroyblockas [EXTRACTED 0.95]
 - **Building Upgrade root causes RC1-RC4 jointly explain the 'no effect' symptom** — analysis_and_instructions_03_root_cause_building_upgrade_rc1, analysis_and_instructions_03_root_cause_building_upgrade_rc2, analysis_and_instructions_03_root_cause_building_upgrade_rc3, analysis_and_instructions_03_root_cause_building_upgrade_rc4 [EXTRACTED 1.00]
+- **4.1.1 hotfix return-type shim components** — analysis_and_instructions_10_upstream_api_break_4_1_1_return_type_agnostic_invoker, analysis_and_instructions_10_upstream_api_break_4_1_1_backpack_scan_compat, analysis_and_instructions_10_upstream_api_break_4_1_1_linkage_error_widening [EXTRACTED 1.00]
 - **Placement preview crash fix: MyPlaceContext, BlockEntry, BuilderChain resolving Player through getStateForPlacement** — patch_notes_4_0_0_myplacecontext, patch_notes_4_0_0_blockentry, patch_notes_4_0_0_builderchain, patch_notes_4_0_0_getstateforplacement, patch_notes_4_0_0_blockplacecontext_getplayer [EXTRACTED 1.00]
 - **Radial menu findings F1/F2/F8 jointly fixed under task T5** — analysis_and_instructions_04_radial_menu_f1, analysis_and_instructions_04_radial_menu_f2, analysis_and_instructions_04_radial_menu_f8, analysis_and_instructions_05_implementation_tasks_t5 [EXTRACTED 1.00]
+- **4.2.0 Release Task Group** — knowledge_plan_t1, knowledge_plan_t2, knowledge_plan_t3, knowledge_plan_t5b, knowledge_plan_t6, knowledge_plan_t7 [EXTRACTED 1.00]
 - **Dual-loader (Fabric/NeoForge) LGPL license and hardfork provenance chain** — license_gnu_lgpl_v3, fabric_0_18_6_1_21_1_template_license_lgpl, neoforge_21_1_217_1_21_1_template_license_lgpl, license_effortless_building_original_mod, license_effortlessbuildingsophisticated_hardfork [INFERRED 0.85]
-- **T0-T10 task sequence delivering 4.1.0 (RC1-RC4 fixes, line thickness/diagonal wall, release)** — analysis_and_instructions_05_implementation_tasks_t0, analysis_and_instructions_07_session_log_t1_fabric_dependency_setup, analysis_and_instructions_05_implementation_tasks_t2, analysis_and_instructions_05_implementation_tasks_t3, analysis_and_instructions_05_implementation_tasks_t4, analysis_and_instructions_05_implementation_tasks_t5, analysis_and_instructions_07_session_log_t6_line_thickness_diagonal_wall, analysis_and_instructions_07_session_log_t7_unit_tests, analysis_and_instructions_05_implementation_tasks_t8, analysis_and_instructions_07_session_log_t9_neoforge_parity, analysis_and_instructions_05_implementation_tasks_t10 [EXTRACTED 0.90]
-- **T-S1-T-S10 task sequence implementing survival mass breaking feature** — analysis_and_instructions_07_session_log_ts1_config_tool_selector, analysis_and_instructions_07_session_log_ts2_break_tool_helper, analysis_and_instructions_07_session_log_ts3_server_gate_delay_validation, analysis_and_instructions_07_session_log_ts4_backpack_tool_sync_packet, analysis_and_instructions_07_session_log_ts5_client_planning_preview_hud, analysis_and_instructions_07_session_log_ts6_disable_mode_resync, analysis_and_instructions_07_session_log_ts7_fabric_smoke_test, analysis_and_instructions_07_session_log_ts8_neoforge_parity, analysis_and_instructions_07_session_log_ts9_release_plumbing, analysis_and_instructions_07_session_log_ts10_countdown [EXTRACTED 0.90]
-- **PATCH_NOTES_4.1.0.md major change sections** — patch_notes_4_1_0_survival_mass_breaking, exportedjars_patch_notes_4_1_0_disable_mode_fix, patch_notes_4_1_0_building_upgrade_fix, exportedjars_patch_notes_4_1_0_radial_build_menu_fixes, patch_notes_4_1_0_line_thickness_diagonal_wall_fill, patch_notes_4_1_0_fabric_build_dependency_fixes, exportedjars_patch_notes_4_1_0_server_config [EXTRACTED 0.85]
+- **Issue Resolution Group #1/#3/#4 in 4.2.0** — knowledge_requirements_issue1, knowledge_requirements_issue3, knowledge_requirements_issue4, knowledge_plan_t7 [INFERRED 0.85]
 
-## Communities (226 total, 44 thin omitted)
+## Communities (255 total, 87 thin omitted)
 
 ### Community 0 - "Misc: ThreeClicksBuildMode"
 Cohesion: 0.03
-Nodes (83): FabricBootstrap, BackpackItemCountPacket, Handler, Context, Override, Type, BuildingUpgradeStatePacket, Handler (+75 more)
+Nodes (88): bytebufcodecs, clientplaynetworking, component, Context, BackpackItemCountPacket, Handler, Context, Override (+80 more)
 
 ### Community 1 - "Disabled & Single Modes"
-Cohesion: 0.03
-Nodes (34): BaseBuildMode, Override, Disabled, Override, Override, Single, IBuildMode, SophisticatedBuildingClient (+26 more)
+Cohesion: 0.06
+Nodes (40): PowerLevel, CommonConfig, MaxBlocksPerAxis, MaxBlocksPlacedAtOnce, MaxMirrorRadius, Reach, InteractionResultHolder, Override (+32 more)
 
 ### Community 2 - "Power Level & Client Backpack Cache"
-Cohesion: 0.04
-Nodes (45): CompoundTag, PowerLevel, CommonConfig, MaxBlocksPerAxis, MaxBlocksPlacedAtOnce, MaxMirrorRadius, Reach, AbstractBlockBreakQueue (+37 more)
-
-### Community 3 - "Attachment Handler (Power Level API)"
-Cohesion: 0.04
-Nodes (17): AttachmentHandler, PowerLevel, BlockEntry, Override, TwoClicksBuildMode, ServerBuildState, Deprecated, SurvivalHelper (+9 more)
-
-### Community 4 - "Misc: InventoryHelper"
-Cohesion: 0.04
-Nodes (20): ClientBackpackItemCache, ClientBuildingUpgradeState, TagDependentIngredientItem, CompressedBlockItem, Item, ItemUsageTracker, InventoryHelper, Deprecated (+12 more)
-
-### Community 5 - "Create Simi Screens & Widgets"
-Cohesion: 0.07
-Nodes (23): com.mojang.blaze3d.vertex.Tesselator, GuiIconButton, Override, GuiNumberField, EditBox, javax.annotation.ParametersAreNonnullByDefault, bind(), render() (+15 more)
-
-### Community 6 - "Create Theme System"
-Cohesion: 0.05
-Nodes (13): ColorHolder, Key, Theme, FluidFormatter, javax.annotation.Nonnull, ColorHolder, Key, Theme (+5 more)
-
-### Community 7 - "Misc: org.joml.Matrix4f"
-Cohesion: 0.03
-Nodes (64): AllGuiTextures, BUTTON, BUTTON_DOWN, BUTTON_HOVER, HOTSLOT, HOTSLOT_ACTIVE, HOTSLOT_ARROW, HOTSLOT_SUPER_ACTIVE (+56 more)
-
-### Community 8 - "Misc: BuilderFilter"
-Cohesion: 0.07
-Nodes (23): bind(), render(), Vec3, Create, bind(), render(), AllIcons, DelegatedStencilElement (+15 more)
-
-### Community 9 - "Create GUI Widgets (Indicator, Tooltip)"
-Cohesion: 0.05
-Nodes (17): Override, TooltipArea, Override, Label, Override, SelectionScrollInput, Override, TooltipArea (+9 more)
-
-### Community 10 - "ScrollInput Widget"
-Cohesion: 0.08
-Nodes (12): com.mojang.blaze3d.vertex.BufferBuilder, AllKeys, TooltipHelper, Components, Lang, AllKeys, ItemDescription, TooltipHelper (+4 more)
-
-### Community 11 - "Player Settings GUI (unfinished)"
-Cohesion: 0.06
-Nodes (17): Entry, Override, PlayerSettingsGui, ShaderType, DISSOLVE_BLUE, DISSOLVE_ORANGE, ShaderTypeEntry, ShaderTypeList (+9 more)
-
-### Community 12 - "Virtual Chunk Structure Data"
-Cohesion: 0.08
-Nodes (14): it.unimi.dsi.fastutil.longs.LongSet, it.unimi.dsi.fastutil.shorts.ShortList, Entry, Override, Provider, TicksToSave, Types, VirtualChunkSection (+6 more)
-
-### Community 13 - "Virtual Render World (Fabric)"
-Cohesion: 0.08
-Nodes (7): LevelLightEngine, MapId, MutableBlockPos, Override, VirtualChunkSource, VirtualRenderWorld, net.minecraft.world.level.block.entity.BlockEntity
-
-### Community 14 - "Virtual Render World (NeoForge)"
-Cohesion: 0.08
-Nodes (6): LevelLightEngine, MapId, MutableBlockPos, Override, VirtualChunkSource, VirtualRenderWorld
-
-### Community 15 - "VoxelShaper Utility"
-Cohesion: 0.12
-Nodes (14): DefaultRotationValues, HorizontalRotationValues, Override, Vec3, VoxelShaper, MyPlaceContext, DefaultRotationValues, HorizontalRotationValues (+6 more)
-
-### Community 16 - "Connected Texture Behaviour"
-Cohesion: 0.12
-Nodes (12): Base, ConnectedTextureBehaviour, Override, BlockUtilities, Base, ConnectedTextureBehaviour, Override, BlockUtilities (+4 more)
-
-### Community 17 - "Misc: AllGuiTextures"
-Cohesion: 0.08
-Nodes (22): AllIcons, IconButton, Override, MirrorEntry, Override, LabeledScrollInput, MathHelper, java.text.DecimalFormat (+14 more)
-
-### Community 18 - "GUI Textures, Keys & Vertex Helpers"
-Cohesion: 0.10
-Nodes (19): IInteractionChecker, Slot, Slot, Slot, Slot, IInteractionChecker, Slot, Slot (+11 more)
-
-### Community 19 - "Misc: OmegaRandomizerBagItem"
-Cohesion: 0.07
-Nodes (8): ClientBackpackToolCache, CompatHelper, ItemDescription, Override, TemplateSlot, ClientBackpackToolCache, RemovedGuiUtils, net.minecraft.world.item.ItemStack
-
-### Community 20 - "Mode Option Actions (ActionEnum)"
-Cohesion: 0.07
-Nodes (35): ActionEnum, CIRCLE_START_CENTER, CIRCLE_START_CORNER, CUBE_FULL, CUBE_HOLLOW, CUBE_SKELETON, DISABLE_BUILD_MODE_TOGGLE, FAST_SPEED (+27 more)
-
-### Community 21 - "Misc: BuilderChain"
-Cohesion: 0.08
-Nodes (17): ClientBlockUtilities, AbilitiesState, CAN_BREAK, CAN_PLACE_AND_BREAK, NONE, BuilderChain, BuildingState, BREAKING (+9 more)
-
-### Community 22 - "Misc: ModifiersScreen"
-Cohesion: 0.08
-Nodes (12): BaseModifierEntry, Label, MiniButton, Override, BoxWidget, ModifiersScreenList, Override, ModifiersScreen (+4 more)
-
-### Community 23 - "Misc: BuildingUpgradeContainer"
-Cohesion: 0.08
-Nodes (16): BuildingUpgradeContainer, Override, UpgradeContainerType, SophisticatedBackpacksIntegration, BuildingUpgradeWrapper, BuildingUpgradeItem, Override, BuildingUpgradeContainer (+8 more)
-
-### Community 24 - "Icon Buttons & Modifier Entries"
-Cohesion: 0.08
-Nodes (12): DiagonalLine, Override, DiagonalWall, BlockPos, Override, DiagonalLine, Override, DiagonalWall (+4 more)
-
-### Community 25 - "Misc: ModifierSettingsPacket"
-Cohesion: 0.08
-Nodes (14): BuildModes, Criteria, BuildModeEnum, Vec3, Criteria, Vec3, Vec3i, Criteria (+6 more)
-
-### Community 26 - "Cube Build Mode"
-Cohesion: 0.09
-Nodes (14): Cube, BlockPos, Override, BlockPos, Override, SlopeFloor, ICoordinate, FunctionalInterface (+6 more)
-
-### Community 27 - "Randomizer Bag Menus (MenuBase)"
-Cohesion: 0.08
-Nodes (13): ContainerProvider, DiamondRandomizerBagItem, Override, ContainerProvider, Override, javax.annotation.Nullable, DiamondRandomizerBagContainer, Override (+5 more)
-
-### Community 28 - "Undo/Redo Stack"
-Cohesion: 0.07
-Nodes (9): FixedStack, UndoRedo, FixedStack, FixedStack, UndoRedo, UndoSet, FixedStack, net.minecraft.world.item.BlockItem (+1 more)
-
-### Community 29 - "Virtual Chunk Sections"
-Cohesion: 0.09
-Nodes (7): Entry, Override, Provider, TicksToSave, Types, VirtualChunkSection, VirtualChunk
-
-### Community 30 - "Create Simi Screens & Widgets"
-Cohesion: 0.12
-Nodes (10): AbstractSimiWidget, Override, AbstractSimiWidget, Override, net.createmod.catnip.gui.TickableGuiEventListener, net.minecraft.client.gui.components.AbstractWidget, net.minecraft.client.gui.components.events.GuiEventListener, net.minecraft.client.gui.components.ObjectSelectionList (+2 more)
-
-### Community 31 - "VirtualRenderWorld Level Overrides"
-Cohesion: 0.11
-Nodes (21): dev.engine_room.flywheel.api.visualization.VisualizationLevel, it.unimi.dsi.fastutil.objects.Object2ShortMap, net.minecraft.core.Holder, net.minecraft.core.SectionPos, net.minecraft.core.Vec3i, net.minecraft.sounds.SoundEvent, net.minecraft.sounds.SoundSource, net.minecraft.world.entity.Entity (+13 more)
-
-### Community 32 - "Misc: AllGuiTextures"
-Cohesion: 0.07
-Nodes (18): AllGuiTextures, ARRAY_ENTRY, ARROW_DOWN, ARROW_UP, CHECKMARK, ENABLE_BUTTON_BACKGROUND, MIRROR_ENTRY, RADIAL_MIRROR_ENTRY (+10 more)
-
-### Community 33 - "BlockHelper Utility"
-Cohesion: 0.09
-Nodes (11): BlockHelper, CompoundTag, ItemStack, BlockHelper, CompoundTag, ItemStack, net.minecraft.server.level.ServerLevel, net.minecraft.world.level.block.state.properties.BooleanProperty (+3 more)
-
-### Community 34 - "Virtual Chunk Source"
-Cohesion: 0.11
-Nodes (13): Override, VirtualChunk, VirtualChunkSource, it.unimi.dsi.fastutil.longs.Long2ObjectMap, java.util.function.BooleanSupplier, Override, VirtualChunk, VirtualChunkSource (+5 more)
-
-### Community 35 - "Cylinder & Diagonal Line Modes"
-Cohesion: 0.10
-Nodes (11): Cylinder, BlockPos, Override, BlockPos, Override, Pyramid, HeightCriteria, BlockEntry (+3 more)
-
-### Community 36 - "Compat Helper & Item Utilities"
-Cohesion: 0.15
-Nodes (4): IItemHandler, Override, TemplateSlot, net.neoforged.neoforge.items.IItemHandler
-
-### Community 37 - "Misc: ActionEnum"
-Cohesion: 0.06
-Nodes (34): ActionEnum, CIRCLE_START_CENTER, CIRCLE_START_CORNER, CUBE_FULL, CUBE_HOLLOW, CUBE_SKELETON, DISABLE_BUILD_MODE_TOGGLE, FAST_SPEED (+26 more)
-
-### Community 38 - "Build Modifiers Registry"
-Cohesion: 0.10
-Nodes (5): BaseModifier, BuildModifiers, CompoundTag, BuildModifiers, CompoundTag
-
-### Community 39 - "Misc: Builder"
-Cohesion: 0.11
-Nodes (3): Builder, Builder, ContextRequirement
-
-### Community 40 - "Ghost Block Rendering (CreateClient)"
-Cohesion: 0.11
-Nodes (6): GhostBlockParams, BlockPos, GhostBlockRenderer, Entry, Entry, GhostBlocks
-
-### Community 41 - "Misc: BuilderChain"
-Cohesion: 0.10
-Nodes (13): AbilitiesState, CAN_BREAK, CAN_PLACE_AND_BREAK, NONE, BuilderChain, BuildingState, BREAKING, IDLE (+5 more)
-
-### Community 42 - "Misc: Color"
-Cohesion: 0.08
-Nodes (14): BuildModeCategoryEnum, BASIC, CIRCULAR, DIAGONAL, ROOF, TERRAIN, Color, Override (+6 more)
-
-### Community 45 - "Builder Chain & Block Entry Validation"
-Cohesion: 0.10
-Nodes (9): PendingSet, BlockSet, PlacedBlocksEntry, ClientBreakCountdown, Countdown, PendingSet, BlockSet, PlacedBlocksEntry (+1 more)
-
-### Community 46 - "Misc: MenuBase"
-Cohesion: 0.14
-Nodes (7): IClearableMenu, BagItemStackHandler, ItemStackHandler, Override, GhostItemMenu, Override, net.minecraft.world.item.component.ItemContainerContents
-
-### Community 47 - "ScrollInput Widget"
-Cohesion: 0.11
-Nodes (6): Override, ScrollInput, StepContext, Override, SelectionScrollInput, Label
-
-### Community 48 - "Modifier Settings Packet Handlers"
-Cohesion: 0.08
-Nodes (15): ClientProxy, ServerProxy, MenuType, MenuSupplier, GoldenRandomizerBagContainer, Override, ClientProxy, ServerProxy (+7 more)
-
-### Community 49 - "Misc: net.minecraft.client.renderer.RenderType"
-Cohesion: 0.12
-Nodes (9): com.mojang.blaze3d.vertex.VertexFormat, RenderTypes, BuildRenderTypes, Mode, RenderTypes, BuildRenderTypes, Mode, net.minecraft.client.renderer.RenderStateShard (+1 more)
-
-### Community 50 - "Connected Texture Behaviour"
-Cohesion: 0.10
-Nodes (8): ContextRequirement, CTContext, CTSpriteShiftEntry, CTType, CTContext, CTSpriteShiftEntry, CTType, net.createmod.catnip.render.SpriteShiftEntry
-
-### Community 51 - "Misc: CustomLightingSettings"
-Cohesion: 0.10
-Nodes (12): Builder, CustomLightingSettings, Matrix4f, Override, Vector3f, Builder, CustomLightingSettings, Matrix4f (+4 more)
-
-### Community 52 - "Misc: AllGuiTextures"
-Cohesion: 0.11
-Nodes (6): Override, ScrollInput, StepContext, Label, Override, LabeledScrollInput
-
-### Community 53 - "Misc: net.neoforged.neoforge.common.ModConfigSpec.Builder"
-Cohesion: 0.13
-Nodes (17): Performance, ClientConfig, Performance, Visuals, MaxBlocksPerAxis, MaxBlocksPlacedAtOnce, MaxMirrorRadius, Reach (+9 more)
-
-### Community 54 - "Create GUI Widgets (Indicator, Tooltip)"
-Cohesion: 0.10
-Nodes (11): ItemDescription, Palette, Blue, Gray, Green, Purple, Red, Yellow (+3 more)
-
-### Community 55 - "Misc: Mirror"
-Cohesion: 0.11
-Nodes (9): Cylinder, BlockPos, Override, BlockPos, Override, Pyramid, BlockEntry, Override (+1 more)
-
-### Community 56 - "Misc: net.neoforged.bus.api.SubscribeEvent"
-Cohesion: 0.10
-Nodes (13): BreakEvent, Clone, EntityPlaceEvent, CommonEvents, Post, Pre, ModBusEvents, net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent (+5 more)
-
-### Community 57 - "Misc: BaseModifierEntry"
-Cohesion: 0.12
-Nodes (14): ExtractionCountMode, EXACTLY, UPTO, ItemHelper, MutableInt, ExtractionCountMode, EXACTLY, UPTO (+6 more)
-
-### Community 58 - "Misc: OmegaRandomizerBagScreen"
-Cohesion: 0.13
-Nodes (11): OnPress, ContainerProvider, GoldenRandomizerBagItem, Override, RandomizerBagItem, OnPress, DiamondRandomizerBagItem, GoldenRandomizerBagItem (+3 more)
-
-### Community 59 - "Misc: Mirror"
-Cohesion: 0.11
-Nodes (13): Context, BreakCountdownPacket, Handler, Override, Type, PacketHandler, PacketHandlerClient, BreakCountdownPacket (+5 more)
-
-### Community 60 - "Misc: ArrayEntry"
-Cohesion: 0.12
-Nodes (12): DefaultGhostBlockRenderer, Override, Pose, TransparentGhostBlockRenderer, DefaultGhostBlockRenderer, GhostBlockRenderer, Override, Pose (+4 more)
-
-### Community 61 - "Misc: Entry"
-Cohesion: 0.14
-Nodes (3): Entry, Override, ModifiersScreenList
-
-### Community 62 - "Misc: CatnipRenderHelper"
-Cohesion: 0.13
-Nodes (10): AbstractRandomizerBagItem, CachedPositionSelection, InteractionResultHolder, Override, SplittableRandom, TooltipContext, UseOnContext, java.util.SplittableRandom (+2 more)
-
-### Community 63 - "Misc: ModifiersScreenList"
-Cohesion: 0.14
-Nodes (3): Entry, Override, ModifiersScreenList
-
-### Community 64 - "Misc: ClientEvents"
-Cohesion: 0.11
-Nodes (14): ComputeCameraAngles, Load, LoggingIn, LoggingOut, ClientEvents, Post, Unload, CommonEvents (+6 more)
-
-### Community 65 - "New: GuiNumberField"
-Cohesion: 0.10
-Nodes (4): ClientBreakCountdown, Countdown, ClientEvents, net.minecraft.client.KeyMapping
-
-### Community 67 - "Fabric Common Events & Commands"
-Cohesion: 0.15
-Nodes (13): com.mojang.brigadier.CommandDispatcher, Handler, Context, Override, Type, PowerLevelPacket, PowerLevelCommand, Handler (+5 more)
-
-### Community 68 - "Misc: BuildingUpgradeSettingsTab"
-Cohesion: 0.13
-Nodes (14): BuildingUpgradeSettingsTab, Override, Position, Toggle, SophisticatedBackpacksClientIntegration, BuildingUpgradeSettingsTab, Override, Position (+6 more)
-
-### Community 69 - "Misc: ModifiersScreen"
-Cohesion: 0.10
-Nodes (11): IconButton, Override, IconButton, Override, RadialMirrorEntry, IconButton, Override, MirrorEntry (+3 more)
-
-### Community 70 - "Misc: RadialMenu"
-Cohesion: 0.17
-Nodes (4): Override, MenuButton, MenuRegion, RadialMenu
-
-### Community 71 - "Misc: OmegaRandomizerBagScreen"
-Cohesion: 0.13
-Nodes (8): Override, OmegaRandomizerBagContainer, Override, OmegaRandomizerBagScreen, Handler, Override, Type, OmegaBagWeightPacket
-
-### Community 72 - "Misc: RenderHandler"
-Cohesion: 0.16
-Nodes (7): com.mojang.blaze3d.vertex.ByteBufferBuilder, com.mojang.blaze3d.vertex.VertexConsumer, BufferSource, ItemStack, Player, RenderHandler, net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
-
-### Community 73 - "Misc: BlockPreviews"
-Cohesion: 0.14
-Nodes (6): Override, RandomizerBagContainer, Override, RandomizerBagScreen, Override, RandomizerBagScreen
-
-### Community 75 - "Misc: AllSpecialTextures"
-Cohesion: 0.09
-Nodes (19): AllSpecialTextures, BLANK, CHECKERED, CUTOUT_CHECKERED, GLUE, HIGHLIGHT_CHECKERED, SELECTION, THIN_CHECKERED (+11 more)
-
-### Community 76 - "Misc: AbstractSimiScreen"
-Cohesion: 0.14
-Nodes (4): AbstractSimiScreen, Deprecated, Override, SuppressWarnings
-
-### Community 77 - "Icons & Partial Item Rendering"
-Cohesion: 0.19
-Nodes (8): PartialItemModelRenderer, CustomRenderedItemModel, Override, PartialItemModelRenderer, net.minecraft.client.resources.model.BakedModel, net.minecraft.util.RandomSource, net.minecraft.world.item.ItemDisplayContext, net.neoforged.neoforge.client.model.BakedModelWrapper
-
-### Community 78 - "Misc: ModifiersScreen"
-Cohesion: 0.15
-Nodes (6): DiamondRandomizerBagContainer, Override, DiamondRandomizerBagScreen, Override, DiamondRandomizerBagScreen, Override
-
-### Community 79 - "Misc: AbstractSimiContainerScreen"
 Cohesion: 0.15
 Nodes (6): GoldenRandomizerBagContainer, Override, GoldenRandomizerBagScreen, Override, GoldenRandomizerBagScreen, Override
 
+### Community 3 - "Attachment Handler (Power Level API)"
+Cohesion: 0.05
+Nodes (13): ClientBackpackItemCache, TagDependentIngredientItem, CompressedBlockItem, Item, ItemUsageTracker, Deprecated, ClientBackpackItemCache, TagDependentIngredientItem (+5 more)
+
+### Community 4 - "Misc: InventoryHelper"
+Cohesion: 0.05
+Nodes (14): ClientBackpackToolCache, AbstractBlockBreakQueue, BagItemStackHandler, ClientBackpackToolCache, RemovedGuiUtils, AbstractBlockBreakQueue, Override, TemplateSlot (+6 more)
+
+### Community 5 - "Create Simi Screens & Widgets"
+Cohesion: 0.04
+Nodes (43): Slot, Slot, Slot, Slot, ItemStackHandler, ContainerProvider, DiamondRandomizerBagItem, Override (+35 more)
+
+### Community 6 - "Create Theme System"
+Cohesion: 0.03
+Nodes (38): com.mojang.blaze3d.vertex.VertexConsumer, bind(), render(), AllIcons, Vec3, BuildModeCategoryEnum, BASIC, CIRCULAR (+30 more)
+
+### Community 7 - "Misc: org.joml.Matrix4f"
+Cohesion: 0.04
+Nodes (17): AttachmentHandler, PowerLevel, BlockSet, IInteractionChecker, CompoundTag, ServerBuildState, ToolSlot, ClientBlockUtilities (+9 more)
+
+### Community 8 - "Misc: BuilderFilter"
+Cohesion: 0.11
+Nodes (14): ComputeCameraAngles, Load, LoggingIn, LoggingOut, ClientEvents, Post, Unload, CommonEvents (+6 more)
+
+### Community 10 - "ScrollInput Widget"
+Cohesion: 0.03
+Nodes (39): com.mojang.blaze3d.vertex.BufferBuilder, AllKeys, Override, TooltipArea, ItemDescription, Palette, Blue, Gray (+31 more)
+
+### Community 11 - "Player Settings GUI (unfinished)"
+Cohesion: 0.21
+Nodes (6): Criteria, ActionEnum, BlockPos, Override, Vec3, Line
+
+### Community 12 - "Virtual Chunk Structure Data"
+Cohesion: 0.05
+Nodes (24): Cube, BlockPos, Override, Floor, BlockPos, Override, Vec3, BlockPos (+16 more)
+
+### Community 13 - "Virtual Render World (Fabric)"
+Cohesion: 0.07
+Nodes (9): LevelLightEngine, MapId, MutableBlockPos, Override, VirtualChunkSource, VirtualRenderWorld, net.minecraft.world.level.biome.Biome, net.minecraft.world.level.saveddata.maps.MapId (+1 more)
+
+### Community 14 - "Virtual Render World (NeoForge)"
+Cohesion: 0.06
+Nodes (26): Criteria, Vec3, Criteria, DefaultRotationValues, HorizontalRotationValues, Override, Vec3, VoxelShaper (+18 more)
+
+### Community 15 - "VoxelShaper Utility"
+Cohesion: 0.06
+Nodes (17): Entry, Override, PlayerSettingsGui, ShaderType, DISSOLVE_BLUE, DISSOLVE_ORANGE, ShaderTypeEntry, ShaderTypeList (+9 more)
+
+### Community 16 - "Connected Texture Behaviour"
+Cohesion: 0.09
+Nodes (13): Base, ConnectedTextureBehaviour, Override, PlaceChecker, Base, ConnectedTextureBehaviour, Override, Need (+5 more)
+
+### Community 17 - "Misc: AllGuiTextures"
+Cohesion: 0.08
+Nodes (14): it.unimi.dsi.fastutil.longs.LongSet, it.unimi.dsi.fastutil.shorts.ShortList, Entry, Override, Provider, TicksToSave, Types, VirtualChunkSection (+6 more)
+
+### Community 18 - "GUI Textures, Keys & Vertex Helpers"
+Cohesion: 0.08
+Nodes (6): LevelLightEngine, MapId, MutableBlockPos, Override, VirtualChunkSource, VirtualRenderWorld
+
+### Community 19 - "Misc: OmegaRandomizerBagItem"
+Cohesion: 0.03
+Nodes (38): Disabled, Override, Override, Single, IBuildMode, BlockEntry, BlockSet, Override (+30 more)
+
+### Community 20 - "Mode Option Actions (ActionEnum)"
+Cohesion: 0.31
+Nodes (3): Override, Vec3, RadialMirror
+
+### Community 21 - "Misc: BuilderChain"
+Cohesion: 0.07
+Nodes (16): BaseBuildMode, Override, ModeOptions, BlockEntry, Override, ThreeClicksBuildMode, BlockEntry, Override (+8 more)
+
+### Community 22 - "Misc: ModifiersScreen"
+Cohesion: 0.07
+Nodes (9): Override, UncontainableBlockItem, BlockHelper, Override, UncontainableBlockItem, BlockHelper, net.minecraft.world.item.BlockItem, net.minecraft.world.level.block.Block (+1 more)
+
+### Community 23 - "Misc: BuildingUpgradeContainer"
+Cohesion: 0.09
+Nodes (6): ClientBreakCountdown, Countdown, PendingSet, ClientBreakCountdown, Countdown, PendingSet
+
+### Community 24 - "Icon Buttons & Modifier Entries"
+Cohesion: 0.11
+Nodes (12): DefaultGhostBlockRenderer, Override, Pose, TransparentGhostBlockRenderer, DefaultGhostBlockRenderer, GhostBlockRenderer, Override, Pose (+4 more)
+
+### Community 25 - "Misc: ModifierSettingsPacket"
+Cohesion: 0.06
+Nodes (13): BlockPreviews, BlockPos, BlockSet, PlacedBlocksEntry, DelayedEntry, ToolSlot, ServerBlockPlacer, BlockPreviews (+5 more)
+
+### Community 26 - "Cube Build Mode"
+Cohesion: 0.06
+Nodes (34): ActionEnum, CIRCLE_START_CENTER, CIRCLE_START_CORNER, CUBE_FULL, CUBE_HOLLOW, CUBE_SKELETON, DISABLE_BUILD_MODE_TOGGLE, FAST_SPEED (+26 more)
+
+### Community 27 - "Randomizer Bag Menus (MenuBase)"
+Cohesion: 0.09
+Nodes (16): AllGuiTextures, ARRAY_ENTRY, ARROW_DOWN, ARROW_UP, CHECKMARK, ENABLE_BUTTON_BACKGROUND, MIRROR_ENTRY, RADIAL_MIRROR_ENTRY (+8 more)
+
+### Community 28 - "Undo/Redo Stack"
+Cohesion: 0.05
+Nodes (24): BaseModifierEntry, Label, MiniButton, Override, IconButton, Override, MirrorEntry, BoxWidget (+16 more)
+
+### Community 29 - "Virtual Chunk Sections"
+Cohesion: 0.08
+Nodes (12): DiagonalLine, Override, DiagonalWall, BlockPos, Override, DiagonalLine, Override, DiagonalWall (+4 more)
+
+### Community 30 - "Create Simi Screens & Widgets"
+Cohesion: 0.07
+Nodes (16): clientlifecycleevents, ModConfigs, FabricBootstrap, Override, SophisticatedBuildingFabric, Override, SophisticatedBuildingFabricClient, Handler (+8 more)
+
+### Community 31 - "VirtualRenderWorld Level Overrides"
+Cohesion: 0.05
+Nodes (47): Patch Notes: Building Upgrade Fix #3 (ExportedJars copy), Patch Notes: Compatibility Versions (ExportedJars copy), Patch Notes: Fabric Config Files (ExportedJars copy), Patch Notes: Preview Hardening #1 (ExportedJars copy), Patch Notes: Storage Block Fix #4 (ExportedJars copy), Patch Notes: Survival Replace (ExportedJars copy), Server Config Sync Skips Whitelist, Fabric-First-Then-NeoForge-Parity Workflow (+39 more)
+
+### Community 32 - "Misc: AllGuiTextures"
+Cohesion: 0.10
+Nodes (12): Builder, CustomLightingSettings, Matrix4f, Override, Vector3f, Builder, CustomLightingSettings, Matrix4f (+4 more)
+
+### Community 33 - "BlockHelper Utility"
+Cohesion: 0.18
+Nodes (4): IClearableMenu, Override, GhostItemMenu, Override
+
+### Community 34 - "Virtual Chunk Source"
+Cohesion: 0.12
+Nodes (12): Override, Vec3i, IPartialSafeNBT, ListTag, NBTUtils, CompoundTag, IPartialSafeNBT, ListTag (+4 more)
+
+### Community 36 - "Compat Helper & Item Utilities"
+Cohesion: 0.04
+Nodes (16): Override, Label, Override, ScrollInput, StepContext, Override, SelectionScrollInput, Label (+8 more)
+
+### Community 37 - "Misc: ActionEnum"
+Cohesion: 0.10
+Nodes (7): Entry, Override, Provider, TicksToSave, Types, VirtualChunkSection, VirtualChunk
+
+### Community 38 - "Build Modifiers Registry"
+Cohesion: 0.04
+Nodes (51): abstractcontainermenu, capabilities, clientproxy, componentitemhandler, CompressedBlockItem, configurationscreen, DiamondRandomizerBagItem, ClientProxy (+43 more)
+
+### Community 39 - "Misc: Builder"
+Cohesion: 0.08
+Nodes (36): backpackitemcountpacket, backpacktoolspacket, blockevent, breakcountdownpacket, buildingupgradehelper, buildingupgradeitem, buildingupgradestatepacket, clientboundcontainersetslotpacket (+28 more)
+
+### Community 40 - "Ghost Block Rendering (CreateClient)"
+Cohesion: 0.09
+Nodes (32): baserailblock, bedblock, bigdecimal, blockdropsevent, blockitemstateproperties, blocks, blocktags, consumer (+24 more)
+
+### Community 41 - "Misc: BuilderChain"
+Cohesion: 0.10
+Nodes (21): arraydeque, attachmenthandler, clientblockutilities, clientconfig, deque, dist, envtype, BlockUtilities (+13 more)
+
+### Community 42 - "Misc: Color"
+Cohesion: 0.33
+Nodes (6): State, GREEN, OFF, ON, RED, YELLOW
+
+### Community 43 - "Slot GUI Scroll List"
+Cohesion: 0.03
+Nodes (61): AllGuiTextures, BUTTON, BUTTON_DOWN, BUTTON_HOVER, HOTSLOT, HOTSLOT_ACTIVE, HOTSLOT_ARROW, HOTSLOT_SUPER_ACTIVE (+53 more)
+
+### Community 44 - "Label & ScrollInput Widgets"
+Cohesion: 0.13
+Nodes (7): Mode, EXPONENTIAL, LINEAR, CameraAngleAnimationService, Mode, EXPONENTIAL, LINEAR
+
+### Community 45 - "Builder Chain & Block Entry Validation"
+Cohesion: 0.12
+Nodes (13): Override, VirtualChunk, VirtualChunkSource, it.unimi.dsi.fastutil.longs.Long2ObjectMap, java.util.function.BooleanSupplier, Override, VirtualChunk, VirtualChunkSource (+5 more)
+
+### Community 46 - "Misc: MenuBase"
+Cohesion: 0.13
+Nodes (17): BackpackScanCompat (T-U2), Crash: NoSuchMethodError in server tick loop (NeoForge 21.1.250 modpack), 10 Upstream API break 4.1.1, Fabric Salandora port frozen at 3.23.4.3.106, Fix design: MethodHandle shim, compile against latest, LinkageError, warn once, Guards caught Exception|NoClassDefFoundError but not LinkageError, Widen guards to LinkageError (T-U3), ReturnTypeAgnosticInvoker (T-U1) (+9 more)
+
+### Community 47 - "ScrollInput Widget"
+Cohesion: 0.07
+Nodes (9): BaseModifier, CompoundTag, BuildModifiers, CompoundTag, Array, Override, Vec3i, BuildModifiers (+1 more)
+
+### Community 48 - "Modifier Settings Packet Handlers"
+Cohesion: 0.10
+Nodes (11): AbilitiesState, CAN_BREAK, CAN_PLACE_AND_BREAK, NONE, BuilderChain, BuildingState, BREAKING, IDLE (+3 more)
+
+### Community 49 - "Misc: net.minecraft.client.renderer.RenderType"
+Cohesion: 0.10
+Nodes (11): Cylinder, BlockPos, Override, BlockPos, Override, Pyramid, BlockPos, Override (+3 more)
+
+### Community 50 - "Connected Texture Behaviour"
+Cohesion: 0.06
+Nodes (34): ActionEnum, CIRCLE_START_CENTER, CIRCLE_START_CORNER, CUBE_FULL, CUBE_HOLLOW, CUBE_SKELETON, DISABLE_BUILD_MODE_TOGGLE, FAST_SPEED (+26 more)
+
+### Community 51 - "Misc: CustomLightingSettings"
+Cohesion: 0.10
+Nodes (11): AbilitiesState, CAN_BREAK, CAN_PLACE_AND_BREAK, NONE, BuilderChain, BuildingState, BREAKING, IDLE (+3 more)
+
+### Community 52 - "Misc: AllGuiTextures"
+Cohesion: 0.11
+Nodes (3): Builder, Builder, ContextRequirement
+
+### Community 54 - "Create GUI Widgets (Indicator, Tooltip)"
+Cohesion: 0.08
+Nodes (17): ExtractionCountMode, EXACTLY, UPTO, ItemHelper, IItemHandler, ExtractionCountMode, EXACTLY, UPTO (+9 more)
+
+### Community 55 - "Misc: Mirror"
+Cohesion: 0.11
+Nodes (15): com.google.gson.Gson, com.google.gson.JsonObject, ConfigFile, ConfigSpec, LoadResult, Section, files, gsonbuilder (+7 more)
+
+### Community 56 - "Misc: net.neoforged.bus.api.SubscribeEvent"
+Cohesion: 0.14
+Nodes (8): AbstractRandomizerBagItem, CachedPositionSelection, Deprecated, Override, SplittableRandom, TooltipContext, UseOnContext, java.util.SplittableRandom
+
+### Community 57 - "Misc: BaseModifierEntry"
+Cohesion: 0.12
+Nodes (10): com.mojang.blaze3d.vertex.VertexFormat, RenderTypes, BuildRenderTypes, Mode, RenderTypes, BuildRenderTypes, Mode, net.minecraft.client.renderer.RenderStateShard (+2 more)
+
+### Community 58 - "Misc: OmegaRandomizerBagScreen"
+Cohesion: 0.11
+Nodes (14): atomicboolean, BackpackScanCompat, BackpackInventorySlotConsumer, ReturnTypeAgnosticInvoker, fabricloader, java.lang.invoke.MethodHandle, method, methodhandles (+6 more)
+
+### Community 59 - "Misc: Mirror"
+Cohesion: 0.10
+Nodes (8): ContextRequirement, CTContext, CTSpriteShiftEntry, CTType, CTContext, CTSpriteShiftEntry, CTType, net.createmod.catnip.render.SpriteShiftEntry
+
+### Community 60 - "Misc: ArrayEntry"
+Cohesion: 0.09
+Nodes (10): CreateClient, GhostBlockParams, BlockPos, GhostBlockRenderer, Entry, GhostBlocks, CreateClient, Entry (+2 more)
+
+### Community 61 - "Misc: Entry"
+Cohesion: 0.10
+Nodes (11): Cylinder, BlockPos, Override, BlockPos, Override, Pyramid, BlockPos, Override (+3 more)
+
+### Community 62 - "Misc: CatnipRenderHelper"
+Cohesion: 0.15
+Nodes (7): Create, ClientEvents, CommonEvents, ModBusEvents, Create, net.minecraft.world.level.LevelAccessor, org.slf4j.Logger
+
+### Community 63 - "Misc: ModifiersScreenList"
+Cohesion: 0.14
+Nodes (10): BuildingUpgradeContainer, UpgradeContainerType, SophisticatedBackpacksIntegration, BuildingUpgradeWrapper, BuildingUpgradeItem, BuildingUpgradeContainer, UpgradeContainerType, SophisticatedBackpacksIntegration (+2 more)
+
+### Community 64 - "Misc: ClientEvents"
+Cohesion: 0.16
+Nodes (18): ClientConfig, Performance, Visuals, MaxBlocksPerAxis, MaxBlocksPlacedAtOnce, MaxMirrorRadius, Reach, Memory (+10 more)
+
+### Community 65 - "New: GuiNumberField"
+Cohesion: 0.11
+Nodes (5): ArrayEntry, Override, Entry, Override, ModifiersScreenList
+
+### Community 66 - "Misc: GuiScrollPane"
+Cohesion: 0.11
+Nodes (5): ArrayEntry, Override, Entry, Override, ModifiersScreenList
+
+### Community 67 - "Fabric Common Events & Commands"
+Cohesion: 0.18
+Nodes (4): Override, MenuButton, MenuRegion, RadialMenu
+
+### Community 68 - "Misc: BuildingUpgradeSettingsTab"
+Cohesion: 0.18
+Nodes (6): BreakPlan, BreakToolHelper, BlockEntry, Override, StackCandidate, ToolSlot
+
+### Community 69 - "Misc: ModifiersScreen"
+Cohesion: 0.13
+Nodes (14): BuildingUpgradeSettingsTab, Override, Position, Toggle, SophisticatedBackpacksClientIntegration, BuildingUpgradeSettingsTab, Override, Position (+6 more)
+
+### Community 70 - "Misc: RadialMenu"
+Cohesion: 0.04
+Nodes (49): com.mojang.blaze3d.vertex.Tesselator, Array, Components, GuiIconButton, OnPress, Override, GuiNumberField, EditBox (+41 more)
+
+### Community 71 - "Misc: OmegaRandomizerBagScreen"
+Cohesion: 0.14
+Nodes (7): BreakPlan, BreakToolHelper, BlockEntry, Need, Override, StackCandidate, ToolSlot
+
+### Community 72 - "Misc: RenderHandler"
+Cohesion: 0.12
+Nodes (8): DiamondRandomizerBagScreen, Override, InventoryHelper, ContainerProvider, GoldenRandomizerBagItem, Override, InventoryHelper, net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+
+### Community 73 - "Misc: BlockPreviews"
+Cohesion: 0.13
+Nodes (20): dev.engine_room.flywheel.api.visualization.VisualizationLevel, Vec3, Vec3i, it.unimi.dsi.fastutil.objects.Object2ShortMap, net.minecraft.core.Holder, net.minecraft.core.SectionPos, net.minecraft.core.Vec3i, net.minecraft.sounds.SoundEvent (+12 more)
+
+### Community 74 - "Misc: GuiScrollPane"
+Cohesion: 0.12
+Nodes (6): com.google.gson.JsonElement, BooleanValue, DoubleValue, IntValue, Override, StringListValue
+
+### Community 75 - "Misc: AllSpecialTextures"
+Cohesion: 0.20
+Nodes (7): PartialItemModelRenderer, CustomRenderedItemModel, Override, PartialItemModelRenderer, net.minecraft.client.resources.model.BakedModel, net.minecraft.world.item.ItemDisplayContext, net.neoforged.neoforge.client.model.BakedModelWrapper
+
+### Community 76 - "Misc: AbstractSimiScreen"
+Cohesion: 0.22
+Nodes (5): BlockEntry, BlockSet, Override, Vec3, RadialMirror
+
+### Community 78 - "Misc: ModifiersScreen"
+Cohesion: 0.14
+Nodes (3): IScrollEntry, GuiScrollPane, Override
+
+### Community 79 - "Misc: AbstractSimiContainerScreen"
+Cohesion: 0.21
+Nodes (5): BlockEntry, BlockSet, Override, Vec3, Mirror
+
 ### Community 80 - "Two/Three-Click Modes & Array Modifier"
-Cohesion: 0.17
-Nodes (3): CatnipRenderHelper, CatnipRenderHelper, net.minecraft.world.phys.AABB
+Cohesion: 0.09
+Nodes (6): ClientBuildingUpgradeState, BuildingUpgradeStatePacket, Handler, Override, Type, ClientBuildingUpgradeState
 
 ### Community 81 - "Misc: AbstractSimiScreen"
+Cohesion: 0.07
+Nodes (5): CompatHelper, CatnipRenderHelper, CompatHelper, CatnipRenderHelper, net.minecraft.world.phys.AABB
+
+### Community 82 - "Misc: BuildingUpgradeItem"
+Cohesion: 0.09
+Nodes (19): AllSpecialTextures, BLANK, CHECKERED, CUTOUT_CHECKERED, GLUE, HIGHLIGHT_CHECKERED, SELECTION, THIN_CHECKERED (+11 more)
+
+### Community 83 - "Radial Mirror Modifier"
 Cohesion: 0.14
 Nodes (4): AbstractSimiScreen, Deprecated, Override, SuppressWarnings
 
-### Community 82 - "Misc: BuildingUpgradeItem"
-Cohesion: 0.14
-Nodes (9): BuildingUpgradeItem, IUpgradeCountLimitConfig, Override, TooltipContext, UpgradeConflictDefinition, UpgradeGroup, UpgradeType, net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeSlotChangeResult (+1 more)
-
-### Community 83 - "Radial Mirror Modifier"
-Cohesion: 0.28
-Nodes (8): com.mojang.blaze3d.vertex.PoseStack, Color, Vec3, ModifierRenderer, Color, Vec3, ModifierRenderer, net.minecraft.client.renderer.MultiBufferSource.BufferSource
-
 ### Community 84 - "Misc: BuildingUpgradeItem"
+Cohesion: 0.14
+Nodes (4): AbstractSimiScreen, Deprecated, Override, SuppressWarnings
+
+### Community 85 - "Misc: Builder"
 Cohesion: 0.16
 Nodes (8): BuildingUpgradeItem, Override, TooltipContext, UpgradeConflictDefinition, net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeCountLimitConfig, net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeGroup, net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase, net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType
 
-### Community 85 - "Misc: Builder"
-Cohesion: 0.15
-Nodes (7): AbstractRandomizerBagItem, CachedPositionSelection, InteractionResultHolder, Override, SplittableRandom, TooltipContext, UseOnContext
-
 ### Community 86 - "Misc: net.minecraft.core.Direction"
-Cohesion: 0.15
-Nodes (4): AbstractSimiContainerScreen, Deprecated, Override, SuppressWarnings
+Cohesion: 0.08
+Nodes (10): Handler, Context, Override, Type, PerformRedoPacket, Handler, Context, Override (+2 more)
 
 ### Community 87 - "Misc: AbstractSimiContainerScreen"
-Cohesion: 0.15
-Nodes (4): AbstractSimiContainerScreen, Deprecated, Override, SuppressWarnings
+Cohesion: 0.17
+Nodes (5): PlacementTemplates, Template, DelayedEntry, ToolSlot, ServerBlockPlacer
 
 ### Community 88 - "Backpack Building-Upgrade Count Sync Fix (T3/T4/RC1-RC4)"
-Cohesion: 0.16
-Nodes (20): item.upgrade.BuildingUpgradeHelper, common.gui.BackpackContext.PlayerInventory, util.PlayerInventoryProvider, compat.trinkets.TrinketsCompat, Count sync inconsistency (clamped vs unclamped totals), compatibility.CuriosCompatHelper (Fabric stub), RC1 - Worn backpacks never found (CuriosCompatHelper stub), T3 - Find backpacks through PlayerInventoryProvider (RC1) (+12 more)
+Cohesion: 0.10
+Nodes (15): action, assertequals, assertfalse, assertnull, assertsame, asserttrue, Action, BREAK (+7 more)
 
 ### Community 89 - "Session Log Meta & Review Process (T11, TS9-TS10)"
-Cohesion: 0.14
-Nodes (20): 06 Review Checklist, graphify.build.build_merge, detect_incremental (graphify), cluster.remap_communities_to_previous, Review of survival-breaking implementation and graph refresh (Fable), Survival mass breaking session (evening, orchestrator: Fable), T11 - Knowledge graph refresh (Fable 5.1, orchestrator), T-S10 - On-screen countdown for the mining delay (+12 more)
+Cohesion: 0.15
+Nodes (20): arraylist, backpackscancompat, backpackwrapper, builtinregistries, concurrenthashmap, identityhashmap, inventoryhandler, istoragewrapper (+12 more)
 
 ### Community 90 - "Build Mode Enum & Base Mode"
 Cohesion: 0.11
 Nodes (19): BuildModeEnum, CIRCLE, CONE, CUBE, CYLINDER, DIAGONAL_LINE, DIAGONAL_WALL, DISABLED (+11 more)
 
 ### Community 91 - "Misc: Line"
-Cohesion: 0.17
-Nodes (7): Criteria, ActionEnum, BlockPos, Override, Vec3, Line, sophisticated.building.buildmode.TwoClicksBuildMode
+Cohesion: 0.07
+Nodes (9): AbstractSimiContainerScreen, Deprecated, Override, SuppressWarnings, AbstractSimiContainerScreen, Deprecated, Override, SuppressWarnings (+1 more)
 
 ### Community 92 - "Camera Angle Animation Service"
-Cohesion: 0.13
-Nodes (7): Mode, EXPONENTIAL, LINEAR, CameraAngleAnimationService, Mode, EXPONENTIAL, LINEAR
+Cohesion: 0.07
+Nodes (11): ColorHolder, Key, Theme, FluidFormatter, javax.annotation.Nonnull, ColorHolder, Key, Theme (+3 more)
 
 ### Community 93 - "Misc: FabricClientEvents"
-Cohesion: 0.14
-Nodes (6): FabricClientEvents, Override, SophisticatedBuildingFabricClient, net.fabricmc.api.ClientModInitializer, net.minecraft.client.multiplayer.ClientLevel, sophisticated.building.client.gui.MaterialCostOverlay
+Cohesion: 0.18
+Nodes (4): BufferSource, Player, RenderHandler, net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext
 
 ### Community 94 - "Misc: RenderHandler"
-Cohesion: 0.18
-Nodes (5): BufferSource, ItemStack, Player, Post, RenderHandler
+Cohesion: 0.12
+Nodes (5): BuildModes, BuildModeEnum, BuildModes, BuildModeEnum, sophisticated.building.buildmode.TwoClicksBuildMode
 
 ### Community 95 - "Misc: net.minecraft.nbt.CompoundTag"
-Cohesion: 0.18
-Nodes (8): CompoundTag, ListTag, NBTUtils, CompoundTag, ListTag, NBTUtils, net.minecraft.nbt.CompoundTag, net.minecraft.nbt.ListTag
-
-### Community 96 - "Misc: Array"
-Cohesion: 0.22
-Nodes (5): DelayedEntry, BlockEntry, BlockSet, ToolSlot, ServerBlockPlacer
+Cohesion: 0.15
+Nodes (9): BuildingUpgradeItem, IUpgradeCountLimitConfig, Override, TooltipContext, UpgradeConflictDefinition, UpgradeGroup, UpgradeType, net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeSlotChangeResult (+1 more)
 
 ### Community 97 - "Misc: RadialMenu"
-Cohesion: 0.19
-Nodes (3): Override, MenuButton, RadialMenu
+Cohesion: 0.18
+Nodes (4): BufferSource, Player, Post, RenderHandler
 
 ### Community 98 - "Server Block Placer"
-Cohesion: 0.21
-Nodes (5): DelayedEntry, BlockEntry, BlockSet, ToolSlot, ServerBlockPlacer
+Cohesion: 0.23
+Nodes (4): ActionEnum, BlockPos, Override, TerrainMound
 
 ### Community 99 - "Misc: net.minecraft.core.RegistryAccess"
-Cohesion: 0.12
-Nodes (18): BackpackToolsPacket, BlockHelper.destroyBlockAs, BlockPlacerHelper.breakBlock, BreakToolHelper, BuilderChain, D1: Server-authoritative tool rules, D3: Capped mining delay instead of instant breaking, D4: Existing survival limits stay in force (+10 more)
+Cohesion: 0.10
+Nodes (12): BreakEvent, Clone, EntityPlaceEvent, CommonEvents, ModBusEvents, net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent, net.neoforged.neoforge.event.RegisterCommandsEvent, PlayerChangedDimensionEvent (+4 more)
 
 ### Community 100 - "Misc: Wall"
-Cohesion: 0.18
-Nodes (7): Override, OmegaRandomizerBagScreen, Handler, Context, Override, Type, OmegaBagWeightPacket
+Cohesion: 0.05
+Nodes (19): Override, OmegaRandomizerBagContainer, Override, OmegaRandomizerBagScreen, Override, OmegaRandomizerBagItem, Handler, Context (+11 more)
 
 ### Community 101 - "Misc: BuildingUpgradeWrapper"
-Cohesion: 0.14
-Nodes (5): BuildingUpgradeWrapper, BuildingUpgradeItem, Override, net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper, net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase
+Cohesion: 0.18
+Nodes (7): BuildSettings, ActionEnum, ReplaceMode, BLOCKS_AND_AIR, FILTERED_BY_OFFHAND, ONLY_AIR, ONLY_BLOCKS
 
 ### Community 102 - "Misc: BuildSettings"
 Cohesion: 0.18
-Nodes (7): BuildSettings, ActionEnum, ReplaceMode, BLOCKS_AND_AIR, FILTERED_BY_OFFHAND, ONLY_AIR, ONLY_BLOCKS
+Nodes (3): Override, MenuButton, RadialMenu
 
 ### Community 103 - "Misc: BuildingUpgradeWrapper"
-Cohesion: 0.23
-Nodes (4): BreakPlan, BreakToolHelper, BlockEntry, ToolSlot
+Cohesion: 0.16
+Nodes (11): clientbackpacktoolcache, compathelper, diggeritem, ToolSlot, ToolSwapperIntegration, itemtags, linkedhashmap, ToolSlot (+3 more)
 
 ### Community 104 - "Misc: CommonConfig"
-Cohesion: 0.18
-Nodes (4): BackpackContributionTest, DiagonalWallFillTest, LineThicknessTest, org.junit.jupiter.api.Test
+Cohesion: 0.15
+Nodes (6): Override, RandomizerBagContainer, Override, RandomizerBagScreen, Override, RandomizerBagScreen
 
 ### Community 105 - "Client Events & Client Config"
+Cohesion: 0.14
+Nodes (5): BuildingUpgradeWrapper, BuildingUpgradeItem, Override, net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper, net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase
+
+### Community 106 - "Misc: BuildSettings"
+Cohesion: 0.09
+Nodes (7): FixedStack, UndoRedo, FixedStack, FixedStack, UndoRedo, UndoSet, net.neoforged.neoforge.common.util.BlockSnapshot
+
+### Community 107 - "Misc: FixedStack"
 Cohesion: 0.11
 Nodes (18): BuildModeEnum, CIRCLE, CONE, CUBE, CYLINDER, DIAGONAL_LINE, DIAGONAL_WALL, DISABLED (+10 more)
 
-### Community 106 - "Misc: BuildSettings"
+### Community 108 - "Misc: Wall"
 Cohesion: 0.18
 Nodes (7): BuildSettings, ActionEnum, ReplaceMode, BLOCKS_AND_AIR, FILTERED_BY_OFFHAND, ONLY_AIR, ONLY_BLOCKS
 
-### Community 108 - "Misc: Wall"
-Cohesion: 0.15
-Nodes (17): attachment.AttachmentHandler / PowerLevel, BlockSet, systems.BuilderChain, client.ClientBackpackItemCache, fabric.FabricCommonEvents, utilities.InventoryHelper, systems.ItemUsageTracker, systems.ServerBlockPlacer (+9 more)
-
 ### Community 109 - "Radial Mirror Modifier"
-Cohesion: 0.21
-Nodes (5): BlockEntry, BlockSet, Override, Vec3, Mirror
+Cohesion: 0.16
+Nodes (16): abstractrandomizerbagitem, builderchain, clientbreakcountdown, com.mojang.blaze3d.vertex.ByteBufferBuilder, font, hashmap, i18n, interactionhand (+8 more)
 
 ### Community 110 - "Omega Randomizer Bag Item"
-Cohesion: 0.15
-Nodes (5): Deprecated, ContainerProvider, Override, OmegaRandomizerBagItem, Deprecated
+Cohesion: 0.09
+Nodes (5): BackpackContributionTest, DiagonalWallFillTest, LineThicknessTest, ReplaceRulesTest, org.junit.jupiter.api.Test
 
 ### Community 111 - "Misc: Line"
 Cohesion: 0.21
 Nodes (6): Criteria, ActionEnum, BlockPos, Override, Vec3, Line
 
 ### Community 112 - "Radial Mirror Modifier"
-Cohesion: 0.21
-Nodes (5): BlockEntry, BlockSet, Override, Vec3, Mirror
-
-### Community 113 - "Misc: ModeOptions"
-Cohesion: 0.23
-Nodes (3): BuildingUpgradeHelper, Item, ItemStack
-
-### Community 114 - "Fabric Dependency & Diagonal Wall Fix (T0-T10, 4.1.0 Patch)"
-Cohesion: 0.17
-Nodes (16): T0 - Repository hygiene, T10 - Release plumbing, T8 - Runtime smoke test (Fabric), Implementer notes T0-T10 (Sonnet 5), Loom jar-in-jar classpath gap (porting_lib modules not on compile/runtime classpath), T1 - Fabric dependency setup (RC4), T6 - Line thickness and Diagonal Wall fill (F3, F4), T7 - Unit tests (+8 more)
-
-### Community 115 - "Misc: CTType"
-Cohesion: 0.22
-Nodes (7): ItemHandlerHelper, Memory, ServerConfig, SurvivalBreaking, Validation, ServerConfig, sophisticated.building.config.SimpleConfigValue
-
-### Community 116 - "Misc: TerrainMound"
 Cohesion: 0.23
 Nodes (4): ActionEnum, BlockPos, Override, TerrainMound
 
-### Community 117 - "Radial Mirror Modifier"
-Cohesion: 0.18
-Nodes (5): BlockEntry, BlockSet, Override, Vec3, RadialMirror
+### Community 113 - "Misc: ModeOptions"
+Cohesion: 0.27
+Nodes (3): Deprecated, BuildingUpgradeHelper, BuildingUpgradeWrapper
 
-### Community 118 - "Disabled & Single Modes"
-Cohesion: 0.14
-Nodes (9): Override, MaterialCostOverlay, Layer, Override, MaterialCostOverlay, net.neoforged.fml.event.lifecycle.FMLClientSetupEvent, net.neoforged.neoforge.client.event.RegisterGuiLayersEvent, net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent (+1 more)
+### Community 114 - "Fabric Dependency & Diagonal Wall Fix (T0-T10, 4.1.0 Patch)"
+Cohesion: 0.13
+Nodes (23): blockhelper, blockplacerhelper, blocksnapshot, blockstate, blockutilities, breaktoolhelper, chatformatting, collections (+15 more)
 
-### Community 119 - "Misc: net.minecraft.world.level.material.FluidState"
-Cohesion: 0.22
-Nodes (6): Override, VirtualChunkSection, Override, VirtualChunkSection, net.minecraft.world.level.chunk.LevelChunkSection, net.minecraft.world.level.material.FluidState
-
-### Community 120 - "Misc: CompoundTag"
-Cohesion: 0.23
-Nodes (3): Override, TemplateSlotContainer, net.minecraft.world.Container
-
-### Community 121 - "Misc: BuildingUpgradeHelper"
-Cohesion: 0.24
-Nodes (3): BuildingUpgradeHelper, Deprecated, ItemStack
-
-### Community 123 - "Misc: Circle"
+### Community 116 - "Misc: TerrainMound"
 Cohesion: 0.14
 Nodes (6): Candidate, Need, NO_TOOL, TOOL, UNBREAKABLE, ToolSelector
 
-### Community 124 - "Misc: Line"
-Cohesion: 0.19
-Nodes (3): BuildModes, BuildModeEnum, Vec3
+### Community 118 - "Disabled & Single Modes"
+Cohesion: 0.22
+Nodes (4): BuildingUpgradeWrapper, Post, BuildingUpgradeHelper, Item
 
-### Community 125 - "Misc: TerrainMound"
-Cohesion: 0.23
-Nodes (4): ActionEnum, BlockPos, Override, TerrainMound
+### Community 119 - "Misc: net.minecraft.world.level.material.FluidState"
+Cohesion: 0.16
+Nodes (15): 06 Review Checklist, 08 Survival Breaking Analysis, BackpackToolsPacket, BreakToolHelper, BuilderChain, BuildModes.setBuildMode / resyncToServer, D5: Vanilla breaking cancelled while a build mode is active (survival included), D6: Client preview and HUD for break plan (+7 more)
 
-### Community 126 - "Misc: net.minecraft.tags.TagKey"
-Cohesion: 0.25
-Nodes (4): BreakPlan, BreakToolHelper, BlockEntry, ToolSlot
+### Community 121 - "Misc: BuildingUpgradeHelper"
+Cohesion: 0.13
+Nodes (5): Override, TemplateSlot, Override, TemplateSlotContainer, net.minecraft.world.Container
 
-### Community 129 - "Misc: IScrollEntry"
-Cohesion: 0.21
-Nodes (5): ToolSlot, ToolSwapperIntegration, ToolSlot, ToolSwapperIntegration, net.p3pp3rf1y.sophisticatedbackpacks.upgrades.toolswapper.ToolSwapperUpgradeWrapper
-
-### Community 130 - "Misc: ServerConfig"
-Cohesion: 0.18
-Nodes (9): Handler, IsQuickReplacingPacket, Context, Override, Type, Handler, IsQuickReplacingPacket, Override (+1 more)
-
-### Community 133 - "Misc: GuiCheckBoxFixed"
+### Community 122 - "Misc: Cone"
 Cohesion: 0.15
 Nodes (6): Candidate, Need, NO_TOOL, TOOL, UNBREAKABLE, ToolSelector
 
-### Community 134 - "Misc: BuildingUpgradeHelper"
-Cohesion: 0.26
-Nodes (5): FabricCommonEvents, ItemStack, Player, MinecraftServer, net.minecraft.server.level.ServerPlayer
+### Community 123 - "Misc: Circle"
+Cohesion: 0.15
+Nodes (8): Fabric-0.19.2-1.21.11 experimental port, Fabric-0.18.6-1.21.1 project, graphify-out/ knowledge graph, Neoforge-21.1.217-1.21.1 project, Sophisticated Building (mod), F7 - 1.21.11 draft features not in 1.21.1 (informational), T10 - Release plumbing, T11 - Rebuild the knowledge graph
 
-### Community 135 - "New: PacketHandler"
-Cohesion: 0.20
-Nodes (9): BackpackToolsPacket, Handler, Override, Type, BackpackToolsPacket, Handler, Override, Type (+1 more)
+### Community 124 - "Misc: Line"
+Cohesion: 0.14
+Nodes (4): AbstractSimiWidget, Override, Override, TooltipArea
 
-### Community 136 - "Misc: rebuild_all_and_export_jar.ps1"
-Cohesion: 0.17
-Nodes (7): Fabric-0.19.2-1.21.11 experimental port, Fabric-0.18.6-1.21.1 project, graphify-out/ knowledge graph, Neoforge-21.1.217-1.21.1 project, Sophisticated Building (mod), F7 - 1.21.11 draft features not in 1.21.1 (informational), T11 - Rebuild the knowledge graph
-
-### Community 137 - "Misc: Sophisticated Building Update 4.0.0"
-Cohesion: 0.17
-Nodes (12): Fabric Build GitHub Actions Workflow, gradlew (Fabric Gradle wrapper), JDK 21 (Temurin), NeoForge Build GitHub Actions Workflow, gradlew (NeoForge Gradle wrapper), JDK 21 (Temurin), Fabric Loader + Fabric API, Minecraft 1.21.1 (+4 more)
-
-### Community 138 - "Misc: Sphere"
+### Community 125 - "Misc: TerrainMound"
 Cohesion: 0.29
-Nodes (3): BlockPos, Override, Sphere
+Nodes (6): MutableInt, MutableInt, net.createmod.catnip.data.Pair, net.minecraft.core.NonNullList, net.minecraft.world.item.crafting.Ingredient, org.apache.commons.lang3.mutable.MutableInt
 
-### Community 139 - "Ghost Block Rendering (CreateClient)"
+### Community 126 - "Misc: net.minecraft.tags.TagKey"
+Cohesion: 0.23
+Nodes (13): attachment.AttachmentHandler / PowerLevel, BlockSet, systems.BuilderChain, client.ClientBackpackItemCache, fabric.FabricClientEvents, fabric.FabricCommonEvents, utilities.InventoryHelper, systems.ItemUsageTracker (+5 more)
+
+### Community 127 - "New: Vec3"
+Cohesion: 0.18
+Nodes (13): PowerLevel.canBreakFar (survival gate), 09 - Survival breaking implementation tasks, BackpackToolsPacket (spec), BreakCountdownPacket (spec), BreakToolHelper (spec), BuildModes.resyncToServer (spec), ClientBackpackToolCache (spec), ClientBreakCountdown (spec) (+5 more)
+
+### Community 128 - "Misc: GuiCollapsibleScrollEntry"
+Cohesion: 0.28
+Nodes (8): com.mojang.blaze3d.vertex.PoseStack, Color, Vec3, ModifierRenderer, Color, Vec3, ModifierRenderer, net.minecraft.client.renderer.MultiBufferSource.BufferSource
+
+### Community 129 - "Misc: IScrollEntry"
+Cohesion: 0.13
+Nodes (11): Handler, Context, Override, Type, TranslatedLogPacket, ServerProxy, Handler, Override (+3 more)
+
+### Community 130 - "Misc: ServerConfig"
 Cohesion: 0.22
-Nodes (4): CreateClient, GhostBlocks, CreateClient, net.createmod.catnip.render.SuperByteBufferCache
+Nodes (9): OptionEnum, BUILD_SPEED, CIRCLE_START, CUBE_FILL, FILL, LINE_THICKNESS, RAISED_EDGE, TERRAIN_NOISE (+1 more)
 
-### Community 140 - "Misc: net.minecraft.world.phys.BlockHitResult"
+### Community 131 - "Misc: GuiCollapsibleScrollEntry"
+Cohesion: 0.29
+Nodes (3): TemplateSelector, FakeStack, TemplateSelectorTest
+
+### Community 132 - "Misc: GuiCheckBoxFixed"
 Cohesion: 0.24
 Nodes (4): BlockPos, Vec3, PredicateTraceResult, RaycastHelper
 
-### Community 141 - "Misc: net.minecraft.world.level.entity.LevelEntityGetter"
+### Community 133 - "Misc: GuiCheckBoxFixed"
+Cohesion: 0.27
+Nodes (6): Override, VirtualLevelEntityGetter, Override, VirtualLevelEntityGetter, net.minecraft.util.AbortableIterationConsumer, net.minecraft.world.level.entity.EntityTypeTest
+
+### Community 134 - "Misc: BuildingUpgradeHelper"
+Cohesion: 0.08
+Nodes (21): blockitem, clientbackpackitemcache, clientbuildingupgradestate, clientevents, clientplayconnectionevents, clienttickevents, clientworldevents, diamondrandomizerbagscreen (+13 more)
+
+### Community 135 - "New: PacketHandler"
 Cohesion: 0.28
-Nodes (7): Override, VirtualLevelEntityGetter, Override, VirtualLevelEntityGetter, net.minecraft.util.AbortableIterationConsumer, net.minecraft.world.level.entity.EntityTypeTest, net.minecraft.world.level.entity.LevelEntityGetter
+Nodes (4): FabricCommonEvents, Player, MinecraftServer, net.minecraft.server.level.ServerPlayer
 
-### Community 142 - "Cube Build Mode"
-Cohesion: 0.26
-Nodes (3): Cube, BlockPos, Override
+### Community 136 - "Misc: rebuild_all_and_export_jar.ps1"
+Cohesion: 0.21
+Nodes (3): BooleanReturningOwner, ReturnTypeAgnosticInvokerTest, VoidReturningOwner
 
-### Community 143 - "Misc: Sphere"
-Cohesion: 0.29
+### Community 137 - "Misc: Sophisticated Building Update 4.0.0"
+Cohesion: 0.33
 Nodes (3): BlockPos, Override, Sphere
 
-### Community 144 - "Misc: Color"
+### Community 138 - "Misc: Sphere"
+Cohesion: 0.23
+Nodes (4): BlockPos, Vec3, PredicateTraceResult, RaycastHelper
+
+### Community 139 - "Ghost Block Rendering (CreateClient)"
 Cohesion: 0.21
-Nodes (12): gui.BuildingUpgradeContainer, item.upgrade.BuildingUpgradeWrapper, integration.SophisticatedBackpacksIntegration, UpgradeContainerRegistry, inventory.InventoryHandler, upgrades.IUpgradeWrapper, init.ModCoreDataComponents.ENABLED, upgrades.UpgradeHandler (+4 more)
+Nodes (5): BlockEntry, BlockSet, Override, Vec3, Mirror
+
+### Community 140 - "Misc: net.minecraft.world.phys.BlockHitResult"
+Cohesion: 0.20
+Nodes (12): gui.BuildingUpgradeContainer, integration.SophisticatedBackpacksIntegration, UpgradeContainerRegistry, inventory.InventoryHandler, upgrades.IUpgradeWrapper, init.ModCoreDataComponents.ENABLED, upgrades.UpgradeHandler, network.UpgradeTogglePayload (+4 more)
+
+### Community 141 - "Misc: net.minecraft.world.level.entity.LevelEntityGetter"
+Cohesion: 0.29
+Nodes (4): BlockPos, Override, Vec3, Wall
+
+### Community 142 - "Cube Build Mode"
+Cohesion: 0.12
+Nodes (17): BackpackScanCompat, BreakCountdownPacket, BreakToolHelper, BuilderChain, BuildingUpgradeHelper, BuildModes, ClientBackpackToolCache, ClientBreakCountdown (+9 more)
+
+### Community 143 - "Misc: Sphere"
+Cohesion: 0.21
+Nodes (4): DiamondRandomizerBagContainer, Override, DiamondRandomizerBagScreen, Override
 
 ### Community 145 - "Survival Breaking Disable-Mode Fix (TS1-TS8, C1-C4)"
-Cohesion: 0.32
-Nodes (12): Disable-mode drift (client/server build-mode disagreement after rejoin), Implementer notes - survival breaking (T-S1..T-S9), Review corrections C1-C4 (survival breaking), T-S1 - Config + pure tool-selection logic (Fabric), T-S2 - BreakToolHelper: candidates, planning, server execution, T-S3 - Server gate, delay and validation (Fabric), T-S4 - Backpack tool sync packet (Fabric), T-S5 - Client: planning, preview, HUD, messages (Fabric) (+4 more)
+Cohesion: 0.26
+Nodes (12): block, blockhitresult, blockplacecontext, blockstateproperties, directionalblock, dispenserblock, half, integerproperty (+4 more)
 
 ### Community 146 - "Misc: SingleItemLootModifier.java"
 Cohesion: 0.29
-Nodes (8): com.mojang.serialization.MapCodec, it.unimi.dsi.fastutil.objects.ObjectArrayList, Override, SingleItemLootModifier, net.minecraft.world.level.storage.loot.LootContext, net.minecraft.world.level.storage.loot.predicates.LootItemCondition, net.neoforged.neoforge.common.loot.IGlobalLootModifier, net.neoforged.neoforge.common.loot.LootModifier
-
-### Community 147 - "Cube Build Mode"
-Cohesion: 0.29
-Nodes (4): BlockPos, Override, Vec3, Wall
-
-### Community 148 - "Misc: net.minecraft.world.level.block.Block"
-Cohesion: 0.20
-Nodes (5): Override, UncontainableBlockItem, Override, UncontainableBlockItem, net.minecraft.world.level.block.Block
-
-### Community 150 - "Misc: ClientEvents"
-Cohesion: 0.23
-Nodes (4): Key, ClientEvents, Post, Pre
-
-### Community 151 - "Cube Build Mode"
-Cohesion: 0.29
-Nodes (4): BlockPos, Override, Vec3, Wall
-
-### Community 154 - "Misc: ItemHandlerWrapper"
-Cohesion: 0.29
 Nodes (3): ItemHandlerWrapper, Override, net.neoforged.neoforge.items.IItemHandlerModifiable
 
-### Community 155 - "Misc: net.minecraft.world.phys.BlockHitResult"
-Cohesion: 0.26
-Nodes (4): BlockPos, Vec3, PredicateTraceResult, RaycastHelper
+### Community 147 - "Cube Build Mode"
+Cohesion: 0.40
+Nodes (3): Circle, BlockPos, Override
 
-### Community 156 - "Randomizer Bag Menus (MenuBase)"
-Cohesion: 0.23
-Nodes (3): ContainerProvider, Override, OmegaRandomizerBagItem
-
-### Community 157 - "Misc: PowerLevel"
-Cohesion: 0.20
-Nodes (11): BackpackToolsPacket (spec), BreakCountdownPacket (spec), BreakToolHelper (spec), ClientBackpackToolCache (spec), ClientBreakCountdown (spec), RenderHandler.drawBreakCountdown (spec), ServerConfig.survivalBreaking, T-S10 countdown design spec (+3 more)
-
-### Community 158 - "Cylinder & Diagonal Line Modes"
-Cohesion: 0.29
+### Community 148 - "Misc: net.minecraft.world.level.block.Block"
+Cohesion: 0.33
 Nodes (3): Cone, BlockPos, Override
 
-### Community 160 - "Misc: net.minecraft.nbt.CompoundTag"
-Cohesion: 0.25
-Nodes (7): ClientHandler, CompoundTag, Context, Override, Type, ModifierSettingsPacket, ServerHandler
+### Community 149 - "Misc: IScrollEntry"
+Cohesion: 0.12
+Nodes (5): ClientEvents, Key, ClientEvents, Post, net.minecraft.client.KeyMapping
 
-### Community 161 - "Misc: GNU Lesser General Public License v3"
+### Community 150 - "Misc: ClientEvents"
+Cohesion: 0.21
+Nodes (3): BlockEntityRenderHelper, BlockEntityRenderHelper, net.minecraft.world.level.block.entity.BlockEntity
+
+### Community 151 - "Cube Build Mode"
+Cohesion: 0.23
+Nodes (5): Criteria, Floor, BlockPos, Override, Vec3
+
+### Community 152 - "Review Correction C3 (HUD State)"
 Cohesion: 0.24
 Nodes (11): GNU LGPL v3 (Fabric GUI textures license), Navrelis (hardfork maintainer), Requioss (original mod creator), GNU LGPL v3 (Fabric special textures license), GNU LGPL v3 (Fabric project template license), Effortless Building (original mod by Requios), EffortlessBuildingSophisticated (hardfork, maintained by Navrelis), GNU Lesser General Public License v3 (+3 more)
 
-### Community 162 - "Misc: Cone"
-Cohesion: 0.29
+### Community 153 - "Review Correction C4 (Cache Snapshot)"
+Cohesion: 0.33
 Nodes (3): Cone, BlockPos, Override
 
-### Community 163 - "Radial Mirror Modifier"
-Cohesion: 0.24
-Nodes (3): Override, Vec3, RadialMirror
+### Community 154 - "Misc: ItemHandlerWrapper"
+Cohesion: 0.20
+Nodes (6): Action, BREAK, PLACE, REPLACE, SKIP, ReplaceRules
 
-### Community 164 - "Misc: AllIcons"
-Cohesion: 0.25
-Nodes (4): AllIcons, DelegatedStencilElement, Override, Vec3
+### Community 159 - "Misc: MenuBase"
+Cohesion: 0.22
+Nodes (10): Fabric Build GitHub Actions Workflow, gradlew (Fabric Gradle wrapper), JDK 21 (Temurin), NeoForge Build GitHub Actions Workflow, gradlew (NeoForge Gradle wrapper), JDK 21 (Temurin), Fabric Loader + Fabric API, Minecraft 1.21.1 (+2 more)
+
+### Community 160 - "Misc: net.minecraft.nbt.CompoundTag"
+Cohesion: 0.24
+Nodes (7): BreakCountdownPacket, Handler, Context, Override, Type, PacketHandler, net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent
+
+### Community 162 - "Misc: Cone"
+Cohesion: 0.12
+Nodes (10): arrays, ClientConfig, Performance, Visuals, SimpleConfigValue, Memory, ServerConfig, SurvivalBreaking (+2 more)
+
+### Community 163 - "Radial Mirror Modifier"
+Cohesion: 0.31
+Nodes (6): ClientResourceReloadListener, Override, ClientResourceReloadListener, Override, net.minecraft.server.packs.resources.ResourceManager, net.minecraft.server.packs.resources.ResourceManagerReloadListener
+
+### Community 165 - "Misc: MenuBase"
+Cohesion: 0.17
+Nodes (4): commonconfig, PowerLevel, net.minecraft.core.HolderLookup.Provider, net.neoforged.neoforge.common.util.INBTSerializable
 
 ### Community 166 - "Radial Build Menu & Client Events (F1/F2/F8, T5)"
-Cohesion: 0.22
-Nodes (10): client.gui.BuildingUpgradeSettingsTab, ClientEvents, fabric.FabricClientEvents, gui.buildmode.RadialMenu, integration.SophisticatedBackpacksClientIntegration, F1 - Keybind fallback hard-codes Left Alt (Fabric only), F2 - Opening the radial menu cancels an in-progress build, F8 - Minor: mislabeled tab, TODO in AbstractRandomizerBagItem (+2 more)
-
-### Community 167 - "Circle Build Mode"
 Cohesion: 0.40
 Nodes (3): Circle, BlockPos, Override
 
 ### Community 168 - "Floor Mode & Build Mode Keys"
 Cohesion: 0.31
-Nodes (4): Floor, BlockPos, Override, Vec3
+Nodes (9): item.upgrade.BuildingUpgradeHelper, item.upgrade.BuildingUpgradeWrapper, common.gui.BackpackContext.PlayerInventory, util.PlayerInventoryProvider, compat.trinkets.TrinketsCompat, Count sync inconsistency (clamped vs unclamped totals), compatibility.CuriosCompatHelper (Fabric stub), RC1 - Worn backpacks never found (CuriosCompatHelper stub) (+1 more)
 
 ### Community 169 - "Misc: ClientEvents"
-Cohesion: 0.27
-Nodes (4): ClientEvents, CommonEvents, ModBusEvents, net.minecraft.world.level.LevelAccessor
-
-### Community 170 - "Misc: net.minecraft.server.packs.resources.ResourceManager"
-Cohesion: 0.31
-Nodes (6): ClientResourceReloadListener, Override, ClientResourceReloadListener, Override, net.minecraft.server.packs.resources.ResourceManager, net.minecraft.server.packs.resources.ResourceManagerReloadListener
-
-### Community 171 - "Misc: Circle"
-Cohesion: 0.40
-Nodes (3): Circle, BlockPos, Override
-
-### Community 172 - "New: Floor"
-Cohesion: 0.31
-Nodes (4): Floor, BlockPos, Override, Vec3
-
-### Community 174 - "Misc: RemovedGuiUtils.java"
 Cohesion: 0.39
 Nodes (9): buildmode.BuildModeEnum, buildmodes.DiagonalLine, buildmodes.DiagonalWall, F3 - Line thickness advertised but not implemented (beta feature), F4 - Diagonal wall has no Fill option (beta feature), buildmodes.Line, buildmode.ModeOptions, T6 - Complete beta options: line thickness and diagonal wall fill (F3, F4) (+1 more)
 
-### Community 175 - "Misc: OptionEnum"
-Cohesion: 0.22
-Nodes (9): OptionEnum, BUILD_SPEED, CIRCLE_START, CUBE_FILL, FILL, LINE_THICKNESS, RAISED_EDGE, TERRAIN_NOISE (+1 more)
+### Community 174 - "Misc: RemovedGuiUtils.java"
+Cohesion: 0.13
+Nodes (13): com.mojang.brigadier.CommandDispatcher, Handler, Context, Override, Type, PowerLevelPacket, PowerLevelCommand, Handler (+5 more)
 
 ### Community 176 - "Misc: Array"
-Cohesion: 0.31
-Nodes (4): Array, BlockSet, Override, Vec3i
-
-### Community 177 - "Client/Common Config Values"
-Cohesion: 0.25
-Nodes (3): ClientConfig, Visuals, SimpleConfigValue
-
-### Community 179 - "Server Break Blocks Packet (Fabric)"
-Cohesion: 0.28
-Nodes (5): Handler, Context, Override, Type, ServerBreakBlocksPacket
-
-### Community 180 - "Misc: AllIcons"
 Cohesion: 0.22
 Nodes (9): OptionEnum, BUILD_SPEED, CIRCLE_START, CUBE_FILL, FILL, LINE_THICKNESS, RAISED_EDGE, TERRAIN_NOISE (+1 more)
 
-### Community 181 - "Array Modifier"
-Cohesion: 0.31
-Nodes (4): Array, BlockSet, Override, Vec3i
+### Community 177 - "Client/Common Config Values"
+Cohesion: 0.22
+Nodes (8): Radial Build Menu (Alt key), Screen cursor-warp bug (cursor stuck at screen center), Building Upgrade actually works now (Fabric + NeoForge), Disable mode fix, Fabric build/dependency fixes, Line Thickness and Diagonal Wall fill, Server config (survivalBreaking keys), Survival mass breaking (Fabric + NeoForge)
 
-### Community 183 - "Misc: net.minecraft.nbt.CompoundTag"
-Cohesion: 0.31
-Nodes (5): ClientHandler, Override, Type, ModifierSettingsPacket, ServerHandler
-
-### Community 184 - "Misc: ArrayEntry"
+### Community 178 - "Misc: Debug"
 Cohesion: 0.25
 Nodes (8): Fabric build.gradle dependency setup, Fabric gradle.properties, other_mods/ directory (git-ignored), Sophisticated Backpacks (Unofficial Fabric port) 1.21.1-3.23.4.3.106, Sophisticated Core (Unofficial Fabric port) 1.21.1-1.2.9.21.168, Sophisticated Storage (Unofficial Fabric port) 1.21.1-1.3.7.9.139, RC4 - Build configuration hides API drift, T1 - Fix the Fabric dependency setup (RC4)
 
-### Community 188 - "Misc: GuiNumberField"
-Cohesion: 0.43
-Nodes (3): Candidate, FakeCandidate, Override
+### Community 179 - "Server Break Blocks Packet (Fabric)"
+Cohesion: 0.25
+Nodes (8): BlockHelper.destroyBlockAs, BlockPlacerHelper.breakBlock, D1: Server-authoritative tool rules, D3: Capped mining delay instead of instant breaking, D4: Existing survival limits stay in force, Root cause: survival breaking always used ItemStack.EMPTY, no correct-tool check, ServerBlockPlacer, SurvivalHelper.canBreak (unused)
 
-### Community 189 - "Misc: net.minecraft.nbt.CompoundTag"
-Cohesion: 0.38
-Nodes (3): IPartialSafeNBT, IPartialSafeNBT, net.minecraft.core.RegistryAccess
+### Community 180 - "Misc: AllIcons"
+Cohesion: 0.20
+Nodes (4): Candidate, FakeCandidate, Override, ToolSelectorTest
 
-### Community 200 - "Misc: Sophisticated Building Update 4.0.0"
+### Community 182 - "Misc: Debug"
+Cohesion: 0.29
+Nodes (7): client.gui.BuildingUpgradeSettingsTab, ClientEvents, gui.buildmode.RadialMenu, integration.SophisticatedBackpacksClientIntegration, F1 - Keybind fallback hard-codes Left Alt (Fabric only), F8 - Minor: mislabeled tab, TODO in AbstractRandomizerBagItem, T5 - Radial menu fixes (F1, F2, F8)
+
+### Community 183 - "Misc: net.minecraft.nbt.CompoundTag"
+Cohesion: 0.29
+Nodes (7): network.BackpackContentsPayload, backpack.BackpackItem, backpack.BackpackStorage, backpack.wrapper.BackpackWrapper, client.render.ClientBackpackContentsTooltip, api.IStorageWrapper, inventory.StorageWrapperRepository
+
+### Community 191 - "Misc: Array"
 Cohesion: 0.38
 Nodes (7): BlockEntry, BlockPlaceContext.getPlayer(), BuilderChain, Create Simulated redstone magnet, getStateForPlacement, MyPlaceContext, Placement Preview Crash Fix (compatibility)
 
-### Community 201 - "Fabric Mod Initializer"
-Cohesion: 0.40
-Nodes (3): Override, SophisticatedBuildingFabric, net.fabricmc.api.ModInitializer
+### Community 192 - "Misc: OmegaRandomizerBagScreen"
+Cohesion: 0.22
+Nodes (6): Override, VirtualChunkSection, Override, VirtualChunkSection, net.minecraft.world.level.chunk.LevelChunkSection, net.minecraft.world.level.material.FluidState
 
-### Community 202 - "New: F5 - PlayerSettingsGui is an abandoned draft (alpha, deferred)"
+### Community 196 - "Misc: OmegaRandomizerBagScreen"
 Cohesion: 0.50
 Nodes (4): gui.buildmode.PlayerSettingsGui, F5 - PlayerSettingsGui is an abandoned draft (alpha, deferred), F6 - Terrain Mound (ALPHA) is fully wired, no defect, TerrainMound
 
+### Community 197 - "Randomizer Bag Container Provider (C)"
+Cohesion: 0.83
+Nodes (3): gradlew script, die(), warn()
+
+### Community 199 - "VoxelShaper Utility"
+Cohesion: 0.83
+Nodes (3): gradlew script, die(), warn()
+
 ### Community 203 - "Misc: gradlew script"
-Cohesion: 0.83
-Nodes (3): gradlew script, die(), warn()
-
-### Community 205 - "Misc: gradlew script"
-Cohesion: 0.83
-Nodes (3): gradlew script, die(), warn()
-
-### Community 209 - "New: common.gui.StorageContainerMenuBase"
 Cohesion: 0.67
 Nodes (3): common.gui.StorageContainerMenuBase, client.gui.StorageScreenBase, common.gui.UpgradeContainerBase
 
 ## Knowledge Gaps
-- **313 isolated node(s):** `ModBusEvents`, `ModBusEvents`, `ModBusEvents`, `CIRCLE`, `CONE` (+308 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1032 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **44 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **348 isolated node(s):** `ModBusEvents`, `ModBusEvents`, `BLOCKS_AND_AIR`, `FILTERED_BY_OFFHAND`, `ONLY_AIR` (+343 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1211 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **87 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `BlockSet` connect `Disabled & Single Modes` to `Misc: ThreeClicksBuildMode`, `Power Level & Client Backpack Cache`, `Attachment Handler (Power Level API)`, `Cylinder & Diagonal Line Modes`, `Radial Mirror Modifier`, `Misc: Array`, `Radial Mirror Modifier`, `Server Break Blocks Packet (Fabric)`, `Radial Mirror Modifier`, `Array Modifier`, `Misc: Mirror`, `Cube Build Mode`, `Undo/Redo Stack`, `Misc: net.minecraft.nbt.CompoundTag`?**
-  _High betweenness centrality (0.035) - this node is a cross-community bridge._
-- **Why does `VirtualRenderWorld` connect `Virtual Render World (Fabric)` to `Virtual Chunk Source`, `Power Level & Client Backpack Cache`, `Misc: BuilderFilter`, `Virtual Chunk Structure Data`, `Misc: net.minecraft.world.level.entity.LevelEntityGetter`, `Connected Texture Behaviour`, `Misc: net.minecraft.world.level.block.Block`, `Cube Build Mode`, `Virtual Chunk Sections`, `VirtualRenderWorld Level Overrides`?**
-  _High betweenness centrality (0.024) - this node is a cross-community bridge._
-- **Why does `CTType` connect `Connected Texture Behaviour` to `Connected Texture Behaviour`?**
-  _High betweenness centrality (0.021) - this node is a cross-community bridge._
-- **What connects `ModBusEvents`, `ModBusEvents`, `ModBusEvents` to the rest of the system?**
-  _313 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Why does `GuiCollapsibleScrollEntry` connect `Radial Mirror Modifier` to `Misc: ModifiersScreen`, `Icons & Partial Item Rendering`, `Misc: RadialMenu`?**
+  _High betweenness centrality (0.031) - this node is a cross-community bridge._
+- **Why does `BlockSet` connect `Misc: OmegaRandomizerBagItem` to `Misc: ThreeClicksBuildMode`, `Disabled & Single Modes`, `Misc: org.joml.Matrix4f`, `Misc: RenderHandler`, `Misc: BuildSettings`, `Ghost Block Rendering (CreateClient)`, `Virtual Chunk Structure Data`, `Misc: AbstractSimiScreen`, `Misc: AbstractSimiContainerScreen`, `Misc: BuilderChain`?**
+  _High betweenness centrality (0.031) - this node is a cross-community bridge._
+- **Why does `ActionEnum` connect `Cube Build Mode` to `Fabric Common Events & Commands`, `Misc: AllIcons`, `Create Theme System`, `Misc: BuildSettings`, `ScrollInput Widget`, `Misc: BuilderChain`, `Misc: net.minecraft.core.Direction`?**
+  _High betweenness centrality (0.028) - this node is a cross-community bridge._
+- **What connects `ModBusEvents`, `ModBusEvents`, `BLOCKS_AND_AIR` to the rest of the system?**
+  _348 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Misc: ThreeClicksBuildMode` be split into smaller, more focused modules?**
-  _Cohesion score 0.026534628324763537 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.027437530622243998 - nodes in this community are weakly interconnected._
 - **Should `Disabled & Single Modes` be split into smaller, more focused modules?**
-  _Cohesion score 0.03141859727070771 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.0568986568986569 - nodes in this community are weakly interconnected._
 - **Should `Power Level & Client Backpack Cache` be split into smaller, more focused modules?**
-  _Cohesion score 0.038517926162868185 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.14624505928853754 - nodes in this community are weakly interconnected._

@@ -16,3 +16,6 @@
 - 2026-09-24 T5b review: accepted without corrections; Fabric 60/60 tests, NeoForge build green.
 - 2026-09-24 T7 release 4.2.0 -> Sonnet, started.
 - 2026-09-24 T7 review: 1 correction (4 patch-note inaccuracies); accepted. Jars 4.2.0 exported, Fabric 60/60 tests.
+- 2026-09-24 T8a runtime smoke test (both loaders, exported jars) -> Sonnet, started.
+- 2026-09-24 T8a smoke test: both loaders load a world and join with the 4.2.0 jars; config entries present with enabled=false; build.gradle reverts confirmed. Accepted.
+- 2026-09-24 lead: graphify incremental refresh (5634 nodes / 14992 edges / 255 communities); test log folder ignored; report written.

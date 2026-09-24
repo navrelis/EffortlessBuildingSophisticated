@@ -9,7 +9,7 @@
 | T5b | Fix T5 bugs: Fabric anchor only when backpack has the item; widen tick-sync catches; NeoForge Curios double scan; NeoForge tooltip | both | Sonnet | T5 | - | done |
 | T6 | NeoForge parity for T2, T3 + SERVER config entry (T5b ported separately) | NeoForge | Sonnet | T2, T3 | with T5 | done |
 | T7 | Release 4.2.0: version bump, patch notes, export jars, .gitignore negation for .knowledge | both | Sonnet | T6 | - | done |
-| T8 | Final: e2e check, graphify refresh, report, push, issue replies | - | lead | T7 | - | open |
+| T8 | Final: e2e smoke test (T8a Sonnet), graphify refresh, report, push, issue replies | - | lead | T7 | - | done |
 
 ## Definition of done (per task)
 - T1: config files are created with defaults on first start, missing keys filled, invalid JSON logged and defaults kept, values clamped to the NeoForge ranges; all existing call sites unchanged; client gets the server's ServerConfig values on join and restores its own on disconnect; Fabric build + tests green.
