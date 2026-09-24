@@ -4,7 +4,7 @@ Three layers, from fast to real:
 
 | Layer | Command (in a loader folder) | What it proves |
 |---|---|---|
-| Unit tests | `gradlew build` | Pure logic in `common/src/test` (77 tests on Fabric incl. its config tests, 65 on NeoForge and Forge) |
+| Unit tests | `gradlew build` | Pure logic in `common/src/test` (77 tests on Fabric incl. its config tests, 65 on NeoForge, Forge and Forge 1.21) |
 | Fabric GameTests | `gradlew runGametest` | 17 server-side building rules (`fabric/src/gametest`) |
 | **In-game smoke tests** | `gradlew runSmokeClient` / `gradlew runSmokeServer` | The mod works in a real game on this loader, including the Sophisticated Backpacks (SB) integration |
 
@@ -179,7 +179,7 @@ compiled against that jar.
 |---|---|---|
 | NeoForge | NeoForge 21.0.167, Sophisticated Backpacks 1.21-3.20.26.1151 + Core 1.21-0.7.13.797, no Curios (no build for NeoForge 21.0) | `runSmokeServer` 9 checks passed (1 skipped: `sb.worn_backpack`, no Curios), `runSmokeClient` 17 checks passed (same skip); every other `sb.*` check passes against the old Backpacks API |
 | Fabric | Fabric Loader 0.19.5, Fabric API 0.108.0+1.21.1 (runs on 1.21), no Sophisticated Backpacks (the Fabric port needs exactly 1.21.1; the `sb_*` game tests were left out) | `runSmokeServer` 3 checks passed, `runSmokeClient` 10 checks passed |
-| Forge | Forge 51.0.33 | The jar does not load: `NoSuchMethodException: SophisticatedBuildingForge.<init>()` (constructor injection of `FMLJavaModLoadingContext` is Forge 52+), and `AddGuiOverlayLayersEvent`/`ForgeLayeredDraw` do not exist in Forge 51 |
+| Forge | Forge 51.0.33 | The 1.21.1 Forge jar does not load: `NoSuchMethodException: SophisticatedBuildingForge.<init>()` (constructor injection of `FMLJavaModLoadingContext` is Forge 52+), and `AddGuiOverlayLayersEvent`/`ForgeLayeredDraw` do not exist in Forge 51. Minecraft 1.21 gets its own Forge jar from `forge-1.21/` (below) |
 
 Hence `minecraft_version_range=[1.21,1.21.1]` (Fabric: `>=1.21 <=1.21.1`), Forge `forge_minecraft_version_range=[1.21.1]`,
 NeoForge floor 21.0.167, NeoForge optional Backpacks `[3.20.26,)` / Core `[0.7.13,)` (the last 1.21 builds), Fabric
@@ -187,5 +187,20 @@ NeoForge floor 21.0.167, NeoForge optional Backpacks `[3.20.26,)` / Core `[0.7.1
 crashed at client start with it (`NoClassDefFoundError`); with the floor Fabric Loader reports the missing update instead.
 The Fabric API 1.21.1 builds before 0.108.0 lack it as well, so the floor also fixes those on 1.21.1.
 
-Running Forge 51.0.33 in dev needs ForgeGradle 6 with `jopt-simple` forced to 5.0.4 (its `bootstrap-api` pulls
-6.0-alpha-3, module `joptsimple`, while modlauncher requires `jopt.simple`); ForgeGradle 7 stopped with the same error (the override was not tried there).
+Running Forge 51.0.33 in dev needs `jopt-simple` forced to 5.0.4 (its `bootstrap-api` pulls 6.0-alpha-3, module
+`joptsimple`, while modlauncher requires `jopt.simple`); with that ForgeGradle 7 runs it (`forge-1.21/build.gradle`).
+
+### Forge 1.21 (`forge-1.21/`)
+
+`forge-1.21/` builds `sophisticatedbuilding-forge-1.21-4.3.0.jar` (Minecraft `[1.21]`, Forge `[51.0.33,)`) from
+`../forge` with the classes Forge 51 cannot run replaced (README.md, "Forge 1.21"). Its smoke runs use the same
+scenarios and check names as `forge/` (no `sb.*`: no Sophisticated Backpacks for Forge 1.21):
+
+- `runSmokeServer`: 3 checks passed (`server.place_line_survival`, `server.undo_redo`, `server.no_mod_errors`).
+  Forge 51's game test server never runs the server start hooks, so the mod's SERVER config stayed unloaded and
+  both scenarios failed with "Cannot get config value before config is loaded"; the harness glue
+  (`forge-1.21/src/smoketest/.../ForgeSmokeTest`) now runs `ServerLifecycleHooks.handleServerAboutToStart` for the game
+  test server before its first tick, as the dedicated server does.
+- `runSmokeClient`: 10 checks passed, the client checks of `forge/`. The HUD (build hints, block counts, power level)
+  is drawn by `GuiMixin` after vanilla's HUD; the screenshots show it.
+- `runServer`: "Done", no Sophisticated Backpacks, no warning or error from the mod.

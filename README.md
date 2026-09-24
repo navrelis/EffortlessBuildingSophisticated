@@ -1,12 +1,12 @@
 # Sophisticated Building - Minecraft 1.21.1
 
-This branch (`mc/1.21.1`) holds Sophisticated Building for Minecraft 1.21.1 on Fabric, NeoForge and Forge. It is the
-reference layout for the other Minecraft versions: loader-neutral code lives once in `common/`, and every loader
-folder is a standalone Gradle build that compiles `common/` together with its own sources into one mod jar.
+This branch (`mc/1.21.1`) holds Sophisticated Building for Minecraft 1.21.1 and 1.21 on Fabric, NeoForge and Forge.
+It is the reference layout for the other Minecraft versions: loader-neutral code lives once in `common/`, and every
+loader folder is a standalone Gradle build that compiles `common/` together with its own sources into one mod jar.
 
 The Fabric and NeoForge jars also run on Minecraft 1.21 (declared `[1.21,1.21.1]`; Fabric needs Fabric API 0.108.0 or
-newer, i.e. a `+1.21.1` Fabric API build, which runs on 1.21 too). The Forge jar is 1.21.1 only: Forge 51 (1.21) cannot
-load it. See TESTING.md, "Minecraft 1.21 check".
+newer, i.e. a `+1.21.1` Fabric API build, which runs on 1.21 too). Forge 51 (1.21) cannot load the Forge 1.21.1 jar, so
+Minecraft 1.21 has its own Forge jar from `forge-1.21/`. See TESTING.md, "Minecraft 1.21 check".
 
 ## Layout
 
@@ -23,6 +23,8 @@ neoforge/                  NeoForge build (ModDevGradle): entry points, platform
                            power level attachment, Sophisticated Backpacks integration (official build) with Curios fallback
 forge/                     Forge build (ForgeGradle 7): entry points, platform services, ForgeConfigSpec configs,
                            power level capability; no backpack integration (no Sophisticated Backpacks for Forge 1.21.1)
+forge-1.21/                Forge build for Minecraft 1.21 (Forge 51, ForgeGradle 7): ../forge/src with the few classes
+                           Forge 51 cannot run replaced by its own src (see "Forge 1.21" below); no backpack integration
 changelog/                 patch notes
 build-all.ps1              builds every loader folder in turn
 ```
@@ -38,7 +40,8 @@ The ghost block previews and outlines use the Catnip outliner and GUI widgets ve
 
 ## Build and test
 
-Each loader folder has its own Gradle wrapper (Fabric: Gradle 9.5.1, NeoForge: Gradle 9.2.1, Forge: Gradle 9.3.1).
+Each loader folder has its own Gradle wrapper (Fabric: Gradle 9.5.1, NeoForge: Gradle 9.2.1, Forge and
+Forge 1.21: Gradle 9.3.1).
 Java 21.
 
 ```
@@ -46,12 +49,38 @@ cd fabric   && ./gradlew build          # jar in fabric/build/libs, runs common 
 cd fabric   && ./gradlew runGametest    # in-world GameTests (not part of build)
 cd neoforge && ./gradlew build          # jar in neoforge/build/libs, runs the common unit tests
 cd forge    && ./gradlew build          # jar in forge/build/libs, runs the common unit tests
-./build-all.ps1                         # all three, stops at the first failure
+cd forge-1.21 && ./gradlew build        # jar in forge-1.21/build/libs (Minecraft 1.21), runs the common unit tests
+./build-all.ps1                         # all four, stops at the first failure
 ```
 
 Forge: the first build sets up Minecraft through ForgeGradle's Mavenizer (several minutes); do not run it in parallel
 with another ForgeGradle 7 build on a cold cache. The Forge dev runs (`runClient`, `runServer`, `runGameTestServer`)
 have no Sophisticated Backpacks and no `runClientExported`.
+
+### Forge 1.21
+
+Forge 51, the only Forge for Minecraft 1.21, cannot load the Forge 1.21.1 jar, so `forge-1.21/` builds a second Forge
+jar (`sophisticatedbuilding-forge-1.21-4.3.0.jar`, Minecraft `[1.21]`, Forge `[51.0.33,)`). It compiles `../forge/src`
+(main and smoketest), `../forge/src/main/templates` and `../common` as they are, except the files its own `src/` has
+under the same path: a `Sync` task copies `../forge/src/<set>/<kind>` without those into
+`build/generated/sharedForge`, so every shared file is compiled once and an override replaces its original. The
+overrides, everything Forge 51 lacks:
+
+* `SophisticatedBuildingForge`: a no-argument mod constructor with `FMLJavaModLoadingContext.get()` and
+  `ModLoadingContext.get().registerConfig` (constructor injection of `FMLJavaModLoadingContext` is Forge 52+).
+* `SophisticatedBuildingForgeClient` + `mixin/GuiMixin` (`sophisticatedbuilding.forge.mixins.json`, `MixinConfigs`
+  manifest entry): Forge 51 has no way to add HUD layers (`AddGuiOverlayLayersEvent`/`ForgeLayeredDraw` are Forge 52+,
+  its `RegisterGuiOverlaysEvent` is never posted, `RenderGuiEvent` only comes from the unused `ForgeGui`), so the
+  material cost overlay and the build HUD are drawn after vanilla's whole HUD (on 1.21.1: the cost overlay above the
+  crosshair, the build HUD on top). The cost overlay still hides with F1.
+* Smoke harness: `ForgeSmokeTest` (no-argument constructor; runs `ServerLifecycleHooks.handleServerAboutToStart` for
+  the game test server, which Forge 51 never does, so the SERVER config is loaded) and its `mods.toml`
+  (`loaderVersion="[51,)"`).
+
+Forge 51's `bootstrap-api` pulls in jopt-simple 6.0-alpha-3 (module `joptsimple`) while its modlauncher needs 5.0.4
+(module `jopt.simple`); `build.gradle` forces 5.0.4, otherwise every dev run stops with "Module jopt.simple not
+found". Forge runs on Mojang names since 1.20.6 (the Forge 51 universal jar references `Minecraft.options`, not
+`f_91066_`), so the jar is not reobfuscated, as on 1.21.1.
 
 ## In-game smoke tests
 
@@ -75,7 +104,7 @@ exported jars; on Fabric put Fabric API there too).
 ## Build, CI and release
 
 `build-all.ps1` and `.github/workflows/build.yml` discover loader folders the same way: any top-level folder
-containing both `settings.gradle` and `gradlew` (today fabric, neoforge, forge). Neither hard-codes the loader
+containing both `settings.gradle` and `gradlew` (today fabric, forge, forge-1.21, neoforge). Neither hard-codes the loader
 list, so both files can be copied unchanged onto every other `mc/*` branch, including older branches that only
 have `forge` + `fabric`.
 

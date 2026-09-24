@@ -1,0 +1,221 @@
+plugins {
+    id 'java-library'
+    id 'idea'
+    id 'net.minecraftforge.gradle' version '7.0.40'
+}
+
+apply from: '../gradle/smoketest.gradle'
+
+version = mod_version
+group = mod_group
+
+base {
+    archivesName = "${mod_id}-forge-${forge_minecraft_version}"
+}
+
+java {
+    // Mojang ships Java 21 to end users in 1.21, so mods should target Java 21.
+    toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
+    withSourcesJar()
+}
+
+// The loader-neutral code and assets in ../common are compiled and packaged into this jar.
+def commonDir = file('../common')
+
+// The Forge jar for Minecraft 1.21 (Forge 51). It is the Forge 1.21.1 build (../forge) with the few classes Forge 51
+// cannot run replaced: every file of ../forge/src/<set> is compiled from a copy, except those that src/<set> of this
+// folder overrides under the same path (see forgeOverrides below and README.md). A Sync task makes the copy, so the
+// shared sources are compiled exactly once per source set and an override can never be shadowed by its original.
+def forgeDir = file('../forge')
+def forgeOverrides = { String set, String kind ->
+    def own = file("src/${set}/${kind}")
+    return own.directory ? fileTree(own).files.collect { own.toPath().relativize(it.toPath()).toString().replace('\\', '/') } : []
+}
+def sharedForgeSources = { String set, String kind ->
+    def excluded = forgeOverrides(set, kind)
+    return tasks.register("sharedForge${set.capitalize()}${kind.capitalize()}", Sync) {
+        from("${forgeDir}/src/${set}/${kind}") { exclude excluded }
+        into layout.buildDirectory.dir("generated/sharedForge/${set}/${kind}")
+    }
+}
+
+sourceSets {
+    main {
+        java.srcDir "${commonDir}/src/main/java"
+        java.srcDir sharedForgeSources('main', 'java')
+        resources.srcDir "${commonDir}/src/main/resources"
+        resources.srcDir sharedForgeSources('main', 'resources')
+    }
+    test {
+        java.srcDir "${commonDir}/src/test/java"
+    }
+    // In-game smoke test harness (runSmokeClient / runSmokeServer, see TESTING.md): loader-neutral scenarios from
+    // ../common/src/smoketest and the Forge glue from ../forge/src/smoketest with this folder's overrides. No
+    // Sophisticated Backpacks on Forge 1.21, so no backpack fixture. Its own mod ("sophisticatedbuilding_smoketest",
+    // META-INF/mods.toml), loaded only by the smoke runs; never packaged.
+    smoketest {
+        java.srcDir "${commonDir}/src/smoketest/java"
+        java.srcDir sharedForgeSources('smoketest', 'java')
+        resources.srcDir "${commonDir}/src/smoketest/resources"
+        resources.srcDir sharedForgeSources('smoketest', 'resources')
+        compileClasspath += main.output
+        runtimeClasspath += main.output
+    }
+}
+
+minecraft {
+    // Official Mojang names; Forge runs on them since 1.20.6, so the jar is not reobfuscated.
+    mappings channel: 'official', version: forge_minecraft_version
+
+    runs {
+        configureEach {
+            workingDir = layout.projectDirectory.dir('run')
+            // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
+            systemProperty 'forge.enabledGameTestNamespaces', mod_id
+            // "REGISTRIES": log the firing of registry events.
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            systemProperty 'forge.logging.console.level', 'debug'
+            // Mixin reads its configs from the jar manifest (see jar below); the dev runs name them on the command line.
+            args "--mixin.config=${mod_id}.forge.mixins.json"
+        }
+
+        register('client') {
+            // runSmokeClient (= runSmoketestClient): a real client creates a fresh superflat world, runs the client
+            // scenarios, writes <smoketestOut>/smoketest-result.json and exits. gradlew runSmokeClient -PsmoketestOut=<dir>
+            with(sourceSets.smoketest) {
+                workingDir = layout.projectDirectory.dir('build/smoketest/client-run')
+                systemProperty 'sophisticatedbuilding.smoketest.mode', 'client'
+                systemProperty 'sophisticatedbuilding.smoketest.out', smoketestOutDir('client').absolutePath
+            }
+        }
+
+        register('server') {
+            args '--nogui'
+        }
+
+        // Launches the GameTestServer, runs all registered gametests, then exits.
+        register('gameTestServer') {
+            // runSmokeServer (= runSmoketestGameTestServer): headless, the game test server runs the server scenarios and
+            // writes the same JSON. gradlew runSmokeServer -PsmoketestOut=<dir>
+            with(sourceSets.smoketest) {
+                workingDir = layout.projectDirectory.dir('build/smoketest/server-run')
+                systemProperty 'sophisticatedbuilding.smoketest.mode', 'server'
+                systemProperty 'sophisticatedbuilding.smoketest.out', smoketestOutDir('server').absolutePath
+            }
+        }
+    }
+}
+
+repositories {
+    minecraft.mavenizer(it)
+    maven fg.forgeMaven
+    maven fg.minecraftLibsMaven
+    mavenCentral()
+}
+
+// The smoke harness compiles and runs against everything main does; ForgeGradle then also creates the smoketest
+// variants of the runs (runSmoketestClient, runSmoketestGameTestServer, ...).
+configurations {
+    smoketestImplementation.extendsFrom implementation
+}
+
+// Forge 51's bootstrap-api 2.1.3 pulls in jopt-simple 6.0-alpha-3 (module "joptsimple"), but its modlauncher 10.2.1
+// requires the module "jopt.simple" of 5.0.4, the version the Forge 1.21 installer ships; without this the dev runs
+// stop with "Module jopt.simple not found, required by cpw.mods.modlauncher".
+configurations.configureEach {
+    resolutionStrategy.force 'net.sf.jopt-simple:jopt-simple:5.0.4'
+}
+
+dependencies {
+    // The unit tests exercise vanilla types (BlockPos, ...): testImplementation extends implementation, so Minecraft
+    // is on their classpath too.
+    implementation minecraft.dependency("net.minecraftforge:forge:${forge_minecraft_version}-${forge_version}")
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// This block of code expands all declared replace properties in the specified resource targets (META-INF/mods.toml and
+// pack.mcmeta; Forge ignores the resources of a mod without pack.mcmeta). The templates are ../forge's.
+// A missing property will result in an error. Properties are expanded using ${} Groovy notation.
+var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    var replaceProperties = [
+            minecraft_version_range   : forge_minecraft_version_range,
+            forge_version_range       : forge_version_range,
+            forge_loader_version_range: forge_loader_version_range,
+            mod_id                    : mod_id,
+            mod_name                  : mod_name,
+            mod_license               : mod_license,
+            mod_version               : mod_version,
+            mod_authors               : mod_authors,
+            mod_description           : mod_description
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from "${forgeDir}/src/main/templates"
+    into 'build/generated/sources/modMetadata'
+}
+// Include the output of "generateModMetadata" as an input directory for the build.
+sourceSets.main.resources.srcDir generateModMetadata
+
+// The smoke runs under the task names every loader build uses; they pass or fail on the result file they write (shared
+// logic in ../gradle/smoketest.gradle)
+tasks.matching { it.name == 'runSmoketestClient' }.configureEach { verifySmokeRun(it, smoketestOutDir('client')) }
+tasks.matching { it.name == 'runSmoketestGameTestServer' }.configureEach { verifySmokeRun(it, smoketestOutDir('server')) }
+tasks.register('runSmokeClient') {
+    group = 'Slime Launcher'
+    description = 'Runs the client smoke test (runSmoketestClient).'
+    dependsOn 'runSmoketestClient'
+}
+tasks.register('runSmokeServer') {
+    group = 'Slime Launcher'
+    description = 'Runs the server smoke test (runSmoketestGameTestServer).'
+    dependsOn 'runSmoketestGameTestServer'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = java_version as int
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+}
+
+// ../common must stay loader-neutral: loader APIs are only reached through the platform services.
+tasks.register('checkCommonIsLoaderNeutral') {
+    def sources = fileTree("${commonDir}/src/main/java") { include '**/*.java' }
+    inputs.files sources
+    doLast {
+        def forbidden = ~/^\s*import\s+(static\s+)?(net\.fabricmc|net\.neoforged|net\.minecraftforge|net\.p3pp3rf1y|net\.createmod|dev\.engine_room)\./
+        def offenders = sources.files.collectMany { file ->
+            file.readLines('UTF-8').findAll { it =~ forbidden }.collect { "${file.path}: ${it.trim()}" }
+        }
+        if (!offenders.isEmpty()) {
+            throw new GradleException("common/ must not import loader or optional-mod APIs:\n" + offenders.join('\n'))
+        }
+    }
+}
+
+// build compiles the smoke harness (so it cannot rot) but never runs it; that is runSmokeClient / runSmokeServer's job.
+tasks.named('check') {
+    dependsOn tasks.named('checkCommonIsLoaderNeutral'), tasks.named('smoketestClasses')
+}
+
+// Resolved while configuring: the configuration cache cannot read project properties at execution time.
+def licenseFileName = "LICENSE_${mod_id}.txt"
+tasks.named('jar', Jar) {
+    // The HUD is drawn by a mixin (Forge 51 has no HUD layer event, see SophisticatedBuildingForgeClient).
+    manifest.attributes('MixinConfigs': "${mod_id}.forge.mixins.json")
+    from(file('../LICENSE.txt')) {
+        rename { licenseFileName }
+    }
+}
+
+// IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}
