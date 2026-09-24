@@ -25,7 +25,7 @@ import net.neoforged.neoforge.common.SpecialPlantable;
 import net.neoforged.neoforge.common.util.BlockSnapshot;
 import net.neoforged.neoforge.event.EventHooks;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
-import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 import sophisticated.building.platform.services.IBlockEventHelper;
 
 import java.util.List;
@@ -75,7 +75,7 @@ public final class NeoForgeBlockEventHelper implements IBlockEventHelper {
 
     @Override
     public boolean fireBlockBreakEvent(Level level, BlockPos pos, BlockState state, Player player) {
-        BlockEvent.BreakEvent event = new BlockEvent.BreakEvent(level, pos, state, player);
+        BreakBlockEvent event = new BreakBlockEvent(level, pos, state, player);
         NeoForge.EVENT_BUS.post(event);
         return !event.isCanceled();
     }

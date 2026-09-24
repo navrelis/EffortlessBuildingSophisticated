@@ -153,13 +153,9 @@ final class ClientScenarios {
 
             deleteOldWorlds(d.mc.gameDirectory.toPath().resolve("saves"));
 
-            GameRules rules = new GameRules(WorldDataConfiguration.DEFAULT.enabledFeatures());
-            rules.set(GameRules.ADVANCE_TIME, false, null);
-            rules.set(GameRules.ADVANCE_WEATHER, false, null);
-            rules.set(GameRules.SPAWN_MOBS, false, null);
-            rules.set(GameRules.RANDOM_TICK_SPEED, 0, null);
-            LevelSettings settings = new LevelSettings(WORLD_NAME, GameType.CREATIVE, false, Difficulty.PEACEFUL, true,
-                    rules, WorldDataConfiguration.DEFAULT);
+            // Since 26.1 the game rules belong to the server, not to the level settings: set once the world runs (below)
+            LevelSettings settings = new LevelSettings(WORLD_NAME, GameType.CREATIVE,
+                    new LevelSettings.DifficultySettings(Difficulty.PEACEFUL, false, false), true, WorldDataConfiguration.DEFAULT);
             // Creating the world blocks this task until the integrated server runs; the harness keeps polling below
             d.mc.execute(() -> d.mc.createWorldOpenFlows().createFreshLevel(WORLD_NAME, settings, new WorldOptions(20260924L, false, false),
                     registries -> registries.lookupOrThrow(Registries.WORLD_PRESET).getOrThrow(WorldPresets.FLAT).value().createWorldDimensions(),
@@ -173,7 +169,13 @@ final class ClientScenarios {
 
         String detail = d.server(server -> {
             ServerLevel level = server.overworld();
-            level.setDayTime(6000);
+            GameRules rules = server.getGameRules();
+            rules.set(GameRules.ADVANCE_TIME, false, server);
+            rules.set(GameRules.ADVANCE_WEATHER, false, server);
+            rules.set(GameRules.SPAWN_MOBS, false, server);
+            rules.set(GameRules.RANDOM_TICK_SPEED, 0, server);
+            // Noon on the overworld clock (26.1: world clocks instead of the level day time)
+            level.dimensionTypeRegistration().value().defaultClock().ifPresent(clock -> server.clockManager().setTotalTicks(clock, 6000));
             BlockPos spawn = level.getRespawnData().pos();
             groundY = level.getHeight(Heightmap.Types.MOTION_BLOCKING, spawn.getX(), spawn.getZ());
             base = new BlockPos(spawn.getX() + 4, groundY, spawn.getZ() + 4);

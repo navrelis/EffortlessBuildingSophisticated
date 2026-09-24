@@ -12,6 +12,7 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
@@ -65,7 +66,7 @@ public class NeoForgeCommonEvents {
 
 	//Cancel event if necessary. Nothing more, rest is handled on mouseclick
 	@SubscribeEvent
-	public static void onBlockBroken(BlockEvent.BreakEvent event) {
+	public static void onBlockBroken(BreakBlockEvent event) {
 		if (event.getLevel().isClientSide()) return;
 		Player player = event.getPlayer();
 		if (player instanceof FakePlayer) return;

@@ -62,14 +62,15 @@ public class NeoForgeClientEvents {
     }
 
     // Block previews, mirror/array lines and ghost blocks after the translucent blocks; the outlines
-    // after the particles, where Catnip drew its outliner on NeoForge (one event per stage since NeoForge 21.6).
+    // after the particles, where Catnip drew its outliner on NeoForge (one event per stage since NeoForge 21.6; since
+    // 26.1 the particles are drawn in two passes, the outlines follow the second, translucent one).
     @SubscribeEvent
     public static void onRenderLevelAfterTranslucentBlocks(RenderLevelStageEvent.AfterTranslucentBlocks event) {
         RenderHandler.onRenderWorld(event.getPoseStack());
     }
 
     @SubscribeEvent
-    public static void onRenderLevelAfterParticles(RenderLevelStageEvent.AfterParticles event) {
+    public static void onRenderLevelAfterParticles(RenderLevelStageEvent.AfterTranslucentParticles event) {
         RenderHandler.onRenderOutlines(event.getPoseStack());
     }
 
