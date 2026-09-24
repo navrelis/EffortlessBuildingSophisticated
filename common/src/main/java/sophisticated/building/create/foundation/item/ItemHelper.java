@@ -121,7 +121,7 @@ public class ItemHelper {
 			return true;
 		if (stacks1.length == stacks2.length) {
 			for (int i = 0; i < stacks1.length; i++)
-				if (!ItemStack.isSameItem(stacks1[i], stacks2[i]))
+				if (!stacks1[i].is(stacks2[i].getItem()))
 					return false;
 			return true;
 		}

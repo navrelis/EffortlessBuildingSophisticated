@@ -4,10 +4,10 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
 import sophisticated.building.create.catnip.animation.AnimationTickHolder;
 import sophisticated.building.create.catnip.gui.TickableGuiEventListener;
-import net.minecraft.client.gui.GuiGraphics;
+import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.components.Renderable;
+import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.screens.Screen;
@@ -80,13 +80,13 @@ public abstract class AbstractSimiScreen extends Screen {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <W extends GuiEventListener & Renderable & NarratableEntry> void addRenderableWidgets(W... widgets) {
+	protected <W extends GuiEventListener & Widget & NarratableEntry> void addRenderableWidgets(W... widgets) {
 		for (W widget : widgets) {
 			addRenderableWidget(widget);
 		}
 	}
 
-	protected <W extends GuiEventListener & Renderable & NarratableEntry> void addRenderableWidgets(Collection<W> widgets) {
+	protected <W extends GuiEventListener & Widget & NarratableEntry> void addRenderableWidgets(Collection<W> widgets) {
 		for (W widget : widgets) {
 			addRenderableWidget(widget);
 		}
@@ -105,7 +105,8 @@ public abstract class AbstractSimiScreen extends Screen {
 	}
 
 	@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+	public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+		GuiGraphics graphics = new GuiGraphics(poseStack);
 		partialTicks = AnimationTickHolder.getPartialTicksUI();
 		PoseStack ms = graphics.pose();
 		
@@ -114,7 +115,7 @@ public abstract class AbstractSimiScreen extends Screen {
 		prepareFrame();
 
 		renderWindowBackground(graphics, mouseX, mouseY, partialTicks);
-		super.render(graphics, mouseX, mouseY, partialTicks);
+		super.render(graphics.pose(), mouseX, mouseY, partialTicks);
 		renderWindow(graphics, mouseX, mouseY, partialTicks);
 		renderWindowForeground(graphics, mouseX, mouseY, partialTicks);
 
@@ -140,14 +141,14 @@ public abstract class AbstractSimiScreen extends Screen {
 	protected void prepareFrame() {}
 
 	protected void renderWindowBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-		this.renderBackground(graphics); //Manually draw background
+		this.renderBackground(graphics.pose()); //Manually draw background
 	}
 
 	protected abstract void renderWindow(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks);
 
 	protected void renderWindowForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
 		for (GuiEventListener listener : children()) {
-			if (listener instanceof Renderable widget) {
+			if (listener instanceof Widget widget) {
 				if (widget instanceof AbstractSimiWidget simiWidget && simiWidget.isMouseOver(mouseX, mouseY)
 					&& simiWidget.visible) {
 					List<Component> tooltip = simiWidget.getToolTip();

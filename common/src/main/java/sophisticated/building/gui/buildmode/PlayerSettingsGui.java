@@ -1,8 +1,9 @@
 package sophisticated.building.gui.buildmode;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ObjectSelectionList;
@@ -40,18 +41,14 @@ public class PlayerSettingsGui extends Screen {
 		addWidget(shaderTypeList);
 		//TODO set selected name
 		Component currentShaderName = ShaderType.DISSOLVE_BLUE.name;
-		shaderTypeButton = Button.builder(currentShaderName, (button) -> showShaderList = !showShaderList)
-				.bounds(right - 180, yy, 180, 20)
-				.build();
+		shaderTypeButton = new Button(right - 180, yy, 180, 20, currentShaderName, (button) -> showShaderList = !showShaderList);
 		addRenderableOnly(shaderTypeButton);
 
 		yy += 50;
 		AbstractSliderButton slider = new SpeedSlider(right - 200, yy, 200, 20, 0.5, 2.0, 1.0);
 		addRenderableOnly(slider);
 
-		closeButton = Button.builder(Component.literal("Done"), (button) -> this.minecraft.player.closeContainer())
-				.bounds(left + 50, bottom - 20, 180, 20)
-				.build();
+		closeButton = new Button(left + 50, bottom - 20, 180, 20, Component.literal("Done"), (button) -> this.minecraft.player.closeContainer());
 		addRenderableOnly(closeButton);
 	}
 
@@ -84,10 +81,11 @@ public class PlayerSettingsGui extends Screen {
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+	public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+		GuiGraphics guiGraphics = new GuiGraphics(poseStack);
 		// The dimmed world behind the screen (drawn by super.render from 1.20.2 on)
-		this.renderBackground(guiGraphics);
-		super.render(guiGraphics, mouseX, mouseY, partialTicks);
+		this.renderBackground(poseStack);
+		super.render(poseStack, mouseX, mouseY, partialTicks);
 
 		int yy = top;
 		guiGraphics.drawString(font, "Shader type", left, yy + 5, 0xFFFFFF, false);
@@ -96,7 +94,7 @@ public class PlayerSettingsGui extends Screen {
 		guiGraphics.drawString(font, "Shader speed", left, yy + 5, 0xFFFFFF, false);
 
 		if (showShaderList)
-			this.shaderTypeList.render(guiGraphics, mouseX, mouseY, partialTicks);
+			this.shaderTypeList.render(poseStack, mouseX, mouseY, partialTicks);
 	}
 
 	@Override
@@ -213,7 +211,8 @@ public class PlayerSettingsGui extends Screen {
 			}
 
 			@Override
-			public void render(GuiGraphics guiGraphics, int itemIndex, int rowTop, int rowLeft, int rowWidth, int rowHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
+			public void render(PoseStack poseStack, int itemIndex, int rowTop, int rowLeft, int rowWidth, int rowHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
+				GuiGraphics guiGraphics = new GuiGraphics(poseStack);
 				if (rowTop + 10 > ShaderTypeList.this.y0 && rowTop + rowHeight - 5 < ShaderTypeList.this.y1)
 					guiGraphics.drawString(font, shaderType.name, ShaderTypeList.this.x0 + 8, rowTop + 4, 0xFFFFFF, false);
 			}

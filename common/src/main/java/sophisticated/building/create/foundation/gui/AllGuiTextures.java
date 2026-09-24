@@ -3,7 +3,7 @@ package sophisticated.building.create.foundation.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import sophisticated.building.gui.ScreenElement;
 import sophisticated.building.utilities.Color;
-import net.minecraft.client.gui.GuiGraphics;
+import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import sophisticated.building.create.Create;
 

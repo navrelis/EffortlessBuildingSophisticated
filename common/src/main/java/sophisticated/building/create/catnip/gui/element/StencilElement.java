@@ -4,7 +4,7 @@ import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import sophisticated.building.client.gui.GuiGraphics;
 
 /**
  * Adapted from Catnip ({@code sophisticated.building.create.catnip.gui.element.StencilElement}, MIT License, Copyright (c) 2022

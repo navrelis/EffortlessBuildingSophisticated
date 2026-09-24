@@ -10,6 +10,7 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuilding;
+import sophisticated.building.client.gui.GuiGraphics;
 import sophisticated.building.client.gui.MaterialCostOverlay;
 import sophisticated.building.compatibility.CompatHelper;
 import sophisticated.building.gui.DiamondRandomizerBagScreen;
@@ -32,7 +33,7 @@ public class SophisticatedBuildingForgeClient {
     public static void registerGuiOverlays(RegisterGuiOverlaysEvent event) {
         MaterialCostOverlay overlay = new MaterialCostOverlay();
         event.registerAbove(VanillaGuiOverlay.CROSSHAIR.id(), "material_cost_overlay",
-                (gui, guiGraphics, partialTick, screenWidth, screenHeight) -> overlay.render(guiGraphics, partialTick));
+                (gui, poseStack, partialTick, screenWidth, screenHeight) -> overlay.render(new GuiGraphics(poseStack), partialTick));
     }
 
     public static void onClientSetup(final FMLClientSetupEvent event) {

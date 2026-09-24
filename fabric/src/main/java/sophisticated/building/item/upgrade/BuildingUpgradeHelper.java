@@ -1,6 +1,6 @@
 package sophisticated.building.item.upgrade;
 
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -32,7 +32,7 @@ public class BuildingUpgradeHelper {
      */
     @Nullable
     public static BuildingUpgradeWrapper findBestBuildingUpgrade(Player player) {
-        if (player.level().isClientSide()) {
+        if (player.level.isClientSide()) {
             SophisticatedBuilding.logger.debug("findBestBuildingUpgrade called on the client; ignoring.");
             return null;
         }
@@ -59,7 +59,7 @@ public class BuildingUpgradeHelper {
      */
     public static List<BuildingUpgradeWrapper> findAllBuildingUpgrades(Player player) {
         List<BuildingUpgradeWrapper> wrappers = new ArrayList<>();
-        if (player.level().isClientSide()) {
+        if (player.level.isClientSide()) {
             SophisticatedBuilding.logger.debug("findAllBuildingUpgrades called on the client; ignoring.");
             return wrappers;
         }
@@ -173,7 +173,7 @@ public class BuildingUpgradeHelper {
         if (!simulate && totalExtracted > 0 && player instanceof ServerPlayer serverPlayer) {
             int remaining = countBlockInBackpacksForDisplay(player, blockItem);
             Services.NETWORK.sendToPlayer(serverPlayer, new BackpackItemCountPacket(
-                    BuiltInRegistries.ITEM.getKey(blockItem.getItem()),
+                    Registry.ITEM.getKey(blockItem.getItem()),
                     remaining
             ));
         }

@@ -3,7 +3,7 @@ package sophisticated.building;
 import com.mojang.blaze3d.systems.RenderSystem;
 import sophisticated.building.utilities.Color;
 import sophisticated.building.gui.ScreenElement;
-import net.minecraft.client.gui.GuiGraphics;
+import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
 /**

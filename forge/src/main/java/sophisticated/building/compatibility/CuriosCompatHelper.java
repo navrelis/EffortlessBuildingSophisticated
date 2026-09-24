@@ -91,7 +91,7 @@ public class CuriosCompatHelper {
                 // Track already processed items to avoid duplicates
                 java.util.Set<ItemStack> processed = new java.util.HashSet<>();
                 
-                top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player).ifPresent(curiosHandler -> {
+                top.theillusivec4.curios.api.CuriosApi.getCuriosHelper().getCuriosHandler(player).ifPresent(curiosHandler -> {
                     // Check all equipped curios for any backpack items
                     curiosHandler.getCurios().forEach((identifier, stacksHandler) -> {
                         var stacks = stacksHandler.getStacks();

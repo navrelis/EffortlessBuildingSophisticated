@@ -132,7 +132,7 @@ public class BuilderChain {
                 ClientBlockUtilities.playSoundIfFurtherThanNormal(player, blocks.getLastBlockEntry(), false);
                 player.swing(InteractionHand.MAIN_HAND);
 
-                long placeTime = player.level().getGameTime();
+                long placeTime = player.level.getGameTime();
                 if (blocks.size() > 1) placeTime += ClientConfig.visuals.appearAnimationLength.get();
                 Services.NETWORK.sendToServer(new ServerPlaceBlocksPacket(blocks, placeTime));
             }
@@ -157,7 +157,7 @@ public class BuilderChain {
             blocks.setStartPos(new BlockEntry(startPosForBreaking));
             SophisticatedBuildingClient.BUILD_MODIFIERS.findCoordinates(blocks, player);
             SophisticatedBuildingClient.BUILDER_FILTER.filterOnCoordinates(blocks, player);
-            findExistingBlockStates(player.level());
+            findExistingBlockStates(player.level);
             SophisticatedBuildingClient.BUILDER_FILTER.filterOnExistingBlockStates(blocks, player);
         }
 
@@ -372,7 +372,7 @@ public class BuilderChain {
 
             //Offset in direction of sidehit if not quickreplace and not replaceable
             boolean shouldOffsetStartPosition = SophisticatedBuildingClient.BUILD_SETTINGS.shouldOffsetStartPosition();
-            boolean replaceable = player.level().getBlockState(startPos).canBeReplaced();
+            boolean replaceable = player.level.getBlockState(startPos).getMaterial().isReplaceable();
             boolean becomesDoubleSlab = SurvivalHelper.doesBecomeDoubleSlab(player, startPos);
             if (!shouldOffsetStartPosition && !replaceable && !becomesDoubleSlab) {
                 startPos = startPos.relative(lookingAt.getDirection());
@@ -419,7 +419,7 @@ public class BuilderChain {
 
             //Find new blockstate
             blockEntry.invalid = false;
-            blockEntry.setItemAndFindNewBlockState(itemStack, player.level(), player, originalDirection, clickedFace, relativeHitVec);
+            blockEntry.setItemAndFindNewBlockState(itemStack, player.level, player, originalDirection, clickedFace, relativeHitVec);
 
             //Filter on new blockstate
             if (SophisticatedBuildingClient.BUILDER_FILTER.filterOnNewBlockState(blockEntry, player)) {
@@ -489,7 +489,7 @@ public class BuilderChain {
             ItemStack itemStack = CompatHelper.getItemBlockFromStackFresh(heldItem, player);
             if (itemStack == null || itemStack.isEmpty()) continue;
             
-            blockEntry.setItemAndFindNewBlockState(itemStack, player.level(), player, originalDirection, clickedFace, relativeHitVec);
+            blockEntry.setItemAndFindNewBlockState(itemStack, player.level, player, originalDirection, clickedFace, relativeHitVec);
         }
     }
 
@@ -515,9 +515,9 @@ public class BuilderChain {
 
             if (blocks.getLastBlockEntry() != null && blocks.getLastBlockEntry().newBlockState != null) {
                 var lastBlockState = blocks.getLastBlockEntry().newBlockState;
-                SoundType soundType = Services.BLOCK_EVENTS.getSoundType(lastBlockState, player.level(), blocks.lastPos, player);
+                SoundType soundType = Services.BLOCK_EVENTS.getSoundType(lastBlockState, player.level, blocks.lastPos, player);
                 SoundEvent soundEvent = buildingState == BuildingState.BREAKING ? soundType.getBreakSound() : soundType.getPlaceSound();
-                player.level().playSound(player, player.blockPosition(), soundEvent, SoundSource.BLOCKS, 0.3f, 0.8f);
+                player.level.playSound(player, player.blockPosition(), soundEvent, SoundSource.BLOCKS, 0.3f, 0.8f);
             }
         }
     }

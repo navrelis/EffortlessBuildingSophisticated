@@ -1,6 +1,6 @@
 package sophisticated.building.create.catnip.gui;
 
-import org.joml.Matrix4f;
+import com.mojang.math.Matrix4f;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.BufferUploader;
@@ -8,10 +8,10 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import com.mojang.math.Axis;
+import com.mojang.math.Vector3f;
 import sophisticated.building.create.catnip.data.Couple;
 import sophisticated.building.create.catnip.theme.Color;
-import net.minecraft.client.gui.GuiGraphics;
+import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 
 /**
@@ -53,7 +53,7 @@ public class UIRenderHelper {
 		PoseStack poseStack = graphics.pose();
 		poseStack.pushPose();
 		poseStack.translate(x, y, z);
-		poseStack.mulPose(Axis.ZP.rotationDegrees(angle - 90));
+		poseStack.mulPose(Vector3f.ZP.rotationDegrees(angle - 90));
 
 		float w = breadth / 2;
 		drawGradientRect(poseStack.last().pose(), 0, -w, 0f, w, length, startColor, endColor);

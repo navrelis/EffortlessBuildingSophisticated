@@ -47,7 +47,7 @@ public class PowerLevelCommand {
 
     private static void logPowerLevel(CommandSourceStack source, Player player) {
         int powerLevel = AttachmentHandler.getPowerLevel(player);
-        source.sendSuccess(() -> Component.translatable("sophisticatedbuilding.commands.powerlevel", player.getDisplayName(), powerLevel), false);
+        source.sendSuccess(Component.translatable("sophisticatedbuilding.commands.powerlevel", player.getDisplayName(), powerLevel), false);
     }
 
     private static void setPowerLevel(CommandSourceStack source, Player player, int powerLevel) throws CommandSyntaxException {
@@ -58,6 +58,6 @@ public class PowerLevelCommand {
             Services.NETWORK.sendToPlayer(serverPlayer, new PowerLevelPacket(powerLevel));
         }
 
-        source.sendSuccess(() -> Component.translatable("sophisticatedbuilding.commands.powerlevel.success", player.getDisplayName(), powerLevel), true);
+        source.sendSuccess(Component.translatable("sophisticatedbuilding.commands.powerlevel.success", player.getDisplayName(), powerLevel), true);
     }
 }

@@ -43,7 +43,7 @@ public class StorageDataGameTest implements FabricGameTest {
     private static void expectLoot(GameTestHelper helper, BlockPos rel) {
         helper.assertBlockPresent(Blocks.SHULKER_BOX, rel);
         ShulkerBoxBlockEntity box = (ShulkerBoxBlockEntity) helper.getBlockEntity(rel);
-        helper.assertTrue(hasLoot(box), "Placed shulker box should have 7 diamonds and the name '" + NAME
+        assertTrue(hasLoot(box), "Placed shulker box should have 7 diamonds and the name '" + NAME
                 + "', has " + box.getItem(0) + " named " + box.getCustomName());
     }
 
@@ -58,7 +58,7 @@ public class StorageDataGameTest implements FabricGameTest {
                     set(place(helper.absolutePos(rel), Blocks.SHULKER_BOX.defaultBlockState())));
 
             expectLoot(helper, rel);
-            helper.assertTrue(player.getMainHandItem().isEmpty(), "The survival player's shulker box should be used up, main hand has " + player.getMainHandItem());
+            assertTrue(player.getMainHandItem().isEmpty(), "The survival player's shulker box should be used up, main hand has " + player.getMainHandItem());
             expectEquals(helper, "shulker boxes left", 0, count(player, Items.SHULKER_BOX));
         } finally {
             removePlayer(player);
@@ -107,7 +107,7 @@ public class StorageDataGameTest implements FabricGameTest {
 
             expectLoot(helper, rel);
             ItemStack held = player.getMainHandItem();
-            helper.assertTrue(held.is(Items.SHULKER_BOX) && held.getCount() == 1 && ItemStack.isSameItemSameTags(held, namedShulker()),
+            assertTrue(held.is(Items.SHULKER_BOX) && held.getCount() == 1 && ItemStack.isSameItemSameTags(held, namedShulker()),
                     "The creative player's stack should be kept unchanged, main hand has " + held);
         } finally {
             removePlayer(player);

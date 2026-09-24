@@ -66,7 +66,7 @@ public abstract class AbstractRandomizerBagItem extends Item {
 	}
 
 	public AbstractRandomizerBagItem() {
-		super(new Item.Properties().stacksTo(1));
+		super(new Item.Properties().stacksTo(1).tab(SophisticatedBuilding.CREATIVE_TAB));
 	}
 
 	public abstract int getInventorySize();
@@ -271,7 +271,7 @@ public abstract class AbstractRandomizerBagItem extends Item {
 
 		if (availableTemplates.isEmpty()) {
 			// No available blocks - notify player
-			if (!player.level().isClientSide) {
+			if (!player.level.isClientSide) {
 				player.displayClientMessage(
 					Component.literal("Missing blocks in inventory for randomizer bag!").withStyle(ChatFormatting.RED),
 					true

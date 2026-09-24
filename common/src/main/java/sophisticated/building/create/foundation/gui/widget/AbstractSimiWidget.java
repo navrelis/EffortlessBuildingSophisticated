@@ -1,7 +1,8 @@
 package sophisticated.building.create.foundation.gui.widget;
 
 import sophisticated.building.create.catnip.gui.TickableGuiEventListener;
-import net.minecraft.client.gui.GuiGraphics;
+import sophisticated.building.client.gui.GuiGraphics;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
@@ -65,7 +66,12 @@ public abstract class AbstractSimiWidget extends AbstractWidget implements Ticka
 	@Override
 	public void tick() {}
 
+	// Minecraft 1.19.2 widgets render through renderButton(PoseStack, ...): it hands over to renderWidget as on 1.20
 	@Override
+	public void renderButton(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+		renderWidget(new GuiGraphics(poseStack), mouseX, mouseY, partialTicks);
+	}
+
 	public void renderWidget(@Nonnull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
 		beforeRender(graphics, mouseX, mouseY, partialTicks);
 		doRender(graphics, mouseX, mouseY, partialTicks);
@@ -94,7 +100,29 @@ public abstract class AbstractSimiWidget extends AbstractWidget implements Ticka
 	}
 
 	@Override
-	public void updateWidgetNarration(NarrationElementOutput pNarrationElementOutput) {
+	public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
 		defaultButtonNarrationText(pNarrationElementOutput);
+	}
+
+	// Minecraft 1.19.2 widgets have public x/y fields and no accessors: the accessors of 1.19.3+ for the shared code
+
+	public int getX() {
+		return x;
+	}
+
+	public int getY() {
+		return y;
+	}
+
+	public void setX(int x) {
+		this.x = x;
+	}
+
+	public void setY(int y) {
+		this.y = y;
+	}
+
+	public boolean isHovered() {
+		return isHovered;
 	}
 }

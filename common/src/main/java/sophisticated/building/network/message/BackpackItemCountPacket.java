@@ -1,6 +1,6 @@
 package sophisticated.building.network.message;
 
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
@@ -32,7 +32,7 @@ public record BackpackItemCountPacket(ResourceLocation itemId, int count) implem
 
     public static class Handler {
         public static void handle(final BackpackItemCountPacket packet, final Player player) {
-            Item item = BuiltInRegistries.ITEM.getOptional(packet.itemId()).orElse(null);
+            Item item = Registry.ITEM.getOptional(packet.itemId()).orElse(null);
             if (item != null) {
                 ClientBackpackItemCache.setCount(item, Math.max(0, packet.count()));
             }

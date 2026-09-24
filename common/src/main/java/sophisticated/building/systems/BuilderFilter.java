@@ -9,7 +9,7 @@ import sophisticated.building.utilities.PlaceChecker;
 
 public class BuilderFilter {
     public void filterOnCoordinates(BlockSet blocks, Player player) {
-        var world = player.level();
+        var world = player.level;
         var iter = blocks.entrySet().iterator();
         while (iter.hasNext()) {
             var pos = iter.next().getValue().blockPos;
@@ -37,7 +37,7 @@ public class BuilderFilter {
 
             if (placing && !buildSettings.shouldReplaceFiltered()) {
                 if (!buildSettings.shouldReplaceAir() && blockState.isAir()) remove = true;
-                boolean isReplaceable = blockState.canBeReplaced();
+                boolean isReplaceable = blockState.getMaterial().isReplaceable();
                 if (!buildSettings.shouldReplaceBlocks() && !isReplaceable) remove = true;
             }
 
@@ -57,7 +57,7 @@ public class BuilderFilter {
 
         boolean remove = false;
 
-        if (placing && !PlaceChecker.shouldPlaceBlock(player.level(), blockEntry)) remove = true;
+        if (placing && !PlaceChecker.shouldPlaceBlock(player.level, blockEntry)) remove = true;
 
         return remove;
     }

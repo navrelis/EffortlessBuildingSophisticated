@@ -1,8 +1,9 @@
 package sophisticated.building.gui.buildmodifier;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import sophisticated.building.AllGuiTextures;
 import sophisticated.building.attachment.AttachmentHandler;
@@ -56,25 +57,26 @@ public class ArrayEntry extends BaseModifierEntry<Array> {
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int index, int y, int x, int width, int height, int mouseX, int mouseY, boolean hovering, float partialTicks) {
-		super.render(guiGraphics, index, y, x, width, height, mouseX, mouseY, hovering, partialTicks);
+	public void render(PoseStack poseStack, int index, int y, int x, int width, int height, int mouseX, int mouseY, boolean hovering, float partialTicks) {
+		GuiGraphics guiGraphics = new GuiGraphics(poseStack);
+		super.render(poseStack, index, y, x, width, height, mouseX, mouseY, hovering, partialTicks);
 
 		//draw offset inputs
 		for (int i = 0; i < 3; i++) {
 			offsetInputs.get(i).setX(left + 49 + 20 * i);
 			offsetInputs.get(i).setY(top + 19);
-			offsetInputs.get(i).render(guiGraphics, mouseX, mouseY, partialTicks);
+			offsetInputs.get(i).render(poseStack, mouseX, mouseY, partialTicks);
 		}
 		
 		//draw count input
 		countInput.setX(left + 49);
 		countInput.setY(top + 41);
-		countInput.render(guiGraphics, mouseX, mouseY, partialTicks);
+		countInput.render(poseStack, mouseX, mouseY, partialTicks);
 		
 		//draw reach label
 		reachLabel.setX(right - 8 - getFont().width(reachLabel.text));
 		reachLabel.setY(top + 24);
-		reachLabel.render(guiGraphics, mouseX, mouseY, partialTicks);
+		reachLabel.render(poseStack, mouseX, mouseY, partialTicks);
 	}
 
 	@Override

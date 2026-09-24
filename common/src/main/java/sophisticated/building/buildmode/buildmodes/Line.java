@@ -61,7 +61,7 @@ public class Line extends TwoClicksBuildMode {
 
 		}
 
-		return BlockPos.containing(selected.lineBound);
+		return new BlockPos(selected.lineBound);
 	}
 
 	public static List<BlockPos> getLineBlocks(Player player, int x1, int y1, int z1, int x2, int y2, int z2) {
@@ -148,7 +148,7 @@ public class Line extends TwoClicksBuildMode {
 
 	public static void addZLineBlocks(List<BlockPos> list, int z1, int z2, int x, int y) {
 		for (int z = z1; z1 < z2 ? z <= z2 : z >= z2; z += z1 < z2 ? 1 : -1) {
-			list.add(BlockPos.containing(x, y, z));
+			list.add(new BlockPos(x, y, z));
 		}
 	}
 
@@ -178,7 +178,7 @@ public class Line extends TwoClicksBuildMode {
 		//Make it from a plane into a line
 		//Select the axis that is longest
 		private Vec3 toLongestLine(Vec3 boundVec, BlockPos firstPos) {
-			BlockPos bound = BlockPos.containing(boundVec);
+			BlockPos bound = new BlockPos(boundVec);
 
 			BlockPos firstToSecond = bound.subtract(firstPos);
 			firstToSecond = new BlockPos(Math.abs(firstToSecond.getX()), Math.abs(firstToSecond.getY()), Math.abs(firstToSecond.getZ()));

@@ -12,7 +12,7 @@ import sophisticated.building.create.catnip.gui.UIRenderHelper;
 import sophisticated.building.create.catnip.gui.element.BoxElement;
 import sophisticated.building.create.catnip.gui.element.FadableScreenElement;
 import sophisticated.building.create.catnip.theme.Color;
-import net.minecraft.client.gui.GuiGraphics;
+import sophisticated.building.client.gui.GuiGraphics;
 
 /**
  * Adapted from Catnip ({@code sophisticated.building.create.catnip.gui.widget.BoxWidget}, MIT License, Copyright (c) 2022

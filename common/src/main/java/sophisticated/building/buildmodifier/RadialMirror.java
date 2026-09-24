@@ -70,7 +70,7 @@ public class RadialMirror extends BaseModifier {
 			}
 
 			Vec3 relNewVec = relStartVec.yRot((float) curAngle);
-			BlockPos newBlockPos = BlockPos.containing(position.add(relNewVec));
+			BlockPos newBlockPos = new BlockPos(position.add(relNewVec));
 
 			if (blocks.containsKey(newBlockPos)) continue;
 
@@ -113,11 +113,11 @@ public class RadialMirror extends BaseModifier {
 		BlockState newBlockState = blockState;
 
 		if (startAngleToCenter < -0.751 * Math.PI || startAngleToCenter > 0.749 * Math.PI) {
-			newBlockState = Services.BLOCK_EVENTS.rotate(blockState, player.level(), startPos, Rotation.CLOCKWISE_180);
+			newBlockState = Services.BLOCK_EVENTS.rotate(blockState, player.level, startPos, Rotation.CLOCKWISE_180);
 		} else if (startAngleToCenter < -0.251 * Math.PI) {
-			newBlockState = Services.BLOCK_EVENTS.rotate(blockState, player.level(), startPos, Rotation.COUNTERCLOCKWISE_90);
+			newBlockState = Services.BLOCK_EVENTS.rotate(blockState, player.level, startPos, Rotation.COUNTERCLOCKWISE_90);
 		} else if (startAngleToCenter > 0.249 * Math.PI) {
-			newBlockState = Services.BLOCK_EVENTS.rotate(blockState, player.level(), startPos, Rotation.CLOCKWISE_90);
+			newBlockState = Services.BLOCK_EVENTS.rotate(blockState, player.level, startPos, Rotation.CLOCKWISE_90);
 		}
 
 		return newBlockState;
@@ -128,17 +128,17 @@ public class RadialMirror extends BaseModifier {
 		double angleToCenter = Mth.atan2(relVec.x, relVec.z); //between -PI and PI
 
 		if (angleToCenter < -0.751 * Math.PI || angleToCenter > 0.749 * Math.PI) {
-			newBlockState = Services.BLOCK_EVENTS.rotate(blockState, player.level(), startPos, Rotation.CLOCKWISE_180);
+			newBlockState = Services.BLOCK_EVENTS.rotate(blockState, player.level, startPos, Rotation.CLOCKWISE_180);
 			if (alternate) {
 				newBlockState = newBlockState.mirror(Mirror.FRONT_BACK);
 			}
 		} else if (angleToCenter < -0.251 * Math.PI) {
-			newBlockState = Services.BLOCK_EVENTS.rotate(blockState, player.level(), startPos, Rotation.CLOCKWISE_90);
+			newBlockState = Services.BLOCK_EVENTS.rotate(blockState, player.level, startPos, Rotation.CLOCKWISE_90);
 			if (alternate) {
 				newBlockState = newBlockState.mirror(Mirror.LEFT_RIGHT);
 			}
 		} else if (angleToCenter > 0.249 * Math.PI) {
-			newBlockState = Services.BLOCK_EVENTS.rotate(blockState, player.level(), startPos, Rotation.COUNTERCLOCKWISE_90);
+			newBlockState = Services.BLOCK_EVENTS.rotate(blockState, player.level, startPos, Rotation.COUNTERCLOCKWISE_90);
 			if (alternate) {
 				newBlockState = newBlockState.mirror(Mirror.LEFT_RIGHT);
 			}

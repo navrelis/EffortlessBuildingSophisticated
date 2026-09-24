@@ -31,14 +31,14 @@ public class BlockPlacerHelper {
             // In Creative mode, use empty hand (no tool needed)
             ItemStack usedTool = ItemStack.EMPTY;
 
-            return BlockHelper.destroyBlockAs(player.level(), blockEntry.blockPos, player, usedTool, 0f, stack -> {
+            return BlockHelper.destroyBlockAs(player.level, blockEntry.blockPos, player, usedTool, 0f, stack -> {
                 if (!player.isCreative()) {
                     ItemHandlerHelper.giveItemToPlayer(player, stack);
                 }
             });
         }
 
-        Level level = player.level();
+        Level level = player.level;
         BlockState state = level.getBlockState(blockEntry.blockPos);
         BreakToolHelper.ToolSlot selectedSlot = BreakToolHelper.selectTool(player, level, blockEntry.blockPos, state, candidates);
         if (BreakToolHelper.isImpossible(selectedSlot)) {
@@ -68,10 +68,11 @@ public class BlockPlacerHelper {
     //The template's data components are applied to the placed block; an empty template means a plain stack.
     public static boolean placeBlock(Player player, BlockEntry blockEntry, ItemStack template) {
 
-        Level level = player.level();
+        Level level = player.level;
         ItemStack itemStack;
         if (!template.isEmpty()) {
-            itemStack = template.copyWithCount(1);
+            itemStack = template.copy();
+            itemStack.setCount(1);
         } else {
             //Undo re-placements have no item
             Item item = blockEntry.item != null ? blockEntry.item : blockEntry.newBlockState.getBlock().asItem();

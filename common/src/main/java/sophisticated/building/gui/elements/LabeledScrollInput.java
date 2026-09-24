@@ -2,7 +2,7 @@ package sophisticated.building.gui.elements;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import sophisticated.building.create.foundation.gui.widget.Label;
 import sophisticated.building.create.foundation.gui.widget.ScrollInput;
@@ -50,7 +50,7 @@ public class LabeledScrollInput extends ScrollInput {
 
         label.setX(getX() + width / 2 - Minecraft.getInstance().font.width(label.text) / 2);
         label.setY(getY() + height / 2 - Minecraft.getInstance().font.lineHeight / 2);
-        label.render(guiGraphics, mouseX, mouseY, partialTicks);
+        label.render(guiGraphics.pose(), mouseX, mouseY, partialTicks);
         
         // Draw focus indicator when focused
         if (focused && visible) {

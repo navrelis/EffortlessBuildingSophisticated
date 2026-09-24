@@ -68,7 +68,7 @@ public class TemplateSlot extends Slot {
                 continue;
             }
             ItemStack existingStack = bagInventory.getStackInSlot(i);
-            if (!existingStack.isEmpty() && ItemStack.isSameItem(existingStack, stack)) {
+            if (!existingStack.isEmpty() && existingStack.is(stack.getItem())) {
                 // This item type already exists in another slot - reject it
                 return false;
             }

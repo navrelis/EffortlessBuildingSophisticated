@@ -4,7 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -145,7 +145,7 @@ public class BlockHelper {
 					return false;
 
 				BlockState blockstate = world.getBlockState(pos.below());
-				if (blockstate.blocksMotion() || blockstate.liquid())
+				if (blockstate.getMaterial().blocksMotion() || blockstate.getMaterial().isLiquid())
 					world.setBlockAndUpdate(pos, Blocks.WATER.defaultBlockState());
 				return false;
 			}
@@ -173,8 +173,8 @@ public class BlockHelper {
 		int idx = chunk.getSectionIndex(target.getY());
 		LevelChunkSection chunksection = chunk.getSection(idx);
 		if (chunksection == null) {
-			chunksection = new LevelChunkSection(world.registryAccess()
-					.registryOrThrow(Registries.BIOME));
+			chunksection = new LevelChunkSection(chunk.getSectionYFromSectionIndex(idx), world.registryAccess()
+					.registryOrThrow(Registry.BIOME_REGISTRY));
 			chunk.getSections()[idx] = chunksection;
 		}
 		BlockState old = chunksection.setBlockState(SectionPos.sectionRelative(target.getX()),

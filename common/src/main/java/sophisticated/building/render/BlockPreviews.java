@@ -186,10 +186,10 @@ public class BlockPreviews {
 		if (SophisticatedBuildingClient.BUILDER_CHAIN.getLookingAtNear() != null) return;
 
 		AABB aabb = new AABB(pos);
-		if (player.level().isLoaded(pos)) {
-			var blockState = player.level().getBlockState(pos);
+		if (player.level.isLoaded(pos)) {
+			var blockState = player.level.getBlockState(pos);
 			if (!blockState.isAir()) {
-				aabb = blockState.getShape(player.level(), pos).bounds().move(pos);
+				aabb = blockState.getShape(player.level, pos).bounds().move(pos);
 			}
 		}
 

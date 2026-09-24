@@ -14,7 +14,7 @@ base {
 }
 
 java {
-    // Mojang ships Java 17 to end users in 1.20.1, so mods should target Java 17.
+    // Mojang ships Java 17 to end users in 1.19.2, so mods should target Java 17.
     toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
     withSourcesJar()
 }
@@ -83,7 +83,8 @@ repositories {
         }
         filter { includeGroup('maven.modrinth') }
     }
-    // Trinkets and Cardinal Components, only in the smoke runs (worn backpack in a Trinkets slot, sb.worn_backpack)
+    // Cardinal Components (Trinkets comes from Modrinth: 3.4.2 is not on the TerraformersMC maven), only in the smoke
+    // runs (worn backpack in a Trinkets slot, sb.worn_backpack)
     exclusiveContent {
         forRepository {
             maven {
@@ -93,22 +94,14 @@ repositories {
         }
         filter { includeGroup('dev.onyxstudios.cardinal-components-api') }
     }
-    exclusiveContent {
-        forRepository {
-            maven {
-                name = 'TerraformersMC'
-                url = 'https://maven.terraformersmc.com/releases'
-            }
-        }
-        filter { includeGroup('dev.emi') }
-    }
     mavenCentral()
 }
 
-// The Sophisticated Core jar nests (META-INF/jars) the Porting Lib modules it was built with (2.3.2+1.20.1),
-// MixinExtras and Team Reborn Energy. Their types are part of Core's public API and Core needs them at runtime, but
-// Loom does not expose a dependency's nested jars, so they are extracted from the resolved Core jar into
-// build/sophisticatedcore-nested, one jar per mod id (a module nested at several levels is extracted once).
+// The Sophisticated Core and Backpacks jars nest (META-INF/jars) the Porting Lib modules they were built with
+// (2.1.1305+1.19.2), Forge Config API Port, MixinExtras and Team Reborn Energy. Their types are part of the public API
+// and both need them at runtime, but Loom does not expose a dependency's nested jars, so they are extracted from the
+// resolved jars into build/sophisticatedcore-nested, one jar per mod id (a module nested at several levels or in both
+// jars is extracted once).
 def extractNestedJars
 extractNestedJars = { File jar, File into, Map<String, File> found ->
     new java.util.zip.ZipFile(jar).withCloseable { zip ->
@@ -129,12 +122,16 @@ extractNestedJars = { File jar, File into, Map<String, File> found ->
     }
     return found
 }
-// Resolved lazily, when Loom processes the mod dependencies: for Minecraft 1.20.1 Loom still adds the LWJGL upgrade
-// repository while setting up Minecraft, which fails once a configuration was resolved during configuration.
+// Resolved lazily, when Loom processes the mod dependencies: for old Minecraft versions Loom still adds the LWJGL
+// upgrade repository while setting up Minecraft, which fails once a configuration was resolved during configuration.
 def sophisticatedCoreNestedDir = layout.buildDirectory.dir('sophisticatedcore-nested').get().asFile
 def sophisticatedCoreNestedJars = files({
-    def sophisticatedCoreJar = configurations.detachedConfiguration(dependencies.create("curse.maven:${sophisticatedcore_cf}")).singleFile
-    extractNestedJars(sophisticatedCoreJar, sophisticatedCoreNestedDir, [:]).values().sort()
+    def found = [:]
+    ["curse.maven:${sophisticatedcore_cf}", "curse.maven:${sophisticatedbackpacks_cf}"].each { coordinates ->
+        def jar = configurations.detachedConfiguration(dependencies.create(coordinates)).singleFile
+        extractNestedJars(jar, sophisticatedCoreNestedDir, found)
+    }
+    found.values().sort()
 })
 
 dependencies {
@@ -149,18 +146,16 @@ dependencies {
     modCompileOnly "curse.maven:${sophisticatedbackpacks_cf}"
     modLocalRuntime "curse.maven:${sophisticatedcore_cf}"
     modLocalRuntime "curse.maven:${sophisticatedbackpacks_cf}"
-    // The jars nested in Sophisticated Core (see above).
+    // The jars nested in Sophisticated Core and Backpacks (see above).
     modCompileOnly sophisticatedCoreNestedJars
     modLocalRuntime sophisticatedCoreNestedJars
-    // Required by Core and Backpacks at runtime; the 1.20.1 Core jar does not nest it.
-    modLocalRuntime "maven.modrinth:forge-config-api-port:${forgeconfigapiport_version}"
 
     // Smoke test harness only: Trinkets (with its Cardinal Components) so a backpack can be worn in a Trinkets slot
-    modSmoketestCompileOnly("dev.emi:trinkets:${trinkets_version}") { transitive = false }
+    modSmoketestCompileOnly("maven.modrinth:trinkets:${trinkets_version}") { transitive = false }
     modSmoketestCompileOnly("dev.onyxstudios.cardinal-components-api:cardinal-components-base:${cardinal_components_version}") { transitive = false }
-    // Not transitive: its POM drags in an old Fabric Loader/API. Loom drops the jars it nests, so Cardinal Components
+    // Not transitive: the Cardinal Components POM drags in an old Fabric Loader/API. Loom drops the jars it nests, so Cardinal Components
     // (base, entity) are declared on their own.
-    modSmoketestRuntimeOnly("dev.emi:trinkets:${trinkets_version}") { transitive = false }
+    modSmoketestRuntimeOnly("maven.modrinth:trinkets:${trinkets_version}") { transitive = false }
     ['base', 'entity'].each { cca ->
         modSmoketestRuntimeOnly("dev.onyxstudios.cardinal-components-api:cardinal-components-${cca}:${cardinal_components_version}") { transitive = false }
     }

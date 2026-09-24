@@ -1,7 +1,7 @@
 package sophisticated.building.create.catnip.outliner;
 
-import org.joml.Vector3f;
-import org.joml.Vector4f;
+import com.mojang.math.Vector3f;
+import com.mojang.math.Vector4f;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import sophisticated.building.create.catnip.render.BindableTexture;
@@ -199,7 +199,7 @@ public class AABBOutline extends Outline {
 		float lineLengthY = maxPos.y() - minPos.y();
 		float lineLengthZ = maxPos.z() - minPos.z();
 
-		origin.set(minPos);
+		origin.load(minPos);
 		bufferCuboidLine(pose, consumer, origin, Direction.EAST, lineLengthX, lineWidth, color, lightmap, disableNormals);
 		bufferCuboidLine(pose, consumer, origin, Direction.UP, lineLengthY, lineWidth, color, lightmap, disableNormals);
 		bufferCuboidLine(pose, consumer, origin, Direction.SOUTH, lineLengthZ, lineWidth, color, lightmap, disableNormals);

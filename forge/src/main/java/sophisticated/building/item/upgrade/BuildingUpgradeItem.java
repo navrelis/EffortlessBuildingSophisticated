@@ -11,6 +11,7 @@ import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeSlotChangeResult;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
+import sophisticated.building.SophisticatedBuilding;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -56,7 +57,7 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
      * @param maxBlocks Maximum blocks that can be placed at once with this upgrade
      */
     public BuildingUpgradeItem(int tier, int maxBlocks) {
-        super(LIMIT_CONFIG);
+        super(SophisticatedBuilding.CREATIVE_TAB, LIMIT_CONFIG);
         this.tier = tier;
         this.maxBlocks = maxBlocks;
     }
@@ -74,16 +75,8 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
         return TYPE;
     }
     
-    @Override
-    public List<UpgradeConflictDefinition> getUpgradeConflicts() {
-        // Building upgrades conflict with each other - only one can be installed
-        return List.of(new UpgradeConflictDefinition(
-                item -> item instanceof BuildingUpgradeItem,
-                0,
-                TranslationHelper.INSTANCE.translError("add.building_upgrade_conflict")
-        ));
-    }
-    
+    // Sophisticated Core 1.19.2 has no upgrade conflict definitions: the group limit of 1 keeps building upgrades
+    // exclusive (a second one is refused, swapping tiers stays possible, see canSwapUpgradeFor)
     @Override
     public UpgradeGroup getUpgradeGroup() {
         return UPGRADE_GROUP;
@@ -131,11 +124,11 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
     }
     
     @Override
-    public UpgradeSlotChangeResult canSwapUpgradeFor(ItemStack upgradeStackToPut, int upgradeSlot, IStorageWrapper storageWrapper, boolean isClientSide) {
+    public UpgradeSlotChangeResult canSwapUpgradeFor(ItemStack upgradeStackToPut, IStorageWrapper storageWrapper, boolean isClientSide) {
         // Allow swapping building upgrades for other building upgrades (upgrading tiers)
         if (upgradeStackToPut.getItem() instanceof BuildingUpgradeItem) {
             return new UpgradeSlotChangeResult.Success();
         }
-        return super.canSwapUpgradeFor(upgradeStackToPut, upgradeSlot, storageWrapper, isClientSide);
+        return super.canSwapUpgradeFor(upgradeStackToPut, storageWrapper, isClientSide);
     }
 }

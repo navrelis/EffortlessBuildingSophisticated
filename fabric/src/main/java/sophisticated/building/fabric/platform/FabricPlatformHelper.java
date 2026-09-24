@@ -1,12 +1,11 @@
 package sophisticated.building.fabric.platform;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
@@ -46,25 +45,19 @@ public final class FabricPlatformHelper implements IPlatformHelper {
 
     @Override
     public <T extends Item> Supplier<T> registerItem(String path, Supplier<T> item) {
-        T registered = Registry.register(BuiltInRegistries.ITEM, SophisticatedBuilding.asResource(path), item.get());
-        return () -> registered;
-    }
-
-    @Override
-    public Supplier<CreativeModeTab> registerCreativeTab(String path, Supplier<CreativeModeTab> tab) {
-        CreativeModeTab registered = Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, SophisticatedBuilding.asResource(path), tab.get());
+        T registered = Registry.register(Registry.ITEM, SophisticatedBuilding.asResource(path), item.get());
         return () -> registered;
     }
 
     @Override
     public <T extends AbstractContainerMenu> Supplier<MenuType<T>> registerMenu(String path, MenuType.MenuSupplier<T> factory) {
-        MenuType<T> registered = Registry.register(BuiltInRegistries.MENU, SophisticatedBuilding.asResource(path), new MenuType<>(factory, FeatureFlags.REGISTRY.allFlags()));
+        MenuType<T> registered = Registry.register(Registry.MENU, SophisticatedBuilding.asResource(path), new MenuType<>(factory));
         return () -> registered;
     }
 
     @Override
-    public CreativeModeTab.Builder creativeTabBuilder() {
-        return CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0);
+    public CreativeModeTab createCreativeTab(String path, Supplier<ItemStack> icon) {
+        return FabricItemGroupBuilder.create(SophisticatedBuilding.asResource(path)).icon(icon).build();
     }
 
     @Override

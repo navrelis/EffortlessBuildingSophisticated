@@ -1,9 +1,8 @@
 package sophisticated.building.forge.platform;
 
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
@@ -26,15 +25,13 @@ import java.util.function.Supplier;
 
 public final class ForgePlatformHelper implements IPlatformHelper {
 
-    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registries.ITEM, SophisticatedBuilding.MODID);
-    private static final DeferredRegister<MenuType<?>> CONTAINERS = DeferredRegister.create(Registries.MENU, SophisticatedBuilding.MODID);
-    private static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, SophisticatedBuilding.MODID);
+    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registry.ITEM_REGISTRY, SophisticatedBuilding.MODID);
+    private static final DeferredRegister<MenuType<?>> CONTAINERS = DeferredRegister.create(Registry.MENU_REGISTRY, SophisticatedBuilding.MODID);
 
     /** Registers the deferred registers filled by {@code SophisticatedBuilding}'s initialisation. */
     public static void registerDeferredRegisters(IEventBus modEventBus) {
         ITEMS.register(modEventBus);
         CONTAINERS.register(modEventBus);
-        CREATIVE_MODE_TABS.register(modEventBus);
     }
 
     @Override
@@ -68,18 +65,19 @@ public final class ForgePlatformHelper implements IPlatformHelper {
     }
 
     @Override
-    public Supplier<CreativeModeTab> registerCreativeTab(String path, Supplier<CreativeModeTab> tab) {
-        return CREATIVE_MODE_TABS.register(path, tab);
-    }
-
-    @Override
     public <T extends AbstractContainerMenu> Supplier<MenuType<T>> registerMenu(String path, MenuType.MenuSupplier<T> factory) {
-        return CONTAINERS.register(path, () -> new MenuType<>(factory, FeatureFlags.REGISTRY.allFlags()));
+        return CONTAINERS.register(path, () -> new MenuType<>(factory));
     }
 
     @Override
-    public CreativeModeTab.Builder creativeTabBuilder() {
-        return CreativeModeTab.builder();
+    public CreativeModeTab createCreativeTab(String path, Supplier<ItemStack> icon) {
+        // Forge's label constructor appends the tab to the vanilla tab array
+        return new CreativeModeTab(SophisticatedBuilding.MODID + "." + path) {
+            @Override
+            public ItemStack makeIcon() {
+                return icon.get();
+            }
+        };
     }
 
     @Override

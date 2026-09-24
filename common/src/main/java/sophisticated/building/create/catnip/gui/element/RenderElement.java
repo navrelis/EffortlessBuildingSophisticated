@@ -1,6 +1,6 @@
 package sophisticated.building.create.catnip.gui.element;
 
-import net.minecraft.client.gui.GuiGraphics;
+import sophisticated.building.client.gui.GuiGraphics;
 import sophisticated.building.gui.ScreenElement;
 
 /**

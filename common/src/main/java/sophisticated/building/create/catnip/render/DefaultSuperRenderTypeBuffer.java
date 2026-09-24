@@ -74,7 +74,6 @@ public class DefaultSuperRenderTypeBuffer implements SuperRenderTypeBuffer {
 			put(map, Sheets.bedSheet());
 			put(map, Sheets.shulkerBoxSheet());
 			put(map, Sheets.signSheet());
-			put(map, Sheets.hangingSignSheet());
 			map.put(Sheets.chestSheet(), new BufferBuilder(786432));
 			put(map, RenderType.armorEntityGlint());
 			put(map, RenderType.glint());

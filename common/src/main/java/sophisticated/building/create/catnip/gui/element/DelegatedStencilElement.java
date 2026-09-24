@@ -2,7 +2,7 @@ package sophisticated.building.create.catnip.gui.element;
 
 import sophisticated.building.create.catnip.gui.UIRenderHelper;
 import sophisticated.building.create.catnip.theme.Color;
-import net.minecraft.client.gui.GuiGraphics;
+import sophisticated.building.client.gui.GuiGraphics;
 
 /**
  * Adapted from Catnip ({@code sophisticated.building.create.catnip.gui.element.DelegatedStencilElement}, MIT License, Copyright (c) 2022

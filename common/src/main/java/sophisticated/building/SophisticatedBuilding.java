@@ -29,8 +29,6 @@ import sophisticated.building.systems.ItemUsageTracker;
 import sophisticated.building.systems.ServerBlockPlacer;
 import sophisticated.building.systems.UndoRedo;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Supplier;
 
 /**
@@ -46,6 +44,11 @@ public final class SophisticatedBuilding {
     public static final ServerBlockPlacer SERVER_BLOCK_PLACER = new ServerBlockPlacer();
     public static final UndoRedo UNDO_REDO = new UndoRedo();
     public static final ItemUsageTracker ITEM_USAGE_TRACKER = new ItemUsageTracker();
+
+    // Minecraft 1.19.2 creative tabs are no registry entries: the items join this tab through Item.Properties#tab, so
+    // it is created before them and lists them in registration order (the order of the fields below).
+    public static final CreativeModeTab CREATIVE_TAB = Services.PLATFORM.createCreativeTab("main",
+            () -> new ItemStack(SophisticatedBuilding.BUILDING_UPGRADE_OMEGA.get()));
 
     public static final Supplier<RandomizerBagItem> RANDOMIZER_BAG_ITEM = Services.PLATFORM.registerItem("randomizer_bag", RandomizerBagItem::new);
     public static final Supplier<GoldenRandomizerBagItem> GOLDEN_RANDOMIZER_BAG_ITEM = Services.PLATFORM.registerItem("golden_randomizer_bag", GoldenRandomizerBagItem::new);
@@ -69,39 +72,6 @@ public final class SophisticatedBuilding {
     public static final Supplier<Item> BUILDING_UPGRADE_3 = Services.PLATFORM.registerItem("building_upgrade_3", () -> createBuildingUpgrade(3, 128));
     public static final Supplier<Item> BUILDING_UPGRADE_4 = Services.PLATFORM.registerItem("building_upgrade_4", () -> createBuildingUpgrade(4, 256));
     public static final Supplier<Item> BUILDING_UPGRADE_OMEGA = Services.PLATFORM.registerItem("building_upgrade_omega", () -> createBuildingUpgrade(5, 2048));
-
-    private static final List<Supplier<Item>> BUILDING_UPGRADE_ITEMS = new ArrayList<>();
-
-    static {
-        BUILDING_UPGRADE_ITEMS.add(BUILDING_UPGRADE_1);
-        BUILDING_UPGRADE_ITEMS.add(BUILDING_UPGRADE_2);
-        BUILDING_UPGRADE_ITEMS.add(BUILDING_UPGRADE_3);
-        BUILDING_UPGRADE_ITEMS.add(BUILDING_UPGRADE_4);
-        BUILDING_UPGRADE_ITEMS.add(BUILDING_UPGRADE_OMEGA);
-    }
-
-    public static final Supplier<CreativeModeTab> CREATIVE_TAB = Services.PLATFORM.registerCreativeTab("main", () ->
-            Services.PLATFORM.creativeTabBuilder()
-                    .icon(() -> new ItemStack(BUILDING_UPGRADE_OMEGA.get()))
-                    .title(Component.translatable("itemGroup.sophisticatedbuilding"))
-                    .displayItems((parameters, output) -> {
-                        output.accept(RANDOMIZER_BAG_ITEM.get());
-                        output.accept(GOLDEN_RANDOMIZER_BAG_ITEM.get());
-                        output.accept(DIAMOND_RANDOMIZER_BAG_ITEM.get());
-                        output.accept(OMEGA_RANDOMIZER_BAG_ITEM.get());
-                        output.accept(REACH_UPGRADE_1_ITEM.get());
-                        output.accept(REACH_UPGRADE_2_ITEM.get());
-                        output.accept(REACH_UPGRADE_3_ITEM.get());
-                        output.accept(COMPRESSED_DIRT.get());
-                        output.accept(COMPRESSED_COBBLESTONE.get());
-                        output.accept(COMPRESSED_SAND.get());
-                        output.accept(COMPRESSED_COBBLED_DEEPSLATE.get());
-                        // Building upgrades (always shown - they are placeholder items when SB is not loaded)
-                        for (Supplier<Item> upgradeItem : BUILDING_UPGRADE_ITEMS) {
-                            output.accept(upgradeItem.get());
-                        }
-                    })
-                    .build());
 
     public static final Supplier<MenuType<RandomizerBagContainer>> RANDOMIZER_BAG_CONTAINER = Services.PLATFORM.registerMenu("randomizer_bag", RandomizerBagContainer::new);
     public static final Supplier<MenuType<GoldenRandomizerBagContainer>> GOLDEN_RANDOMIZER_BAG_CONTAINER = Services.PLATFORM.registerMenu("golden_randomizer_bag", GoldenRandomizerBagContainer::new);
@@ -158,7 +128,7 @@ public final class SophisticatedBuilding {
                 logger.warn("Failed to create BuildingUpgradeItem, SophisticatedBackpacks may not be loaded properly: {}", e.toString());
             }
         }
-        return new Item(new Item.Properties().stacksTo(1));
+        return new Item(new Item.Properties().stacksTo(1).tab(CREATIVE_TAB));
     }
 
     public static void log(String msg) {

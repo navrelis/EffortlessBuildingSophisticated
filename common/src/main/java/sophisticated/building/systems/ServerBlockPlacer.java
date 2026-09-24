@@ -51,7 +51,7 @@ public class ServerBlockPlacer {
 
     //Survival replace: the blocks in the way are mined, so wait for the mining delay like survival breaking
     private long scheduleReplaceMining(Player player, BlockSet blocks, long clientPlaceTime) {
-        Level level = player.level();
+        Level level = player.level;
         List<BreakToolHelper.ToolSlot> candidates = BreakToolHelper.collectCandidates(player);
         int totalTicks = 0;
         int replaceCount = 0;
@@ -90,7 +90,7 @@ public class ServerBlockPlacer {
                 continue;
             }
             
-            long gameTime = entry.player.level().getGameTime();
+            long gameTime = entry.player.level.getGameTime();
             if (gameTime >= entry.placeTime) {
                 applyBlockSet(entry.player, entry.blocks);
                 iterator.remove();
@@ -127,18 +127,18 @@ public class ServerBlockPlacer {
             if (blocks.isSkipped(block)) continue;
             blockCount++;
 
-            var state = player.level().getBlockState(block.blockPos);
-            var selected = BreakToolHelper.selectTool(player, player.level(), block.blockPos, state, candidates);
+            var state = player.level.getBlockState(block.blockPos);
+            var selected = BreakToolHelper.selectTool(player, player.level, block.blockPos, state, candidates);
             if (BreakToolHelper.isImpossible(selected)) continue;
 
             var tool = selected == null ? net.minecraft.world.item.ItemStack.EMPTY : selected.get();
-            totalTicks += BreakToolHelper.estimateBreakTicks(player.level(), block.blockPos, state, tool);
+            totalTicks += BreakToolHelper.estimateBreakTicks(player.level, block.blockPos, state, tool);
         }
         int delay = ToolSelector.capDelay(totalTicks, ServerConfig.survivalBreaking.maxDelayTicks.get());
 
         // Tools are not pre-damaged here; selection (and the actual durability cost) happens again
         // at apply time in applyBlockSet, against the live stacks.
-        delayedEntries.add(new DelayedEntry(player, blocks, player.level().getGameTime() + delay));
+        delayedEntries.add(new DelayedEntry(player, blocks, player.level.getGameTime() + delay));
 
         if (player instanceof ServerPlayer serverPlayer) {
             Services.NETWORK.sendToPlayer(serverPlayer, new BreakCountdownPacket(delay, blockCount, false));
@@ -247,7 +247,7 @@ public class ServerBlockPlacer {
     private boolean applyBlockEntry(Player player, BlockEntry block, @Nullable List<BreakToolHelper.ToolSlot> candidates,
                                     PlacementTemplates templates, boolean restoring) {
 
-        block.existingBlockState = player.level().getBlockState(block.blockPos);
+        block.existingBlockState = player.level.getBlockState(block.blockPos);
         boolean breaking = BlockUtilities.isNullOrAir(block.newBlockState);
         //Survival may only overwrite a real block by mining it, and only with survival replace enabled (merges excepted)
         ReplaceRules.Action action = breaking ? ReplaceRules.Action.BREAK : ReplaceRules.forPlacement(candidates != null,
@@ -342,7 +342,7 @@ public class ServerBlockPlacer {
         }
 
         //Survival: a real block in the way is mined (replace), never overwritten
-        BlockState current = player.level().getBlockState(block.blockPos);
+        BlockState current = player.level.getBlockState(block.blockPos);
         ReplaceRules.Action action = ReplaceRules.forUndo(candidates != null, breaking, tempBlockEntry.item != null,
                 BlockUtilities.needsMining(current), current == temp, ServerConfig.survivalReplace.enabled.get());
         if (action == ReplaceRules.Action.SKIP) return false;
@@ -437,15 +437,15 @@ public class ServerBlockPlacer {
 
     private boolean validateBlockEntry(Player player, BlockEntry block, boolean breaking) {
 
-        if (!player.level().isLoaded(block.blockPos)) return false;
+        if (!player.level.isLoaded(block.blockPos)) return false;
 
         if (breaking && BlockUtilities.isNullOrAir(block.existingBlockState)) return false;
 
         //Like vanilla for every block use and break, in any game mode: spawn protection and world border
         //(operators bypass spawn protection) and adventure mode restrictions
-        if (!player.level().mayInteract(player, block.blockPos)) return false;
+        if (!player.level.mayInteract(player, block.blockPos)) return false;
         if (player instanceof ServerPlayer serverPlayer
-                && serverPlayer.blockActionRestricted(serverPlayer.level(), block.blockPos, serverPlayer.gameMode.getGameModeForPlayer())) {
+                && serverPlayer.blockActionRestricted(serverPlayer.level, block.blockPos, serverPlayer.gameMode.getGameModeForPlayer())) {
             return false;
         }
 

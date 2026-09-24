@@ -33,7 +33,7 @@ public class DiagonalLine extends ThreeClicksBuildMode {
 		int iterations = (int) Math.ceil(first.distanceTo(second) * sampleMultiplier);
 		for (double t = 0; t <= 1.0; t += 1.0 / iterations) {
 			Vec3 lerp = first.add(second.subtract(first).scale(t));
-			BlockPos candidate = BlockPos.containing(lerp);
+			BlockPos candidate = new BlockPos(lerp);
 			//Only add if not equal to the last in the list
 			if (centerLine.isEmpty() || !centerLine.get(centerLine.size() - 1).equals(candidate))
 				centerLine.add(candidate);

@@ -7,7 +7,7 @@ import sophisticated.building.create.catnip.animation.LerpedFloat;
 import sophisticated.building.create.catnip.gui.element.AbstractRenderElement;
 import sophisticated.building.create.catnip.gui.element.RenderElement;
 import sophisticated.building.gui.ScreenElement;
-import net.minecraft.client.gui.GuiGraphics;
+import sophisticated.building.client.gui.GuiGraphics;
 
 /**
  * Adapted from Catnip ({@code sophisticated.building.create.catnip.gui.widget.ElementWidget}, MIT License, Copyright (c) 2022

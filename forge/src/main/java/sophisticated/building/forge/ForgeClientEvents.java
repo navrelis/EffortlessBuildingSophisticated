@@ -12,6 +12,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuilding;
+import sophisticated.building.client.gui.GuiGraphics;
 import sophisticated.building.render.RenderHandler;
 
 /**
@@ -73,6 +74,6 @@ public class ForgeClientEvents {
 
     @SubscribeEvent
     public static void onRenderGui(RenderGuiEvent.Post event) {
-        RenderHandler.onRenderGui(event.getGuiGraphics());
+        RenderHandler.onRenderGui(new GuiGraphics(event.getPoseStack()));
     }
 }

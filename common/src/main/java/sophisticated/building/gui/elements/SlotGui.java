@@ -1,5 +1,6 @@
 package sophisticated.building.gui.elements;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.BufferUploader;
@@ -8,8 +9,8 @@ import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Renderable;
+import sophisticated.building.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.renderer.GameRenderer;
@@ -21,7 +22,7 @@ import java.util.List;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class SlotGui extends AbstractContainerEventHandler implements Renderable {
+public abstract class SlotGui extends AbstractContainerEventHandler implements Widget {
 	protected final Minecraft minecraft;
 	protected final int itemHeight;
 	protected int width;
@@ -106,7 +107,7 @@ public abstract class SlotGui extends AbstractContainerEventHandler implements R
 		return p_isMouseInList_3_ >= (double) this.y0 && p_isMouseInList_3_ <= (double) this.y1 && p_isMouseInList_1_ >= (double) this.x0 && p_isMouseInList_1_ <= (double) this.x1;
 	}
 
-	public abstract void render(GuiGraphics guiGraphics, int p_render_1_, int p_render_2_, float p_render_3_);
+	public abstract void render(PoseStack poseStack, int p_render_1_, int p_render_2_, float p_render_3_);
 
 	protected void updateScrollingState(double p_updateScrollingState_1_, double p_updateScrollingState_3_, int p_updateScrollingState_5_) {
 		this.scrolling = p_updateScrollingState_5_ == 0 && p_updateScrollingState_1_ >= (double) this.getScrollbarPosition() && p_updateScrollingState_1_ < (double) (this.getScrollbarPosition() + 6);

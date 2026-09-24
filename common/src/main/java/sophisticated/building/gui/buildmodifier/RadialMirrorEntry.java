@@ -1,7 +1,8 @@
 package sophisticated.building.gui.buildmodifier;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec3;
 import sophisticated.building.AllGuiTextures;
@@ -138,51 +139,52 @@ public class RadialMirrorEntry extends BaseModifierEntry<RadialMirror> {
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int index, int y, int x, int width, int height, int mouseX, int mouseY, boolean hovering, float partialTicks) {
-		super.render(guiGraphics, index, y, x, width, height, mouseX, mouseY, hovering, partialTicks);
+	public void render(PoseStack poseStack, int index, int y, int x, int width, int height, int mouseX, int mouseY, boolean hovering, float partialTicks) {
+		GuiGraphics guiGraphics = new GuiGraphics(poseStack);
+		super.render(poseStack, index, y, x, width, height, mouseX, mouseY, hovering, partialTicks);
 
 		//draw position inputs
 		for (int i = 0; i < 3; i++) {
 			ScrollInput input = positionInputs.get(i);
 			input.setX(left + 49 + 38 * i);
 			input.setY(top + 19);
-			input.render(guiGraphics, mouseX, mouseY, partialTicks);
+			input.render(poseStack, mouseX, mouseY, partialTicks);
 		}
 
 		//draw player position button
 		playerPositionButton.setX(left + 163);
 		playerPositionButton.setY(top + 19);
-		playerPositionButton.render(guiGraphics, mouseX, mouseY, partialTicks);
+		playerPositionButton.render(poseStack, mouseX, mouseY, partialTicks);
 
 		//draw toggle offset button
 		toggleOffsetButton.setX(left + 183);
 		toggleOffsetButton.setY(top + 19);
-		toggleOffsetButton.render(guiGraphics, mouseX, mouseY, partialTicks);
+		toggleOffsetButton.render(poseStack, mouseX, mouseY, partialTicks);
 
 		//draw slices input
 		slicesInput.setX(left + 49);
 		slicesInput.setY(top + 41);
-		slicesInput.render(guiGraphics, mouseX, mouseY, partialTicks);
+		slicesInput.render(poseStack, mouseX, mouseY, partialTicks);
 
 		//draw alternate button
 		alternateButton.setX(left + 78);
 		alternateButton.setY(top + 41);
-		alternateButton.render(guiGraphics, mouseX, mouseY, partialTicks);
+		alternateButton.render(poseStack, mouseX, mouseY, partialTicks);
 
 		//draw radius input
 		radiusInput.setX(left + 134);
 		radiusInput.setY(top + 41);
-		radiusInput.render(guiGraphics, mouseX, mouseY, partialTicks);
+		radiusInput.render(poseStack, mouseX, mouseY, partialTicks);
 
 		//draw show lines button
 		showLinesButton.setX(left + 163);
 		showLinesButton.setY(top + 41);
-		showLinesButton.render(guiGraphics, mouseX, mouseY, partialTicks);
+		showLinesButton.render(poseStack, mouseX, mouseY, partialTicks);
 
 		//draw show areas button
 		showAreasButton.setX(left + 183);
 		showAreasButton.setY(top + 41);
-		showAreasButton.render(guiGraphics, mouseX, mouseY, partialTicks);
+		showAreasButton.render(poseStack, mouseX, mouseY, partialTicks);
 	}
 
 	@Override

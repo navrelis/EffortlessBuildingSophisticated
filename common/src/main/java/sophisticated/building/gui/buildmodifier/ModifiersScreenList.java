@@ -1,11 +1,12 @@
 package sophisticated.building.gui.buildmodifier;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import sophisticated.building.create.catnip.gui.TickableGuiEventListener;
 import sophisticated.building.create.catnip.gui.UIRenderHelper;
 import sophisticated.building.create.catnip.theme.Color;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.network.chat.Component;
@@ -29,7 +30,8 @@ public class ModifiersScreenList extends ObjectSelectionList<ModifiersScreenList
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+        GuiGraphics guiGraphics = new GuiGraphics(poseStack);
         Color c = new Color(0x60_000000);
         UIRenderHelper.angledGradient(guiGraphics, 90, x0 + width / 2, y0, width, 5, c, Color.TRANSPARENT_BLACK);
         UIRenderHelper.angledGradient(guiGraphics, -90, x0 + width / 2, y1, width, 5, c, Color.TRANSPARENT_BLACK);
@@ -37,7 +39,7 @@ public class ModifiersScreenList extends ObjectSelectionList<ModifiersScreenList
         UIRenderHelper.angledGradient(guiGraphics, 180, x1, y0 + height / 2, height, 5, c, Color.TRANSPARENT_BLACK);
         guiGraphics.fill(x0, y0, x1, y1, 0x80_000000);
 
-        super.render(guiGraphics, mouseX, mouseY, partialTicks);
+        super.render(poseStack, mouseX, mouseY, partialTicks);
     }
     
     public void renderWindowForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
@@ -141,7 +143,8 @@ public class ModifiersScreenList extends ObjectSelectionList<ModifiersScreenList
         }
     
         @Override
-        public void render(GuiGraphics guiGraphics, int index, int y, int x, int width, int height, int mouseX, int mouseY, boolean hovering, float partialTicks) {
+        public void render(PoseStack poseStack, int index, int y, int x, int width, int height, int mouseX, int mouseY, boolean hovering, float partialTicks) {
+            GuiGraphics guiGraphics = new GuiGraphics(poseStack);
     
 //            UIRenderHelper.streak(guiGraphics, 0, x - 10, y + height / 2, height - 6, width, 0xdd_000000);
 //            UIRenderHelper.streak(guiGraphics, 180, x + (int) (width * 1.35f) + 10, y + height / 2, height - 6, width / 8 * 7, 0xdd_000000);

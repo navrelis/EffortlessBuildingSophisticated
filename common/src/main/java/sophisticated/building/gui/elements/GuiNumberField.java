@@ -4,10 +4,10 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.components.Renderable;
+import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
@@ -30,27 +30,27 @@ public class GuiNumberField {
 
 	List<Component> tooltip = new ArrayList<>();
 
-	public GuiNumberField(Font font, List<Renderable> renderables, int x, int y, int width, int height) {
+	public GuiNumberField(Font font, List<Widget> renderables, int x, int y, int width, int height) {
 		this.x = x;
 		this.y = y;
 		this.width = width;
 		this.height = height;
 
 		textField = new EditBox(font, x + buttonWidth + 1, y + 1, width - 2 * buttonWidth - 2, height - 2, Component.empty());
-		minusButton = Button.builder(Component.literal("-"), button -> {
+		minusButton = new Button(x, y - 1, buttonWidth, height + 2, Component.literal("-"), button -> {
 			float valueChanged = 1f;
 			if (Screen.hasControlDown()) valueChanged = 5f;
 			if (Screen.hasShiftDown()) valueChanged = 10f;
 
 			setNumber(getNumber() - valueChanged);
-		}).bounds(x, y - 1, buttonWidth, height + 2).build();
-		plusButton = Button.builder(Component.literal("+"), button -> {
+		});
+		plusButton = new Button(x + width - buttonWidth, y - 1, buttonWidth, height + 2, Component.literal("+"), button -> {
 			float valueChanged = 1f;
 			if (Screen.hasControlDown()) valueChanged = 5f;
 			if (Screen.hasShiftDown()) valueChanged = 10f;
 
 			setNumber(getNumber() + valueChanged);
-		}).bounds(x + width - buttonWidth, y - 1, buttonWidth, height + 2).build();
+		});
 
 		renderables.add(minusButton);
 		renderables.add(plusButton);
@@ -86,7 +86,7 @@ public class GuiNumberField {
 		//Rightclicked inside textfield
 		if (flag && mouseButton == 1) {
 			textField.setValue("");
-			textField.setFocused(true);
+			textField.setFocus(true);
 			result = true;
 		}
 
@@ -94,13 +94,13 @@ public class GuiNumberField {
 	}
 
 	public void drawNumberField(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-		textField.setY(y + 1);
-		minusButton.setY(y - 1);
-		plusButton.setY(y - 1);
+		textField.y = y + 1;
+		minusButton.y = y - 1;
+		plusButton.y = y - 1;
 
-		textField.render(graphics, mouseX, mouseY, partialTicks);
-		minusButton.render(graphics, mouseX, mouseY, partialTicks);
-		plusButton.render(graphics, mouseX, mouseY, partialTicks);
+		textField.render(graphics.pose(), mouseX, mouseY, partialTicks);
+		minusButton.render(graphics.pose(), mouseX, mouseY, partialTicks);
+		plusButton.render(graphics.pose(), mouseX, mouseY, partialTicks);
 	}
 
 	public void drawTooltip(GuiGraphics graphics, Screen screen, int mouseX, int mouseY) {

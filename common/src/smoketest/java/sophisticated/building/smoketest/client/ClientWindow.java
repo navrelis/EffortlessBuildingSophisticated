@@ -28,7 +28,7 @@ final class ClientWindow {
     }
 
     static String muteAndMoveAside(Minecraft mc) {
-        mc.options.getSoundSourceOptionInstance(SoundSource.MASTER).set(0.0);
+        mc.options.setSoundCategoryVolume(SoundSource.MASTER, 0.0F);
 
         long window = mc.getWindow().getWindow();
         detachInput(window);

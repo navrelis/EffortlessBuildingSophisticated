@@ -1,6 +1,6 @@
 package sophisticated.building.smoketest.backpack;
 
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -89,7 +89,7 @@ public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
     public void setBuildingUpgradeEnabled(ItemStack backpack, boolean enabled) {
         IBackpackWrapper wrapper = wrapper(backpack);
         for (IUpgradeWrapper upgrade : wrapper.getUpgradeHandler().getSlotWrappers().values()) {
-            ResourceLocation id = BuiltInRegistries.ITEM.getKey(upgrade.getUpgradeStack().getItem());
+            ResourceLocation id = Registry.ITEM.getKey(upgrade.getUpgradeStack().getItem());
             if (id.getNamespace().equals(SophisticatedBuilding.MODID) && id.getPath().startsWith("building_upgrade")) {
                 upgrade.setEnabled(enabled);
                 return;
@@ -144,7 +144,7 @@ public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
     }
 
     private static Item item(ResourceLocation id) {
-        Item item = BuiltInRegistries.ITEM.get(id);
+        Item item = Registry.ITEM.get(id);
         if (item == Items.AIR) {
             throw new IllegalStateException("Item " + id + " is not registered");
         }

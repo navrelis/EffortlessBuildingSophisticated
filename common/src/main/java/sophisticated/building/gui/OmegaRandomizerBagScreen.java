@@ -6,7 +6,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -58,9 +58,7 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 		// Add reset weights button to the right of the GUI
 		int buttonX = leftPos + imageWidth + 4;
 		int buttonY = topPos + 4;
-		resetWeightsButton = Button.builder(Component.literal("Reset"), this::onResetWeightsPressed)
-				.bounds(buttonX, buttonY, 40, 16)
-				.build();
+		resetWeightsButton = new Button(buttonX, buttonY, 40, 16, Component.literal("Reset"), this::onResetWeightsPressed);
 		this.addRenderableWidget(resetWeightsButton);
 	}
 	
@@ -85,11 +83,12 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+	public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+		GuiGraphics guiGraphics = new GuiGraphics(poseStack);
 		// The dimmed world behind the screen (drawn by super.render from 1.20.2 on)
-		this.renderBackground(guiGraphics);
-		super.render(guiGraphics, mouseX, mouseY, partialTicks);
-		this.renderTooltip(guiGraphics, mouseX, mouseY);
+		this.renderBackground(poseStack);
+		super.render(poseStack, mouseX, mouseY, partialTicks);
+		this.renderTooltip(poseStack, mouseX, mouseY);
 		
 		// Render weight badges and tooltips
 		renderWeightBadges(guiGraphics, mouseX, mouseY);
@@ -144,13 +143,15 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+	protected void renderLabels(PoseStack poseStack, int mouseX, int mouseY) {
+		GuiGraphics guiGraphics = new GuiGraphics(poseStack);
 		guiGraphics.drawString(this.font, this.title, 8, 6, 0x404040, false);
 		guiGraphics.drawString(this.font, this.playerInventoryTitle, 8, imageHeight - 94, 0x404040, false);
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+	protected void renderBg(PoseStack poseStack, float partialTicks, int mouseX, int mouseY) {
+		GuiGraphics guiGraphics = new GuiGraphics(poseStack);
 		int marginHorizontal = (width - imageWidth) / 2;
 		int marginVertical = (height - imageHeight) / 2;
 		guiGraphics.blit(guiTextures, marginHorizontal, marginVertical, 0, 0, imageWidth, imageHeight);
@@ -260,7 +261,7 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 			RenderSystem.enableDepthTest();
 			
 			MultiBufferSource.BufferSource buffer = MultiBufferSource.immediate(WEIGHT_BADGE_BUFFER);
-			font.drawInBatch(weightText, badgeX, badgeY, color, true, ms.last().pose(), buffer, Font.DisplayMode.NORMAL, 0, 15728880);
+			font.drawInBatch(weightText, badgeX, badgeY, color, true, ms.last().pose(), buffer, false, 0, 15728880);
 			buffer.endBatch();
 			
 			ms.popPose();

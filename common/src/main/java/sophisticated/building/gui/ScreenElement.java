@@ -1,6 +1,6 @@
 package sophisticated.building.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import sophisticated.building.client.gui.GuiGraphics;
 
 /**
  * A simple interface for renderable GUI elements.

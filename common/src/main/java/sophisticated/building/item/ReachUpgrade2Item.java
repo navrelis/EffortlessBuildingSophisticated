@@ -26,7 +26,7 @@ import java.util.List;
 public class ReachUpgrade2Item extends Item {
 
 	public ReachUpgrade2Item() {
-		super(new Item.Properties().stacksTo(1));
+		super(new Item.Properties().stacksTo(1).tab(SophisticatedBuilding.CREATIVE_TAB));
 	}
 
 

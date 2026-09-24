@@ -8,7 +8,7 @@ import sophisticated.building.SophisticatedBuildingClient;
 import sophisticated.building.buildmodifier.BaseModifier;
 import sophisticated.building.buildmodifier.Mirror;
 import sophisticated.building.buildmodifier.RadialMirror;
-import org.joml.Matrix4f;
+import com.mojang.math.Matrix4f;
 
 import java.awt.*;
 import java.util.List;

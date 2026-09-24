@@ -29,7 +29,7 @@ public class InventoryHelper {
 
 		boolean hasUpgrade;
 		int backpackCount = 0;
-		if (player.level().isClientSide()) {
+		if (player.level.isClientSide()) {
 			hasUpgrade = ClientBuildingUpgradeState.hasUpgrade();
 			if (hasUpgrade) {
 				backpackCount = ClientBackpackItemCache.getCount(item);
@@ -158,7 +158,7 @@ public class InventoryHelper {
 		// Backpack items are clamped by effective upgrade limit so usage checks/hud stay accurate.
 		// Client: never inspect a backpack wrapper locally, use only the server-synced cache/state
 		// (RC2). Server: the authoritative helper.
-		if (player.level().isClientSide()) {
+		if (player.level.isClientSide()) {
 			if (ClientBuildingUpgradeState.hasUpgrade()) {
 				int backpackCount = ClientBackpackItemCache.getCount(item);
 				total += clampedBackpackContribution(backpackCount, ClientBuildingUpgradeState.getMaxBlocks());
@@ -183,7 +183,7 @@ public class InventoryHelper {
 	 * Finds total items in backpacks for DISPLAY (no clamping).
 	 */
 	public static int findTotalItemsInBackpacksForDisplay(Player player, Item item) {
-		if (player.level().isClientSide()) {
+		if (player.level.isClientSide()) {
 			return ClientBackpackItemCache.getCount(item);
 		}
 
@@ -206,7 +206,7 @@ public class InventoryHelper {
 	 */
 	@Deprecated
 	public static int findTotalItemsInBackpacks(Player player, Item item) {
-		if (player.level().isClientSide()) {
+		if (player.level.isClientSide()) {
 			return ClientBackpackItemCache.getCount(item);
 		}
 
@@ -309,14 +309,14 @@ public class InventoryHelper {
 			ItemStack extracted = Services.backpacks().extractBlockFromBackpack(
 					player, new ItemStack(item), toExtract, false);
 			int removed = extracted.isEmpty() ? 0 : extracted.getCount();
-			if (removed > 0 && player.level().isClientSide()) {
+			if (removed > 0 && player.level.isClientSide()) {
 				return removed;
 			}
 
 			// Sync new backpack count to client for HUD accuracy
 			if (removed > 0 && player instanceof ServerPlayer serverPlayer) {
 				int newCount = Services.backpacks().countBlockInBackpacksForDisplay(player, new ItemStack(item));
-				var key = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item);
+				var key = net.minecraft.core.Registry.ITEM.getKey(item);
 				if (key != null) {
 					Services.NETWORK.sendToPlayer(serverPlayer,
 						new sophisticated.building.network.message.BackpackItemCountPacket(key, newCount));

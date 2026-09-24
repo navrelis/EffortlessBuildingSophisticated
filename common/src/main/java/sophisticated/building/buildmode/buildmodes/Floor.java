@@ -35,7 +35,7 @@ public class Floor extends TwoClicksBuildMode {
 		//Then only 1 can be valid, return that one
 		Criteria selected = criteriaList.get(0);
 
-		return BlockPos.containing(selected.planeBound);
+		return new BlockPos(selected.planeBound);
 	}
 
 	public static List<BlockPos> getFloorBlocks(Player player, int x1, int y1, int z1, int x2, int y2, int z2) {

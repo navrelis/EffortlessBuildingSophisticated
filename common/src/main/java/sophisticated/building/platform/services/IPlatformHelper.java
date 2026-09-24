@@ -32,12 +32,14 @@ public interface IPlatformHelper {
      */
     <T extends Item> Supplier<T> registerItem(String path, Supplier<T> item);
 
-    Supplier<CreativeModeTab> registerCreativeTab(String path, Supplier<CreativeModeTab> tab);
-
     <T extends AbstractContainerMenu> Supplier<MenuType<T>> registerMenu(String path, MenuType.MenuSupplier<T> factory);
 
-    /** A creative tab builder the loader positions itself. */
-    CreativeModeTab.Builder creativeTabBuilder();
+    /**
+     * Creates the mod's creative tab, titled {@code itemGroup.<mod id>.<path>}. Minecraft 1.19.2 creative tabs are no
+     * registry entries: an item joins one through {@code Item.Properties#tab}, so the tab is created before the items
+     * and lists them in registration order.
+     */
+    CreativeModeTab createCreativeTab(String path, Supplier<ItemStack> icon);
 
     /**
      * The player's power level, created with defaults on first access. On NeoForge this is the saved

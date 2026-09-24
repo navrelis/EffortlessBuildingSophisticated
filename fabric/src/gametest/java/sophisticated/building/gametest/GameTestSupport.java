@@ -3,6 +3,7 @@ package sophisticated.building.gametest;
 import com.mojang.authlib.GameProfile;
 import io.netty.channel.embedded.EmbeddedChannel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.PacketFlow;
@@ -44,7 +45,7 @@ public final class GameTestSupport {
         ServerLevel level = helper.getLevel();
         MinecraftServer server = level.getServer();
         GameProfile profile = new GameProfile(UUID.randomUUID(), "sb-gametest");
-        ServerPlayer player = new ServerPlayer(server, level, profile);
+        ServerPlayer player = new ServerPlayer(server, level, profile, null);
         // As vanilla's makeMockServerPlayerInLevel: the embedded channel activates the connection and swallows what
         // the server sends
         Connection connection = new Connection(PacketFlow.SERVERBOUND);
@@ -159,14 +160,21 @@ public final class GameTestSupport {
 
     //region Assertions
 
+    /** GameTestHelper#assertTrue of 1.20+: Minecraft 1.19.2's helper has none. */
+    public static void assertTrue(boolean condition, String message) {
+        if (!condition) {
+            throw new GameTestAssertException(message);
+        }
+    }
+
     public static void expectEquals(GameTestHelper helper, String what, Object expected, Object actual) {
-        helper.assertTrue(expected == null ? actual == null : expected.equals(actual),
+        assertTrue(expected == null ? actual == null : expected.equals(actual),
                 what + ": expected " + expected + " but was " + actual);
     }
 
     public static void expectState(GameTestHelper helper, BlockPos relativePos, BlockState expected) {
         BlockState actual = helper.getBlockState(relativePos);
-        helper.assertTrue(actual == expected, "Block at " + relativePos + ": expected " + expected + " but was " + actual);
+        assertTrue(actual == expected, "Block at " + relativePos + ": expected " + expected + " but was " + actual);
     }
 
     //endregion

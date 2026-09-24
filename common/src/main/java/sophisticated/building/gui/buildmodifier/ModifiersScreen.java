@@ -2,7 +2,7 @@ package sophisticated.building.gui.buildmodifier;
 
 import sophisticated.building.create.catnip.gui.widget.BoxWidget;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuildingClient;

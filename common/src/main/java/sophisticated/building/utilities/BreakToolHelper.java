@@ -46,10 +46,8 @@ public class BreakToolHelper {
 		if (stack.isEmpty()) {
 			return false;
 		}
-		if (stack.getItem() instanceof DiggerItem || stack.getItem() instanceof ShearsItem) {
-			return true;
-		}
-		return stack.is(ItemTags.PICKAXES) || stack.is(ItemTags.AXES) || stack.is(ItemTags.SHOVELS) || stack.is(ItemTags.HOES);
+		// Minecraft 1.19.2 has no tool item tags (pickaxes, axes, ...): the vanilla tool classes decide
+		return stack.getItem() instanceof DiggerItem || stack.getItem() instanceof ShearsItem;
 	}
 
 	public static List<ToolSlot> collectCandidates(Player player) {
@@ -70,7 +68,7 @@ public class BreakToolHelper {
 		}
 		addOffhandSlot(candidates, player);
 
-		if (!player.level().isClientSide()) {
+		if (!player.level.isClientSide()) {
 			if (CompatHelper.isSophisticatedBackpacksLoaded()) {
 				try {
 					candidates.addAll(Services.backpacks().collectBackpackTools(player));
@@ -292,7 +290,7 @@ public class BreakToolHelper {
 	 */
 	public static BreakPlan planClient(Player player, Iterable<BlockEntry> blocks, @Nullable BlockPos skipPos) {
 		BreakPlan plan = new BreakPlan();
-		Level level = player.level();
+		Level level = player.level;
 
 		List<ToolSlot> candidates = collectCandidates(player);
 		// Work on copies of the candidate stacks so repeated selection within the same plan drains

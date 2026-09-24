@@ -30,7 +30,7 @@ public class InventoryHelperGameTest implements FabricGameTest {
 
             ItemStack remaining = player.getInventory().getItem(selected);
             expectEquals(helper, "stone left in the selected slot", 7, remaining.getCount());
-            helper.assertTrue(remaining.hasCustomHoverName() && NAME.equals(remaining.getHoverName().getString()),
+            assertTrue(remaining.hasCustomHoverName() && NAME.equals(remaining.getHoverName().getString()),
                     "The remaining stack should keep its custom name, has " + remaining);
         } finally {
             removePlayer(player);

@@ -1,6 +1,6 @@
 package sophisticated.building.create.foundation.gui.widget;
 
-import net.minecraft.client.gui.GuiGraphics;
+import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;

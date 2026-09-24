@@ -11,7 +11,7 @@ import sophisticated.building.utilities.Color;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.language.I18n;
@@ -119,7 +119,8 @@ public class RadialMenu extends Screen {
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float partialTicks) {
+	public void render(PoseStack poseStack, final int mouseX, final int mouseY, final float partialTicks) {
+		GuiGraphics guiGraphics = new GuiGraphics(poseStack);
 		BuildModeEnum currentBuildMode = SophisticatedBuildingClient.BUILD_MODES.getBuildMode();
 
 		PoseStack ms = guiGraphics.pose();
@@ -521,7 +522,7 @@ public class RadialMenu extends Screen {
 	public static void playRadialMenuSound() {
 		final float volume = 0.1f;
 		if (volume >= 0.0001f) {
-			SimpleSoundInstance sound = new SimpleSoundInstance(SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.MASTER, volume,
+			SimpleSoundInstance sound = new SimpleSoundInstance(SoundEvents.UI_BUTTON_CLICK, SoundSource.MASTER, volume,
 					1.0f, RandomSource.create(), Minecraft.getInstance().player.blockPosition());
 			Minecraft.getInstance().getSoundManager().play(sound);
 		}

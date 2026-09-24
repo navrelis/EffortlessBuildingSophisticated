@@ -24,7 +24,7 @@
   "key.sophisticatedbuilding.next_power_level": "Next Power Level",
   "key.sophisticatedbuilding.next_power_level_how": "Increase your Power Level by looting power items in dungeons and other structures.",
 
-  "itemGroup.sophisticatedbuilding": "Sophisticated Building",
+  "itemGroup.sophisticatedbuilding.main": "Sophisticated Building",
 
   "item.sophisticatedbuilding.randomizer_bag": "Sophisticated Leather Randomizer Bag",
   "item.sophisticatedbuilding.golden_randomizer_bag": "Sophisticated Golden Randomizer Bag",

@@ -42,7 +42,7 @@ public class SkipFirstGameTest implements FabricGameTest {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
         var config = ConfigScope.baseline();
         player.getInventory().setItem(0, new ItemStack(Items.STONE, 3));
-        helper.assertTrue(ServerBuildState.isLikeVanilla(player), "Player should start like vanilla");
+        assertTrue(ServerBuildState.isLikeVanilla(player), "Player should start like vanilla");
 
         placeNow(helper, player);
 
@@ -68,7 +68,7 @@ public class SkipFirstGameTest implements FabricGameTest {
         ServerPlayer player = spawnPlayer(helper, GameType.CREATIVE);
         var config = ConfigScope.baseline();
         ServerBuildState.setIsQuickReplacing(player, true);
-        helper.assertTrue(!ServerBuildState.isLikeVanilla(player), "Quick replacing player should not be like vanilla");
+        assertTrue(!ServerBuildState.isLikeVanilla(player), "Quick replacing player should not be like vanilla");
 
         placeNow(helper, player);
 

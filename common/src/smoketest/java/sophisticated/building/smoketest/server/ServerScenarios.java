@@ -2,6 +2,7 @@ package sophisticated.building.smoketest.server;
 
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
+import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -131,7 +132,7 @@ public final class ServerScenarios {
         sendPlace(player, placeSet(line, Blocks.STONE.defaultBlockState()));
 
         helper.startSequence()
-                .thenWaitUntil(() -> helper.assertTrue(countBlocks(helper, line, Blocks.STONE) >= held, "waiting for the held stone"))
+                .thenWaitUntil(() -> assertTrue(countBlocks(helper, line, Blocks.STONE) >= held, "waiting for the held stone"))
                 .thenIdle(10)
                 .thenExecute(() -> {
                     expectEquals(helper, "blocks placed", held, countBlocks(helper, line, Blocks.STONE));
@@ -159,7 +160,7 @@ public final class ServerScenarios {
         sendPlace(player, placeSet(floor, Blocks.STONE.defaultBlockState()));
 
         helper.startSequence()
-                .thenWaitUntil(() -> helper.assertTrue(countBlocks(helper, floor, Blocks.STONE) >= TIER1_CAP, "waiting for the floor"))
+                .thenWaitUntil(() -> assertTrue(countBlocks(helper, floor, Blocks.STONE) >= TIER1_CAP, "waiting for the floor"))
                 .thenIdle(10)
                 .thenExecute(() -> {
                     expectEquals(helper, "blocks placed of a 36 block floor (tier 1 cap)", TIER1_CAP, countBlocks(helper, floor, Blocks.STONE));
@@ -285,7 +286,7 @@ public final class ServerScenarios {
 
     /** What the client's second click sends, through the packet's encoding and server handler. */
     private static void sendPlace(ServerPlayer player, BlockSet blocks) {
-        ServerPlaceBlocksPacket packet = roundTrip(new ServerPlaceBlocksPacket(blocks, player.level().getGameTime()), ServerPlaceBlocksPacket::new);
+        ServerPlaceBlocksPacket packet = roundTrip(new ServerPlaceBlocksPacket(blocks, player.level.getGameTime()), ServerPlaceBlocksPacket::new);
         ServerPlaceBlocksPacket.Handler.handle(packet, player);
     }
 
@@ -331,7 +332,14 @@ public final class ServerScenarios {
     }
 
     private static void expectEquals(GameTestHelper helper, String what, Object expected, Object actual) {
-        helper.assertTrue(expected.equals(actual), what + ": expected " + expected + " but was " + actual);
+        assertTrue(expected.equals(actual), what + ": expected " + expected + " but was " + actual);
+    }
+
+    /** GameTestHelper#assertTrue of 1.20+: Minecraft 1.19.2's helper has none. */
+    private static void assertTrue(boolean condition, String message) {
+        if (!condition) {
+            throw new GameTestAssertException(message);
+        }
     }
 
     //endregion

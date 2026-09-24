@@ -1,5 +1,6 @@
 package sophisticated.building.gui.elements;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
@@ -10,8 +11,8 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Renderable;
+import sophisticated.building.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.util.Mth;
@@ -70,7 +71,8 @@ public class GuiScrollPane extends SlotGui {
 
 	//Removed background
 	@Override
-	public void render(GuiGraphics guiGraphics, int mouseXIn, int mouseYIn, float partialTicks) {
+	public void render(PoseStack poseStack, int mouseXIn, int mouseYIn, float partialTicks) {
+		GuiGraphics guiGraphics = new GuiGraphics(poseStack);
 		if (this.visible) {
 			this.mouseX = mouseXIn;
 			this.mouseY = mouseYIn;
@@ -349,7 +351,7 @@ public class GuiScrollPane extends SlotGui {
 	}
 
 	//PASSTHROUGHS
-	public void init(List<Renderable> renderables) {
+	public void init(List<Widget> renderables) {
 		for (IScrollEntry entry : this.listEntries) {
 			entry.init(renderables);
 		}
@@ -386,7 +388,7 @@ public class GuiScrollPane extends SlotGui {
 	}
 
 	public interface IScrollEntry {
-		void init(List<Renderable> renderables);
+		void init(List<Widget> renderables);
 
 		void updateScreen();
 

@@ -7,8 +7,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.joml.Vector3f;
-import org.joml.Vector4f;
+import com.mojang.math.Vector3f;
+import com.mojang.math.Vector4f;
 import sophisticated.building.create.catnip.data.Iterate;
 import sophisticated.building.create.catnip.render.BindableTexture;
 import sophisticated.building.create.catnip.render.OutlineRenderTypes;

@@ -10,6 +10,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuilding;
+import sophisticated.building.client.gui.GuiGraphics;
 import sophisticated.building.client.gui.MaterialCostOverlay;
 import sophisticated.building.compatibility.CompatHelper;
 import sophisticated.building.config.ModConfigs;
@@ -101,7 +102,8 @@ public final class FabricClientEvents {
             RenderHandler.onRenderOutlines(context.matrixStack());
         });
 
-        HudRenderCallback.EVENT.register((guiGraphics, tickDelta) -> {
+        HudRenderCallback.EVENT.register((poseStack, tickDelta) -> {
+            GuiGraphics guiGraphics = new GuiGraphics(poseStack);
             RenderHandler.onRenderGui(guiGraphics);
             MATERIAL_COST_OVERLAY.render(guiGraphics, tickDelta);
         });

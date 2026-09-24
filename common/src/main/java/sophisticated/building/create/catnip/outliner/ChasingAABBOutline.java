@@ -1,6 +1,6 @@
 package sophisticated.building.create.catnip.outliner;
 
-import org.joml.Vector4f;
+import com.mojang.math.Vector4f;
 import com.mojang.blaze3d.vertex.PoseStack;
 import sophisticated.building.create.catnip.render.SuperRenderTypeBuffer;
 import net.minecraft.util.Mth;
