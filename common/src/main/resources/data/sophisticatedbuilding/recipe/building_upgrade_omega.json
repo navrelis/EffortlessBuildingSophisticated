@@ -13,6 +13,10 @@
       "modid": "sophisticatedbackpacks"
     }
   ],
+  "forge:condition": {
+    "type": "forge:mod_loaded",
+    "modid": "sophisticatedbackpacks"
+  },
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [

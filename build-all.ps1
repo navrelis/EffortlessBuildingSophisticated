@@ -2,7 +2,7 @@
 # Usage: ./build-all.ps1 [gradle tasks...]   (default: build)
 $ErrorActionPreference = 'Stop'
 [string[]]$tasks = if ($args.Count -gt 0) { $args } else { @('build') }
-$loaders = @('fabric', 'neoforge')
+$loaders = @('fabric', 'neoforge', 'forge')
 
 foreach ($loader in $loaders) {
     $dir = Join-Path $PSScriptRoot $loader

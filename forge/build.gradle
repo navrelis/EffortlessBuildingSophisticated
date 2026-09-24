@@ -1,0 +1,139 @@
+plugins {
+    id 'java-library'
+    id 'idea'
+    id 'net.minecraftforge.gradle' version '7.0.40'
+}
+
+version = mod_version
+group = mod_group
+
+base {
+    archivesName = "${mod_id}-forge-${minecraft_version}"
+}
+
+java {
+    // Mojang ships Java 21 to end users in 1.21.1, so mods should target Java 21.
+    toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
+    withSourcesJar()
+}
+
+// The loader-neutral code and assets in ../common are compiled and packaged into this jar.
+def commonDir = file('../common')
+
+sourceSets {
+    main {
+        java.srcDir "${commonDir}/src/main/java"
+        resources.srcDir "${commonDir}/src/main/resources"
+    }
+    test {
+        java.srcDir "${commonDir}/src/test/java"
+    }
+}
+
+minecraft {
+    // Official Mojang names; Forge runs on them since 1.20.6, so the jar is not reobfuscated.
+    mappings channel: 'official', version: minecraft_version
+
+    runs {
+        configureEach {
+            workingDir = layout.projectDirectory.dir('run')
+            // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
+            systemProperty 'forge.enabledGameTestNamespaces', mod_id
+            // "REGISTRIES": log the firing of registry events.
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            systemProperty 'forge.logging.console.level', 'debug'
+        }
+
+        register('client')
+
+        register('server') {
+            args '--nogui'
+        }
+
+        // Launches the GameTestServer, runs all registered gametests, then exits.
+        register('gameTestServer')
+    }
+}
+
+repositories {
+    minecraft.mavenizer(it)
+    maven fg.forgeMaven
+    maven fg.minecraftLibsMaven
+    mavenCentral()
+}
+
+dependencies {
+    // The unit tests exercise vanilla types (BlockPos, ...): testImplementation extends implementation, so Minecraft
+    // is on their classpath too.
+    implementation minecraft.dependency("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// This block of code expands all declared replace properties in the specified resource targets (META-INF/mods.toml and
+// pack.mcmeta; Forge ignores the resources of a mod without pack.mcmeta).
+// A missing property will result in an error. Properties are expanded using ${} Groovy notation.
+var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    var replaceProperties = [
+            minecraft_version_range   : minecraft_version_range,
+            forge_version_range       : forge_version_range,
+            forge_loader_version_range: forge_loader_version_range,
+            mod_id                    : mod_id,
+            mod_name                  : mod_name,
+            mod_license               : mod_license,
+            mod_version               : mod_version,
+            mod_authors               : mod_authors,
+            mod_description           : mod_description
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from 'src/main/templates'
+    into 'build/generated/sources/modMetadata'
+}
+// Include the output of "generateModMetadata" as an input directory for the build.
+sourceSets.main.resources.srcDir generateModMetadata
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = java_version as int
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+}
+
+// ../common must stay loader-neutral: loader APIs are only reached through the platform services.
+tasks.register('checkCommonIsLoaderNeutral') {
+    def sources = fileTree("${commonDir}/src/main/java") { include '**/*.java' }
+    inputs.files sources
+    doLast {
+        def forbidden = ~/^\s*import\s+(static\s+)?(net\.fabricmc|net\.neoforged|net\.minecraftforge|net\.p3pp3rf1y|net\.createmod|dev\.engine_room)\./
+        def offenders = sources.files.collectMany { file ->
+            file.readLines('UTF-8').findAll { it =~ forbidden }.collect { "${file.path}: ${it.trim()}" }
+        }
+        if (!offenders.isEmpty()) {
+            throw new GradleException("common/ must not import loader or optional-mod APIs:\n" + offenders.join('\n'))
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('checkCommonIsLoaderNeutral')
+}
+
+// Resolved while configuring: the configuration cache cannot read project properties at execution time.
+def licenseFileName = "LICENSE_${mod_id}.txt"
+tasks.named('jar', Jar) {
+    from(file('../LICENSE.txt')) {
+        rename { licenseFileName }
+    }
+}
+
+// IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}
