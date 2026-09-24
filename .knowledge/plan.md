@@ -6,14 +6,14 @@ Status: open / in progress / in review / done. Chains: forward (1.21.1 -> 26.2) 
 |----|------|-------|---------|----------|--------|
 | R1 | Read-only map: Fabric vs NeoForge 1.21.1 diff, loader touchpoints, Create stack, common/ split proposal | Sonnet | - | R2, R3 | done |
 | R2 | Download SB + Core jars per loader/MC into `upstream/`, manifest + fetch script | Sonnet | - | R1, R3 | done |
-| R3 | Toolchain matrix per MC/loader + merge analysis + proof builds (scratchpad) | Opus | - | R1, R2 | in progress |
-| F1 | Branch `mc/1.21.1`: restructure into `common/` + `fabric/` + `neoforge/`, tests green | Opus | R1, R3 | - | open |
-| F2 | Forge 1.21.1 loader folder (no SB for Forge 1.21.1) | tbd | F1 | - | open |
-| F3 | Vanilla preview renderer in common for versions without the Create stack | tbd | R1, F1 | - | open |
-| F4 | 1.21.1 dependency updates, version 4.3.0, jar naming, `release/` folders | Sonnet | F1 | - | open |
-| F5 | Per-branch CI (GitHub Actions) + build/export script | Sonnet | F1 | - | open |
+| R3 | Toolchain matrix per MC/loader + merge analysis + proof builds (scratchpad) | Opus | - | R1, R2 | done |
+| F1 | Branch `mc/1.21.1`: restructure into `common/` + `fabric/` + `neoforge/`, tests green | Opus | R1, R3 | - | done |
+| F2 | Forge 1.21.1 loader folder (no SB for Forge 1.21.1) | tbd | F1 | - | in progress |
+| F3 | (merged into F1) vanilla preview renderer, Create stack dropped | Opus | - | - | done |
+| F4 | 1.21.1 dependency updates, version 4.3.0, jar naming, `release/` folders | Sonnet | F1 | - | in progress |
+| F5 | Per-branch CI (GitHub Actions) + build/export script | Sonnet | F1 | - | in progress |
 | F6 | Hub `main`: README + matrix, porting guide, worktree setup script, cleanup, changelog | Sonnet | F1-F5 | - | open |
-| P* | Ports (one task per version branch, details after R3): forward 1.21.4, 1.21.5, 1.21.8, 1.21.10, 1.21.11, 26.1.x, 26.2; backward 1.20.4, 1.20.1, 1.19.x, 1.18.x, 1.17.1, 1.16.x | Opus | F1-F5 | 2 chains | open |
+| P* | Ports, one task per branch (see matrix below); forward chain and backward chain | Opus | F1, F2 | 2 chains | open |
 | Z  | Final: e2e check all branches, graphify refresh, report, push | lead | all | - | open |
 
 ## Definition of done
@@ -21,3 +21,24 @@ Status: open / in progress / in review / done. Chains: forward (1.21.1 -> 26.2) 
 - R2: jars verified (size, zip, sha1), manifest + fetch script idempotent, only manifest/script/README/.gitignore tracked.
 - F1: same behaviour as 4.2.1; Fabric 77 unit + 17/17 GameTests, NeoForge build green; no logic drift between loaders.
 - Each port: all loader builds green, unit tests green, dedicated server starts (with SB where it exists), jar in `<loader>/release/`, CI file present, manual checklist entry.
+
+## Branch matrix (SB = Sophisticated Backpacks integration available; others build without it)
+| Branch | Covers MC | Forge | NeoForge | Fabric | Chain |
+|---|---|---|---|---|---|
+| mc/1.21.1 | 1.21, 1.21.1 | yes (F2) | SB | SB (port) | base |
+| mc/1.21.4 | 1.21.4 | yes | SB | yes | fwd 1 |
+| mc/1.21.5 | 1.21.5 | yes | SB | yes | fwd 2 |
+| mc/1.21.8 | 1.21.8 | yes | SB | yes | fwd 3 |
+| mc/1.21.10 | 1.21.10 | yes | SB | yes | fwd 4 |
+| mc/1.21.11 | 1.21.11 | yes | SB | yes | fwd 5 |
+| mc/26.1.2 | 26.1-26.1.2 (NeoForge 26.1.2 only) | yes | SB | yes | fwd 6 |
+| mc/26.2 | 26.2 | yes | SB | yes | fwd 7 |
+| mc/1.20.4 | 1.20.4 | yes | SB | SB (port) | back 1 |
+| mc/1.20.1 | 1.20.1 | SB (also NeoForge 1.20.1) | (Forge jar) | SB (port) | back 2 |
+| mc/1.19.2 | 1.19-1.19.2 (split 1.19 if runtime test fails) | SB | - | SB (port) | back 3 |
+| mc/1.18.2 | 1.18.2 | SB | - | yes | back 4 |
+| mc/1.18.1 | 1.18, 1.18.1 | SB | - | yes | back 5 |
+| mc/1.17.1 | 1.17.1 | SB | - | yes | back 6 |
+| mc/1.16.5 | 1.16.4, 1.16.5 | SB | - | yes | back 7 |
+| mc/1.16.3 | 1.16.3 | SB | - | yes | back 8 |
+Toolchains per cell: scratchpad TOOLCHAINS.md (R3); copied into the hub porting guide in F6.
