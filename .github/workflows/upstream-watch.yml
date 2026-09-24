@@ -1,0 +1,54 @@
+name: Upstream watch
+
+# Weekly check for new Sophisticated Backpacks / Sophisticated Core releases on CurseForge.
+# Dry-runs upstream/update-manifest.ps1 (never writes upstream/manifest.json from CI) and, if it
+# reports anything new, opens or updates a tracking issue. No secrets: only the built-in
+# GITHUB_TOKEN, scoped to just what filing/updating an issue needs.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1' # every Monday at 06:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  check-upstream:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dry-run upstream/update-manifest.ps1
+        id: check
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $output = & ./upstream/update-manifest.ps1 2>&1 | ForEach-Object { $_.ToString() }
+          $output | ForEach-Object { Write-Host $_ }
+          $logText = $output -join "`n"
+          Set-Content -Path diff-summary.txt -Value $logText -Encoding utf8
+
+          $hasChanges = $logText -match 'New \(loader, mc\) pairs|Updated Backpacks files for existing pairs'
+          "has_changes=$(if ($hasChanges) { 'true' } else { 'false' })" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Open or update tracking issue
+        if: steps.check.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TITLE='Upstream: new Sophisticated Backpacks releases'
+
+          EXISTING=$(gh issue list --search "\"$TITLE\" in:title" --state open --json number --jq '.[0].number // empty')
+
+          if [ -n "$EXISTING" ]; then
+            echo "Updating existing issue #$EXISTING"
+            gh issue comment "$EXISTING" --body-file diff-summary.txt
+          else
+            echo "Creating new issue"
+            gh issue create --title "$TITLE" --body-file diff-summary.txt
+          fi

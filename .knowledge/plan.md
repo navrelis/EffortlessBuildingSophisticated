@@ -8,11 +8,13 @@ Status: open / in progress / in review / done. Chains: forward (1.21.1 -> 26.2) 
 | R2 | Download SB + Core jars per loader/MC into `upstream/`, manifest + fetch script | Sonnet | - | R1, R3 | done |
 | R3 | Toolchain matrix per MC/loader + merge analysis + proof builds (scratchpad) | Opus | - | R1, R2 | done |
 | F1 | Branch `mc/1.21.1`: restructure into `common/` + `fabric/` + `neoforge/`, tests green | Opus | R1, R3 | - | done |
-| F2 | Forge 1.21.1 loader folder (no SB for Forge 1.21.1) | tbd | F1 | - | in progress |
+| F2 | Forge 1.21.1 loader folder (no SB for Forge 1.21.1) | Opus | F1 | - | in progress |
 | F3 | (merged into F1) vanilla preview renderer, Create stack dropped | Opus | - | - | done |
-| F4 | 1.21.1 dependency updates, version 4.3.0, jar naming, `release/` folders | Sonnet | F1 | - | in progress |
-| F5 | Per-branch CI (GitHub Actions) + build/export script | Sonnet | F1 | - | in progress |
-| F6 | Hub `main`: README + matrix, porting guide, worktree setup script, cleanup, changelog | Sonnet | F1-F5 | - | open |
+| F4 | 1.21.1 dependency updates, version 4.3.0, jar naming, `release/` folders | Sonnet | F1 | - | done |
+| F5 | Per-branch CI (GitHub Actions) + build/export script into <loader>/release/ | Sonnet | F2, F4 | - | open |
+| F6a | Hub `main`: README + matrix, docs (architecture, porting, releasing), worktree + build-all-versions scripts, upstream refresh script + weekly watch workflow, cleanup/local/ | Sonnet | F1 | with F2, P-B1 | done |
+| F6b | Hub docs: CI + release sections after F5 | Sonnet | F5, F6a | - | open |
+| P-B1 | Port mc/1.20.4 (fabric + neoforge; forge later) | Opus | F4 | with F2, F6a | in progress |
 | P* | Ports, one task per branch (see matrix below); forward chain and backward chain | Opus | F1, F2 | 2 chains | open |
 | Z  | Final: e2e check all branches, graphify refresh, report, push | lead | all | - | open |
 

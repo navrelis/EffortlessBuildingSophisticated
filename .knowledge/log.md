@@ -8,3 +8,7 @@
 - 2026-09-24 R3 review: accepted. Proof builds for 10 toolchains; FG6 needs Gradle 8.4-8.8 while Loom 1.18 needs Gradle>=9.7/JDK25 -> decision: standalone Gradle build per loader folder (F1 redirected); merges per matrix; 26.2 drops MultiBufferSource/Tesselator.
 - 2026-09-24 F1 review: accepted without corrections (verified: Fabric 77 tests, 17/17 GameTests, NeoForge 65 tests; count/persistent-data diffs checked). Catnip render/GUI classes vendored (MIT) instead of the fallback renderer to keep the look. Commit dac2817 pushed to mc/1.21.1.
 - 2026-09-24 F2 Forge 1.21.1 -> Opus, F4 deps + 4.3.0 -> Sonnet: started (disjoint folders).
+- 2026-09-24 F4 review #1: 1 correction sent (untested permissive loader floors -> tested 0.18.6 / 21.1.217; changelog naming sentence + tooling noise).
+- 2026-09-24 F4 review #2: accepted (floors 0.18.6 / 21.1.217 in jars, Fabric 77 + NeoForge 65 tests green). Commit f78e720 on mc/1.21.1.
+- 2026-09-24 P-B1 1.20.4 port (fabric+neoforge) -> Opus (worktree versions/1.20.4); F6a hub restructure -> Sonnet (main root): started.
+- 2026-09-24 F6a review: accepted (hub tree, scripts tested, 2 script bugs self-fixed). Follow-up for F6b: README quick start runs fetch-upstream from a version worktree (wrong path).

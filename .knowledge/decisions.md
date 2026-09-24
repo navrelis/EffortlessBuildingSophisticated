@@ -27,3 +27,4 @@
 - Recipe file names unified to the NeoForge names (`decompress_compressed_*`). Reason: one common resource set.
 - Standalone Gradle build per loader folder (common/ shared via srcDir, shared props in one root file), no root multi-project build. Reason: FG6 (Gradle 8.4-8.8) and Loom 1.18 (Gradle >=9.7, JDK 25) cannot share one Gradle build on older branches; same pattern on every branch.
 - Vendored the needed Catnip classes (MIT) instead of the 1.21.11 fallback renderer. Reason: the fallback draws opaque ghosts without checkerboard faces; vendoring keeps the 4.2.1 look with no runtime dependency.
+- Declared minimum loader versions = oldest version the code was actually run on. Reason: an untested low floor becomes a NoSuchMethodError crash for players.
