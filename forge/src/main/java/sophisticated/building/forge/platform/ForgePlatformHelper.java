@@ -106,8 +106,8 @@ public final class ForgePlatformHelper implements IPlatformHelper {
     }
 
     /**
-     * The bag's {@code minecraft:container} component, read and written directly (Forge has no
-     * component-backed item handler like NeoForge's {@code ComponentItemHandler}).
+     * The bag's {@code minecraft:container} component, read and written directly (as on every loader
+     * since NeoForge 21.9 replaced its component-backed item handler).
      */
     @Override
     public IItemHandler getBagInventory(ItemStack bag, int size) {

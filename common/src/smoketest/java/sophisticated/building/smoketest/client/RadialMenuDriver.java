@@ -2,6 +2,8 @@ package sophisticated.building.smoketest.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuildingClient;
 import sophisticated.building.buildmode.BuildModeEnum;
@@ -66,7 +68,7 @@ final class RadialMenuDriver {
             RadialMenu menu = RadialMenu.instance;
             double x = menu.width / 2.0 + getDouble("accumulatedMouseX");
             double y = menu.height / 2.0 + getDouble("accumulatedMouseY");
-            menu.mouseClicked(x, y, 0);
+            menu.mouseClicked(new MouseButtonEvent(x, y, new MouseButtonInfo(0, 0)), false);
             KeyMapping.set(key, false);
         });
         d.clientRun(restoreKey);

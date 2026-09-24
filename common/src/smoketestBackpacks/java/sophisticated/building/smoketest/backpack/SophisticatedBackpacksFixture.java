@@ -5,6 +5,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.p3pp3rf1y.sophisticatedbackpacks.backpack.wrapper.BackpackWrapper;
 import net.p3pp3rf1y.sophisticatedbackpacks.backpack.wrapper.IBackpackWrapper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
@@ -16,8 +18,9 @@ import java.util.List;
 /**
  * {@link SmokeBackpacks} against the Sophisticated Backpacks/Core API. The same source compiles against the official
  * NeoForge builds and the unofficial Fabric port for Minecraft 1.21.1 (their wrapper/upgrade APIs match, except the
- * name of the inventory slot count, see slotCount); on Minecraft 1.21.4 only NeoForge has Sophisticated Backpacks. A
- * port whose Sophisticated Backpacks API differs copies this class into its loader's smoke source set and adapts it.
+ * name of the inventory slot count, see slotCount); on Minecraft 1.21.4 and later only NeoForge has
+ * Sophisticated Backpacks, and since 1.21.9 the backpack is filled through the NeoForge transfer API. A port whose
+ * Sophisticated Backpacks API differs copies this class into its loader's smoke source set and adapts it.
  */
 public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
 
@@ -47,7 +50,7 @@ public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
         }
 
         for (ItemStack content : contents) {
-            ItemStack rest = inventory.insertItem(content.copy(), false);
+            ItemStack rest = insert(inventory, content);
             if (!rest.isEmpty()) {
                 throw new IllegalStateException("The backpack did not take " + content + " (left " + rest + ")");
             }
@@ -57,6 +60,15 @@ public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
             setBuildingUpgradeEnabled(backpack, false);
         }
         return backpack;
+    }
+
+    /** Inserts {@code content} anywhere in the backpack; returns what did not fit (transfer API of NeoForge 21.9+). */
+    private static ItemStack insert(InventoryHandler inventory, ItemStack content) {
+        try (Transaction transaction = Transaction.openRoot()) {
+            int inserted = inventory.insert(ItemResource.of(content), content.getCount(), transaction);
+            transaction.commit();
+            return content.copyWithCount(content.getCount() - inserted);
+        }
     }
 
     @Override
@@ -93,9 +105,12 @@ public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
         throw new IllegalStateException("The backpack has no Building Upgrade");
     }
 
-    /** int getSlots() on NeoForge (IItemHandler), int getSlotCount() on the Fabric port (Porting Lib). */
+    /**
+     * int size() on NeoForge 21.9+ (ResourceHandler), int getSlots() on older NeoForge (IItemHandler), int getSlotCount()
+     * on the Fabric port (Porting Lib).
+     */
     private static int slotCount(InventoryHandler inventory) {
-        for (String name : new String[] {"getSlotCount", "getSlots"}) {
+        for (String name : new String[] {"size", "getSlotCount", "getSlots"}) {
             try {
                 java.lang.reflect.Method method = inventory.getClass().getMethod(name);
                 if (method.getReturnType() != int.class) continue;
@@ -106,7 +121,7 @@ public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
                 throw new IllegalStateException(e);
             }
         }
-        throw new IllegalStateException("InventoryHandler has neither getSlots() nor getSlotCount()");
+        throw new IllegalStateException("InventoryHandler has none of size(), getSlots() and getSlotCount()");
     }
 
     private static Item buildingUpgrade(int tier) {

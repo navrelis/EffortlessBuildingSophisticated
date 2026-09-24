@@ -61,7 +61,7 @@ public class ToolSwapperIntegration {
 			}
 
 			InventoryHandler inventory = wrapper.getInventoryHandler();
-			int slotCount = inventory.getSlots();
+			int slotCount = inventory.size();
 			ToolSwapperUpgradeWrapper finalToolSwapper = toolSwapper;
 			for (int i = 0; i < slotCount; i++) {
 				ItemStack stack = inventory.getStackInSlot(i);

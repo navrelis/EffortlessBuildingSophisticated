@@ -53,6 +53,7 @@ public class SophisticatedBuildingNeoForgeClient {
     }
 
     public static void registerKeyMappings(final RegisterKeyMappingsEvent event) {
+        event.registerCategory(ClientEvents.KEY_CATEGORY);
         // Register keybindings for mod controls
         for (var keyBinding : ClientEvents.keyBindings) {
             event.register(keyBinding);

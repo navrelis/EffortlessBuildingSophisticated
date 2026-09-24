@@ -27,7 +27,7 @@ public class CuriosCompatHelper {
                 if (modList != null) {
                     curiosLoaded = modList.isLoaded("curios");
                 } else {
-                    curiosLoaded = net.neoforged.fml.loading.FMLLoader.getLoadingModList()
+                    curiosLoaded = net.neoforged.fml.loading.FMLLoader.getCurrent().getLoadingModList()
                             .getModFileById("curios") != null;
                 }
             } catch (Exception e) {

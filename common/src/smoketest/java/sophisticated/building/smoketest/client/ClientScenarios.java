@@ -2,6 +2,8 @@ package sophisticated.building.smoketest.client;
 
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
@@ -172,7 +174,7 @@ final class ClientScenarios {
         String detail = d.server(server -> {
             ServerLevel level = server.overworld();
             level.setDayTime(6000);
-            BlockPos spawn = level.getSharedSpawnPos();
+            BlockPos spawn = level.getRespawnData().pos();
             groundY = level.getHeight(Heightmap.Types.MOTION_BLOCKING, spawn.getX(), spawn.getZ());
             base = new BlockPos(spawn.getX() + 4, groundY, spawn.getZ() + 4);
             // A clean building site: air above the superflat floor for every lane
@@ -326,7 +328,8 @@ final class ClientScenarios {
         int before = d.client(() -> SophisticatedBuildingClient.BUILD_MODIFIERS.getModifierSettingsList().size());
         d.clientRun(() -> {
             AbstractWidget addMirror = widget((ModifiersScreen) d.mc.screen, "addMirrorButton");
-            d.mc.screen.mouseClicked(addMirror.getX() + addMirror.getWidth() / 2.0, addMirror.getY() + addMirror.getHeight() / 2.0, 0);
+            d.mc.screen.mouseClicked(new MouseButtonEvent(addMirror.getX() + addMirror.getWidth() / 2.0, addMirror.getY() + addMirror.getHeight() / 2.0,
+                    new MouseButtonInfo(0, 0)), false);
         });
         Mirror mirror = d.client(() -> {
             List<BaseModifier> list = SophisticatedBuildingClient.BUILD_MODIFIERS.getModifierSettingsList();

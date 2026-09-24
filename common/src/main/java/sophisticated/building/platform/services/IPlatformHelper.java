@@ -59,7 +59,8 @@ public interface IPlatformHelper {
 
     /**
      * The item inventory of a randomizer bag stack (the {@code minecraft:container} component), or null
-     * if the stack has none. NeoForge goes through the item handler capability registered for the bags.
+     * if the stack has none. Every loader reads the component directly (NeoForge also exposes it to other mods
+     * through the item capability registered for the bags).
      */
     @Nullable
     IItemHandler getBagInventory(ItemStack bag, int size);

@@ -5,10 +5,12 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.EmptyBlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
@@ -21,9 +23,15 @@ import java.util.Locale;
 
 public final class NeoForgeClientHelper implements IClientHelper {
 
+    /** Registered in NeoForge's key mapping event (SophisticatedBuildingNeoForgeClient#registerKeyMappings). */
     @Override
-    public KeyMapping createKeyMapping(String name, int keyCode, boolean controlModifier, String category) {
-        InputConstants.Key key = keyCode == InputConstants.UNKNOWN.getValue() ? InputConstants.UNKNOWN : InputConstants.getKey(keyCode, 0);
+    public KeyMapping.Category createKeyCategory(ResourceLocation id) {
+        return new KeyMapping.Category(id);
+    }
+
+    @Override
+    public KeyMapping createKeyMapping(String name, int keyCode, boolean controlModifier, KeyMapping.Category category) {
+        InputConstants.Key key = keyCode == InputConstants.UNKNOWN.getValue() ? InputConstants.UNKNOWN : InputConstants.Type.KEYSYM.getOrCreate(keyCode);
         if (controlModifier) {
             return new KeyMapping(name, KeyConflictContext.IN_GAME, KeyModifier.CONTROL, key, category);
         }
@@ -41,13 +49,13 @@ public final class NeoForgeClientHelper implements IClientHelper {
     }
 
     @Override
-    public boolean matchesKey(KeyMapping keyMapping, int keyCode, int scanCode) {
-        return keyCode == keyMapping.getKey().getValue();
+    public boolean matchesKey(KeyMapping keyMapping, KeyEvent event) {
+        return event.key() == keyMapping.getKey().getValue();
     }
 
     @Override
-    public boolean isActiveAndMatches(KeyMapping keyMapping, int keyCode, int scanCode) {
-        return keyMapping.isActiveAndMatches(InputConstants.getKey(keyCode, scanCode));
+    public boolean isActiveAndMatches(KeyMapping keyMapping, KeyEvent event) {
+        return keyMapping.isActiveAndMatches(InputConstants.getKey(event));
     }
 
     @Override

@@ -12,7 +12,7 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.ModConfigSpec;
-import net.neoforged.neoforge.items.ComponentItemHandler;
+import net.neoforged.neoforge.transfer.item.ItemAccessItemHandler;
 import sophisticated.building.ClientConfig;
 import sophisticated.building.CommonConfig;
 import sophisticated.building.ServerConfig;
@@ -53,10 +53,10 @@ public class SophisticatedBuildingNeoForge {
     }
 
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        // Item handler capability of the randomizer bags (also what the mod reads its bag inventories through)
-        event.registerItem(Capabilities.ItemHandler.ITEM, (stack, ctx) -> {
+        // Item capability of the randomizer bags (NeoForge 21.9+ transfer API), for other mods: their container component
+        event.registerItem(Capabilities.Item.ITEM, (stack, access) -> {
             if (stack.getItem() instanceof AbstractRandomizerBagItem bagItem) {
-                return new ComponentItemHandler(stack, DataComponents.CONTAINER, bagItem.getInventorySize());
+                return new ItemAccessItemHandler(access, DataComponents.CONTAINER, bagItem.getInventorySize());
             }
             return null;
         }, SophisticatedBuilding.RANDOMIZER_BAG_ITEM.get(), SophisticatedBuilding.GOLDEN_RANDOMIZER_BAG_ITEM.get(),

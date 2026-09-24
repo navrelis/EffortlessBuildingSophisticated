@@ -1,7 +1,10 @@
 package sophisticated.building.item.upgrade;
 
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
 
 import java.util.function.Consumer;
@@ -42,7 +45,7 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
         }
 
         var inventoryHandler = storageWrapper.getInventoryHandler();
-        int slots = inventoryHandler.getSlots();
+        int slots = inventoryHandler.size();
         int totalExtracted = 0;
         ItemStack result = ItemStack.EMPTY;
 
@@ -54,7 +57,7 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
                 int extractedFromSlot = 0;
                 while (extractedFromSlot < wantFromSlot) {
                     int toExtractThisCall = Math.min(wantFromSlot - extractedFromSlot, item.getMaxStackSize());
-                    ItemStack extractedStack = inventoryHandler.extractItem(i, toExtractThisCall, simulate);
+                    ItemStack extractedStack = extract(inventoryHandler, i, toExtractThisCall, simulate);
                     if (extractedStack.isEmpty()) {
                         break;
                     }
@@ -78,6 +81,24 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
     }
 
     /**
+     * Extracts up to {@code amount} of the stack in {@code slot} (at most one stack, as the item handler extraction did
+     * before SophisticatedCore adopted the NeoForge 21.9 transfer API); {@code simulate} leaves the backpack unchanged.
+     */
+    private static ItemStack extract(InventoryHandler inventoryHandler, int slot, int amount, boolean simulate) {
+        ItemResource resource = inventoryHandler.getResource(slot);
+        if (resource.isEmpty() || amount <= 0) {
+            return ItemStack.EMPTY;
+        }
+        try (Transaction transaction = Transaction.openRoot()) {
+            int extracted = inventoryHandler.extract(slot, resource, Math.min(amount, resource.getMaxStackSize()), transaction);
+            if (!simulate) {
+                transaction.commit();
+            }
+            return resource.toStack(extracted);
+        }
+    }
+
+    /**
      * @return The total count of the item in the backpack
      */
     public int countItem(ItemStack item) {
@@ -86,7 +107,7 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
         }
 
         var inventoryHandler = storageWrapper.getInventoryHandler();
-        int slots = inventoryHandler.getSlots();
+        int slots = inventoryHandler.size();
         int count = 0;
 
         for (int i = 0; i < slots; i++) {
@@ -108,7 +129,7 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
         }
 
         var inventoryHandler = storageWrapper.getInventoryHandler();
-        int slots = inventoryHandler.getSlots();
+        int slots = inventoryHandler.size();
 
         for (int i = 0; i < slots; i++) {
             ItemStack slotStack = inventoryHandler.getStackInSlot(i);

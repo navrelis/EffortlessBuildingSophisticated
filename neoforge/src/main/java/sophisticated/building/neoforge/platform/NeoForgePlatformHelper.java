@@ -15,13 +15,12 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLLoader;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.attachment.PowerLevel;
 import sophisticated.building.inventory.IItemHandler;
+import sophisticated.building.inventory.ItemStackHandler;
 import sophisticated.building.neoforge.NeoForgeAttachments;
 import sophisticated.building.platform.services.IPlatformHelper;
 
@@ -54,7 +53,7 @@ public final class NeoForgePlatformHelper implements IPlatformHelper {
             if (modList != null) {
                 return modList.isLoaded(modId);
             }
-            return FMLLoader.getLoadingModList().getModFileById(modId) != null;
+            return FMLLoader.getCurrent().getLoadingModList().getModFileById(modId) != null;
         } catch (Exception e) {
             // If anything fails, assume not loaded
             return false;
@@ -63,7 +62,7 @@ public final class NeoForgePlatformHelper implements IPlatformHelper {
 
     @Override
     public boolean isPhysicalClient() {
-        return FMLEnvironment.dist.isClient();
+        return FMLEnvironment.getDist().isClient();
     }
 
     @Override
@@ -107,52 +106,18 @@ public final class NeoForgePlatformHelper implements IPlatformHelper {
         return player.getPersistentData();
     }
 
+    /**
+     * The bag inventory in the bag's container component, the same data the bags' item capability exposes to other
+     * mods (NeoForge 21.9+ replaced the item handler capability with the transfer API; the mod keeps its own
+     * item handler view of the component, as on Fabric and Forge).
+     */
     @Override
     public IItemHandler getBagInventory(ItemStack bag, int size) {
-        var handler = bag.getCapability(Capabilities.ItemHandler.ITEM, null);
-        return handler == null ? null : new NeoForgeItemHandler(handler);
+        return new ItemStackHandler.BagItemStackHandler(bag, size);
     }
 
     @Override
     public void giveItemToPlayer(Player player, ItemStack stack) {
         ItemHandlerHelper.giveItemToPlayer(player, stack);
-    }
-
-    /** Our item handler view of a NeoForge item handler (the bags' {@code ComponentItemHandler}). */
-    private record NeoForgeItemHandler(net.neoforged.neoforge.items.IItemHandler handler) implements IItemHandler {
-        @Override
-        public int getSlots() {
-            return handler.getSlots();
-        }
-
-        @Override
-        public ItemStack getStackInSlot(int slot) {
-            return handler.getStackInSlot(slot);
-        }
-
-        @Override
-        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            return handler.insertItem(slot, stack, simulate);
-        }
-
-        @Override
-        public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            return handler.extractItem(slot, amount, simulate);
-        }
-
-        @Override
-        public int getSlotLimit(int slot) {
-            return handler.getSlotLimit(slot);
-        }
-
-        @Override
-        public void setStackInSlot(int slot, ItemStack stack) {
-            ((IItemHandlerModifiable) handler).setStackInSlot(slot, stack);
-        }
-
-        @Override
-        public boolean isItemValid(int slot, ItemStack stack) {
-            return handler.isItemValid(slot, stack);
-        }
     }
 }
