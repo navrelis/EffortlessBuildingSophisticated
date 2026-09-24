@@ -7,7 +7,7 @@ import net.minecraft.world.item.Item;
  * Used as crafting ingredients for building upgrades.
  */
 public class CompressedBlockItem extends Item {
-    public CompressedBlockItem() {
-        super(new Item.Properties().stacksTo(64));
+    public CompressedBlockItem(Item.Properties properties) {
+        super(properties.stacksTo(64));
     }
 }

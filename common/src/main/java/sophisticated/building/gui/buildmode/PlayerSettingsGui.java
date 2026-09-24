@@ -199,7 +199,7 @@ public class PlayerSettingsGui extends Screen {
 		}
 
 		@Override
-		protected int getScrollbarPosition() {
+		protected int scrollBarX() {
 			return right - 6;
 		}
 

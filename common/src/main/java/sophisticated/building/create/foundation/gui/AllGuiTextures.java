@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import sophisticated.building.gui.ScreenElement;
 import sophisticated.building.utilities.Color;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import sophisticated.building.create.Create;
 
@@ -70,15 +71,11 @@ public enum AllGuiTextures implements ScreenElement {
 	}
 
 	public void render(GuiGraphics graphics, int x, int y) {
-		graphics.blit(location, x, y, startX, startY, width, height);
+		graphics.blit(RenderType::guiTextured, location, x, y, startX, startY, width, height, 256, 256);
 	}
 
 	public void render(GuiGraphics graphics, int x, int y, Color c) {
-		bind();
-		// Simple colored rendering - apply color tint
-		RenderSystem.setShaderColor(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
-		graphics.blit(location, x, y, startX, startY, width, height);
-		RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+		graphics.blit(RenderType::guiTextured, location, x, y, startX, startY, width, height, 256, 256, c.toARGB());
 	}
 
 }

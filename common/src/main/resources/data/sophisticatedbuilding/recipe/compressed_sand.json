@@ -7,7 +7,7 @@
     "SSS"
   ],
   "key": {
-    "S": { "item": "minecraft:sand" }
+    "S": "minecraft:sand"
   },
   "result": {
     "id": "sophisticatedbuilding:compressed_sand",

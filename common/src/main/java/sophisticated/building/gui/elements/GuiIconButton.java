@@ -1,6 +1,7 @@
 package sophisticated.building.gui.elements;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.Minecraft;
@@ -58,7 +59,7 @@ public class GuiIconButton extends Button {
 		}
 
 		//Draws a textured rectangle at the current z-value. Used to be drawTexturedModalRect in Gui.
-		guiGraphics.blit(resourceLocation, this.getX(), this.getY(), currentIconX, currentIconY, this.iconWidth, this.iconHeight);
+		guiGraphics.blit(RenderType::guiTextured, resourceLocation, this.getX(), this.getY(), currentIconX, currentIconY, this.iconWidth, this.iconHeight, 256, 256);
 	}
 
 	public void drawTooltip(GuiGraphics guiGraphics, Screen screen, int mouseX, int mouseY) {

@@ -68,7 +68,7 @@ public class RaycastHelper {
 		MutableBlockPos currentPos = new BlockPos(x, y, z).mutable();
 
 		if (predicate.test(currentPos))
-			return new PredicateTraceResult(currentPos.immutable(), Direction.getNearest(dx - x, dy - y, dz - z));
+			return new PredicateTraceResult(currentPos.immutable(), Direction.getApproximateNearest(dx - x, dy - y, dz - z));
 
 		int remainingDistance = 200;
 

@@ -1,6 +1,7 @@
 package sophisticated.building.gui;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -47,7 +48,7 @@ public class RandomizerBagScreen extends AbstractContainerScreen<RandomizerBagCo
 	protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
 		int marginHorizontal = (width - imageWidth) / 2;
 		int marginVertical = (height - imageHeight) / 2;
-		guiGraphics.blit(guiTextures, marginHorizontal, marginVertical, 0, 0, imageWidth, imageHeight);
+		guiGraphics.blit(RenderType::guiTextured, guiTextures, marginHorizontal, marginVertical, 0, 0, imageWidth, imageHeight, 256, 256);
 		
 		// Render red overlay on slots where player doesn't have the item in inventory
 		renderMissingItemOverlays(guiGraphics);

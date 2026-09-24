@@ -17,8 +17,8 @@ import java.util.List;
 public final class BackpackIntegration implements IBackpackIntegration {
 
     @Override
-    public Item createBuildingUpgrade(int tier, int maxBlocks) {
-        return SophisticatedBackpacksIntegration.createBuildingUpgrade(tier, maxBlocks);
+    public Item createBuildingUpgrade(Item.Properties properties, int tier, int maxBlocks) {
+        return SophisticatedBackpacksIntegration.createBuildingUpgrade(properties, tier, maxBlocks);
     }
 
     @Override

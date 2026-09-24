@@ -12,17 +12,13 @@ base {
 }
 
 java {
-    // Mojang ships Java 21 to end users in 1.21.1, so mods should target Java 21.
+    // Mojang ships Java 21 to end users in 1.21.4, so mods should target Java 21.
     toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
     withSourcesJar()
 }
 
 // The loader-neutral code and assets in ../common are compiled and packaged into this jar.
 def commonDir = file('../common')
-
-configurations {
-    runtimeClasspath.extendsFrom localRuntime
-}
 
 sourceSets {
     main {
@@ -39,70 +35,23 @@ sourceSets {
         runtimeClasspath += main.runtimeClasspath + main.output
     }
     // Empty source set of the clientExported run: Minecraft and Fabric Loader only, so every mod (this one included)
-    // comes from run-exported/mods. This project, its remapped mod dependencies (resolved lazily, Loom creates that
-    // configuration later) and the dev-only libraries are left out.
+    // comes from run-exported/mods. This project and its remapped mod dependencies (resolved lazily,
+    // Loom creates that configuration later) are left out.
     exportedStub {
-        def excluded = main.output + files({ configurations.modRuntimeClasspathMainMapped }) + configurations.localRuntime
+        def excluded = main.output + files({ configurations.modRuntimeClasspathMainMapped })
         runtimeClasspath = main.runtimeClasspath.filter { file -> file.name.startsWith('fabric-loader-') || !excluded.contains(file) }
     }
 }
 
 repositories {
-    exclusiveContent {
-        forRepository {
-            maven {
-                name = 'CurseMaven'
-                url = 'https://www.cursemaven.com'
-            }
-        }
-        filter { includeGroup('curse.maven') }
-    }
-    exclusiveContent {
-        forRepository {
-            maven {
-                name = 'Fabricators of Create'
-                url = 'https://mvn.devos.one/snapshots'
-            }
-        }
-        filter { includeGroup('io.github.fabricators_of_create.Porting-Lib') }
-    }
-    exclusiveContent {
-        forRepository {
-            maven {
-                name = 'Fuzss'
-                url = 'https://raw.githubusercontent.com/Fuzss/modresources/main/maven'
-            }
-        }
-        filter { includeGroup('fuzs.forgeconfigapiport') }
-    }
     mavenCentral()
 }
-
-// Porting Lib modules nested in the Sophisticated Core jar (see gradle.properties).
-def portingLibModules = ['core', 'transfer', 'fluids', 'item_abilities', 'loot', 'level_events', 'render_types',
-                         'model_loader', 'lazy_registration', 'conditions']
 
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
     mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
-
-    // Sophisticated Core/Backpacks: compiled against, and present in the dev runs so runClient/runServer start with
-    // the backpack integration active. Optional for players.
-    modCompileOnly "curse.maven:${sophisticatedcore_cf}"
-    modCompileOnly "curse.maven:${sophisticatedbackpacks_cf}"
-    modLocalRuntime "curse.maven:${sophisticatedcore_cf}"
-    modLocalRuntime "curse.maven:${sophisticatedbackpacks_cf}"
-    portingLibModules.each { module ->
-        modCompileOnly("io.github.fabricators_of_create.Porting-Lib:${module}:${porting_lib_version}") { transitive = false }
-        modLocalRuntime("io.github.fabricators_of_create.Porting-Lib:${module}:${porting_lib_version}") { transitive = false }
-    }
-    modLocalRuntime("fuzs.forgeconfigapiport:forgeconfigapiport-fabric:${forgeconfigapiport_version}") { transitive = false }
-    modLocalRuntime("teamreborn:energy:${team_reborn_energy_version}") { transitive = false }
-    // Forge Config API Port nests Night Config; plain libraries, so they come from Maven Central.
-    localRuntime "com.electronwill.night-config:core:${night_config_version}"
-    localRuntime "com.electronwill.night-config:toml:${night_config_version}"
 
     compileOnly 'javax.annotation:javax.annotation-api:1.3.2'
     compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
@@ -112,7 +61,7 @@ dependencies {
 }
 
 loom {
-    // Keep the dev Minecraft jar free of the interfaces other mods inject (Fabric API, Sophisticated Core): the code
+    // Keep the dev Minecraft jar free of the interfaces other mods inject (Fabric API): the code
     // does not use them, and without them the clientExported run works with whatever set of mods is in its folder.
     interfaceInjection {
         enableDependencyInterfaceInjection = false
@@ -128,8 +77,8 @@ loom {
             server()
             vmArgs '-Dfabric.log.level=debug'
         }
-        // Client that loads only the jars in run-exported/mods (production jars, e.g. an exported build of this mod,
-        // Fabric API and Sophisticated Backpacks/Core); nothing from this project or its dev dependencies.
+        // Client that loads only the jars in run-exported/mods (production jars, e.g. an exported build of this mod
+        // and Fabric API); nothing from this project or its dev dependencies.
         clientExported {
             client()
             configName = 'Minecraft Client (exported jars)'

@@ -152,7 +152,7 @@ public class BlockSet extends HashMap<BlockPos, BlockEntry> implements Iterable<
         for (int i = 0; i < paletteSize; i++) {
             BlockState state = buf.readNullable(buffer -> {
                 var nbt = buffer.readNbt();
-                return nbt == null ? null : NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), nbt);
+                return nbt == null ? null : NbtUtils.readBlockState(BuiltInRegistries.BLOCK, nbt);
             });
             Item item = Item.byId(buf.readVarInt());
             palette.add(Pair.of(state, item));

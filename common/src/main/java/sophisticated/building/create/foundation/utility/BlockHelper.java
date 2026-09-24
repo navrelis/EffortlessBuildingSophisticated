@@ -133,7 +133,7 @@ public class BlockHelper {
 			player.awardStat(Stats.BLOCK_MINED.get(state.getBlock()));
 		}
 
-		if (world instanceof ServerLevel serverLevel && world.getGameRules()
+		if (world instanceof ServerLevel serverLevel && serverLevel.getGameRules()
 				.getBoolean(GameRules.RULE_DOBLOCKDROPS) && !Services.BLOCK_EVENTS.isRestoringBlockSnapshots(world)
 				&& (player == null || !player.isCreative())) {
 			List<ItemStack> drops = Block.getDrops(state, serverLevel, pos, blockEntity, player, usedTool);
@@ -176,17 +176,17 @@ public class BlockHelper {
 		LevelChunkSection chunksection = chunk.getSection(idx);
 		if (chunksection == null) {
 			chunksection = new LevelChunkSection(world.registryAccess()
-					.registryOrThrow(Registries.BIOME));
+					.lookupOrThrow(Registries.BIOME));
 			chunk.getSections()[idx] = chunksection;
 		}
 		BlockState old = chunksection.setBlockState(SectionPos.sectionRelative(target.getX()),
 				SectionPos.sectionRelative(target.getY()), SectionPos.sectionRelative(target.getZ()), state);
-		chunk.setUnsaved(true);
+		chunk.markUnsaved();
 		Services.BLOCK_EVENTS.markAndNotifyBlock(world, target, chunk, old, state, 82);
 
 		world.setBlock(target, state, 82);
 		world.neighborChanged(target, world.getBlockState(target.below())
-				.getBlock(), target.below());
+				.getBlock(), null);
 	}
 
 	public static CompoundTag prepareBlockEntityData(BlockState blockState, BlockEntity blockEntity) {

@@ -2,7 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "building",
   "ingredients": [
-    { "item": "sophisticatedbuilding:compressed_cobblestone" }
+    "sophisticatedbuilding:compressed_cobblestone"
   ],
   "result": {
     "id": "minecraft:cobblestone",

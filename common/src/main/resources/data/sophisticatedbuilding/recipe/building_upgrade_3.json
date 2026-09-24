@@ -25,8 +25,8 @@
     "SSS"
   ],
   "key": {
-    "S": { "item": "sophisticatedbuilding:compressed_sand" },
-    "B": { "item": "sophisticatedbuilding:building_upgrade_2" }
+    "S": "sophisticatedbuilding:compressed_sand",
+    "B": "sophisticatedbuilding:building_upgrade_2"
   },
   "result": {
     "id": "sophisticatedbuilding:building_upgrade_3",

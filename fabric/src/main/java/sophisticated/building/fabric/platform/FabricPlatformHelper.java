@@ -4,7 +4,9 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -21,6 +23,7 @@ import sophisticated.building.platform.services.IPlatformHelper;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public final class FabricPlatformHelper implements IPlatformHelper {
@@ -45,8 +48,9 @@ public final class FabricPlatformHelper implements IPlatformHelper {
     }
 
     @Override
-    public <T extends Item> Supplier<T> registerItem(String path, Supplier<T> item) {
-        T registered = Registry.register(BuiltInRegistries.ITEM, SophisticatedBuilding.asResource(path), item.get());
+    public <T extends Item> Supplier<T> registerItem(String path, Function<Item.Properties, T> factory) {
+        ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, SophisticatedBuilding.asResource(path));
+        T registered = Registry.register(BuiltInRegistries.ITEM, key, factory.apply(new Item.Properties().setId(key)));
         return () -> registered;
     }
 

@@ -25,9 +25,9 @@
     "NSN"
   ],
   "key": {
-    "N": { "item": "minecraft:netherite_block" },
-    "S": { "item": "minecraft:nether_star" },
-    "B": { "item": "sophisticatedbuilding:building_upgrade_4" }
+    "N": "minecraft:netherite_block",
+    "S": "minecraft:nether_star",
+    "B": "sophisticatedbuilding:building_upgrade_4"
   },
   "result": {
     "id": "sophisticatedbuilding:building_upgrade_omega",

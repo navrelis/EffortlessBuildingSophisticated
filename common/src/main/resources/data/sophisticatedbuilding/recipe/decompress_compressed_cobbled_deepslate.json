@@ -2,7 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "building",
   "ingredients": [
-    { "item": "sophisticatedbuilding:compressed_cobbled_deepslate" }
+    "sophisticatedbuilding:compressed_cobbled_deepslate"
   ],
   "result": {
     "id": "minecraft:cobbled_deepslate",

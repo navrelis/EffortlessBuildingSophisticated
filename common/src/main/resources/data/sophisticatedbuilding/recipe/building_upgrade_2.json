@@ -25,8 +25,8 @@
     "CCC"
   ],
   "key": {
-    "C": { "item": "sophisticatedbuilding:compressed_cobblestone" },
-    "B": { "item": "sophisticatedbuilding:building_upgrade_1" }
+    "C": "sophisticatedbuilding:compressed_cobblestone",
+    "B": "sophisticatedbuilding:building_upgrade_1"
   },
   "result": {
     "id": "sophisticatedbuilding:building_upgrade_2",

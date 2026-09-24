@@ -29,7 +29,7 @@ public class SophisticatedBackpacksIntegration {
         }
     }
 
-    public static Item createBuildingUpgrade(int tier, int maxBlocks) {
-        return new BuildingUpgradeItem(tier, maxBlocks);
+    public static Item createBuildingUpgrade(Item.Properties properties, int tier, int maxBlocks) {
+        return new BuildingUpgradeItem(properties, tier, maxBlocks);
     }
 }

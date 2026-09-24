@@ -6,15 +6,9 @@
         "x#x"
     ],
     "key": {
-        "O": {
-            "item": "minecraft:leather"
-        },
-		"#": {
-            "item": "minecraft:gold_ingot"
-        },
-		"x": {
-			"item": "minecraft:quartz"
-		}
+        "O": "minecraft:leather",
+		"#": "minecraft:gold_ingot",
+		"x": "minecraft:quartz"
     },
     "result": {
       "count": 1,

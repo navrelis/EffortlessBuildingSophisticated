@@ -94,7 +94,7 @@ public class ModifiersScreenList extends ObjectSelectionList<ModifiersScreenList
     }
 
     @Override
-    protected int getScrollbarPosition() {
+    protected int scrollBarX() {
         return getX() + this.width - 6;
     }
 

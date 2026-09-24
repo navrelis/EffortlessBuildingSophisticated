@@ -6,12 +6,8 @@
         " # "
     ],
     "key": {
-        "O": {
-            "item": "minecraft:ender_pearl"
-        },
-		"#": {
-            "item": "minecraft:slime_ball"
-        }
+        "O": "minecraft:ender_pearl",
+		"#": "minecraft:slime_ball"
     },
     "result": {
         "count": 1,

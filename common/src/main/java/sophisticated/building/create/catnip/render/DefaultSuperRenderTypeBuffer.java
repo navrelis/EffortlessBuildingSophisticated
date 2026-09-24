@@ -69,7 +69,7 @@ public class DefaultSuperRenderTypeBuffer implements SuperRenderTypeBuffer {
 			map.put(Sheets.solidBlockSheet(), fixedBufferPack.buffer(RenderType.solid()));
 			map.put(Sheets.cutoutBlockSheet(), fixedBufferPack.buffer(RenderType.cutout()));
 			map.put(Sheets.bannerSheet(), fixedBufferPack.buffer(RenderType.cutoutMipped()));
-			map.put(Sheets.translucentCullBlockSheet(), fixedBufferPack.buffer(RenderType.translucent()));
+			map.put(Sheets.translucentItemSheet(), fixedBufferPack.buffer(RenderType.translucent()));
 			put(map, Sheets.shieldSheet());
 			put(map, Sheets.bedSheet());
 			put(map, Sheets.shulkerBoxSheet());
@@ -80,7 +80,6 @@ public class DefaultSuperRenderTypeBuffer implements SuperRenderTypeBuffer {
 			put(map, RenderType.glint());
 			put(map, RenderType.glintTranslucent());
 			put(map, RenderType.entityGlint());
-			put(map, RenderType.entityGlintDirect());
 			put(map, RenderType.waterMask());
 			ModelBakery.DESTROY_TYPES.forEach((renderType) -> {
 				put(map, renderType);

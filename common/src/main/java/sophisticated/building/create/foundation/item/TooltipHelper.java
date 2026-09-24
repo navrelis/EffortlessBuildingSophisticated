@@ -242,6 +242,6 @@ public class TooltipHelper {
 		if (tooltipReferrals.containsKey(item))
 			return tooltipReferrals.get(item)
 				.get() + ".tooltip";
-		return item.getDescriptionId(stack) + ".tooltip";
+		return item.getDescriptionId() + ".tooltip";
 	}
 }

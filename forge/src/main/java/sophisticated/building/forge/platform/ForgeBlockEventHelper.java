@@ -111,7 +111,7 @@ public final class ForgeBlockEventHelper implements IBlockEventHelper {
 
     @Override
     public boolean doesBrokenIceTurnIntoWater(Level level, ItemStack tool) {
-        var silkTouch = level.registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.SILK_TOUCH);
+        var silkTouch = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SILK_TOUCH);
         return EnchantmentHelper.getItemEnchantmentLevel(silkTouch, tool) == 0;
     }
 

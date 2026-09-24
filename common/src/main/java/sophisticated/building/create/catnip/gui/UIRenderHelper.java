@@ -12,7 +12,7 @@ import com.mojang.math.Axis;
 import sophisticated.building.create.catnip.data.Couple;
 import sophisticated.building.create.catnip.theme.Color;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.CoreShaders;
 
 /**
  * Adapted from Catnip ({@code sophisticated.building.create.catnip.gui.UIRenderHelper}, MIT License, Copyright (c)
@@ -50,6 +50,8 @@ public class UIRenderHelper {
 	 * @param breadth    the total width of the gradient
 	 */
 	public static void angledGradient(GuiGraphics graphics, float angle, int x, int y, int z, float breadth, float length, Color startColor, Color endColor) {
+		// Draws immediately: flush what GuiGraphics has batched so far, so it stays underneath.
+		graphics.flush();
 		PoseStack poseStack = graphics.pose();
 		poseStack.pushPose();
 		poseStack.translate(x, y, z);
@@ -65,7 +67,7 @@ public class UIRenderHelper {
 		RenderSystem.enableDepthTest();
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
+		RenderSystem.setShader(CoreShaders.POSITION_COLOR);
 
 		Tesselator tesselator = Tesselator.getInstance();
 		BufferBuilder buffer = tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);

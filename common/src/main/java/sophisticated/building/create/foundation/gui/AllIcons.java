@@ -169,7 +169,7 @@ public class AllIcons implements ScreenElement {
 
 	@Override
 	public void render(GuiGraphics graphics, int x, int y) {
-		graphics.blit(ICON_ATLAS, x, y, 0, iconX, iconY, 16, 16, 256, 256);
+		graphics.blit(RenderType::guiTextured, ICON_ATLAS, x, y, iconX, iconY, 16, 16, 256, 256);
 	}
 
 	public void render(PoseStack ms, MultiBufferSource buffer, int color) {

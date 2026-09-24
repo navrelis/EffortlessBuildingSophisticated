@@ -1,11 +1,13 @@
 package sophisticated.building.create.foundation.item;
 
 import sophisticated.building.create.catnip.data.Pair;
+import net.minecraft.core.Holder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Containers;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
@@ -93,19 +95,10 @@ public class ItemHelper {
 		List<Pair<Ingredient, MutableInt>> actualIngredients = new ArrayList<>();
 		Ingredients: for (Ingredient igd : recipeIngredients) {
 			for (Pair<Ingredient, MutableInt> pair : actualIngredients) {
-				ItemStack[] stacks1 = pair.getFirst()
-					.getItems();
-				ItemStack[] stacks2 = igd.getItems();
-				if (stacks1.length != stacks2.length)
-					continue;
-				for (int i = 0; i <= stacks1.length; i++) {
-					if (i == stacks1.length) {
-						pair.getSecond()
-							.increment();
-						continue Ingredients;
-					}
-					if (!ItemStack.matches(stacks1[i], stacks2[i]))
-						break;
+				if (ingredientItems(pair.getFirst()).equals(ingredientItems(igd))) {
+					pair.getSecond()
+						.increment();
+					continue Ingredients;
 				}
 			}
 			actualIngredients.add(Pair.of(igd, new MutableInt(1)));
@@ -116,17 +109,11 @@ public class ItemHelper {
 	public static boolean matchIngredients(Ingredient i1, Ingredient i2) {
 		if (i1 == i2)
 			return true;
-		ItemStack[] stacks1 = i1.getItems();
-		ItemStack[] stacks2 = i2.getItems();
-		if (stacks1 == stacks2)
-			return true;
-		if (stacks1.length == stacks2.length) {
-			for (int i = 0; i < stacks1.length; i++)
-				if (!ItemStack.isSameItem(stacks1[i], stacks2[i]))
-					return false;
-			return true;
-		}
-		return false;
+		return ingredientItems(i1).equals(ingredientItems(i2));
+	}
+
+	private static List<Item> ingredientItems(Ingredient ingredient) {
+		return ingredient.items().map(Holder::value).toList();
 	}
 
 	public static boolean matchAllIngredients(NonNullList<Ingredient> ingredients) {

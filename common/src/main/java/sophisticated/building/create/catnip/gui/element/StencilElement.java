@@ -3,7 +3,6 @@ package sophisticated.building.create.catnip.gui.element;
 import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 
 /**
@@ -36,7 +35,7 @@ public interface StencilElement extends RenderElement {
 		graphics.flush();
 		GL11.glDisable(GL11.GL_STENCIL_TEST);
 		RenderSystem.stencilMask(~0);
-		RenderSystem.clear(GL11.GL_STENCIL_BUFFER_BIT, Minecraft.ON_OSX);
+		RenderSystem.clear(GL11.GL_STENCIL_BUFFER_BIT);
 		GL11.glEnable(GL11.GL_STENCIL_TEST);
 		RenderSystem.stencilOp(GL11.GL_REPLACE, GL11.GL_KEEP, GL11.GL_KEEP);
 		RenderSystem.stencilMask(0xFF);
@@ -44,6 +43,8 @@ public interface StencilElement extends RenderElement {
 	}
 
 	default void prepareElement(GuiGraphics graphics) {
+		// GuiGraphics batches its draws: the stencil must reach the stencil buffer before its test changes.
+		graphics.flush();
 		GL11.glEnable(GL11.GL_STENCIL_TEST);
 		RenderSystem.stencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_KEEP);
 		RenderSystem.stencilFunc(GL11.GL_EQUAL, 1, 0xFF);

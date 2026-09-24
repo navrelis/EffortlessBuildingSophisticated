@@ -46,7 +46,7 @@ public class AnimationTickHolder {
 	 */
 	public static float getPartialTicks() {
 		Minecraft mc = Minecraft.getInstance();
-		return mc.getTimer().getGameTimeDeltaPartialTick(false);
+		return mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
 	}
 
 	/**

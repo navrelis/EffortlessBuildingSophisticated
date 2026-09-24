@@ -7,7 +7,7 @@
     "DDD"
   ],
   "key": {
-    "D": { "item": "minecraft:dirt" }
+    "D": "minecraft:dirt"
   },
   "result": {
     "id": "sophisticatedbuilding:compressed_dirt",

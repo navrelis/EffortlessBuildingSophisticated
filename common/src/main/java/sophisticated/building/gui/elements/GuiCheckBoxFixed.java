@@ -3,6 +3,7 @@ package sophisticated.building.gui.elements;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -31,7 +32,7 @@ public class GuiCheckBoxFixed extends Button {
 	@Override
 	public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partial) {
 		// Use blitSprite for modern nine-slice rendering
-		guiGraphics.blitSprite(CHECKBOX_SPRITE, this.getX(), this.getY(), this.boxWidth, this.height);
+		guiGraphics.blitSprite(RenderType::guiTextured, CHECKBOX_SPRITE, this.getX(), this.getY(), this.boxWidth, this.height);
 		int color = 14737632;
 
 		if (!this.active) {

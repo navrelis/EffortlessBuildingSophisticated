@@ -64,11 +64,11 @@ public final class SophisticatedBuilding {
     // Building upgrade items (backpack upgrades). Created through the backpack integration so that
     // Sophisticated Core classes are never loaded when Sophisticated Backpacks is absent; placeholder
     // items otherwise. Tier 1: 32 blocks, Tier 2: 64, Tier 3: 128, Tier 4: 256, Omega: 2048
-    public static final Supplier<Item> BUILDING_UPGRADE_1 = Services.PLATFORM.registerItem("building_upgrade_1", () -> createBuildingUpgrade(1, 32));
-    public static final Supplier<Item> BUILDING_UPGRADE_2 = Services.PLATFORM.registerItem("building_upgrade_2", () -> createBuildingUpgrade(2, 64));
-    public static final Supplier<Item> BUILDING_UPGRADE_3 = Services.PLATFORM.registerItem("building_upgrade_3", () -> createBuildingUpgrade(3, 128));
-    public static final Supplier<Item> BUILDING_UPGRADE_4 = Services.PLATFORM.registerItem("building_upgrade_4", () -> createBuildingUpgrade(4, 256));
-    public static final Supplier<Item> BUILDING_UPGRADE_OMEGA = Services.PLATFORM.registerItem("building_upgrade_omega", () -> createBuildingUpgrade(5, 2048));
+    public static final Supplier<Item> BUILDING_UPGRADE_1 = Services.PLATFORM.registerItem("building_upgrade_1", properties -> createBuildingUpgrade(properties, 1, 32));
+    public static final Supplier<Item> BUILDING_UPGRADE_2 = Services.PLATFORM.registerItem("building_upgrade_2", properties -> createBuildingUpgrade(properties, 2, 64));
+    public static final Supplier<Item> BUILDING_UPGRADE_3 = Services.PLATFORM.registerItem("building_upgrade_3", properties -> createBuildingUpgrade(properties, 3, 128));
+    public static final Supplier<Item> BUILDING_UPGRADE_4 = Services.PLATFORM.registerItem("building_upgrade_4", properties -> createBuildingUpgrade(properties, 4, 256));
+    public static final Supplier<Item> BUILDING_UPGRADE_OMEGA = Services.PLATFORM.registerItem("building_upgrade_omega", properties -> createBuildingUpgrade(properties, 5, 2048));
 
     private static final List<Supplier<Item>> BUILDING_UPGRADE_ITEMS = new ArrayList<>();
 
@@ -147,10 +147,10 @@ public final class SophisticatedBuilding {
     /**
      * Creates the real upgrade item when SophisticatedBackpacks is loaded; otherwise returns a placeholder.
      */
-    private static Item createBuildingUpgrade(int tier, int maxBlocks) {
+    private static Item createBuildingUpgrade(Item.Properties properties, int tier, int maxBlocks) {
         if (CompatHelper.isSophisticatedBackpacksLoaded()) {
             try {
-                Item upgrade = Services.backpacks().createBuildingUpgrade(tier, maxBlocks);
+                Item upgrade = Services.backpacks().createBuildingUpgrade(properties, tier, maxBlocks);
                 if (upgrade != null) {
                     return upgrade;
                 }
@@ -158,7 +158,7 @@ public final class SophisticatedBuilding {
                 logger.warn("Failed to create BuildingUpgradeItem, SophisticatedBackpacks may not be loaded properly: {}", e.toString());
             }
         }
-        return new Item(new Item.Properties().stacksTo(1));
+        return new Item(properties.stacksTo(1));
     }
 
     public static void log(String msg) {

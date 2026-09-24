@@ -12,7 +12,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import sophisticated.building.create.catnip.data.Couple;
 import sophisticated.building.create.catnip.theme.Color;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.CoreShaders;
 
 /**
  * Adapted from Catnip ({@code sophisticated.building.create.catnip.gui.element.BoxElement}, MIT License, Copyright (c) 2022
@@ -87,6 +87,8 @@ public class BoxElement extends AbstractRenderElement {
 	//defaults to 2 + 2 + 4 + 16 = 24px
 	//batch everything together to save a bunch of gl calls over ScreenUtils
 	protected void renderBox(GuiGraphics graphics) {
+		// Draws immediately: flush what GuiGraphics has batched so far, so it stays underneath.
+		graphics.flush();
 		/*
 		*          _____________
 		*        _|_____________|_
@@ -105,7 +107,7 @@ public class BoxElement extends AbstractRenderElement {
 		//RenderSystem.disableTexture();
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
+		RenderSystem.setShader(CoreShaders.POSITION_COLOR);
 
 		PoseStack ms = graphics.pose();
 		Matrix4f model = ms.last().pose();

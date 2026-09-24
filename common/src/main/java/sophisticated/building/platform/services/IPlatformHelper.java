@@ -11,6 +11,7 @@ import sophisticated.building.attachment.PowerLevel;
 import sophisticated.building.inventory.IItemHandler;
 
 import javax.annotation.Nullable;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -28,9 +29,10 @@ public interface IPlatformHelper {
 
     /**
      * Registers an item. Fabric registers immediately; NeoForge defers to its registry event, so the
-     * item may only be read through the returned supplier after registration.
+     * item may only be read through the returned supplier after registration. The factory receives
+     * properties that already carry the item's registry id, which Minecraft requires before an item is created.
      */
-    <T extends Item> Supplier<T> registerItem(String path, Supplier<T> item);
+    <T extends Item> Supplier<T> registerItem(String path, Function<Item.Properties, T> factory);
 
     Supplier<CreativeModeTab> registerCreativeTab(String path, Supplier<CreativeModeTab> tab);
 

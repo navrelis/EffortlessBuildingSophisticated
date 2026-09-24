@@ -140,11 +140,6 @@ public abstract class AbstractSimiWidget extends AbstractWidget implements Ticka
 	}
 
 	@Override
-	protected boolean clicked(double mouseX, double mouseY) {
-		return this.isMouseOver(mouseX, mouseY);
-	}
-
-	@Override
 	public void onClick(double mouseX, double mouseY) {
 		runCallback(mouseX, mouseY);
 	}

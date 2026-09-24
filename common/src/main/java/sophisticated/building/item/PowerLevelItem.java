@@ -6,7 +6,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -23,12 +23,12 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class PowerLevelItem extends Item {
-    public PowerLevelItem() {
-        super(new Item.Properties());
+    public PowerLevelItem(Item.Properties properties) {
+        super(properties);
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand) {
+    public InteractionResult use(Level world, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         PowerLevel powerLevel = AttachmentHandler.getOrCreatePowerLevel(player);
         if (powerLevel != null) {
@@ -45,7 +45,7 @@ public class PowerLevelItem extends Item {
                     AttachmentHandler.syncToClient(player);
                 }
 
-                return InteractionResultHolder.sidedSuccess(stack, world.isClientSide());
+                return InteractionResult.SUCCESS;
             } else {
                 if (!world.isClientSide) {
                     SophisticatedBuilding.log(player, "Already reached maximum power level!");
@@ -53,7 +53,7 @@ public class PowerLevelItem extends Item {
                     world.playSound((Player) null, player.blockPosition(), SoundEvents.ARMOR_EQUIP_LEATHER.value(), SoundSource.PLAYERS, 1f, 1f);
                 }
 
-                return InteractionResultHolder.fail(player.getItemInHand(hand));
+                return InteractionResult.FAIL;
             }
         }
 

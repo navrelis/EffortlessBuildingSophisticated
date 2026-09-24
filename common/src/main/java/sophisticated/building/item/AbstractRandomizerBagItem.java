@@ -7,7 +7,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -66,8 +65,8 @@ public abstract class AbstractRandomizerBagItem extends Item {
 		}
 	}
 
-	public AbstractRandomizerBagItem() {
-		super(new Item.Properties().stacksTo(1));
+	public AbstractRandomizerBagItem(Item.Properties properties) {
+		super(properties.stacksTo(1));
 	}
 
 	public abstract int getInventorySize();
@@ -370,11 +369,11 @@ public abstract class AbstractRandomizerBagItem extends Item {
 	}
 
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand) {
+	public InteractionResult use(Level world, Player player, InteractionHand hand) {
 		ItemStack bag = player.getItemInHand(hand);
 
 		if (player.isShiftKeyDown()) {
-			if (world.isClientSide) return new InteractionResultHolder<>(InteractionResult.SUCCESS, bag);
+			if (world.isClientSide) return InteractionResult.SUCCESS;
 			//Open inventory
 			player.openMenu(getContainerProvider(bag));
 		} else {
@@ -382,14 +381,15 @@ public abstract class AbstractRandomizerBagItem extends Item {
 			//Get bag inventory
 			IItemHandler bagInventory = getBagInventory(bag);
 			if (bagInventory == null)
-				return new InteractionResultHolder<>(InteractionResult.FAIL, bag);
+				return InteractionResult.FAIL;
 
 			ItemStack toUse = pickRandomTemplate(bagInventory, player);
-			if (toUse.isEmpty()) return new InteractionResultHolder<>(InteractionResult.FAIL, bag);
+			if (toUse.isEmpty()) return InteractionResult.FAIL;
 
-			return toUse.use(world, player, hand);
+			// The template item's own use, not ItemStack#use, which would replace the bag in the hand with the template
+			return toUse.getItem().use(world, player, hand);
 		}
-		return new InteractionResultHolder<>(InteractionResult.PASS, bag);
+		return InteractionResult.PASS;
 	}
 
 	@Override

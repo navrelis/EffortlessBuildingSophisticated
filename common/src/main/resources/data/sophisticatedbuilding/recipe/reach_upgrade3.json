@@ -6,15 +6,9 @@
         "x#x"
     ],
     "key": {
-        "O": {
-            "item": "minecraft:end_crystal"
-        },
-		"#": {
-            "item": "minecraft:chorus_fruit"
-        },
-		"x": {
-			"item": "minecraft:ghast_tear"
-		}
+        "O": "minecraft:end_crystal",
+		"#": "minecraft:chorus_fruit",
+		"x": "minecraft:ghast_tear"
     },
     "result": {
       "count": 1,

@@ -1,70 +1,58 @@
-# Sophisticated Building Update – 4.3.0
+# Sophisticated Building Update – 4.3.0 (Minecraft 1.21.4)
 
 *Draft — lead to confirm before release.*
 
 ## Artifacts
 
-* `sophisticatedbuilding-fabric-1.21.1-4.3.0.jar` — Fabric
-* `sophisticatedbuilding-neoforge-1.21.1-4.3.0.jar` — NeoForge
-* `sophisticatedbuilding-forge-1.21.1-4.3.0.jar` — Forge *(placeholder — pending confirmation, see below)*
-
-Jar file names now include the Minecraft version (`sophisticatedbuilding-<loader>-1.21.1-4.3.0.jar`);
-previous releases were named `sophisticatedbuilding-<loader>-<version>.jar` without it, e.g.
-`sophisticatedbuilding-fabric-4.2.1.jar`.
+* `sophisticatedbuilding-fabric-1.21.4-4.3.0.jar` — Fabric
+* `sophisticatedbuilding-neoforge-1.21.4-4.3.0.jar` — NeoForge
+* `sophisticatedbuilding-forge-1.21.4-4.3.0.jar` — Forge
 
 ## New
 
-### Forge build for 1.21.1 *(placeholder, lead to confirm)*
+### Minecraft 1.21.4
 
-Sophisticated Building is now available on Forge for 1.21.1. This build has no Sophisticated
-Backpacks integration, since Sophisticated Backpacks has no Forge release for 1.21.1 — Building
-Upgrade items and the backpack tool list are Fabric/NeoForge-only for now.
+Sophisticated Building 4.3.0 is the first release for Minecraft 1.21.4, on Fabric, NeoForge and
+Forge. It has the same features as 4.3.0 for 1.21.1, with these exceptions:
 
-## Internal restructure
+* **Sophisticated Backpacks integration on NeoForge only.** Sophisticated Backpacks has no Fabric
+  or Forge release for 1.21.4, so on those loaders the Building Upgrade items are plain
+  placeholder items (their recipes are not loaded) and backpacks are not used as a block or tool
+  source.
+* **Forge:** Forge for 1.21.4 has no render-stage event any more. The block previews, mirror and
+  array lines and the preview outlines are drawn in one extra render pass after the rest of the
+  world (after the translucent blocks, particles, clouds and weather). On 1.21.1 the outlines were
+  drawn after the particles and before the weather.
 
-This release reorganizes the mod internally; there is no change to how it plays.
+The mod no longer bundles Flywheel/Ponder; the rendering helpers it needs for the ghost block
+previews and outlines are included directly (MIT-licensed, attribution included in the jar).
 
-* Loader-neutral code and assets now live once in a shared module compiled into every loader's
-  jar, instead of being duplicated per loader.
-* Jars are roughly 0.9 MB instead of roughly 3 MB.
-* The mod no longer bundles Flywheel/Ponder. The rendering helpers it needs for ghost block
-  previews and outlines are now included directly (MIT-licensed, attribution included in the
-  jar), so there's no Flywheel/Ponder/Catnip dependency and no load-order dependency on Create
-  any more.
-
-## Behaviour notes
-
-* **Fabric:** the four decompress recipes (compressed cobblestone/dirt/sand/deepslate back to
-  9× the base block) now use the ids `decompress_compressed_*` instead of their previous ids. If
-  you had one of these recipes unlocked in your recipe book, that unlock is reset — the recipes
-  themselves still craft exactly as before.
-* **NeoForge:** the Building Upgrade state and the backpack tool list are now re-sent to the
-  client every 10 ticks. Previously they were only re-sent while you were holding a building
-  block or a Building Upgrade backpack.
-* **NeoForge:** the Omega bag and randomizer bag menus now close as soon as the bag leaves both
-  hands, matching Fabric. Previously they stayed open on NeoForge after the bag left your hands.
-* Backpack count packets now ignore unknown items instead of erroring, on both loaders.
-
-## Requirements / dependency updates
+## Requirements
 
 ### Fabric
 
-* Requires Fabric Loader 0.18.6 or newer (was tested against and previously required 0.18.6;
-  now built against 0.19.5).
-* Fabric API: 0.116.6+1.21.1 → 0.116.17+1.21.1.
-* Sophisticated Core/Backpacks (unofficial Fabric port): unchanged, still the frozen Core file
-  7344653 / Backpacks file 6844426.
+* Minecraft 1.21.4.
+* Fabric Loader 0.19.5 or newer.
+* Fabric API (built against 0.119.4+1.21.4).
 
 ### NeoForge
 
-* Requires NeoForge 21.1.217 or newer (built and tested against 21.1.251, the latest 1.21.1
-  release).
-* Sophisticated Core/Backpacks (official NeoForge build): unchanged, still Core 1.21.1-1.5.1.2341
-  / Backpacks 1.21.1-3.26.3.2158.
-* Curios API (compile-only, worn-backpack fallback scan): unchanged, still 9.5.1+1.21.1.
+* Minecraft 1.21.4.
+* NeoForge 21.4.157 or newer (the latest 1.21.4 release, built and tested against it).
+* Optional: Sophisticated Backpacks for the Building Upgrades (built and tested against
+  Backpacks 1.21.4-3.27.2.2153 with Core 1.21.4-1.5.0.2336).
+* Curios API (compile-only, worn-backpack fallback scan): 10.0.1+1.21.4.
+
+### Forge
+
+* Minecraft 1.21.4.
+* Forge 54.1.5 or newer (the first build with the render-pass and HUD-layer events the mod uses;
+  tested on 54.1.5 and 54.1.18, the latest 1.21.4 build).
 
 ## Known issues
 
-* An `ERROR` line reading "No data fixer registered for" at Fabric startup comes from the
-  unofficial Sophisticated Backpacks Fabric port, not from this mod. It's harmless and can be
-  ignored.
+* **Forge 54.1.x:** loading an existing singleplayer world (seen when joining it directly with
+  `--quickPlaySingleplayer`) can crash with "Can not retrieve LootModifierManager until resources
+  have loaded once" when a block drops loot in the first world tick (for example fire burning
+  out). This is a Forge bug, reproduced on Forge 54.1.18 with Forge's example mod alone, not
+  caused by this mod.

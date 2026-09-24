@@ -12,20 +12,17 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.client.gui.MaterialCostOverlay;
-import sophisticated.building.compatibility.CompatHelper;
 import sophisticated.building.config.ModConfigs;
 import sophisticated.building.gui.DiamondRandomizerBagScreen;
 import sophisticated.building.gui.GoldenRandomizerBagScreen;
 import sophisticated.building.gui.OmegaRandomizerBagScreen;
 import sophisticated.building.gui.RandomizerBagScreen;
-import sophisticated.building.platform.Services;
 import sophisticated.building.render.RenderHandler;
 
 public final class FabricClientEvents {
     private static Screen lastScreen;
     private static ClientLevel lastWorld;
     private static final MaterialCostOverlay MATERIAL_COST_OVERLAY = new MaterialCostOverlay();
-    private static boolean optionalIntegrationsRegistered;
 
     private FabricClientEvents() {
     }
@@ -102,22 +99,5 @@ public final class FabricClientEvents {
             RenderHandler.onRenderGui(guiGraphics);
             MATERIAL_COST_OVERLAY.render(guiGraphics, deltaTracker);
         });
-    }
-
-    public static void registerOptionalIntegrations() {
-        if (optionalIntegrationsRegistered) {
-            return;
-        }
-
-        if (CompatHelper.isSophisticatedBackpacksLoaded()) {
-            try {
-                Services.backpacks().registerUpgradeTab();
-                optionalIntegrationsRegistered = true;
-            } catch (Exception | LinkageError e) {
-                SophisticatedBuilding.logger.warn("Failed to register building upgrade tab: {}", e.getMessage());
-            }
-        } else {
-            optionalIntegrationsRegistered = true;
-        }
     }
 }

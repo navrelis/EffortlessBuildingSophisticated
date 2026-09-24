@@ -20,9 +20,10 @@ public interface IBackpackIntegration {
     IBackpackIntegration NONE = new IBackpackIntegration() {
     };
 
-    /** The Building Upgrade item for one tier, or null to register the plain placeholder item. */
+    /** The Building Upgrade item for one tier, or null to register the plain placeholder item. {@code properties}
+     * carry the registry id of the item. */
     @Nullable
-    default Item createBuildingUpgrade(int tier, int maxBlocks) {
+    default Item createBuildingUpgrade(Item.Properties properties, int tier, int maxBlocks) {
         return null;
     }
 

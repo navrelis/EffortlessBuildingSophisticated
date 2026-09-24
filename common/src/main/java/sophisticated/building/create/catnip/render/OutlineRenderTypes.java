@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.Util;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.TriState;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.create.AllSpecialTextures;
 
@@ -12,14 +13,15 @@ import java.util.function.BiFunction;
 
 /**
  * Render types of the outliner. Adapted from Catnip ({@code sophisticated.building.create.catnip.render.PonderRenderTypes},
- * MIT License, Copyright (c) 2022 The Create Team, see LICENSE_Ponder.txt); the fluid type is removed.
+ * MIT License, Copyright (c) 2022 The Create Team, see LICENSE_Ponder.txt); the fluid type is removed. Minecraft 1.21.2 dropped
+ * the entity translucent cull shader, so the culled translucent type uses the entity translucent shader with culling.
  */
 public abstract class OutlineRenderTypes extends RenderType {
 
 	private static final RenderType OUTLINE_SOLID =
 		RenderType.create(createLayerName("outline_solid"), DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, false, false, CompositeState.builder()
 			.setShaderState(RENDERTYPE_ENTITY_SOLID_SHADER)
-			.setTextureState(new TextureStateShard(AllSpecialTextures.BLANK.getLocation(), false, false))
+			.setTextureState(new TextureStateShard(AllSpecialTextures.BLANK.getLocation(), TriState.FALSE, false))
 			.setCullState(CULL)
 			.setLightmapState(LIGHTMAP)
 			.setOverlayState(OVERLAY)
@@ -27,8 +29,8 @@ public abstract class OutlineRenderTypes extends RenderType {
 
 	private static final BiFunction<ResourceLocation, Boolean, RenderType> OUTLINE_TRANSLUCENT = Util.memoize((texture, cull) ->
 		RenderType.create(createLayerName("outline_translucent" + (cull ? "_cull" : "")), DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, false, true, CompositeState.builder()
-			.setShaderState(cull ? RENDERTYPE_ENTITY_TRANSLUCENT_CULL_SHADER : RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
-			.setTextureState(new TextureStateShard(texture, false, false))
+			.setShaderState(RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
+			.setTextureState(new TextureStateShard(texture, TriState.FALSE, false))
 			.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
 			.setCullState(cull ? CULL : NO_CULL)
 			.setLightmapState(LIGHTMAP)

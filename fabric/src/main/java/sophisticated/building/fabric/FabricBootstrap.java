@@ -1,13 +1,15 @@
 package sophisticated.building.fabric;
 
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import sophisticated.building.SophisticatedBuilding;
-import sophisticated.building.compatibility.CompatHelper;
 import sophisticated.building.config.ModConfigs;
 
+/**
+ * Sophisticated Backpacks has no Fabric build for this Minecraft version, so this loader ships no
+ * backpack integration (the Building Upgrades stay placeholder items).
+ */
 public final class FabricBootstrap {
     private static final Logger LOGGER = LogManager.getLogger(SophisticatedBuilding.MODID);
 
@@ -22,13 +24,6 @@ public final class FabricBootstrap {
         SophisticatedBuilding.init();
         FabricNetworking.setupCommon();
         FabricCommonEvents.register();
-
-        if (!CompatHelper.isSophisticatedBackpacksLoaded()) {
-            LOGGER.info("SophisticatedBackpacks is not loaded. Backpack upgrade integration is disabled.");
-        }
-
-        // Defer optional backpacks integration until lifecycle startup to avoid early classloading stalls.
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> SophisticatedBuilding.registerBackpacksUpgradeContainers());
     }
 
     public static void initializeClient() {
@@ -36,10 +31,5 @@ public final class FabricBootstrap {
         ModConfigs.loadClient();
         FabricClientNetworking.setupClient();
         FabricClientEvents.register();
-
-        ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
-            SophisticatedBuilding.registerBackpacksUpgradeContainers();
-            FabricClientEvents.registerOptionalIntegrations();
-        });
     }
 }

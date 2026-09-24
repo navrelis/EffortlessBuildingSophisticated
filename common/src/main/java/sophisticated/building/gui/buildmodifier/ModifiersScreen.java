@@ -141,7 +141,7 @@ public class ModifiersScreen extends AbstractSimiScreen {
 	
 	@Override
 	public void resize(@Nonnull Minecraft client, int width, int height) {
-		double scroll = list.getScrollAmount();
+		double scroll = list.scrollAmount();
 		init(client, width, height);
 		list.setScrollAmount(scroll);
 	}

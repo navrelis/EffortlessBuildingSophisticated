@@ -5,6 +5,7 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import sophisticated.building.gui.GoldenRandomizerBagContainer;
 
@@ -12,6 +13,10 @@ import javax.annotation.Nullable;
 
 public class GoldenRandomizerBagItem extends AbstractRandomizerBagItem{
     public static final int INV_SIZE = 9;
+
+    public GoldenRandomizerBagItem(Item.Properties properties) {
+        super(properties);
+    }
 
     @Override
     public int getInventorySize() {

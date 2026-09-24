@@ -102,8 +102,8 @@ public final class NeoForgeBlockEventHelper implements IBlockEventHelper {
 
     @Override
     public boolean doesBrokenIceTurnIntoWater(Level level, ItemStack tool) {
-        Registry<Enchantment> enchantmentRegistry = level.registryAccess().registryOrThrow(Registries.ENCHANTMENT);
-        return tool.getEnchantmentLevel(enchantmentRegistry.getHolderOrThrow(Enchantments.SILK_TOUCH)) == 0;
+        Registry<Enchantment> enchantmentRegistry = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+        return tool.getEnchantmentLevel(enchantmentRegistry.getOrThrow(Enchantments.SILK_TOUCH)) == 0;
     }
 
     @Override

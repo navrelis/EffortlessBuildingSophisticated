@@ -6,15 +6,9 @@
         "x#x"
     ],
     "key": {
-        "O": {
-            "item": "minecraft:leather"
-        },
-		"#": {
-            "item": "minecraft:diamond"
-        },
-		"x": {
-            "item": "minecraft:amethyst_shard"
-        }
+        "O": "minecraft:leather",
+		"#": "minecraft:diamond",
+		"x": "minecraft:amethyst_shard"
     },
     "result": {
         "count": 1,

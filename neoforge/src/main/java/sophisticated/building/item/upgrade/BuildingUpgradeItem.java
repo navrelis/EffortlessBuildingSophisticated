@@ -51,11 +51,12 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
     
     /**
      * Creates a new Building Upgrade item.
+     * @param properties Item properties carrying the registry id of the item
      * @param tier The upgrade tier (1-4, or 5 for omega)
      * @param maxBlocks Maximum blocks that can be placed at once with this upgrade
      */
-    public BuildingUpgradeItem(int tier, int maxBlocks) {
-        super(LIMIT_CONFIG);
+    public BuildingUpgradeItem(Item.Properties properties, int tier, int maxBlocks) {
+        super(LIMIT_CONFIG, properties);
         this.tier = tier;
         this.maxBlocks = maxBlocks;
     }
@@ -99,11 +100,6 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
     public int getUpgradesInGroupPerStorage(String storageType) {
         // Only 1 from the building upgrade group per backpack
         return 1;
-    }
-    
-    @Override
-    public Component getName() {
-        return Component.translatable(getDescriptionId());
     }
     
     @Override

@@ -7,9 +7,9 @@
     "x#x"
   ],
   "key": {
-    "O": { "item": "minecraft:leather" },
-    "#": { "item": "minecraft:netherite_ingot" },
-    "x": { "item": "minecraft:amethyst_shard" }
+    "O": "minecraft:leather",
+    "#": "minecraft:netherite_ingot",
+    "x": "minecraft:amethyst_shard"
   },
   "result": {
     "id": "sophisticatedbuilding:omega_randomizer_bag",

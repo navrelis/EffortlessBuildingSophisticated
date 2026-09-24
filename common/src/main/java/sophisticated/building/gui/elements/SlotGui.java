@@ -12,7 +12,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.CoreShaders;
 import net.minecraft.util.Mth;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -233,7 +233,7 @@ public abstract class SlotGui extends AbstractContainerEventHandler implements R
 			if (this.renderSelection && this.isSelectedItem(j)) {
 				int i1 = this.x0 + this.width / 2 - this.getRowWidth() / 2;
 				int j1 = this.x0 + this.width / 2 + this.getRowWidth() / 2;
-				RenderSystem.setShader(GameRenderer::getPositionShader);
+				RenderSystem.setShader(CoreShaders.POSITION);
 				float f = this.isFocused() ? 1.0F : 0.5F;
 				RenderSystem.setShaderColor(f, f, f, 1.0F);
 				bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
@@ -249,7 +249,7 @@ public abstract class SlotGui extends AbstractContainerEventHandler implements R
 				bufferbuilder.addVertex(j1 - 1, k - 1, 0.0F);
 				bufferbuilder.addVertex(i1 + 1, k - 1, 0.0F);
 				BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
-				RenderSystem.setShader(GameRenderer::getPositionTexShader);
+				RenderSystem.setShader(CoreShaders.POSITION_TEX);
 			}
 
 			this.renderItem(guiGraphics, j, p_renderList_1_, k, l, p_renderList_3_, p_renderList_4_, p_renderList_5_);

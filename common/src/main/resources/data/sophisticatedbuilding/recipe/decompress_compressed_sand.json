@@ -2,7 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "building",
   "ingredients": [
-    { "item": "sophisticatedbuilding:compressed_sand" }
+    "sophisticatedbuilding:compressed_sand"
   ],
   "result": {
     "id": "minecraft:sand",

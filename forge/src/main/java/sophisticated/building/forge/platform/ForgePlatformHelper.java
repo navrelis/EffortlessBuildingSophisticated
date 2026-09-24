@@ -2,6 +2,7 @@ package sophisticated.building.forge.platform;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -22,6 +23,7 @@ import sophisticated.building.inventory.IItemHandler;
 import sophisticated.building.inventory.ItemStackHandler;
 import sophisticated.building.platform.services.IPlatformHelper;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public final class ForgePlatformHelper implements IPlatformHelper {
@@ -63,8 +65,9 @@ public final class ForgePlatformHelper implements IPlatformHelper {
     }
 
     @Override
-    public <T extends Item> Supplier<T> registerItem(String path, Supplier<T> item) {
-        return ITEMS.register(path, item);
+    public <T extends Item> Supplier<T> registerItem(String path, Function<Item.Properties, T> factory) {
+        ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, SophisticatedBuilding.asResource(path));
+        return ITEMS.register(path, () -> factory.apply(new Item.Properties().setId(key)));
     }
 
     @Override

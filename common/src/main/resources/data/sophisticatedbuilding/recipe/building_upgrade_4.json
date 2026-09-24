@@ -25,8 +25,8 @@
     "DDD"
   ],
   "key": {
-    "D": { "item": "sophisticatedbuilding:compressed_cobbled_deepslate" },
-    "B": { "item": "sophisticatedbuilding:building_upgrade_3" }
+    "D": "sophisticatedbuilding:compressed_cobbled_deepslate",
+    "B": "sophisticatedbuilding:building_upgrade_3"
   },
   "result": {
     "id": "sophisticatedbuilding:building_upgrade_4",

@@ -100,7 +100,7 @@ public class BlockEntry {
         block.newBlockState = buf.readNullable(buffer -> {
             var nbt = buf.readNbt();
             if (nbt == null) return null;
-            return NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), nbt);
+            return NbtUtils.readBlockState(BuiltInRegistries.BLOCK, nbt);
         });
         block.item = Item.byId(buf.readInt());
         return block;
