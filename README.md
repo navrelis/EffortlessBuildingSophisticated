@@ -94,7 +94,7 @@ Mappings: Mojang (Fabric, Forge), Mojang + Parchment 2025.12.20 (NeoForge). Java
   - `RenderType` moved to `client.renderer.rendertype` and is a pipeline plus a `RenderSetup` (no `CompositeState`,
     no static factories; the vanilla ones are in `RenderTypes`). `OutlineRenderTypes` and `BuildRenderTypes` are plain
     holders of `RenderType.create(name, RenderSetup)`; the line width of the mirror/array lines is a vertex attribute
-    (`setLineWidth(2)` on every vertex, it was `LineStateShard(2)`). The standard ghost block renderer draws with
+    (`setLineWidth(2)` on every vertex, it was `LineStateShard(2)`). The (unused) opaque ghost block renderer draws with
     `RenderTypes.solidMovingBlock()` (`RenderType.solid()` is gone; the chunk layers have their own pipelines).
   - `AbstractButton#renderWidget` is final (it also sets the cursor): the mod's buttons override `renderContents`.
     `Screen#init`/`resize` no longer take the `Minecraft`.
