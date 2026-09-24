@@ -4,6 +4,7 @@ import com.mojang.blaze3d.framegraph.FramePass;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.LevelTargetBundle;
+import net.minecraft.client.renderer.state.LevelRenderState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.FramePassManager;
 import net.minecraftforge.client.event.AddFramePassEvent;
@@ -67,7 +68,7 @@ public class ForgeClientEvents {
     }
 
     /**
-     * Forge 58 has no render stage event, but again a frame pass event (Forge 55 had none): one frame pass after the
+     * Forge 58+ has no render stage event, but again a frame pass event (Forge 55 had none): one frame pass after the
      * vanilla ones (inserted after the late debug pass, so after the translucent blocks, particles, clouds and weather)
      * draws the block previews, mirror/array lines and ghost blocks, then the outlines, into the main target. The camera
      * rotation is already on the model view stack while the frame graph runs, so the handlers start from an identity
@@ -82,7 +83,7 @@ public class ForgeClientEvents {
             }
 
             @Override
-            public void executes() {
+            public void executes(LevelRenderState state) {
                 RenderHandler.onRenderWorld(new PoseStack());
                 RenderHandler.onRenderOutlines(new PoseStack());
             }

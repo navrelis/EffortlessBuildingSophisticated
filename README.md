@@ -1,11 +1,11 @@
-# Sophisticated Building - Minecraft 1.21.8
+# Sophisticated Building - Minecraft 1.21.10
 
-This branch (`mc/1.21.8`) holds Sophisticated Building for Minecraft 1.21.8 on Fabric, NeoForge and Forge. It was
-ported from `mc/1.21.5` and keeps its layout: loader-neutral code lives once in `common/`, and every loader folder is
+This branch (`mc/1.21.10`) holds Sophisticated Building for Minecraft 1.21.10 on Fabric, NeoForge and Forge. It was
+ported from `mc/1.21.8` and keeps its layout: loader-neutral code lives once in `common/`, and every loader folder is
 a standalone Gradle build that compiles `common/` together with its own sources into one mod jar.
 
-The jars declare exactly Minecraft 1.21.8: 1.21.6 and 1.21.7 were not run, so they are not claimed (Sophisticated
-Backpacks for NeoForge 1.21.8 itself requires Minecraft 1.21.8).
+The jars declare exactly Minecraft 1.21.10: 1.21.9 was not run, so it is not claimed (Sophisticated Backpacks for
+NeoForge 1.21.10 itself requires Minecraft 1.21.10).
 
 ## Layout
 
@@ -19,11 +19,11 @@ common/                    loader-neutral code and assets, no build of its own
   src/smoketest              in-game smoke test harness (dev only, see TESTING.md)
   src/smoketestBackpacks     Sophisticated Backpacks fixture of the harness (NeoForge only)
 fabric/                    Fabric build (Loom): entry points, platform services, JSON config backend, GameTests
-                           (src/gametest); no backpack integration (no Sophisticated Backpacks for Fabric 1.21.8)
+                           (src/gametest); no backpack integration (no Sophisticated Backpacks for Fabric 1.21.10)
 neoforge/                  NeoForge build (ModDevGradle): entry points, platform services, ModConfigSpec configs,
                            power level attachment, Sophisticated Backpacks integration (official build) with Curios fallback
 forge/                     Forge build (ForgeGradle 7): entry points, platform services, ForgeConfigSpec configs,
-                           power level capability; no backpack integration (no Sophisticated Backpacks for Forge 1.21.8)
+                           power level capability; no backpack integration (no Sophisticated Backpacks for Forge 1.21.10)
 changelog/                 patch notes
 build-all.ps1              builds every loader folder in turn
 ```
@@ -41,12 +41,12 @@ The ghost block previews and outlines use the Catnip outliner and GUI widgets ve
 
 | | Fabric | NeoForge | Forge |
 |---|---|---|---|
-| Loader (built against) | Loader 0.19.5, Fabric API 0.136.1+1.21.8 | 21.8.54 | 58.1.22 |
-| Minimum declared | Loader 0.19.5 | 21.8.54 | 58.1.22 |
+| Loader (built against) | Loader 0.19.5, Fabric API 0.138.4+1.21.10 | 21.10.64 | 60.1.15 |
+| Minimum declared | Loader 0.19.5 | 21.10.64 | 60.1.15 |
 | Build plugin, Gradle | Loom 1.17.21, Gradle 9.5.1 | ModDevGradle 2.0.147, Gradle 9.2.1 | ForgeGradle 7.0.40, Gradle 9.3.1 |
-| Sophisticated Backpacks | none | Backpacks 1.21.8-3.26.2.2159, Core 1.21.8-1.5.0.2342 (Modrinth maven) | none |
+| Sophisticated Backpacks | none | Backpacks 1.21.10-3.26.2.2151, Core 1.21.10-1.5.0.2339 (Modrinth maven) | none |
 
-Mappings: Mojang (Fabric, Forge), Mojang + Parchment 2025.09.14 (NeoForge). Java 21. Curios 12.0.0+1.21.8
+Mappings: Mojang (Fabric, Forge), Mojang + Parchment 2025.10.12 (NeoForge). Java 21. Curios 13.0.0+1.21.10
 (NeoForge, compile only and in the smoke runtime).
 
 ## Differences to mc/1.21.1

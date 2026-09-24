@@ -31,7 +31,7 @@ public class ForgeCommonEvents {
 
 	@SubscribeEvent
 	public static void onTick(TickEvent.LevelTickEvent.Pre event) {
-		if (event.level instanceof ServerLevel level) {
+		if (event.level() instanceof ServerLevel level) {
 			CommonEvents.onLevelTick(level);
 		}
 	}
@@ -107,7 +107,7 @@ public class ForgeCommonEvents {
 
 	@SubscribeEvent
 	public static void onPlayerTick(TickEvent.PlayerTickEvent.Post event) {
-		if (!(event.player instanceof ServerPlayer player)) return;
+		if (!(event.player() instanceof ServerPlayer player)) return;
 
 		CommonEvents.onPlayerTick(player);
 	}

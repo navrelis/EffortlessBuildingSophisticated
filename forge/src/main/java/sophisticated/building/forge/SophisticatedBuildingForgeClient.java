@@ -24,8 +24,8 @@ public class SophisticatedBuildingForgeClient {
 
     public static void onConstructorClient(BusGroup modBusGroup) {
         FMLClientSetupEvent.getBus(modBusGroup).addListener(SophisticatedBuildingForgeClient::onClientSetup);
-        RegisterKeyMappingsEvent.getBus(modBusGroup).addListener(SophisticatedBuildingForgeClient::registerKeyMappings);
-        AddGuiOverlayLayersEvent.getBus(modBusGroup).addListener(SophisticatedBuildingForgeClient::addGuiOverlayLayers);
+        RegisterKeyMappingsEvent.BUS.addListener(SophisticatedBuildingForgeClient::registerKeyMappings);
+        AddGuiOverlayLayersEvent.BUS.addListener(SophisticatedBuildingForgeClient::addGuiOverlayLayers);
     }
 
     public static void addGuiOverlayLayers(AddGuiOverlayLayersEvent event) {
