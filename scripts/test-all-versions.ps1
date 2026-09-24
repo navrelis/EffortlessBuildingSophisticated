@@ -41,9 +41,15 @@
     on a failure with -KeepGoing:$false, or in the top-level finally block (including Ctrl+C, which PowerShell
     delivers as a terminating exception through the same try/finally). Every gradlew invocation passes
     --no-daemon and this script never runs "gradlew --stop" - that would kill every Gradle daemon of that
-    version on the machine, including other agents' builds (see docs/TESTING.md). Stages run strictly
-    sequentially, one Minecraft instance and one Gradle invocation at a time - never two in parallel, and never
-    two ForgeGradle builds in parallel against a cold cache (docs/PORTING.md "Gotchas").
+    version on the machine, including other agents' builds (see docs/TESTING.md). Within one instance stages run
+    strictly sequentially, one Gradle invocation at a time.
+
+    Several instances may run at the same time on DISJOINT -Mc sets (docs/TESTING.md "Parallel runs"): each
+    writes its own report directory (default name includes the process id), per-version locks under
+    local/test-locks/ stop two instances from testing the same version at once, and every stage that opens a
+    game window (client, runSmokeClient) first takes the machine-wide window lock local/game-window.lock that
+    the agents use too (.knowledge/port-brief.md "One game window at a time"), so at most one window is open.
+    Do not start parallel instances while a ForgeGradle cache is still cold (docs/PORTING.md "Gotchas").
 
 .PARAMETER Mc
     Restrict the run to these Minecraft versions (must match <VersionsDir>/<mc> folder names). Default: every
@@ -65,7 +71,23 @@
     currently building in.
 
 .PARAMETER ReportDir
-    Where to write report.json / report.md and per-stage logs. Default: local/test-reports/<timestamp>.
+    Where to write report.json / report.md and per-stage logs. Default:
+    local/test-reports/<timestamp>-<process id>-<random> (unique even for instances started in the same second).
+
+.PARAMETER SmokeTasks
+    Which harness tasks the smoke stage runs: runSmokeServer (headless) and/or runSmokeClient (opens a window).
+    Default: both. -Headless removes runSmokeClient.
+
+.PARAMETER MergeReports
+    Merge mode: combine the report.json of these report directories (or report.json files) into one
+    report.json / report.md in -ReportDir (default local/test-reports/<timestamp>-merged-<process id>), then exit.
+    Runs nothing else. When the same (version, loader, stage) is in several reports, the newest report's row wins.
+
+.PARAMETER WindowLockPath
+    The machine-wide game window lock. Default: local/game-window.lock under the repo root (the one the agents use).
+
+.PARAMETER WindowLockTimeoutMinutes
+    How long a window-opening stage waits for the window lock before it fails. Default: 120.
 
 .PARAMETER TimeoutMinutes
     Per-stage timeout applied uniformly to build/gametest/server/client/smoke (each stage's own wait, e.g. the
@@ -78,7 +100,7 @@
 
 .PARAMETER Headless
     Skip the client stage and the runSmokeClient half of the smoke stage (both open a window). server,
-    runSmokeServer and everything else still runs.
+    runSmokeServer and everything else still runs. Same as leaving out client and passing -SmokeTasks runSmokeServer.
 
 .PARAMETER WhatIf
     Standard PowerShell dry run: reports which (version, loader, stage) combinations would run, without
@@ -91,6 +113,14 @@
 .EXAMPLE
     pwsh scripts/test-all-versions.ps1 -Headless -KeepGoing:$false
     Runs build/gametest/server/smoke (no windows) for every version and loader, stopping at the first failure.
+
+.EXAMPLE
+    pwsh scripts/test-all-versions.ps1 -Mc 1.20.1,1.20.4 -Stages build,gametest,server,smoke -SmokeTasks runSmokeServer
+    One headless instance of a parallel run (start others with disjoint -Mc lists).
+
+.EXAMPLE
+    pwsh scripts/test-all-versions.ps1 -MergeReports local/test-reports/a,local/test-reports/b -ReportDir local/test-reports/final
+    Combines two reports into one report.json / report.md.
 #>
 [CmdletBinding(SupportsShouldProcess = $true)]
 param(
@@ -104,7 +134,11 @@ param(
     [string]$ReportDir,
     [int]$TimeoutMinutes = 20,
     [switch]$KeepGoing = $true,
-    [switch]$Headless
+    [switch]$Headless,
+    [string[]]$SmokeTasks = @('runSmokeServer', 'runSmokeClient'),
+    [string[]]$MergeReports,
+    [string]$WindowLockPath,
+    [double]$WindowLockTimeoutMinutes = 120
 )
 
 $ErrorActionPreference = 'Stop'
@@ -113,6 +147,8 @@ Set-StrictMode -Version Latest
 $repoRoot = Split-Path -Parent $PSScriptRoot
 . (Join-Path $PSScriptRoot 'lib/TestAllVersions.Common.ps1')
 . (Join-Path $PSScriptRoot 'lib/GameWindow.ps1')
+. (Join-Path $PSScriptRoot 'lib/GameWindowLock.ps1')
+. (Join-Path $PSScriptRoot 'lib/TestAllVersions.Report.ps1')
 $script:GameWindowLibPath = (Join-Path $PSScriptRoot 'lib/GameWindow.ps1')
 
 function Start-WindowMoveJob {
@@ -143,6 +179,58 @@ function Stop-WindowMoveJob {
     Remove-Job -Job $Job -Force -ErrorAction SilentlyContinue | Out-Null
 }
 
+# The window lock this instance currently holds (at most one), released by the stage itself in a finally block and
+# again by the top-level finally (Ctrl+C, unexpected errors).
+$script:HeldWindowLock = $null
+
+function Enter-StageWindowLock {
+    <# Takes the machine-wide window lock for one window-opening stage; $false if it timed out. #>
+    param([string]$What)
+    $script:HeldWindowLock = Enter-GameWindowLock -LockPath $script:WindowLockPathResolved `
+        -Owner "test-all-versions PID $PID $What" -TimeoutMinutes $script:WindowLockTimeout
+    return ($null -ne $script:HeldWindowLock)
+}
+
+function Exit-StageWindowLock {
+    Exit-GameWindowLock -Handle $script:HeldWindowLock
+    $script:HeldWindowLock = $null
+}
+
+# Per-version locks (local/test-locks/<mc>.lock, content = PID of the holding instance): two instances never test
+# the same version worktree at once (shared run/ folders, build/ outputs). A lock whose PID is no longer a running
+# process is stale and taken over.
+$script:HeldVersionLocks = [System.Collections.Generic.List[string]]::new()
+
+function Enter-VersionLock {
+    param([string]$LockDir, [string]$McName)
+    New-Item -ItemType Directory -Path $LockDir -Force -WhatIf:$false | Out-Null
+    $path = Join-Path $LockDir "$McName.lock"
+    for ($attempt = 0; $attempt -lt 2; $attempt++) {
+        try {
+            New-Item -ItemType File -Path $path -Value "$PID" -ErrorAction Stop -WhatIf:$false | Out-Null
+            $script:HeldVersionLocks.Add($path)
+            return $null
+        } catch {
+            $holder = "$(Get-Content -LiteralPath $path -Raw -ErrorAction SilentlyContinue)".Trim()
+            $holderPid = 0
+            if ([int]::TryParse($holder, [ref]$holderPid) -and (Get-Process -Id $holderPid -ErrorAction SilentlyContinue)) {
+                return "version $McName is being tested by another test-all-versions instance (PID $holderPid, $path)"
+            }
+            Remove-Item -LiteralPath $path -Force -ErrorAction SilentlyContinue -WhatIf:$false
+        }
+    }
+    return "could not take the version lock $path"
+}
+
+function Exit-AllVersionLocks {
+    foreach ($path in $script:HeldVersionLocks) {
+        if ("$(Get-Content -LiteralPath $path -Raw -ErrorAction SilentlyContinue)".Trim() -eq "$PID") {
+            Remove-Item -LiteralPath $path -Force -ErrorAction SilentlyContinue -WhatIf:$false
+        }
+    }
+    $script:HeldVersionLocks.Clear()
+}
+
 # Array parameters (-Mc, -Loader, -Stages) only collect multiple bare tokens into one array when PowerShell
 # itself is doing the invoking; called via `pwsh -File` from a foreign shell (bash, cmd), a second bare token
 # after e.g. -Stages is silently DROPPED rather than added to the array. Comma-splitting every element here
@@ -156,6 +244,43 @@ function Split-ArrayParam {
 $Mc = Split-ArrayParam -Values $Mc
 $Loader = Split-ArrayParam -Values $Loader
 $Stages = Split-ArrayParam -Values $Stages
+$SmokeTasks = Split-ArrayParam -Values $SmokeTasks
+$MergeReports = Split-ArrayParam -Values $MergeReports
+
+# ---- Merge mode: combine existing reports, run nothing ----------------------------------------------------------
+if (@($MergeReports).Count -gt 0) {
+    if (-not $ReportDir) {
+        $ReportDir = Join-Path $repoRoot "local/test-reports/$(Get-Date -Format 'yyyyMMdd-HHmmss')-merged-$PID"
+    }
+    $sources = @($MergeReports | ForEach-Object {
+        if ([System.IO.Path]::IsPathRooted($_)) { $_ } elseif (Test-Path -LiteralPath $_) { (Resolve-Path -LiteralPath $_).Path } else { Join-Path $repoRoot $_ }
+    })
+    New-Item -ItemType Directory -Path $ReportDir -Force -WhatIf:$false | Out-Null
+    $ReportDir = (Resolve-Path $ReportDir).Path
+    $merged = Merge-TestReports -ReportPaths $sources -ReportDir $ReportDir
+    $paths = Write-TestReportFiles -Report $merged -ReportDir $ReportDir
+    $merged.results | Format-Table -Property mc, loader, stage, result, detail -AutoSize | Out-String -Width 4096 | Write-Host
+    $s = $merged.summary
+    Write-Host ("Merged {0} report(s): {1} pass, {2} fail, {3} warn, {4} n/a (of {5})" -f $sources.Count, $s.pass, $s.fail, $s.warn, $s.'n/a', $s.total) -ForegroundColor Cyan
+    Write-Host "Report written to $($paths.Json) and $($paths.Markdown)" -ForegroundColor Cyan
+    if ($s.fail -gt 0) { exit 1 }
+    exit 0
+}
+
+$validSmokeTasks = @('runSmokeServer', 'runSmokeClient')
+$invalidSmokeTasks = @($SmokeTasks | Where-Object { $validSmokeTasks -notcontains $_ })
+if ($invalidSmokeTasks.Count -gt 0) {
+    Write-Error "Invalid -SmokeTasks value(s): $($invalidSmokeTasks -join ', '). Valid: $($validSmokeTasks -join ', ')."
+    exit 1
+}
+if ($Headless) { $SmokeTasks = @($SmokeTasks | Where-Object { $_ -ne 'runSmokeClient' }) }
+$SmokeTasks = @($validSmokeTasks | Where-Object { $SmokeTasks -contains $_ })
+
+if (-not $WindowLockPath) { $WindowLockPath = Join-Path $repoRoot 'local/game-window.lock' }
+elseif (-not [System.IO.Path]::IsPathRooted($WindowLockPath)) { $WindowLockPath = Join-Path $repoRoot $WindowLockPath }
+$script:WindowLockPathResolved = $WindowLockPath
+$script:WindowLockTimeout = $WindowLockTimeoutMinutes
+$versionLockDir = Join-Path $repoRoot 'local/test-locks'
 if (-not $Stages -or $Stages.Count -eq 0) { $Stages = @('build', 'gametest', 'server', 'client', 'smoke') }
 $validStages = @('build', 'gametest', 'server', 'client', 'smoke')
 $invalidStages = @($Stages | Where-Object { $validStages -notcontains $_ })
@@ -180,8 +305,10 @@ $stageOrder = @('build', 'gametest', 'server', 'client', 'smoke')
 $Stages = @($stageOrder | Where-Object { $Stages -contains $_ })
 
 if (-not $ReportDir) {
+    # Process id + random suffix: parallel instances started in the same second never share a report directory
+    # (and so never share the per-stage logs or the generated quickplay init script inside it).
     $timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-    $ReportDir = Join-Path $repoRoot "local/test-reports/$timestamp"
+    $ReportDir = Join-Path $repoRoot "local/test-reports/$timestamp-$PID-$([guid]::NewGuid().ToString('N').Substring(0, 4))"
 }
 # Report bookkeeping directories are created even under -WhatIf (harmless, and report.json/report.md still
 # need somewhere to land describing what WOULD have run).
@@ -198,7 +325,7 @@ if (-not $branches -or $branches.Count -eq 0) {
     exit 1
 }
 
-Write-Host "test-all-versions: $($branches.Count) version(s), stages: $($Stages -join ', '), report -> $ReportDir" -ForegroundColor Cyan
+Write-Host "test-all-versions: $($branches.Count) version(s), stages: $($Stages -join ', '), smoke tasks: $($SmokeTasks -join ', '), report -> $ReportDir" -ForegroundColor Cyan
 
 # ---------------------------------------------------------------------------------------------------------------
 # Stage implementations. Each returns one (or, for smoke, several) result row(s) from New-StageResult.
@@ -451,40 +578,54 @@ function Invoke-ClientStage {
 
     $logPath = Join-Path $StageLogDir 'client.console.log'
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
-    # Mute BEFORE the game process starts (options.txt is read at boot). The window move has to wait for the
-    # window to exist, so that half runs in a background job instead of blocking this stage's own log poll.
-    Set-MinecraftMuted -RunDir $runDir
-    # Same stale-log race as the server stage: capture latest.log's pre-launch length so the join-line wait below
-    # can never match a "logged in with entity id" (or "Loaded N advancements") line left over from an earlier
-    # client run in this same run dir, in the window before log4j2 gets around to rotating it away.
-    $logBaseline = Get-LogBaselineLength -Path $latestLog
-    $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs $taskArgs -LogPath $logPath
-    $moveJob = Start-WindowMoveJob -GameProcessId $proc.Id
-
-    # "Loaded N advancements" happens very early in client bootstrap (well before any world join), so it must
-    # NOT be accepted as a join signal when quickplay is actually in play - it would match almost immediately
-    # and let the stage "pass" having barely started the client, long before it ever joined the copied world.
-    # It's only the right (and only) signal when there's no world to join at all (no quickplay world copied).
-    #
-    # Also watched for in the SAME wait: quickplay's own failure toast ("Failed to Quick Play - Could not find
-    # world with the provided identifier"), which otherwise just sits on screen doing nothing until the stage
-    # timeout - if quickplay ever again points at a world that doesn't exist (e.g. the server stage didn't
-    # produce one), this ends the stage immediately with that message instead of leaving a window hanging for
-    # the full -TimeoutMinutes.
-    $joinPattern = if ($quickPlayUsed) { 'logged in with entity id' } else { 'Loaded \d+ advancements' }
-    $quickPlayFailurePattern = 'Failed to Quick Play|Could not find world'
-    $matchedLine = Wait-ForLogPattern -Path $latestLog -Pattern "($joinPattern|$quickPlayFailurePattern)" -TimeoutMinutes $TimeoutMinutes -Process $proc -BaselineLength $logBaseline
-    $quickPlayFailed = [bool]($matchedLine -and ($matchedLine -match $quickPlayFailurePattern))
-    $joinLine = if ($quickPlayFailed) { $null } else { $matchedLine }
-    if ($joinLine) { Start-Sleep -Seconds 30 }
-    $fullLog = if (Test-Path $latestLog) { Get-Content -LiteralPath $latestLog -Raw } else { '' }
-
-    if (-not $proc.HasExited) {
-        Stop-ProcessTree -ProcessId $proc.Id
-        $proc.WaitForExit(10000) | Out-Null
+    # One game window at a time on this machine (other instances, agents): wait for the shared window lock.
+    if (-not (Enter-StageWindowLock -What "$Mc/$LoaderName client")) {
+        if (Test-Path $tempWorldPath) { Remove-Item -LiteralPath $tempWorldPath -Recurse -Force -ErrorAction SilentlyContinue }
+        return New-StageResult -Mc $Mc -Loader $LoaderName -Stage 'client' -Result 'fail' `
+            -Detail "game window lock ($($script:WindowLockPathResolved)) not acquired within $($script:WindowLockTimeout) min"
     }
-    Unregister-TrackedProcess -Process $proc
-    Stop-WindowMoveJob -Job $moveJob
+    $proc = $null
+    try {
+        # Mute BEFORE the game process starts (options.txt is read at boot). The window move has to wait for the
+        # window to exist, so that half runs in a background job instead of blocking this stage's own log poll.
+        Set-MinecraftMuted -RunDir $runDir
+        # Same stale-log race as the server stage: capture latest.log's pre-launch length so the join-line wait below
+        # can never match a "logged in with entity id" (or "Loaded N advancements") line left over from an earlier
+        # client run in this same run dir, in the window before log4j2 gets around to rotating it away.
+        $logBaseline = Get-LogBaselineLength -Path $latestLog
+        $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs $taskArgs -LogPath $logPath
+        $moveJob = Start-WindowMoveJob -GameProcessId $proc.Id
+
+        # "Loaded N advancements" happens very early in client bootstrap (well before any world join), so it must
+        # NOT be accepted as a join signal when quickplay is actually in play - it would match almost immediately
+        # and let the stage "pass" having barely started the client, long before it ever joined the copied world.
+        # It's only the right (and only) signal when there's no world to join at all (no quickplay world copied).
+        #
+        # Also watched for in the SAME wait: quickplay's own failure toast ("Failed to Quick Play - Could not find
+        # world with the provided identifier"), which otherwise just sits on screen doing nothing until the stage
+        # timeout - if quickplay ever again points at a world that doesn't exist (e.g. the server stage didn't
+        # produce one), this ends the stage immediately with that message instead of leaving a window hanging for
+        # the full -TimeoutMinutes.
+        $joinPattern = if ($quickPlayUsed) { 'logged in with entity id' } else { 'Loaded \d+ advancements' }
+        $quickPlayFailurePattern = 'Failed to Quick Play|Could not find world'
+        $matchedLine = Wait-ForLogPattern -Path $latestLog -Pattern "($joinPattern|$quickPlayFailurePattern)" -TimeoutMinutes $TimeoutMinutes -Process $proc -BaselineLength $logBaseline
+        $quickPlayFailed = [bool]($matchedLine -and ($matchedLine -match $quickPlayFailurePattern))
+        $joinLine = if ($quickPlayFailed) { $null } else { $matchedLine }
+        if ($joinLine) { Start-Sleep -Seconds 30 }
+        $fullLog = if (Test-Path $latestLog) { Get-Content -LiteralPath $latestLog -Raw } else { '' }
+
+        if (-not $proc.HasExited) {
+            Stop-ProcessTree -ProcessId $proc.Id
+            $proc.WaitForExit(10000) | Out-Null
+        }
+        Unregister-TrackedProcess -Process $proc
+        Stop-WindowMoveJob -Job $moveJob
+    } finally {
+        # The window is gone (or was never opened): release the lock, also when anything above threw - after
+        # making sure the client really is gone.
+        if ($proc -and -not $proc.HasExited) { Stop-ProcessTree -ProcessId $proc.Id }
+        Exit-StageWindowLock
+    }
     $sw.Stop()
 
     $lines = $fullLog -split "`r?`n"
@@ -548,12 +689,10 @@ function Invoke-ClientStage {
 }
 
 function Invoke-SmokeStage {
-    param([string]$Mc, [string]$LoaderName, [string]$LoaderDir, [string]$StageLogDir, [int]$TimeoutMinutes, [bool]$HasSB, [bool]$Headless)
+    param([string]$Mc, [string]$LoaderName, [string]$LoaderDir, [string]$StageLogDir, [int]$TimeoutMinutes, [bool]$HasSB, [string[]]$Targets)
     $rows = [System.Collections.Generic.List[object]]::new()
-    $targets = @('runSmokeServer', 'runSmokeClient')
-    if ($Headless) { $targets = @('runSmokeServer') }
 
-    foreach ($target in $targets) {
+    foreach ($target in $Targets) {
         $stageName = "smoke ($target)"
         if ($WhatIfPreference) {
             $rows.Add((New-StageResult -Mc $Mc -Loader $LoaderName -Stage $stageName -Result 'n/a' -Detail 'skipped (-WhatIf)'))
@@ -565,15 +704,34 @@ function Invoke-SmokeStage {
         $resultJsonPath = Join-Path $outDir 'smoketest-result.json'
         $logPath = Join-Path $StageLogDir "$target.console.log"
 
-        # runSmokeClient opens a window like the plain client stage does; runSmokeServer (headless) doesn't.
-        if ($target -eq 'runSmokeClient') {
+        # runSmokeClient opens a window like the plain client stage does; runSmokeServer (headless) doesn't. The
+        # window stage waits for the machine-wide window lock first (only if the task exists: a missing task
+        # never opens a window).
+        $opensWindow = ($target -eq 'runSmokeClient') -and (Test-HasSmokeClientTask -LoaderDir $LoaderDir)
+        if ($opensWindow) {
+            if (-not (Enter-StageWindowLock -What "$Mc/$LoaderName $target")) {
+                $rows.Add((New-StageResult -Mc $Mc -Loader $LoaderName -Stage $stageName -Result 'fail' `
+                    -Detail "game window lock ($($script:WindowLockPathResolved)) not acquired within $($script:WindowLockTimeout) min"))
+                continue
+            }
+            # Muted before launch in both run folders (the harness also mutes itself once the client runs)
             Set-MinecraftMuted -RunDir (Join-Path $LoaderDir 'run')
+            Set-MinecraftMuted -RunDir (Join-Path $LoaderDir 'build/smoketest/client-run')
         }
         $sw = [System.Diagnostics.Stopwatch]::StartNew()
-        $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs @($target, "-PsmoketestOut=$outDir", '--no-daemon', '--stacktrace') -LogPath $logPath
-        $moveJob = if ($target -eq 'runSmokeClient') { Start-WindowMoveJob -GameProcessId $proc.Id } else { $null }
-        $wait = Wait-GradleProcess -Process $proc -TimeoutMinutes $TimeoutMinutes
-        Stop-WindowMoveJob -Job $moveJob
+        $proc = $null
+        $moveJob = $null
+        try {
+            $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs @($target, "-PsmoketestOut=$outDir", '--no-daemon', '--stacktrace') -LogPath $logPath
+            if ($opensWindow) { $moveJob = Start-WindowMoveJob -GameProcessId $proc.Id }
+            $wait = Wait-GradleProcess -Process $proc -TimeoutMinutes $TimeoutMinutes
+        } finally {
+            Stop-WindowMoveJob -Job $moveJob
+            if ($opensWindow) {
+                if ($proc -and -not $proc.HasExited) { Stop-ProcessTree -ProcessId $proc.Id }
+                Exit-StageWindowLock
+            }
+        }
         $sw.Stop()
 
         $logContent = if (Test-Path $logPath) { Get-Content -LiteralPath $logPath -Raw } else { '' }
@@ -643,8 +801,8 @@ function Invoke-SmokeStage {
 }
 
 # ---------------------------------------------------------------------------------------------------------------
-# Main loop - strictly sequential: one (version, loader, stage) at a time, never two Minecraft instances and
-# never two ForgeGradle builds running together.
+# Main loop - strictly sequential within this instance: one (version, loader, stage) at a time. Other instances may
+# test other versions at the same time (version locks), windows are serialized machine-wide (window lock).
 # ---------------------------------------------------------------------------------------------------------------
 
 $results = [System.Collections.Generic.List[object]]::new()
@@ -660,6 +818,15 @@ try {
         if (-not $loaders -or $loaders.Count -eq 0) {
             Write-Warning "No loader folders discovered under $mcDir (looked for settings.gradle + gradlew)."
             continue
+        }
+        if (-not $WhatIfPreference) {
+            $lockProblem = Enter-VersionLock -LockDir $versionLockDir -McName $mcName
+            if ($lockProblem) {
+                Write-Warning $lockProblem
+                $results.Add((New-StageResult -Mc $mcName -Loader '*' -Stage 'version lock' -Result 'fail' -Detail $lockProblem))
+                if (-not $KeepGoing) { $stopRequested = $true }
+                continue
+            }
         }
 
         foreach ($loaderName in $loaders) {
@@ -679,7 +846,7 @@ try {
                     'gametest' { @(Invoke-GametestStage -Mc $mcName -LoaderName $loaderName -LoaderDir $loaderDir -StageLogDir $stageLogDir -TimeoutMinutes $TimeoutMinutes -HasGametest $hasGametest) }
                     'server'   { @(Invoke-ServerStage -Mc $mcName -LoaderName $loaderName -LoaderDir $loaderDir -StageLogDir $stageLogDir -TimeoutMinutes $TimeoutMinutes -HasSB $hasSB) }
                     'client'   { @(Invoke-ClientStage -Mc $mcName -LoaderName $loaderName -LoaderDir $loaderDir -StageLogDir $stageLogDir -TimeoutMinutes $TimeoutMinutes -ReportDir $ReportDir) }
-                    'smoke'    { @(Invoke-SmokeStage -Mc $mcName -LoaderName $loaderName -LoaderDir $loaderDir -StageLogDir $stageLogDir -TimeoutMinutes $TimeoutMinutes -HasSB $hasSB -Headless:$Headless) }
+                    'smoke'    { @(Invoke-SmokeStage -Mc $mcName -LoaderName $loaderName -LoaderDir $loaderDir -StageLogDir $stageLogDir -TimeoutMinutes $TimeoutMinutes -HasSB $hasSB -Targets $SmokeTasks) }
                 }
                 foreach ($row in $stageResults) {
                     $results.Add($row)
@@ -691,9 +858,13 @@ try {
                 }
             }
         }
+        # This version is done: another instance may test it now
+        Exit-AllVersionLocks
     }
 } finally {
     Stop-AllTrackedProcesses
+    Exit-StageWindowLock
+    Exit-AllVersionLocks
 }
 
 # ---------------------------------------------------------------------------------------------------------------
@@ -714,82 +885,26 @@ if ($script:SbGametestCoverage.Count -gt 0) {
     Write-Host 'SB-named GameTests: none found (no "*Backpack*" class/method under any src/gametest run).' -ForegroundColor DarkYellow
 }
 
-$summary = [ordered]@{
-    pass  = @($results | Where-Object { $_.result -eq 'pass' }).Count
-    fail  = @($results | Where-Object { $_.result -eq 'fail' }).Count
-    warn  = @($results | Where-Object { $_.result -eq 'warn' }).Count
-    'n/a' = @($results | Where-Object { $_.result -eq 'n/a' }).Count
-    total = $results.Count
+$reportParameters = [ordered]@{
+    mc              = $Mc
+    loader          = $Loader
+    stages          = $Stages
+    smokeTasks      = $SmokeTasks
+    timeoutMinutes  = $TimeoutMinutes
+    keepGoing       = [bool]$KeepGoing
+    headless        = [bool]$Headless
+    whatIf          = [bool]$WhatIfPreference
 }
+$reportObj = New-TestReport -ReportDir $ReportDir -VersionsDir $VersionsDir -Parameters $reportParameters `
+    -SbAvailability $sbAvailability -SbGametestCoverage $script:SbGametestCoverage -Results $results
+$summary = $reportObj.summary
 Write-Host ("Summary: {0} pass, {1} fail, {2} warn, {3} n/a (of {4})" -f $summary.pass, $summary.fail, $summary.warn, $summary.'n/a', $summary.total) -ForegroundColor Cyan
 
-$reportObj = [ordered]@{
-    generatedAt        = (Get-Date).ToString('o')
-    reportDir           = $ReportDir
-    versionsDir         = $VersionsDir
-    parameters          = [ordered]@{
-        mc              = $Mc
-        loader          = $Loader
-        stages          = $Stages
-        timeoutMinutes  = $TimeoutMinutes
-        keepGoing       = [bool]$KeepGoing
-        headless        = [bool]$Headless
-        whatIf          = [bool]$WhatIfPreference
-    }
-    sbAvailability      = $sbAvailability
-    sbGametestCoverage  = $script:SbGametestCoverage
-    results             = $results
-    summary             = $summary
-}
-$reportJsonPath = Join-Path $ReportDir 'report.json'
 # Always actually written, even under -WhatIf: the report itself (including which stages WOULD have run) is
 # the whole point of a dry run, not an action the dry run should suppress.
-$reportObj | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $reportJsonPath -Encoding utf8 -WhatIf:$false
-
-$md = [System.Text.StringBuilder]::new()
-[void]$md.AppendLine('# test-all-versions report')
-[void]$md.AppendLine()
-[void]$md.AppendLine("Generated: $($reportObj.generatedAt)")
-[void]$md.AppendLine('Versions dir: `' + $VersionsDir + '`')
-[void]$md.AppendLine("Stages: $($Stages -join ', ')")
-[void]$md.AppendLine()
-[void]$md.AppendLine('## Sophisticated Backpacks availability')
-[void]$md.AppendLine()
-[void]$md.AppendLine('| mc | loader | SB |')
-[void]$md.AppendLine('|---|---|---|')
-foreach ($row in $sbAvailability) {
-    [void]$md.AppendLine("| $($row.mc) | $($row.loader) | $($row.sbAvailable) |")
-}
-[void]$md.AppendLine()
-[void]$md.AppendLine('## Results')
-[void]$md.AppendLine()
-[void]$md.AppendLine('| mc | loader | stage | result | detail | duration (s) | log |')
-[void]$md.AppendLine('|---|---|---|---|---|---|---|')
-foreach ($row in $results) {
-    $relLog = ''
-    if ($row.logPath) {
-        try { $relLog = [System.IO.Path]::GetRelativePath($ReportDir, $row.logPath) } catch { $relLog = $row.logPath }
-    }
-    $detailEsc = ($row.detail -replace '\|', '\|')
-    [void]$md.AppendLine("| $($row.mc) | $($row.loader) | $($row.stage) | $($row.result) | $detailEsc | $($row.durationSeconds) | $relLog |")
-}
-if ($script:SbGametestCoverage.Count -gt 0) {
-    [void]$md.AppendLine()
-    [void]$md.AppendLine('## SB-named GameTests')
-    [void]$md.AppendLine()
-    [void]$md.AppendLine('| mc | loader | test | failed |')
-    [void]$md.AppendLine('|---|---|---|---|')
-    foreach ($row in $script:SbGametestCoverage) {
-        [void]$md.AppendLine("| $($row.mc) | $($row.loader) | $($row.test) | $($row.failed) |")
-    }
-}
-[void]$md.AppendLine()
-[void]$md.AppendLine("## Summary")
-[void]$md.AppendLine()
-[void]$md.AppendLine("$($summary.pass) pass, $($summary.fail) fail, $($summary.warn) warn, $($summary.'n/a') n/a (of $($summary.total))")
-
-$reportMdPath = Join-Path $ReportDir 'report.md'
-Set-Content -LiteralPath $reportMdPath -Value $md.ToString() -Encoding utf8 -WhatIf:$false
+$reportPaths = Write-TestReportFiles -Report $reportObj -ReportDir $ReportDir
+$reportJsonPath = $reportPaths.Json
+$reportMdPath = $reportPaths.Markdown
 
 Write-Host ''
 Write-Host "Report written to $reportJsonPath and $reportMdPath" -ForegroundColor Cyan

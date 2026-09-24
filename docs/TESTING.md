@@ -13,10 +13,12 @@ pwsh scripts/test-all-versions.ps1 -Mc 1.21.1                        # one versi
 pwsh scripts/test-all-versions.ps1 -Mc 1.21.1 -Loader fabric,neoforge -Stages build,gametest
 pwsh scripts/test-all-versions.ps1 -Headless -KeepGoing:$false       # no windows, stop at first failure
 pwsh scripts/test-all-versions.ps1 -WhatIf                           # dry run: which stages WOULD run
+pwsh scripts/test-all-versions.ps1 -Mc 1.21.4 -Stages smoke -SmokeTasks runSmokeServer   # only the headless harness
+pwsh scripts/test-all-versions.ps1 -MergeReports <dir1>,<dir2>      # combine reports into one (see "Parallel runs")
 ```
 
-`-Mc`, `-Loader` and `-Stages` accept comma-separated values in one token (`-Stages build,gametest`) - the
-robust form from any shell. Space-separated bare tokens after one of these flags
+`-Mc`, `-Loader`, `-Stages`, `-SmokeTasks` and `-MergeReports` accept comma-separated values in one token
+(`-Stages build,gametest`) - the robust form from any shell. Space-separated bare tokens after one of these flags
 (`-Stages build gametest`) only bind correctly to the array when PowerShell itself is doing the invoking; from
 an external shell (`pwsh -File ... -Stages build gametest` from bash/cmd) the second token is silently dropped,
 which is exactly why the script accepts (and this doc recommends) the comma-separated form.
@@ -26,9 +28,10 @@ See the script's own comment-based help (`Get-Help scripts/test-all-versions.ps1
 ## Stages, in order, and how each one decides pass/fail
 
 Stages always run in this fixed order regardless of the order given to `-Stages`: `build`, `gametest`,
-`server`, `client`, `smoke`. One Minecraft instance and one Gradle invocation at a time, sequentially, for every
-(version, loader) combination - never two in parallel, and never two ForgeGradle builds in parallel against a
-cold cache (`docs/PORTING.md` "Gotchas").
+`server`, `client`, `smoke`. Within one instance: one Gradle invocation at a time, sequentially, for every
+(version, loader) combination. Several instances on disjoint `-Mc` sets may run side by side (see "Parallel runs"),
+with at most one game window open machine-wide; never start them while a ForgeGradle cache is still cold
+(`docs/PORTING.md` "Gotchas").
 
 1. **build** - `gradlew build --no-daemon --stacktrace`. Pass iff the process exits 0. The detail always
    includes `build/test-results/test/*.xml`'s summed tests/failures/errors/skipped counts, whether the stage
@@ -178,7 +181,8 @@ and the upload step cleanly (`has_smoke` false).
 - If `smoketest-result.json` is missing or unparsable after the task finishes (or times out), the stage FAILS
   outright (this is different from "task doesn't exist" - the harness ran and didn't hold up its end of the
   contract).
-- `-Headless` skips `runSmokeClient` (opens a window) but still runs `runSmokeServer`.
+- `-SmokeTasks runSmokeServer,runSmokeClient` (default both) picks the harness tasks; `-Headless` removes
+  `runSmokeClient` (opens a window) but still runs `runSmokeServer`.
 
 ## Quickplay init script
 
@@ -243,6 +247,53 @@ this script and wants the same treatment: call it in the background right after 
 Verified for real: `Set-MinecraftMuted` against a scratch directory, `Move-MinecraftWindowToSecondary` against
 a real window (moved Notepad to `(-2520, 44)` = the detected secondary monitor's bounds + 40px), and a full
 `server` + `client` run in a detached worktree, confirming `options.txt` ended up muted.
+
+## Parallel runs
+
+A strictly sequential run over every branch and loader takes 5+ hours. The headless stages of different versions can
+run side by side; game windows stay one at a time.
+
+What makes concurrent instances safe (they must get **disjoint** `-Mc` sets):
+
+- **Report directory**: the default is `local/test-reports/<timestamp>-<process id>-<random>`, unique even for
+  instances started in the same second; `-ReportDir` sets it explicitly. Everything an instance writes (stage logs,
+  copied results, the generated `quickplay-init.gradle`) lives inside its own report directory.
+- **Version locks**: `local/test-locks/<mc>.lock` (content: the instance's process id) is held while an instance
+  tests that version and released when it moves on (and in `finally`). A second instance that reaches a locked
+  version records a failing `version lock` row and skips it; a lock whose process id is no longer running is taken
+  over. So an overlapping `-Mc` list never has two instances building in one worktree.
+- **Window lock**: every stage that opens a window (`client`, `runSmokeClient`) first takes the machine-wide
+  `local/game-window.lock` the agents use (`.knowledge/port-brief.md` "One game window at a time",
+  `scripts/lib/GameWindowLock.ps1`): wait while it is younger than 20 minutes, delete it when older, create it
+  atomically with `<owner> <ISO time>`, delete it when the client has exited or was killed, also in `finally`. A
+  background job refreshes it every minute while held, so a long client stage never looks stale to anyone else.
+  `-WindowLockTimeoutMinutes` (default 120) bounds the wait; after that the stage fails.
+- **Server ports**: every server stage picks a free TCP port (`Get-FreeTcpPort`); worlds copied for quickplay get
+  random names inside the version's own `run/` folder.
+
+Recipe for the final run over the 16 branches (three headless instances, then the windows, then one merged report):
+
+```powershell
+# 1) Headless, in parallel (three terminals); warm ForgeGradle caches first (one Forge build per toolchain).
+pwsh scripts/test-all-versions.ps1 -Mc 1.16.3,1.16.5,1.17.1,1.18.1,1.18.2,1.19.2 -Stages build,gametest,server,smoke -SmokeTasks runSmokeServer -ReportDir local/test-reports/final-a
+pwsh scripts/test-all-versions.ps1 -Mc 1.20.1,1.20.4,1.21.1,1.21.4,1.21.5 -Stages build,gametest,server,smoke -SmokeTasks runSmokeServer -ReportDir local/test-reports/final-b
+pwsh scripts/test-all-versions.ps1 -Mc 1.21.8,1.21.10,1.21.11,26.1.2,26.2 -Stages build,gametest,server,smoke -SmokeTasks runSmokeServer -ReportDir local/test-reports/final-c
+
+# 2) One instance for everything that opens a window, over all versions (serialized by the window lock).
+pwsh scripts/test-all-versions.ps1 -Stages client,smoke -SmokeTasks runSmokeClient -ReportDir local/test-reports/final-windows
+
+# 3) One report.
+pwsh scripts/test-all-versions.ps1 -MergeReports local/test-reports/final-a,local/test-reports/final-b,local/test-reports/final-c,local/test-reports/final-windows -ReportDir local/test-reports/final
+```
+
+The `client` stage in step 2 only runs for loaders without `runSmokeClient` (it is skipped as `n/a` where the
+harness covers join-and-check) and uses the world a `server` stage left in `run/world`, which step 1 created.
+
+`-MergeReports` (merge mode, runs nothing else, `scripts/lib/TestAllVersions.Report.ps1`) combines the `report.json`
+of the given directories into one `report.json`/`report.md`: rows are keyed by (version, loader, stage), the newest
+report wins for a duplicate key (a re-run replaces the earlier result), rows of a `-WhatIf` report only fill keys no
+real run has, every row gets its `source` directory, and the summary is recomputed. It exits 1 if a merged row
+failed.
 
 ## Process safety
 
