@@ -1,0 +1,113 @@
+name: Build
+
+# Generic across every mc/* branch: loaders are discovered at runtime (any top-level folder with settings.gradle
+# and gradlew), so this file can be copied unchanged onto other Minecraft version branches.
+
+on:
+  push:
+    branches: ["mc/**"]
+  pull_request:
+    branches: ["mc/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    name: Discover loaders
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.discover.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Discover loader folders
+        id: discover
+        shell: bash
+        run: |
+          set -euo pipefail
+          loaders="[]"
+          for dir in */ ; do
+            loader="${dir%/}"
+            [[ -f "$loader/settings.gradle" && -f "$loader/gradlew" ]] || continue
+
+            # Gradle JVM to RUN gradlew with (independent of the compile toolchain, which foojay auto-provisions
+            # via settings.gradle). Defaults to 21 when a loader's gradle.properties doesn't set it.
+            jdk=21
+            if [[ -f "$loader/gradle.properties" ]]; then
+              found=$(grep -E '^ci_gradle_jdk=' "$loader/gradle.properties" | head -n1 | cut -d'=' -f2 || true)
+              [[ -n "$found" ]] && jdk="$found"
+            fi
+
+            # Fabric-style in-world GameTests: a gametest source set under <loader>/src/gametest.
+            gametest=false
+            [[ -d "$loader/src/gametest" ]] && gametest=true
+
+            loaders=$(jq -c --arg loader "$loader" --arg jdk "$jdk" --argjson gametest "$gametest" \
+              '. + [{"loader": $loader, "gradle_jdk": $jdk, "has_gametest": $gametest}]' <<<"$loaders")
+          done
+
+          echo "Discovered loaders:"
+          echo "$loaders" | jq .
+
+          matrix=$(jq -c -n --argjson include "$loaders" '{"include": $include}')
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build (${{ matrix.loader }})
+    needs: discover
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.discover.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ matrix.gradle_jdk }} (runs Gradle; compile toolchains are auto-provisioned by foojay)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.gradle_jdk }}
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        working-directory: ${{ matrix.loader }}
+        run: chmod +x ./gradlew
+
+      - name: gradlew build
+        working-directory: ${{ matrix.loader }}
+        run: ./gradlew build --no-daemon --stacktrace
+
+      - name: gradlew runGametest
+        if: matrix.has_gametest
+        working-directory: ${{ matrix.loader }}
+        run: ./gradlew runGametest --no-daemon --stacktrace
+
+      - name: Upload jar
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.loader }}-jar
+          path: |
+            ${{ matrix.loader }}/build/libs/*.jar
+            !${{ matrix.loader }}/build/libs/*-sources.jar
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.loader }}-test-reports
+          path: |
+            ${{ matrix.loader }}/build/test-results/**
+            ${{ matrix.loader }}/build/reports/tests/**
+            ${{ matrix.loader }}/build/gametest/**
+          if-no-files-found: ignore
+          retention-days: 14

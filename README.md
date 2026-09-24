@@ -57,3 +57,35 @@ On NeoForge the dev runtime uses the newest Sophisticated builds that still run 
 
 `runClientExported` starts a client that loads only the jars in `<loader>/run-exported/mods` (for testing
 exported jars; on Fabric put Fabric API there too).
+
+## Build, CI and release
+
+`build-all.ps1` and `.github/workflows/build.yml` discover loader folders the same way: any top-level folder
+containing both `settings.gradle` and `gradlew` (today fabric, neoforge, forge). Neither hard-codes the loader
+list, so both files can be copied unchanged onto every other `mc/*` branch, including older branches that only
+have `forge` + `fabric`.
+
+Each loader's `gradle.properties` sets `ci_gradle_jdk` (21 on this branch): the JDK **CI uses to run Gradle
+itself**, independent of the compile toolchain (which `settings.gradle`'s foojay resolver auto-provisions).
+Older branches need a different value here — e.g. ForgeGradle 6 needs JDK 17, Loom 1.18 needs JDK 25 — because
+that Gradle/plugin combination cannot run on JDK 21. CI reads `ci_gradle_jdk` per loader and defaults to 21 if
+the key is absent.
+
+`.github/workflows/build.yml` runs on push/PR to `mc/**` and on manual dispatch: a `discover` job builds the
+loader matrix (loader name, `ci_gradle_jdk`, whether it has a `src/gametest` folder), then a `build` job builds
+each loader with `gradlew build --no-daemon --stacktrace`, runs `gradlew runGametest` for loaders that have one,
+and uploads the built jar (excluding `-sources`) and test reports as workflow artifacts.
+
+`release.ps1` (PowerShell 7, run from the repo root) builds every discovered loader, checks that the version
+embedded in each jar's mod metadata (`fabric.mod.json` / `neoforge.mods.toml` / `mods.toml`) matches
+`mod_version` in `gradle/shared.properties`, then replaces the contents of `<loader>/release/` with the new jar
+and a `SHA256SUMS.txt`:
+
+```
+pwsh ./release.ps1            # gradlew build for every loader, then publish
+pwsh ./release.ps1 -NoBuild   # reuse the jars already in <loader>/build/libs
+```
+
+It prints a summary table and exits non-zero if any loader fails to build, produces no matching jar, or has a
+version mismatch. `<loader>/release/*.jar` and `<loader>/release/SHA256SUMS.txt` are the only tracked files
+under `release/` (see `.gitignore`).
