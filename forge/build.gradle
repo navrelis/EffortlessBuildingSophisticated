@@ -14,7 +14,7 @@ base {
 }
 
 java {
-    // Mojang ships Java 21 to end users in 1.21.11, so mods should target Java 21.
+    // Mojang ships Java 25 to end users since 26.1, so mods should target Java 25.
     toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
     withSourcesJar()
 }
@@ -31,7 +31,7 @@ sourceSets {
         java.srcDir "${commonDir}/src/test/java"
     }
     // In-game smoke test harness (runSmokeClient / runSmokeServer, see TESTING.md): loader-neutral scenarios from
-    // ../common/src/smoketest and the Forge glue from src/smoketest. No Sophisticated Backpacks on Forge 1.21.11, so no
+    // ../common/src/smoketest and the Forge glue from src/smoketest. No Sophisticated Backpacks on Forge 26.1.2, so no
     // backpack fixture. Its own mod ("sophisticatedbuilding_smoketest", META-INF/mods.toml), loaded
     // only by the smoke runs (every classpath folder with a mods.toml is a mod in the Forge dev runtime); never packaged.
     smoketest {
@@ -43,8 +43,7 @@ sourceSets {
 }
 
 minecraft {
-    // Official Mojang names; Forge runs on them since 1.20.6, so the jar is not reobfuscated.
-    mappings channel: 'official', version: minecraft_version
+    // No mappings: Minecraft ships unobfuscated since 26.1 (Forge ran on the official names since 1.20.6 already).
 
     runs {
         configureEach {
@@ -102,7 +101,7 @@ dependencies {
     // The unit tests exercise vanilla types (BlockPos, ...): testImplementation extends implementation, so Minecraft
     // is on their classpath too.
     implementation minecraft.dependency("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
-    // Checks the EventBus 7 listeners (@SubscribeEvent) at compile time, as in the Forge 61 MDK.
+    // Checks the EventBus 7 listeners (@SubscribeEvent) at compile time, as in the Forge 64 MDK.
     annotationProcessor 'net.minecraftforge:eventbus-validator:7.0.5'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
@@ -114,7 +113,7 @@ dependencies {
 // A missing property will result in an error. Properties are expanded using ${} Groovy notation.
 var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
     var replaceProperties = [
-            minecraft_version_range   : minecraft_version_range,
+            minecraft_version_range   : forge_minecraft_version_range,
             forge_version_range       : forge_version_range,
             forge_loader_version_range: forge_loader_version_range,
             mod_id                    : mod_id,

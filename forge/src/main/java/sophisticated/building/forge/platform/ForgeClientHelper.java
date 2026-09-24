@@ -1,14 +1,11 @@
 package sophisticated.building.forge.platform;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.BlockModelPart;
-import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
@@ -17,6 +14,7 @@ import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.client.settings.KeyModifier;
 import sophisticated.building.platform.services.IClientHelper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -63,12 +61,9 @@ public final class ForgeClientHelper implements IClientHelper {
     }
 
     @Override
-    public List<BlockModelPart> collectModelParts(BlockStateModel model, BlockState state, RandomSource random) {
-        return model.collectParts(random, ModelData.EMPTY, null);
-    }
-
-    @Override
-    public void putQuad(VertexConsumer consumer, PoseStack.Pose pose, BakedQuad quad, float red, float green, float blue, float alpha, int packedLight, int packedOverlay) {
-        consumer.putBulkData(pose, quad, red, green, blue, alpha, packedLight, packedOverlay);
+    public List<BlockStateModelPart> collectModelParts(BlockStateModel model, BlockState state, RandomSource random) {
+        List<BlockStateModelPart> parts = new ArrayList<>();
+        model.collectParts(random, parts, ModelData.EMPTY);
+        return parts;
     }
 }
