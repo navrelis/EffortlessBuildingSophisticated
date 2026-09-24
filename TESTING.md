@@ -1,4 +1,4 @@
-# Testing Sophisticated Building 1.21.5
+# Testing Sophisticated Building 1.21.8
 
 Three layers, from fast to real:
 
@@ -11,7 +11,7 @@ Three layers, from fast to real:
 `gradlew build` compiles the smoke harness (so it cannot rot) but never runs it. The harness is dev-only: it lives in
 its own source set, is loaded only by the smoke runs, and never ends up in the mod jar.
 
-On Minecraft 1.21.5 only NeoForge has Sophisticated Backpacks (official build); Fabric and Forge have none, so their
+On Minecraft 1.21.8 only NeoForge has Sophisticated Backpacks (official build); Fabric and Forge have none, so their
 smoke runs have no `sb.*` checks and do not compile the SB fixture.
 
 ## Running the smoke tests
@@ -30,8 +30,7 @@ Same for `neoforge` and `forge`. Without `-PsmoketestOut` the result goes to `<l
   harness creates a fresh superflat world with a unique name (`sb-smoketest-<time>`, older ones are deleted) through
   the vanilla world creation flow (no quick play), runs the client scenarios, writes the result and stops the game. It
   takes well under a minute after the game has loaded.
-- **runSmokeServer** is headless (no GPU needed, for CI): a game test server (Forge 55: a dedicated server, see
-  "Server" below) runs the server scenarios with fake
+- **runSmokeServer** is headless (no GPU needed, for CI): a game test server runs the server scenarios with fake
   survival players (and real backpacks on NeoForge), writes the same result file and exits.
 
 The game exits by itself in every case: after the scenarios, on a failure screen, on a crash (a JVM shutdown hook
@@ -59,7 +58,7 @@ deleted when the task starts.
 - A skipped check has `"passed": true`, `"skipped": true` and a detail starting with `SKIPPED:`.
 - Checks named `sb.*` are Sophisticated Backpacks checks. A loader build that ships the SB integration
   (`META-INF/services/sophisticated.building.platform.services.IBackpackIntegration`) must report passing `sb.*` checks;
-  on 1.21.5 that is NeoForge only. Fabric and Forge 1.21.5 have no SB and report none.
+  on 1.21.8 that is NeoForge only. Fabric and Forge 1.21.8 have no SB and report none.
 - The file is rewritten after every check (atomically), so a crash or a kill still leaves the checks done so far.
 
 ## Scenarios
@@ -96,7 +95,7 @@ The `sb.*` rows run on NeoForge only.
 
 ### Server (`runSmokeServer`, all loaders)
 
-Game tests with a fake survival player (the loader's fake player, or `VanillaFakePlayers` on Forge 55 which has none).
+Game tests with a fake survival player (the loader's fake player, or `VanillaFakePlayers` on Forge, which has none).
 The block sets are encoded and decoded with the packets' stream codecs and handed to the packets' server handlers,
 exactly what arrives from a client.
 
@@ -115,12 +114,8 @@ test is its own batch and they run one after the other, as on 1.21.1. The `sb_` 
 `common/src/smoketestBackpacks/resources`, so only loaders with SB run them. The reporter turns only this mod's
 instances into checks (the game test server also runs vanilla's optional `minecraft:always_pass`).
 
-Forge 55 has no working game test server (its game test launch target starts a normal dedicated server; Forge's
-`Main` patch has the game test server commented out, still in 55.1.14). On Forge `runSmokeServer` therefore starts
-that dedicated server (EULA auto-accepted by Forge for the game test target, a fresh `gametest_world\<time>` world),
-and the harness runs the same test instances itself (`SmokeServerRunner`: batches by environment, a structure grid
-40 blocks below the build limit above spawn, the reporter finished and the server halted when all are done), exactly
-what the vanilla game test server does.
+On NeoForge `sb.worn_backpack` is skipped by `runSmokeServer` on 1.21.8: the NeoForge fake player has no Curios `back`
+slot with Curios 12.0.0+1.21.8 (it had one with Curios for 1.21.1). The client run, with a real player, checks it.
 
 ## Layout
 
@@ -130,7 +125,7 @@ common/src/smoketest/java              loader-neutral harness (vanilla + mod API
   sophisticated/building/smoketest/
     SmokeTest, SmokeReport, SmokeWatchdog, ModErrorLogCapture     switches, JSON result, watchdog, log capture
     client/SmokeClient, ClientDriver, ClientScenarios, RadialMenuDriver, ClientWindow, SmokeClientPlatform
-    server/SmokeServer, ServerScenarios, SmokeServerTests, SmokeServerRunner, SmokeServerPlatform, VanillaFakePlayers
+    server/SmokeServer, ServerScenarios, SmokeServerTests, SmokeServerPlatform, VanillaFakePlayers
     backpack/SmokeBackpacks, SmokeAccessorySlots                   service interfaces for the SB fixture
 common/src/smoketest/resources         data/sophisticatedbuilding/structure/smoketest_empty.nbt (empty 8x8x8 game test template),
                                        test_instance/server_*.json, test_environment/smoke_1..2.json
@@ -157,17 +152,17 @@ Loader glue per build:
 | Harness mod | `fabric.mod.json`, entrypoints `main`/`client` | `neoforge.mods.toml`, `@Mod` | `mods.toml` + `pack.mcmeta`, `@Mod` |
 | Source set wiring | Loom runs `smokeClient`/`smokeServer` (`source sourceSets.smoketest`) | MDG runs `smokeClient`/`smokeServer` (`loadedMods` main + harness) | ForgeGradle 7 creates `runSmoketestClient`/`runSmoketestGameTestServer`; `runSmokeClient`/`runSmokeServer` depend on them |
 | Test functions | `Registry.register(BuiltInRegistries.TEST_FUNCTION, ...)` | `DeferredRegister` on `Registries.TEST_FUNCTION` | `DeferredRegister` on `Registries.TEST_FUNCTION` |
-| Test runner | Fabric API game test server (`-Dfabric-api.gametest`) | NeoForge game test server | `SmokeServerRunner` on the dedicated server (Forge 55 has no game test server) |
+| Test runner | Fabric API game test server (`-Dfabric-api.gametest`) | NeoForge game test server | Forge game test server (Forge 58; Forge 55 had none) |
 | Fake player | Fabric API `FakePlayer` | `FakePlayerFactory` | `VanillaFakePlayers` |
 | Held key in screens | nothing | `NeoForgeSmokeClientPlatform` (key conflict context) | `ForgeSmokeClientPlatform` |
 | SB fixture | - | `common/src/smoketestBackpacks` | - |
 | Accessory slot | - | Curios (smoke runtime only) | - |
 
-Forge's world previews and outlines come from the client mixin `LevelRendererMixin` (Forge 55 has no level render
-event). The smoke runs inherit the `--mixin.config=sophisticatedbuilding.forge.mixins.json` argument from
-`minecraft.runs.configureEach`, so the mixin is applied in `runSmokeClient` (log: "Mixing LevelRendererMixin from
-sophisticatedbuilding.forge.mixins.json into net.minecraft.client.renderer.LevelRenderer") and its config registered in
-`runSmokeServer`; the `line_preview` screenshot is the runtime proof that the previews render.
+Forge's world previews and outlines are drawn in a frame pass added through `AddFramePassEvent` (Forge 58). The GUI
+quads need the common mixin config (`GuiGraphicsAccessor`); the Forge smoke runs inherit the
+`--mixin.config=sophisticatedbuilding.mixins.json` argument from `minecraft.runs.configureEach` (log: "Mixing
+GuiGraphicsAccessor from sophisticatedbuilding.mixins.json into net.minecraft.client.gui.GuiGraphics"); the
+`line_preview` and `radial_menu` screenshots are the runtime proof that the previews and the radial menu render.
 
 ## Adopting the harness in another Minecraft version (port)
 
@@ -180,9 +175,10 @@ sophisticatedbuilding.forge.mixins.json into net.minecraft.client.renderer.Level
      `LevelSettings` / `WorldDataConfiguration` / `GameRules` constructors, `WorldPresets.FLAT` (`ClientScenarios#joinFreshWorld`).
    - Game test API (1.21.5+ shape): test functions in `Registries.TEST_FUNCTION`, data-driven `test_instance` /
      `test_environment`, `GameTestInfo#id()`, `GameTestHelper#fail/assertTrue` taking a `Component`,
-     `GlobalTestReporter`/`TestReporter`, and whether the loader's game test server works at all (Forge 55 does not).
+     `GlobalTestReporter`/`TestReporter`, and whether the loader's game test server works at all (Forge 55 does not,
+     Forge 58 does).
      The NBT `DataVersion` of `smoketest_empty.nbt` is 3955 (1.21.1); old templates are upgraded by DataFixer (1.21.4 =
-     4189, 1.21.5 = 4325).
+     4189, 1.21.5 = 4325, 1.21.8 = 4440).
    - Packets: `StreamCodec` round trip in `ServerScenarios#roundTrip` (1.20.5+; older versions use `FriendlyByteBuf`
      write/read methods).
    - Client: `Screenshot.takeScreenshot` (asynchronous since 1.21.5), `KeyMapping.set/click`, `Minecraft#submit`, the
@@ -235,6 +231,27 @@ sophisticatedbuilding.forge.mixins.json into net.minecraft.client.renderer.Level
 - Unchanged: `ClientScenarios` (world creation, radial menu, modifier screen), `RadialMenuDriver`,
   `SophisticatedBackpacksFixture` (SB 1.21.5-3.27.2.2152 API identical), Curios glue, `VanillaFakePlayers`
   construction, the 1.21.1 `smoketest_empty.nbt`.
+
+### What the 1.21.5 -> 1.21.8 adoption changed
+
+- `VanillaFakePlayers`: `ServerCommonPacketListenerImpl#send(Packet, ChannelFutureListener)` replaces the
+  `PacketSendListener` overload.
+- Forge 58 (EventBus 7): the harness glue adds its listeners through `<Event>.BUS.addListener` and registers the test
+  functions on `FMLJavaModLoadingContext#getModBusGroup()`. Forge 58 has a working game test server again, so
+  `SmokeServerRunner` is gone and `runSmokeServer` runs the tests like on NeoForge (the log ends with "All 3 required
+  tests passed", vanilla's `minecraft:always_pass` included).
+- Forge harness mod: `loaderVersion="[58,)"`, `pack.mcmeta` `pack_format` 64 with `supported_formats: [64, 81]`
+  (1.21.8 resource packs are 64, data packs 81; the mod's own `pack.mcmeta` got the same).
+- Unchanged and working: `ClientScenarios`, `ClientDriver` (world creation, asynchronous screenshots), `RadialMenuDriver`,
+  `ServerScenarios`, `SophisticatedBackpacksFixture` (SB 1.21.8-3.26.2.2159 API identical), Curios glue (Curios
+  12.0.0+1.21.8), the 1.21.1 `smoketest_empty.nbt`.
+
+## Findings (1.21.8)
+
+- Results of the 1.21.8 runs: `runSmokeServer` 3 / 9 (1 skipped: `sb.worn_backpack`, see above) / 3 checks,
+  `runSmokeClient` 10 / 17 (8 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing.
+- The Sophisticated Backpacks and Core data packs of their 1.21.8 builds are listed as `TOO_OLD` by NeoForge (their
+  pack format); the mod's own data pack is compatible (`client.mod_data_pack_compatible`).
 
 ## Findings (1.21.5)
 

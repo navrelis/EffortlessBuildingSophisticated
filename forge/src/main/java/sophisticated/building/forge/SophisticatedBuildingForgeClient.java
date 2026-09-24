@@ -6,7 +6,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.client.event.AddGuiOverlayLayersEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.gui.overlay.ForgeLayeredDraw;
-import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.bus.BusGroup;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuilding;
@@ -22,15 +22,15 @@ import sophisticated.building.render.RenderHandler;
  */
 public class SophisticatedBuildingForgeClient {
 
-    public static void onConstructorClient(IEventBus modEventBus) {
-        modEventBus.addListener(SophisticatedBuildingForgeClient::onClientSetup);
-        modEventBus.addListener(SophisticatedBuildingForgeClient::registerKeyMappings);
-        modEventBus.addListener(SophisticatedBuildingForgeClient::addGuiOverlayLayers);
+    public static void onConstructorClient(BusGroup modBusGroup) {
+        FMLClientSetupEvent.getBus(modBusGroup).addListener(SophisticatedBuildingForgeClient::onClientSetup);
+        RegisterKeyMappingsEvent.getBus(modBusGroup).addListener(SophisticatedBuildingForgeClient::registerKeyMappings);
+        AddGuiOverlayLayersEvent.getBus(modBusGroup).addListener(SophisticatedBuildingForgeClient::addGuiOverlayLayers);
     }
 
     public static void addGuiOverlayLayers(AddGuiOverlayLayersEvent event) {
         ForgeLayeredDraw root = event.getLayeredDraw();
-        root.addAbove(ForgeLayeredDraw.PRE_SLEEP_STACK, SophisticatedBuilding.asResource("material_cost_overlay"), ForgeLayeredDraw.CROSSHAIR, new MaterialCostOverlay());
+        root.addAbove(ForgeLayeredDraw.PRE_SLEEP_STACK, SophisticatedBuilding.asResource("material_cost_overlay"), ForgeLayeredDraw.CROSSHAIR, new MaterialCostOverlay()::render);
         // Build hints, stacks and HUDs on top of the whole HUD, like NeoForge's RenderGuiEvent.Post.
         root.add(SophisticatedBuilding.asResource("hud"), (guiGraphics, deltaTracker) -> RenderHandler.onRenderGui(guiGraphics));
     }

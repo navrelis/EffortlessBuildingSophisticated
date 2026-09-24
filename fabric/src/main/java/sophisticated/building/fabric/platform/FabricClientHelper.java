@@ -7,7 +7,6 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
@@ -57,7 +56,7 @@ public final class FabricClientHelper implements IClientHelper {
     }
 
     @Override
-    public List<BlockModelPart> collectModelParts(BlockStateModel model, BlockState state, RandomSource random, RenderType renderType) {
+    public List<BlockModelPart> collectModelParts(BlockStateModel model, BlockState state, RandomSource random) {
         return model.collectParts(random);
     }
 

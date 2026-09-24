@@ -31,7 +31,7 @@ sourceSets {
         java.srcDir "${commonDir}/src/test/java"
     }
     // In-game smoke test harness (runSmokeClient / runSmokeServer, see TESTING.md): loader-neutral scenarios from
-    // ../common/src/smoketest and the Forge glue from src/smoketest. No Sophisticated Backpacks on Forge 1.21.5, so no
+    // ../common/src/smoketest and the Forge glue from src/smoketest. No Sophisticated Backpacks on Forge 1.21.8, so no
     // backpack fixture. Its own mod ("sophisticatedbuilding_smoketest", META-INF/mods.toml), loaded
     // only by the smoke runs (every classpath folder with a mods.toml is a mod in the Forge dev runtime); never packaged.
     smoketest {
@@ -55,7 +55,7 @@ minecraft {
             systemProperty 'forge.logging.markers', 'REGISTRIES'
             systemProperty 'forge.logging.console.level', 'debug'
             // Mixin reads its configs from the jar manifest (see jar below); the dev runs name them on the command line.
-            args "--mixin.config=${mod_id}.forge.mixins.json"
+            args "--mixin.config=${mod_id}.mixins.json"
         }
 
         register('client') {
@@ -177,8 +177,8 @@ tasks.named('check') {
 // Resolved while configuring: the configuration cache cannot read project properties at execution time.
 def licenseFileName = "LICENSE_${mod_id}.txt"
 tasks.named('jar', Jar) {
-    // The world previews are added to the level frame graph by a mixin (Forge 55 has no level render event).
-    manifest.attributes('MixinConfigs': "${mod_id}.forge.mixins.json")
+    // The common mixin config (the GuiGraphics accessor of the GUI quads, Minecraft 1.21.6+).
+    manifest.attributes('MixinConfigs': "${mod_id}.mixins.json")
     from(file('../LICENSE.txt')) {
         rename { licenseFileName }
     }

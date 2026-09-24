@@ -5,13 +5,14 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.common.util.Result;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingEquipmentChangeEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import sophisticated.building.CommonEvents;
 import sophisticated.building.SophisticatedBuilding;
@@ -40,14 +41,13 @@ public class ForgeCommonEvents {
 		CommonEvents.onServerStopped();
 	}
 
-	//Cancel event if necessary. Nothing more, rest is handled on mouseclick
+	//Cancel event if necessary (EventBus 7: returning true cancels). Nothing more, rest is handled on mouseclick
 	@SubscribeEvent
-	public static void onBlockPlaced(BlockEvent.EntityPlaceEvent event) {
-		if (event.getLevel().isClientSide()) return; //Never called clientside anyway, but just to be sure
-		if (!(event.getEntity() instanceof Player player)) return;
+	public static boolean onBlockPlaced(BlockEvent.EntityPlaceEvent event) {
+		if (event.getLevel().isClientSide()) return false; //Never called clientside anyway, but just to be sure
+		if (!(event.getEntity() instanceof Player player)) return false;
 
 		if (CommonEvents.shouldCancelBlockPlace(player)) {
-			event.setCanceled(true);
 			//Notify client to not decrease itemstack
 			if (player instanceof ServerPlayer serverPlayer) {
 				int slotIndex = 36 + serverPlayer.getInventory().getSelectedSlot();
@@ -58,17 +58,22 @@ public class ForgeCommonEvents {
 						serverPlayer.getInventory().getSelectedItem()
 				));
 			}
+			return true;
 		}
+		return false;
 	}
 
-	//Cancel event if necessary. Nothing more, rest is handled on mouseclick
+	//Cancel event if necessary. Nothing more, rest is handled on mouseclick. Forge 58 breaks the block unless the
+	//event result is DENY (ForgeHooks.onBlockBreakEvent); returning true also stops the later listeners.
 	@SubscribeEvent
-	public static void onBlockBroken(BlockEvent.BreakEvent event) {
-		if (event.getLevel().isClientSide()) return;
+	public static boolean onBlockBroken(BlockEvent.BreakEvent event) {
+		if (event.getLevel().isClientSide()) return false;
 
 		if (CommonEvents.shouldCancelBlockBreak(event.getPlayer())) {
-			event.setCanceled(true);
+			event.setResult(Result.DENY);
+			return true;
 		}
+		return false;
 	}
 
 	@SubscribeEvent
