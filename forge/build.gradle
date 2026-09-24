@@ -68,7 +68,16 @@ repositories {
 }
 
 legacyForge {
-    version = "${minecraft_version}-${forge_version}"
+    enable {
+        forgeVersion = "${minecraft_version}-${forge_version}"
+        // Always decompile and recompile Minecraft+Forge, also on CI. MDG skips that step by default when the
+        // environment variable CI is "true" (GitHub Actions) and then remaps the signed Forge universal jar to
+        // official names but keeps its signature (META-INF/FORGE.SF/.RSA with the old SHA-256 digests): the unit
+        // tests load those classes from the plain classpath and fail with "SHA-256 digest error for
+        // net/minecraftforge/common/extensions/IForgePlayer.class". Recompiled artifacts carry no signature, and
+        // CI builds the same artifacts as a local build.
+        disableRecompilation = false
+    }
 
     parchment {
         mappingsVersion = parchment_mappings_version
