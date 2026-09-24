@@ -21,14 +21,14 @@ Status: open / in progress / in review / done. Chains: forward (1.21.1 -> 26.2) 
 | T2 | scripts/test-all-versions.ps1 on main: runs build/unit/GameTest/smoke per branch+loader, report | Sonnet | - | with ports | done |
 | F7 | templates/branch on main (canonical CI/release/build-all, actions v5-era, ubuntu-24.04) + sync-branch-infra.ps1; applied to mc/1.20.4 + release jars | Sonnet | F5 | with T1, T2, P-F1 | done |
 | B1 | Fix OmegaRandomizerBagScreen native BufferBuilder leak (1.21.1, 1.20.4, then ports) | Sonnet | - | 1.20.4 first | done |
-| P-B1f | Forge 1.20.4 build | Opus | P-B1 | - | open |
+| P-B1f | Forge 1.20.4 build | Opus | P-B1 | with H2 (own worktree) | done (42d4100); H4 harness in progress |
 | B2 | Forge 1.21.1 client crash (LootModifierManager; data pack flagged incompatible) | Opus (inside T1) | - | - | done (Forge upstream bug; our pack.mcmeta fixed) |
-| P-F2 | Port mc/1.21.5 (RenderPipeline rewrite, GameTest rework, B1 folded in) | Opus | P-F1 | with T1 | partial (WIP pushed) |
+| P-F2 | Port mc/1.21.5 (RenderPipeline rewrite, GameTest rework, B1 folded in) | Opus+Sonnet | P-F1 | with T1 | done except client checks (66c3cf8); H3 harness pending |
 | B1b | Leak fix on 1.21.4 | Sonnet | - | with P-F2 | done |
 | P-B2 | Port mc/1.20.1 (forge incl. NeoForge 1.20.1 compat, fabric SB port) | Opus | P-B1 | with P-F2 | partial (WIP local, not compiling) |
 | H1 | Adopt smoke harness on 1.21.4 (+ the 2 T1 prod fixes) | Opus | T1 | with P-F2, P-B2 | done (13e138d) |
-| B1c+CI-S | Leak fix on 1.21.1; CI template runs runSmokeServer (headless sb.* in CI); sync 1.21.1+1.20.4 | Sonnet | T1 | with H1 | B1c done; CI-S template committed, not synced |
-| H* | Adopt the smoke harness in 1.20.4, 1.21.5 and every later port | tbd | H1 | - | open |
+| B1c+CI-S | Leak fix on 1.21.1; CI template runs runSmokeServer; docs; stale-log fix | Sonnet | T1 | with H1 | done (main + mc/1.21.1 5d90c3b); sync other branches as each gets the harness |
+| H* | Adopt the smoke harness: 1.20.4 done (H2, e7dd5ce), 1.21.5 (H3) in progress, then every port | Opus | H1 | - | in progress |
 | Z  | Final: e2e check all branches, graphify refresh, report, push | lead | all | - | open |
 
 ## Definition of done
@@ -51,11 +51,11 @@ Status: open / in progress / in review / done. Chains: forward (1.21.1 -> 26.2) 
 | mc/1.20.4 | 1.20.4 | yes | SB | SB (port) | back 1 |
 | mc/1.20.1 | 1.20.1 | SB (also NeoForge 1.20.1) | (Forge jar) | SB (port) | back 2 |
 | mc/1.19.2 | 1.19-1.19.2 (split 1.19 if runtime test fails) | SB | - | SB (port) | back 3 |
-| mc/1.18.2 | 1.18.2 | SB | - | yes | back 4 |
-| mc/1.18.1 | 1.18, 1.18.1 | SB | - | yes | back 5 |
-| mc/1.17.1 | 1.17.1 | SB | - | yes | back 6 |
-| mc/1.16.5 | 1.16.4, 1.16.5 | SB | - | yes | back 7 |
-| mc/1.16.3 | 1.16.3 | SB | - | yes | back 8 |
+| mc/1.18.2 | 1.18.2 | SB | - | yes (no SB port) | back 4 |
+| mc/1.18.1 | 1.18, 1.18.1 | SB | - | yes (no SB port) | back 5 |
+| mc/1.17.1 | 1.17.1 | SB | - | yes (no SB port) | back 6 |
+| mc/1.16.5 | 1.16.4, 1.16.5 | SB | - | yes (no SB port) | back 7 |
+| mc/1.16.3 | 1.16.3 | SB (no Tool Swapper) | - | yes (no SB port) | back 8 |
 Toolchains per cell: scratchpad TOOLCHAINS.md (R3); copied into the hub porting guide in F6.
 
 

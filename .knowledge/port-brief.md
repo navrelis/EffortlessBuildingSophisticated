@@ -63,3 +63,6 @@ shows every file. Port it to your branch with the smallest possible API adaptati
 - Done = on every loader: `gradlew build` green (report test counts), `runSmokeServer` passes, `runSmokeClient` passes
   (report every check line; SB loaders must show passing `sb.*` checks), screenshots look right (open 2-3 PNGs and
   say what you see), release jar contains no smoketest classes. Every client under the window lock above.
+
+## Agent limit (user, 2026-09-25)
+At most 10 agents run in the whole session. Do NOT spawn your own subagents; do the work yourself, sequentially.
