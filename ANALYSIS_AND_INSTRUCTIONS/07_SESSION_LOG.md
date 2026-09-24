@@ -953,3 +953,35 @@ Release: version bumped to 4.2.0 in both `gradle.properties` files (grepped both
 `neoforge.mods.toml` are templated from `${mod_version}`). Wrote `PATCH_NOTES_4.2.0.md`.
 `.\rebuild_all_and_export_jar.ps1` ran clean; Fabric tests re-run via `.\gradlew.bat test
 --no-daemon`.
+
+## 2026-09-24 (round 2) - 4.2.1 release: limitation fixes and Fabric GameTests
+
+Commits since 4.2.0 (`a8eb63e..HEAD`), one line each:
+- `1ee43a6` fix: undo item counts (double slab, candles/pickles/eggs/snow layers/petals charged by
+  real count, merges only charge the difference), same-block merges limited to real stackable
+  blocks (slab->double, +1 on stackable counts only - crops/composters/respawn anchors excluded),
+  skipFirst semantics fixed (vanilla-handled first block honoured only while not cancelled, single-
+  block Disable clicks not sent), spawn protection/world border/adventure-mode checks added to
+  every build-mode placement and break (L1).
+- `662285e` feat(neoforge): Building Upgrade supply capped to the tier's max blocks per build like
+  Fabric, held-block anchor kept when a backpack holds that item, "Place up to N blocks" tooltip
+  restored, a dead helper removed (L2).
+- `4c81b1b` feat(fabric): out-of-range/wrong-typed/unknown config values are now corrected with the
+  original backed up to `<name>.json.bak` (`-1`, `-2`, ...) instead of re-warning every load (L3).
+- `6ff2cb2` test(fabric): 16 new in-world GameTests for the server-side building rules from L1-L3
+  (storage-block data, survival replace, missing tool/mining delay, slab merge vs. other blocks,
+  undo item counts, skipFirst, world border/adventure mode) - run with `gradlew runGametest`; the
+  build only compiles them (L4).
+- `dc659fd` fix: undo/redo entries that fail (missing items, unbreakable block) now stay on their
+  stack and are retried by the next Ctrl+Z/Ctrl+Y instead of being dropped, with a message when
+  nothing could be done; the randomizer bag's single-item removal shrinks the stack in place so
+  custom names/other data on the remainder survive (L4b).
+
+Release: version bumped to 4.2.1 in both `gradle.properties` files. Wrote `PATCH_NOTES_4.2.1.md`
+("4.2.1 contains everything from 4.2.0 ... plus the following fixes" plus per-fix sections, no
+internal task ids). `.\rebuild_all_and_export_jar.ps1` ran clean; Fabric `.\gradlew.bat test
+--no-daemon` (77 passed, all suites) and the new `.\gradlew.bat runGametest --no-daemon` (all 17
+required tests passed) both re-run; exported jars checked for the right embedded version and that
+the Fabric jar carries no `gametest` classes or fabric.mod.json. Runtime smoke test repeated on
+both `DevInstance_Fabric` and `DevInstance_NeoForge` with the same quick-play recipe as 4.2.0/4.1.1
+(temporary loader-version/build.gradle edits reverted afterwards, nothing committed).

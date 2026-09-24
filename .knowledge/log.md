@@ -26,3 +26,4 @@
 - 2026-09-24 L4 review: accepted; build green (77 unit), runGametest 16/16 passed (verified by lead). Open points from L4 -> L4b: skipped survival undo is dropped from the undo stack; single-item removeFromInventory rebuilds the held stack without its data.
 - 2026-09-24 L4b -> Sonnet, started.
 - 2026-09-24 L4b review: 1 correction (new GameTest not registered as entrypoint); accepted. Fabric 77 unit + 17/17 GameTests, NeoForge green (verified by lead).
+- 2026-09-24 L5 review: 1 correction (4 patch-note wordings); accepted. 4.2.1 jars exported, 77 unit + 17/17 GameTests, smoke test both loaders OK (one NeoForge JVM native crash in Flywheel shader compile on the first try, clean on retry; unrelated).
