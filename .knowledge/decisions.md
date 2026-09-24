@@ -13,3 +13,4 @@
 - NeoForge keeps its uncapped Building Upgrade supply (tier only gates access); its tooltip is reworded instead of adding a cap + anchor. Reason: least-risk honest fix; a cap on NeoForge would need the Fabric anchor port and changes balance without being asked.
 - Version 4.2.1 for the limitation fixes. Reason: 4.2.0 jars may already be published by the user; a new version is safe either way.
 - The Fabric startup ERROR 'No data fixer registered for' is left alone: it comes from the unofficial Sophisticated Backpacks Fabric port (empty EntityType id), not from this mod.
+- Survival mod-breaking still refuses hardness>0 blocks without a tool (4.1.0 design, documented in ToolSelector); not changed. Reason: deliberate balance decision from the survival-breaking design, not a defect.

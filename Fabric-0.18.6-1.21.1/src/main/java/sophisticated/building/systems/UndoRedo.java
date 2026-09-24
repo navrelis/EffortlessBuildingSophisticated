@@ -64,7 +64,12 @@ public class UndoRedo {
 		if (undoStack.isEmpty()) return false;
 
 		BlockSet blockSet = undoStack.pop();
-		SophisticatedBuilding.SERVER_BLOCK_PLACER.undoBlockSet(player, blockSet);
+		BlockSet notUndone = SophisticatedBuilding.SERVER_BLOCK_PLACER.undoBlockSet(player, blockSet);
+		//Entries that could not be undone (missing items, unminable block...) stay available: the next
+		//undo retries them first, same as the set they came from.
+		if (!notUndone.isEmpty()) {
+			undoStack.push(notUndone);
+		}
 
 		return true;
 	}
@@ -81,7 +86,11 @@ public class UndoRedo {
 		if (redoStack.isEmpty()) return false;
 
 		BlockSet blockSet = redoStack.pop();
-		SophisticatedBuilding.SERVER_BLOCK_PLACER.redoBlockSet(player, blockSet);
+		BlockSet notRedone = SophisticatedBuilding.SERVER_BLOCK_PLACER.redoBlockSet(player, blockSet);
+		//Symmetric to undo: entries that could not be redone stay available for the next redo.
+		if (!notRedone.isEmpty()) {
+			redoStack.push(notRedone);
+		}
 
 		return true;
 	}

@@ -170,6 +170,8 @@
   "sophisticatedbuilding.overlay.total": "Total Blocks: %s",
   "sophisticatedbuilding.message.survival_break_nothing": "No suitable tool for the selected blocks (switch to Disable mode for vanilla mining)",
   "sophisticatedbuilding.message.survival_break_partial": "Block(s) skipped: no suitable tool",
+  "sophisticatedbuilding.message.undo_nothing": "Nothing could be undone (missing items or blocks you can't mine)",
+  "sophisticatedbuilding.message.redo_nothing": "Nothing could be redone (missing items or blocks you can't mine)",
   "sophisticatedbuilding.hud.break_countdown": "Breaking %s blocks in %s s",
   "sophisticatedbuilding.hud.replace_countdown": "Replacing %s blocks in %s s",
   "sophisticatedbuilding.hud.break_estimate": "~%s s"

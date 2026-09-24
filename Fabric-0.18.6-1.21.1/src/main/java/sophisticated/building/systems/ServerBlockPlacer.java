@@ -150,20 +150,24 @@ public class ServerBlockPlacer {
     }
 
     //Redo restores whole states, so multi-item states (double slabs, candles...) cost all their items
-    public void redoBlockSet(Player player, BlockSet blocks) {
-        applyBlockSet(player, blocks, true);
+    //Returns the entries that could not be redone (missing items, unminable block...), for the caller to keep
+    //on the redo stack
+    public BlockSet redoBlockSet(Player player, BlockSet blocks) {
+        return applyBlockSet(player, blocks, true);
     }
 
-    private void applyBlockSet(Player player, BlockSet blocks, boolean restoring) {
+    //Returns the entries that were not applied (empty unless restoring, see redoBlockSet)
+    private BlockSet applyBlockSet(Player player, BlockSet blocks, boolean restoring) {
 
-        if (!checkAndNotifyAllowedToUseMod(player)) return;
-        if (!validateBlockSet(player, blocks)) return;
+        if (!checkAndNotifyAllowedToUseMod(player)) return blocks;
+        if (!validateBlockSet(player, blocks)) return blocks;
 
         SophisticatedBuilding.ITEM_USAGE_TRACKER.initialize();
         List<BreakToolHelper.ToolSlot> candidates = player.isCreative() ? null : BreakToolHelper.collectCandidates(player);
         var templates = new PlacementTemplates(player);
         //Only the blocks the mod itself changed (never the skipped first block, which vanilla handled)
         var undoSet = new BlockSet();
+        var notAppliedSet = new BlockSet();
         int survivalBreaksAttempted = 0;
         int survivalBreaksSucceeded = 0;
         for (BlockEntry block : blocks) {
@@ -175,6 +179,8 @@ public class ServerBlockPlacer {
             if (applyBlockEntry(player, block, candidates, templates, restoring)) {
                 undoSet.add(block);
                 if (breaking && candidates != null) survivalBreaksSucceeded++;
+            } else {
+                notAppliedSet.add(block);
             }
         }
 
@@ -190,21 +196,33 @@ public class ServerBlockPlacer {
         }
 
         SophisticatedBuilding.UNDO_REDO.addUndo(player, undoSet);
+
+        //Redo: nothing at all could be restored (as opposed to a partial success)
+        if (restoring && undoSet.isEmpty() && !notAppliedSet.isEmpty()) {
+            SophisticatedBuilding.logTranslate(player, "", "sophisticatedbuilding.message.redo_nothing", "", true);
+        }
+
+        return notAppliedSet;
     }
 
-    public void undoBlockSet(Player player, BlockSet blocks) {
+    //Returns the entries that could not be undone (missing items, unminable block...), for the caller to keep
+    //on the undo stack
+    public BlockSet undoBlockSet(Player player, BlockSet blocks) {
 
-        if (!SophisticatedBuilding.UNDO_REDO.isAllowedToUndo(player)) return;
+        if (!SophisticatedBuilding.UNDO_REDO.isAllowedToUndo(player)) return blocks;
 
         SophisticatedBuilding.ITEM_USAGE_TRACKER.initialize();
         List<BreakToolHelper.ToolSlot> candidates = player.isCreative() ? null : BreakToolHelper.collectCandidates(player);
         var templates = new PlacementTemplates(player);
         var redoSet = new BlockSet();
+        var notUndoneSet = new BlockSet();
         for (BlockEntry block : blocks) {
             if (blocks.isSkipped(block)) continue;
 
             if (undoBlockEntry(player, block, candidates, templates)) {
                 redoSet.add(block);
+            } else {
+                notUndoneSet.add(block);
             }
         }
 
@@ -216,6 +234,13 @@ public class ServerBlockPlacer {
         }
 
         SophisticatedBuilding.UNDO_REDO.addRedo(player, redoSet);
+
+        //Nothing at all could be undone (as opposed to a partial success)
+        if (redoSet.isEmpty() && !notUndoneSet.isEmpty()) {
+            SophisticatedBuilding.logTranslate(player, "", "sophisticatedbuilding.message.undo_nothing", "", true);
+        }
+
+        return notUndoneSet;
     }
 
     //restoring: redo, which charges the whole state (see restoreCost); a normal build charges one item per entry

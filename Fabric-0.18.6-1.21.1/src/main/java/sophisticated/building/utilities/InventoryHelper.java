@@ -256,7 +256,7 @@ public class InventoryHelper {
 			if (itemstack.getItem() == item && count > reservedHeld && !(skipStacksWithData && PlacementTemplates.hasData(itemstack))) {
 				int availableFromHeld = count - reservedHeld;
 				int taken = Math.min(availableFromHeld, amount - amountFound);
-				player.getInventory().setItem(preferredSlot, new ItemStack(itemstack.getItem(), count - taken));
+				itemstack.shrink(taken);
 				amountFound += taken;
 			}
 		}
@@ -271,7 +271,7 @@ public class InventoryHelper {
 			int count = itemstack.getCount();
 			if (itemstack.getItem() == item && count > 0 && !(skipStacksWithData && PlacementTemplates.hasData(itemstack))) {
 				int taken = Math.min(count, amount - amountFound);
-				player.getInventory().setItem(i, new ItemStack(itemstack.getItem(), count - taken));
+				itemstack.shrink(taken);
 				amountFound += taken;
 			}
 		}

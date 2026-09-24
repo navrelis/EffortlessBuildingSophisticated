@@ -44,24 +44,22 @@ public class UndoGameTest implements FabricGameTest {
                     FixedStack<BlockSet> stack = undo.undoStacks.get(player.getUUID());
                     helper.assertTrue(stack != null && !stack.isEmpty(), "The break should be on the undo stack");
 
-                    //Keep the set: a skipped undo pops it without pushing a redo
-                    BlockSet undoSet = stack.pop();
-                    stack.push(undoSet);
-
-                    //Only one slab: the double slab costs two, so the entry is skipped and nothing is charged
+                    //Only one slab: the double slab costs two, so undo fails entirely and the set is pushed
+                    //back onto the undo stack instead of being lost
                     removeOneSlab(player);
                     expectEquals(helper, "oak slabs before undo", 1, count(player, Items.OAK_SLAB));
                     helper.assertTrue(undo.undo(player), "undo() should find the set");
                     helper.assertBlockPresent(Blocks.AIR, REL);
-                    expectEquals(helper, "oak slabs after the skipped undo", 1, count(player, Items.OAK_SLAB));
+                    expectEquals(helper, "oak slabs after the failed undo", 1, count(player, Items.OAK_SLAB));
+                    helper.assertTrue(!stack.isEmpty(), "The failed undo should stay on the undo stack");
 
                     //Two slabs: restored as a double slab, both charged
                     player.getInventory().add(new ItemStack(Items.OAK_SLAB, 1));
                     expectEquals(helper, "oak slabs before the second undo", 2, count(player, Items.OAK_SLAB));
-                    undo.addUndo(player, undoSet);
-                    helper.assertTrue(undo.undo(player), "undo() should find the re-added set");
+                    helper.assertTrue(undo.undo(player), "undo() should find the retried set");
                     expectState(helper, REL, dbl);
                     expectEquals(helper, "oak slabs after the undo", 0, count(player, Items.OAK_SLAB));
+                    helper.assertTrue(stack.isEmpty(), "The undo stack should be empty after the successful undo");
                 })
                 .thenExecute(() -> {
                     config.close();

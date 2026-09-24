@@ -13,7 +13,8 @@
       "sophisticated.building.gametest.MergeGameTest",
       "sophisticated.building.gametest.UndoGameTest",
       "sophisticated.building.gametest.SkipFirstGameTest",
-      "sophisticated.building.gametest.ProtectionGameTest"
+      "sophisticated.building.gametest.ProtectionGameTest",
+      "sophisticated.building.gametest.InventoryHelperGameTest"
     ]
   },
   "depends": {
