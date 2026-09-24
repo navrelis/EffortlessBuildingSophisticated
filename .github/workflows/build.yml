@@ -2,6 +2,11 @@ name: Build
 
 # Generic across every mc/* branch: loaders are discovered at runtime (any top-level folder with settings.gradle
 # and gradlew), so this file can be copied unchanged onto other Minecraft version branches.
+#
+# Runners are pinned to ubuntu-24.04 rather than ubuntu-latest: the ubuntu-latest label is scheduled to move from
+# 24.04 to 26.04 in October 2026, and pinning keeps CI reproducible across that migration (bump deliberately when
+# ready instead of picking up an unplanned runner change). Action versions are pinned to the latest major that
+# runs on the Node 24 runner (Node 20 is deprecated across GitHub Actions) — see docs/RELEASING.md.
 
 on:
   push:
@@ -16,12 +21,12 @@ permissions:
 jobs:
   discover:
     name: Discover loaders
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.discover.outputs.matrix }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Discover loader folders
         id: discover
@@ -58,23 +63,23 @@ jobs:
   build:
     name: Build (${{ matrix.loader }})
     needs: discover
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.discover.outputs.matrix) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up JDK ${{ matrix.gradle_jdk }} (runs Gradle; compile toolchains are auto-provisioned by foojay)
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: ${{ matrix.gradle_jdk }}
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Make gradlew executable
         working-directory: ${{ matrix.loader }}
@@ -91,7 +96,7 @@ jobs:
 
       - name: Upload jar
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.loader }}-jar
           path: |
@@ -102,7 +107,7 @@ jobs:
 
       - name: Upload test reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.loader }}-test-reports
           path: |
