@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.10.1'
+    id 'fabric-loom' version '1.17.21'
     id 'java-library'
     id 'idea'
 }
@@ -151,15 +151,15 @@ loom {
 
 processResources {
     var expandProps = [
-            version              : project.version,
-            mod_id               : mod_id,
-            mod_name             : mod_name,
-            mod_description      : mod_description,
-            mod_authors          : mod_authors,
-            mod_license          : mod_license,
-            minecraft_version    : minecraft_version,
-            fabric_loader_version: fabric_loader_version,
-            java_version         : java_version
+            version                  : project.version,
+            mod_id                   : mod_id,
+            mod_name                 : mod_name,
+            mod_description          : mod_description,
+            mod_authors              : mod_authors,
+            mod_license              : mod_license,
+            minecraft_version        : minecraft_version,
+            fabric_loader_version_min: fabric_loader_version_min,
+            java_version             : java_version
     ]
     inputs.properties expandProps
     filteringCharset = 'UTF-8'
