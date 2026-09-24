@@ -230,6 +230,7 @@ processResources {
             mod_license              : mod_license,
             minecraft_version        : minecraft_version,
             fabric_loader_version_min: fabric_loader_version_min,
+            fabric_api_version_min   : fabric_api_version_min,
             java_version             : java_version
     ]
     inputs.properties expandProps

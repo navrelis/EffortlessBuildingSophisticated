@@ -58,7 +58,7 @@ This release reorganizes the mod internally; there is no change to how it plays.
 
 * Minecraft 1.20.4, Java 17.
 * Fabric Loader 0.19.5 or newer (built and tested against 0.19.5).
-* Fabric API 0.97.3+1.20.4.
+* Fabric API 0.97.3+1.20.4 or newer.
 * Optional: Sophisticated Core/Backpacks, unofficial Fabric port for 1.20.4 (tested with Core
   1.20.4-0.6.27.138, CurseForge file 6448724, and Backpacks 1.20.4-3.20.7.101, file 6522961).
 
