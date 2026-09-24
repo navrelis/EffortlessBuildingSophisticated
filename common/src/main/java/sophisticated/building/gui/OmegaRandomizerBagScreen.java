@@ -41,6 +41,10 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 	
 	private Button resetWeightsButton;
 
+	// Reused across frames to avoid allocating a new native buffer for every badge on every render
+	// (see sophisticated.building.render.RenderHandler for the same pattern elsewhere in this codebase).
+	private static final ByteBufferBuilder WEIGHT_BADGE_BUFFER = new ByteBufferBuilder(1536);
+
 	public OmegaRandomizerBagScreen(OmegaRandomizerBagContainer randomizerBagContainer, Inventory playerInventory, Component title) {
 		super(randomizerBagContainer, playerInventory, title);
 		this.inventory = playerInventory;
@@ -253,8 +257,11 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 			RenderSystem.disableDepthTest();
 			guiGraphics.fill(badgeX - 2, badgeY - 1, badgeX + textWidth + 2, badgeY + badgeHeight, 0xAA000000);
 			RenderSystem.enableDepthTest();
-			
-			MultiBufferSource.BufferSource buffer = MultiBufferSource.immediate(new ByteBufferBuilder(1536));
+
+			// Draws immediately: flush what GuiGraphics has batched so far (the fill above), so the
+			// badge background stays underneath the text instead of being drawn over it later.
+			guiGraphics.flush();
+			MultiBufferSource.BufferSource buffer = MultiBufferSource.immediate(WEIGHT_BADGE_BUFFER);
 			font.drawInBatch(weightText, badgeX, badgeY, color, true, ms.last().pose(), buffer, Font.DisplayMode.NORMAL, 0, 15728880);
 			buffer.endBatch();
 			
