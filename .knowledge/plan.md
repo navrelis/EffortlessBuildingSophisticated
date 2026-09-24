@@ -23,7 +23,7 @@ Status: open / in progress / in review / done. Chains: forward (1.21.1 -> 26.2) 
 | B1 | Fix OmegaRandomizerBagScreen native BufferBuilder leak (1.21.1, 1.20.4, then ports) | Sonnet | - | 1.20.4 first | done |
 | P-B1f | Forge 1.20.4 build | Opus | P-B1 | with H2 (own worktree) | done (42d4100); H4 harness in progress |
 | B2 | Forge 1.21.1 client crash (LootModifierManager; data pack flagged incompatible) | Opus (inside T1) | - | - | done (Forge upstream bug; our pack.mcmeta fixed) |
-| P-F2 | Port mc/1.21.5 (RenderPipeline rewrite, GameTest rework, B1 folded in) | Opus+Sonnet | P-F1 | with T1 | done except client checks (66c3cf8); H3 harness pending |
+| P-F2 | Port mc/1.21.5 (RenderPipeline rewrite, GameTest rework, B1 folded in) | Opus+Sonnet | P-F1 | with T1 | done (7a462c3, CI green) |
 | B1b | Leak fix on 1.21.4 | Sonnet | - | with P-F2 | done |
 | P-B2 | Port mc/1.20.1 (forge incl. NeoForge 1.20.1 compat, fabric SB port) | Opus | P-B1 | with P-F2 | partial (WIP local, not compiling) |
 | H1 | Adopt smoke harness on 1.21.4 (+ the 2 T1 prod fixes) | Opus | T1 | with P-F2, P-B2 | done (13e138d) |

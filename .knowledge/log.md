@@ -53,3 +53,5 @@
 - 2026-09-25 B3 review: accepted (only BackpackScanCompat swallowed the cause at WARN; DEBUG sites left). Pushed on 1.21.1, 1.21.4, 1.20.4.
 - 2026-09-25 P-B1f review: accepted (FG 6.0.54 + Gradle 8.12.1, MDG Legacy fails on 1.20.4; Forge 49.2.9; EventNetworkChannel; no SB; Forge 49 has no FakePlayer class - checked universal jar; recipes gain forge:condition). Merged into mc/1.20.4 (42d4100), pushed. H4 Forge 1.20.4 harness + reobf-jar check + release jars -> same agent.
 - 2026-09-25 R4 review: accepted; findings in .knowledge/r4-backports.md (12 proof builds green; no Fabric SB below 1.19.2; SB ctor/wrapper churn; Java 8 only for 1.16.x).
+- 2026-09-25 CI run 36060656217 mc/1.21.5: success (smoke server 3/9/3 in CI). mc/1.21.5 done.
+- 2026-09-25 R5 review: accepted; REPORT copied to .knowledge/r5-forward.md. Key: Forge 60 (1.21.10) = event bus 7 rewrite + AddFramePassEvent (Forge mixin can go); GuiGraphics.renderOutline->submitOutline only on 1.21.10; NeoForge transfer API replaces IItemHandler at 1.21.10 (SB adopted it); MultiBufferSource/Tesselator removed only at 26.2; NeoForge SB from 26.1.2.
