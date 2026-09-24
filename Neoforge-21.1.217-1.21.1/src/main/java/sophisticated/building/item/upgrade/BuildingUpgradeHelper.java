@@ -249,23 +249,28 @@ public class BuildingUpgradeHelper {
         if (wrappers.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        
+
+        int maxFromUpgrade = getEffectiveMaxBlocksForPlayer(player, blockItem);
+        if (maxFromUpgrade <= 0) {
+            return ItemStack.EMPTY;
+        }
+
+        int amountToExtract = Math.min(amount, maxFromUpgrade);
+
         int totalExtracted = 0;
         ItemStack result = ItemStack.EMPTY;
-        
+
         for (BuildingUpgradeWrapper wrapper : wrappers) {
-            if (totalExtracted >= amount) break;
-            
-            // Check if upgrade is valid (has tier limit > 0)
-            int maxFromUpgrade = getEffectiveMaxBlocks(wrapper);
-            if (maxFromUpgrade <= 0) {
+            if (totalExtracted >= amountToExtract) break;
+
+            int wrapperLimit = getEffectiveMaxBlocks(wrapper);
+            if (wrapperLimit <= 0) {
                 continue;
             }
 
-            // Extract as many as needed from this backpack
-            int toExtract = amount - totalExtracted;
+            int toExtract = Math.min(amountToExtract - totalExtracted, wrapperLimit);
             ItemStack extracted = wrapper.extractItem(blockItem, toExtract, simulate);
-            
+
             if (!extracted.isEmpty()) {
                 if (result.isEmpty()) {
                     result = extracted.copy();
@@ -319,24 +324,6 @@ public class BuildingUpgradeHelper {
         }
         return total;
     }
-    
-    /**
-     * Gets the count clamped by the best building upgrade tier limit.
-     * Use this where tier limits apply.
-     * 
-     * @param player The player
-     * @param blockItem The block item to count
-     * @return The count clamped to the max blocks allowed by the upgrade tier
-     */
-    public static int countBlockInBackpackClamped(Player player, ItemStack blockItem) {
-        BuildingUpgradeWrapper wrapper = findBestBuildingUpgrade(player);
-        if (wrapper == null) {
-            return 0;
-        }
-        int realCount = wrapper.countItem(blockItem);
-        int maxBlocks = getEffectiveMaxBlocks(wrapper);
-        return Math.min(realCount, maxBlocks);
-    }
 
     /**
      * Syncs the count of a specific item in the backpack to the client.
@@ -345,9 +332,10 @@ public class BuildingUpgradeHelper {
      * @param item The item to sync
      */
     public static void syncItemCount(ServerPlayer player, net.minecraft.world.item.Item item) {
-        // Unclamped total across every backpack with an enabled upgrade (RC2/T4): NeoForge's tier
-        // only gates access, it never caps the displayed/extractable count, so the HUD must show
-        // the full sum, not just the best wrapper's count.
+        // Unclamped total across every backpack with an enabled upgrade (RC2/T4): the HUD shows the
+        // full sum across all backpacks, not just the best wrapper's count. Extraction is separately
+        // capped to the effective building upgrade limit (see extractBlockFromBackpack), matching
+        // Fabric's clampedBackpackContribution.
         int count = countBlockInBackpacksForDisplay(player, new ItemStack(item));
         PacketDistributor.sendToPlayer(player, new BackpackItemCountPacket(
                 BuiltInRegistries.ITEM.getKey(item),

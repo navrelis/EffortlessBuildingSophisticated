@@ -6,7 +6,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 //Server only. Finds the real inventory stack whose data a placed block should get, for one block set.
 public class PlacementTemplates {
@@ -20,6 +22,7 @@ public class PlacementTemplates {
 
     private final Player player;
     private final TemplateSelector<ItemStack> selector = new TemplateSelector<>(ItemStack::getCount, PlacementTemplates::hasData);
+    private final Map<Item, Integer> anchorCounts = new HashMap<>();
 
     public PlacementTemplates(Player player) {
         this.player = player;
@@ -30,9 +33,6 @@ public class PlacementTemplates {
     }
 
     // Search order: main hand, offhand, rest of the main inventory
-    // No held build-anchor reservation here: unlike Fabric, this project's NeoForge InventoryHelper
-    // does not reserve a held item for the Building Upgrade (no getReservedHeldCount equivalent),
-    // so the anchor count passed to the selector is always 0.
     public Template find(Item item) {
         Inventory inventory = player.getInventory();
         ItemStack mainHand = inventory.getSelected();
@@ -48,7 +48,8 @@ public class PlacementTemplates {
             return new Template(candidates.isEmpty() ? new ItemStack(item) : candidates.get(0), false);
         }
 
-        ItemStack selected = selector.select(candidates, mainHand, 0);
+        int anchorCount = anchorCounts.computeIfAbsent(item, i -> InventoryHelper.getReservedHeldCount(player, i));
+        ItemStack selected = selector.select(candidates, mainHand, anchorCount);
         if (selected == null) {
             return new Template(new ItemStack(item), false);
         }

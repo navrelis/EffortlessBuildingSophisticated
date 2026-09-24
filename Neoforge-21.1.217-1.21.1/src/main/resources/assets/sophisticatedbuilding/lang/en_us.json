@@ -50,7 +50,7 @@
   "item.sophisticatedbuilding.building_upgrade_3": "Building Upgrade Tier 3",
   "item.sophisticatedbuilding.building_upgrade_4": "Building Upgrade Tier 4",
   "item.sophisticatedbuilding.building_upgrade_omega": "Omega Building Upgrade",
-  "item.sophisticatedbuilding.building_upgrade.tooltip": "Builds can use blocks stored in this backpack",
+  "item.sophisticatedbuilding.building_upgrade.tooltip": "Place up to %d blocks at once from backpack inventory",
   "item.sophisticatedbuilding.building_upgrade.omega_tooltip": "The ultimate building upgrade!",
   "item.sophisticatedbuilding.building_upgrade.backpack_tooltip": "Place in a backpack upgrade slot",
   "sophisticatedcore.gui.error.add.building_upgrade_conflict": "Only one building upgrade can be installed per backpack",

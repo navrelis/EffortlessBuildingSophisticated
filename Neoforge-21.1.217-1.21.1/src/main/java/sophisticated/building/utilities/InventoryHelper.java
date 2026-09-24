@@ -5,6 +5,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.server.level.ServerPlayer;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.compatibility.CompatHelper;
 import sophisticated.building.client.ClientBackpackItemCache;
@@ -13,6 +14,83 @@ import sophisticated.building.client.ClientBuildingUpgradeState;
 import java.util.Map;
 
 public class InventoryHelper {
+
+	/**
+	 * The number of blocks of an effective backpack limit that must be kept in the player's
+	 * clamped total, out of the block(s) already physically held, as the build anchor. Client uses
+	 * the server-synced {@link ClientBuildingUpgradeState}; server uses the authoritative helper
+	 * directly. Neither side ever constructs a backpack/upgrade wrapper on the client (RC2).
+	 */
+	public static int getReservedHeldCount(Player player, Item item) {
+		if (!CompatHelper.isSophisticatedBackpacksLoaded()) {
+			return 0;
+		}
+
+		boolean hasUpgrade;
+		int backpackCount = 0;
+		if (player.level().isClientSide()) {
+			hasUpgrade = ClientBuildingUpgradeState.hasUpgrade();
+			if (hasUpgrade) {
+				backpackCount = ClientBackpackItemCache.getCount(item);
+			}
+		} else {
+			try {
+				hasUpgrade = sophisticated.building.item.upgrade.BuildingUpgradeHelper.getEffectiveMaxBlocksForPlayer(
+						player, new ItemStack(item)) > 0;
+				if (hasUpgrade) {
+					backpackCount = sophisticated.building.item.upgrade.BuildingUpgradeHelper.countBlockInBackpacksForDisplay(
+							player, new ItemStack(item));
+				}
+			} catch (Exception | LinkageError e) {
+				return 0;
+			}
+		}
+
+		int selectedSlot = player.getInventory().selected;
+		ItemStack selectedStack = player.getInventory().getItem(selectedSlot);
+		boolean holdsItem = !selectedStack.isEmpty() && selectedStack.getItem() == item && selectedStack.getCount() > 0;
+
+		return reservedHeld(hasUpgrade, backpackCount, holdsItem);
+	}
+
+	/**
+	 * Pure decision of whether to reserve one held block as the build anchor: only when a Building
+	 * Upgrade is active, at least one backpack actually contains the item, and the selected slot
+	 * holds it. No backpack can ever supply an item it does not contain, so anchoring the last held
+	 * block in that case would make it unplaceable for no reason. Extracted so it can be unit
+	 * tested directly.
+	 */
+	public static int reservedHeld(boolean hasUpgrade, int backpackCount, boolean holdsItem) {
+		return (hasUpgrade && backpackCount > 0 && holdsItem) ? 1 : 0;
+	}
+
+	/**
+	 * Clamps a backpack's raw item count to the Building Upgrade's effective max-blocks limit.
+	 * Pure and side-effect free so it can be unit-tested directly.
+	 */
+	public static int clampedBackpackContribution(int backpackCount, int maxBlocks) {
+		if (maxBlocks <= 0) {
+			return 0;
+		}
+		return Math.min(backpackCount, maxBlocks);
+	}
+
+	private static void forceResyncSelectedSlot(Player player, Item item, int selectedSlot) {
+		if (!(player instanceof ServerPlayer serverPlayer)) {
+			return;
+		}
+
+		ItemStack selectedStack = player.getInventory().getItem(selectedSlot);
+		if (!selectedStack.isEmpty() && selectedStack.getItem() == item) {
+			player.getInventory().setItem(selectedSlot, selectedStack.copy());
+		}
+
+		player.getInventory().setChanged();
+		serverPlayer.containerMenu.broadcastChanges();
+		if (serverPlayer.containerMenu != serverPlayer.inventoryMenu) {
+			serverPlayer.inventoryMenu.broadcastChanges();
+		}
+	}
 
 	@Deprecated //Use BlockHelper.findAndRemoveInInventory instead
 	public static ItemStack findItemStackInInventory(Player player, Block block) {
@@ -57,11 +135,10 @@ public class InventoryHelper {
 
 	/**
 	 * Finds total items available in inventory plus backpacks for extraction.
-	 * The tier limit determines IF backpacks can be used, not HOW MANY items.
-	 * Returns total count without clamping.
+	 * Backpack contribution is clamped by installed building upgrade tier.
 	 * @param player The player
 	 * @param item The item to count
-	 * @return Total extractable count (not clamped - tier only gates access)
+	 * @return Total extractable count (inventory + clamped backpack count)
 	 */
 	public static int findTotalItemsInInventory(Player player, Item item) {
 		int total = 0;
@@ -71,24 +148,28 @@ public class InventoryHelper {
 			}
 		}
 
-		// Backpack items are NOT clamped - tier only determines IF upgrade works. If the player has
-		// a valid building upgrade, ALL items in the backpack count (no cap). Client: never inspect
-		// a backpack wrapper locally, use only the server-synced cache/state (RC2). Server: the
-		// authoritative helper.
+		// Keep one held block available as the build anchor when a building upgrade is active.
+		int reservedHeld = getReservedHeldCount(player, item);
+		if (reservedHeld > 0) {
+			total = Math.max(0, total - reservedHeld);
+		}
+
+		// Backpack items are clamped by effective upgrade limit so usage checks/hud stay accurate.
+		// Client: never inspect a backpack wrapper locally, use only the server-synced cache/state
+		// (RC2). Server: the authoritative helper.
 		if (player.level().isClientSide()) {
 			if (ClientBuildingUpgradeState.hasUpgrade()) {
-				total += ClientBackpackItemCache.getCount(item);
+				int backpackCount = ClientBackpackItemCache.getCount(item);
+				total += clampedBackpackContribution(backpackCount, ClientBuildingUpgradeState.getMaxBlocks());
 			}
 		} else if (CompatHelper.isSophisticatedBackpacksLoaded()) {
 			try {
-				// Check if player has a valid building upgrade at all
 				int maxFromUpgrade = sophisticated.building.item.upgrade.BuildingUpgradeHelper.getEffectiveMaxBlocksForPlayer(
 						player, new ItemStack(item));
 				if (maxFromUpgrade > 0) {
-					// Upgrade is valid, count ALL items in backpack (no cap)
 					int backpackCount = sophisticated.building.item.upgrade.BuildingUpgradeHelper.countBlockInBackpacksForDisplay(
 							player, new ItemStack(item));
-					total += backpackCount;
+					total += clampedBackpackContribution(backpackCount, maxFromUpgrade);
 				}
 			} catch (Exception e) {
 				// SophisticatedBackpacks not loaded or error occurred
@@ -159,6 +240,8 @@ public class InventoryHelper {
 		if (player.isCreative()) return;
 
 		int amountFound = 0;
+		int preferredSlot = player.getInventory().selected;
+		int reservedHeld = getReservedHeldCount(player, item);
 
 		// Prefer backpacks first so building upgrades are consumed before player inventory
 		if (CompatHelper.isSophisticatedBackpacksLoaded()) {
@@ -167,11 +250,11 @@ public class InventoryHelper {
 
 		// Then held Item
 		if (amountFound < amount) {
-			int preferredSlot = player.getInventory().selected;
 			ItemStack itemstack = player.getInventory().getItem(preferredSlot);
 			int count = itemstack.getCount();
-			if (itemstack.getItem() == item && count > 0 && !(skipStacksWithData && PlacementTemplates.hasData(itemstack))) {
-				int taken = Math.min(count, amount - amountFound);
+			if (itemstack.getItem() == item && count > reservedHeld && !(skipStacksWithData && PlacementTemplates.hasData(itemstack))) {
+				int availableFromHeld = count - reservedHeld;
+				int taken = Math.min(availableFromHeld, amount - amountFound);
 				player.getInventory().setItem(preferredSlot, new ItemStack(itemstack.getItem(), count - taken));
 				amountFound += taken;
 			}
@@ -179,6 +262,10 @@ public class InventoryHelper {
 
 		// Finally the rest of the inventory
 		for (int i = 0; i < player.getInventory().getContainerSize() && amountFound < amount; ++i) {
+			if (i == preferredSlot) {
+				continue;
+			}
+
 			ItemStack itemstack = player.getInventory().getItem(i);
 			int count = itemstack.getCount();
 			if (itemstack.getItem() == item && count > 0 && !(skipStacksWithData && PlacementTemplates.hasData(itemstack))) {
@@ -192,6 +279,11 @@ public class InventoryHelper {
 			player.getInventory().setChanged();
 		}
 
+		// Always resync selected slot when reserving one held block to eliminate ghost hotbar states.
+		if (reservedHeld > 0) {
+			forceResyncSelectedSlot(player, item, preferredSlot);
+		}
+
 		if (amountFound != amount) {
 			SophisticatedBuilding.logError(player.getDisplayName().getString() + " tried to remove " + amount + " " + item + " from inventory but only removed " + amountFound);
 		}
@@ -199,8 +291,7 @@ public class InventoryHelper {
 
 	/**
 	 * Removes items from backpacks that have building upgrades installed.
-	 * The tier limit is used to determine IF the backpack can be used,
-	 * but does NOT limit how many items can be extracted.
+	 * Extraction is capped by effective building upgrade limit.
 	 * @return The amount actually removed
 	 */
 	public static int removeFromBackpacks(Player player, Item item, int amount) {
@@ -208,16 +299,14 @@ public class InventoryHelper {
 			return 0;
 		}
 		try {
-			// Check if player has a building upgrade at all
 			int maxFromUpgrade = sophisticated.building.item.upgrade.BuildingUpgradeHelper.getEffectiveMaxBlocksForPlayer(player, new ItemStack(item));
 			if (maxFromUpgrade <= 0) {
 				return 0;
 			}
 
-			// Extract as many as needed - tier limit doesn't cap extraction,
-			// it only determines if the upgrade can be used at all
+			int toExtract = Math.min(amount, maxFromUpgrade);
 			ItemStack extracted = sophisticated.building.item.upgrade.BuildingUpgradeHelper.extractBlockFromBackpack(
-					player, new ItemStack(item), amount, false);
+					player, new ItemStack(item), toExtract, false);
 			int removed = extracted.isEmpty() ? 0 : extracted.getCount();
 			if (removed > 0 && player.level().isClientSide()) {
 				return removed;
