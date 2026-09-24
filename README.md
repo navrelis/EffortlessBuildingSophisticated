@@ -85,10 +85,23 @@ Mappings: Mojang (Fabric, Forge), Mojang + Parchment 2025.12.20 (NeoForge). Java
   (`TagValueInput.create(ProblemReporter.DISCARDING, ...)`); chunk layers are `ChunkSectionLayer`s, so the ghost blocks
   draw translucent models with `RenderTypes.translucentMovingBlock()` (1.21.5: `translucent()`), and
   `IClientHelper#collectModelParts` no longer takes a render type.
-* **Minecraft 1.21.9/1.21.10:** key mappings belong to a registered `KeyMapping.Category`
-  (`IClientHelper#createKeyCategory`); widgets and screens receive `MouseButtonEvent`/`KeyEvent` objects and
-  `Button#onPress` an `InputWithModifiers`; the modifier-key checks moved from `Screen` to `Minecraft`
-  (`hasControlDown`/`hasShiftDown`).
+* **Minecraft 1.21.9 input rework:** screens and widgets receive `MouseButtonEvent` / `KeyEvent` / `CharacterEvent`
+  records instead of raw coordinates, buttons and GLFW codes (`mouseClicked(event, doubleClick)`,
+  `onClick(event, doubleClick)`, `keyPressed(event)`, ...); `IClientHelper#matchesKey` / `#isActiveAndMatches` take the
+  `KeyEvent`. `Screen.hasShiftDown()` etc. moved to `Minecraft#hasShiftDown()`; `Window#handle()` is the GLFW handle.
+* **Minecraft 1.21.9 key categories:** a key mapping takes a registered `KeyMapping.Category` instead of a translation
+  key. The mod's keys are in `sophisticatedbuilding:main` (translation key `key.category.sophisticatedbuilding.main`,
+  was `key.sophisticatedbuilding.category`), created through `IClientHelper#createKeyCategory` (Fabric and Forge
+  register it with vanilla, NeoForge in `RegisterKeyMappingsEvent#registerCategory`).
+* **Minecraft 1.21.9 selection lists:** list entries are positioned by the list (`renderContent` with the entry's own
+  `getX()`/`getContentY()`, `children()` is read-only). The modifier screen adds, removes and moves its entries
+  through `ModifiersScreenList` methods (moving keeps the scroll position, as before); the removed
+  `headerHeight = 3` is kept as a 3 pixel gap above each entry, so the panels sit where they did.
+* **Minecraft 1.21.10 other:** `GuiGraphics#renderOutline` is `submitOutline` (1.21.10 only: drawn with the deferred
+  elements, on top of the screen; the scroll inputs' focus frame), `Level#isClientSide()` is a method,
+  `GameProfile#name()`, `LevelChunkSection(PalettedContainerFactory)` (`Level#palettedContainerFactory()`), the GUI
+  render state `buildVertices` has no z. Removed unused widgets that no longer compile (`SlotGui`, `GuiScrollPane`,
+  `GuiCollapsibleScrollEntry`).
 * **Minecraft 1.21.11:**
   - `ResourceLocation` is `Identifier` (payload ids, key mapping categories, pipelines, textures, packets).
   - `RenderType` moved to `client.renderer.rendertype` and is a pipeline plus a `RenderSetup` (no `CompositeState`,
@@ -98,7 +111,8 @@ Mappings: Mojang (Fabric, Forge), Mojang + Parchment 2025.12.20 (NeoForge). Java
     `RenderTypes.solidMovingBlock()` (`RenderType.solid()` is gone; the chunk layers have their own pipelines).
   - `AbstractButton#renderWidget` is final (it also sets the cursor): the mod's buttons override `renderContents`.
     `Screen#init`/`resize` no longer take the `Minecraft`.
-  - `GuiGraphics#renderOutline` is back (1.21.10 called it `submitOutline`); `TextureSetup.singleTexture` takes the
+  - `GuiGraphics#renderOutline` is back and draws at once again (four fills; 1.21.10 had only the deferred
+    `submitOutline`): the scroll inputs' focus frame uses it, as on 1.21.8. `TextureSetup.singleTexture` takes the
     texture's `GpuSampler`.
   - Game rules are typed (`GameRules.BLOCK_DROPS`, `level.gamerules` package); the "water evaporates" check of the
     block placement/break helpers is the `EnvironmentAttributes.WATER_EVAPORATES` attribute at the position (was
@@ -109,17 +123,31 @@ Mappings: Mojang (Fabric, Forge), Mojang + Parchment 2025.12.20 (NeoForge). Java
     constructors take a sort order (0, as vanilla's default).
 * Fabric: no Sophisticated Backpacks integration (the Building Upgrades are placeholder items, their recipes are not
   loaded). The HUD is registered with `HudElementRegistry.addLast` (Fabric API for 1.21.6+ deprecates
-  `HudRenderCallback`).
+  `HudRenderCallback`). Fabric API for 1.21.9+ has no `WorldRenderEvents.AFTER_TRANSLUCENT`: the previews, lines and
+  outlines are drawn at `WorldRenderEvents.END_MAIN` (end of the main pass, after the translucent terrain, before
+  particles and weather).
 * NeoForge: Sophisticated Backpacks 3.26 (`UpgradeItemBase` takes the item properties). NeoForge 21.8: the power level
   attachment serializer writes a `ValueOutput` (same `powerLevel` key, existing player data keeps loading); one
   `RenderLevelStageEvent` subclass per stage (`AfterTranslucentBlocks`, `AfterParticles`); client packets go through
   `ClientPacketDistributor`; bidirectional payloads register both handlers with `playBidirectional`.
-* Forge 58 (EventBus 7): listeners use `net.minecraftforge.eventbus.api.listener.SubscribeEvent`, mod-bus events are
-  reached through `<Event>.getBus(BusGroup)`, cancelling listeners return `true`; a block break is denied with
-  `Result.DENY` (Forge 58 checks the break event's result). The previews, mirror/array lines and outlines are drawn in
-  a frame pass added through `AddFramePassEvent` (back in Forge 58), after all vanilla passes (so after the weather
-  too, as on 1.21.4/1.21.5); 1.21.5's `LevelRendererMixin` is gone. As in the Forge 60/61 MDKs, the build runs the
-  `eventbus-validator` annotation processor (7.0.5) on the listeners.
+  NeoForge 21.10 replaced the item handler capabilities with the transfer API: the randomizer bags expose their
+  container component as `Capabilities.Item.ITEM` (`ItemAccessItemHandler`, was `ComponentItemHandler`), and the mod
+  reads the bags from the component itself (`ItemStackHandler.BagItemStackHandler`, as on Fabric and Forge).
+  Sophisticated Core 1.21.10 follows: the Building Upgrade takes blocks from the backpack with
+  `InventoryHandler#extract` in a transaction (at most one stack per call, as the old `extractItem`).
+  `FMLLoader.getCurrent()`, `FMLEnvironment.getDist()`.
+* Forge 58+ (EventBus 7): listeners use `net.minecraftforge.eventbus.api.listener.SubscribeEvent`, mod-bus events are
+  reached through `<Event>.getBus(BusGroup)` (Forge 60: `<Event>.BUS` for the key mapping and HUD layer events),
+  cancelling listeners return `true`; a block break is denied with `Result.DENY` (Forge 58 checks the break event's
+  result). The previews, mirror/array lines and outlines are drawn in a frame pass added through `AddFramePassEvent`
+  (back in Forge 58), after all vanilla passes (so after the weather too, as on 1.21.4/1.21.5); 1.21.5's
+  `LevelRendererMixin` is gone. Forge 60: tick events are records (`level()`, `player()`), `AttachCapabilitiesEvent`
+  is split per type (`AttachCapabilitiesEvent.Entities`), the frame pass runs `executes(LevelRenderState)`, and the
+  `eventbus-validator` annotation processor checks the listeners at compile time (7.0.5 on Forge 61). On 1.21.10
+  `pack.mcmeta` declared `min_format` 64 .. `max_format` 88 (plus the legacy `pack_format`/`supported_formats`)
+  because Forge 60 checks every mod pack, the data pack too, against the resource pack version 69. Forge 61 does not:
+  the 1.21.11 `pack.mcmeta` declares the Forge 61 MDK's data pack range, `min_format` `[94, 1]` .. `max_format` 94,
+  and the mod's data pack is enabled and compatible (`client.mod_data_pack_compatible`).
 
 ## Build and test
 
