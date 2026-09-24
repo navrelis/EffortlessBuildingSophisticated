@@ -101,4 +101,55 @@ class ReplaceRulesTest {
 		assertEquals(140L, ReplaceRules.placeTime(105L, 100L, 500, 40));
 		assertEquals(105L, ReplaceRules.placeTime(105L, 100L, 500, 0));
 	}
+
+	@Test
+	void singleItemStatesCountOne() {
+		assertEquals(1, ReplaceRules.itemCount(false, 0)); // stone, a single slab
+		assertEquals(1, ReplaceRules.itemCount(false, 1)); // one candle
+	}
+
+	@Test
+	void doubleSlabCountsTwo() {
+		assertEquals(2, ReplaceRules.itemCount(true, 0));
+	}
+
+	@Test
+	void countPropertyGivesTheItemCount() {
+		assertEquals(4, ReplaceRules.itemCount(false, 4)); // four candles, pickles, eggs or petals
+		assertEquals(8, ReplaceRules.itemCount(false, 8)); // eight snow layers
+	}
+
+	@Test
+	void restoringOverAirOrAnotherBlockCostsTheWholeState() {
+		assertEquals(2, ReplaceRules.restoreCost(2, 0)); // double slab after a survival break
+		assertEquals(3, ReplaceRules.restoreCost(3, 0)); // three candles
+	}
+
+	@Test
+	void restoringOverTheSameBlockCostsOnlyTheDifference() {
+		assertEquals(1, ReplaceRules.restoreCost(2, 1)); // redo of a slab merge
+		assertEquals(2, ReplaceRules.restoreCost(5, 3)); // snow layers placed over
+	}
+
+	@Test
+	void restoringFewerItemsIsFree() {
+		assertEquals(0, ReplaceRules.restoreCost(3, 4));
+		assertEquals(0, ReplaceRules.restoreCost(8, 8));
+	}
+
+	@Test
+	void vanillaHandlesTheFirstBlockOnlyInDisableModeWithoutQuickReplace() {
+		assertTrue(ReplaceRules.vanillaHandlesFirst(true, false));
+		assertFalse(ReplaceRules.vanillaHandlesFirst(true, true));   // vanilla is cancelled, the mod replaces it
+		assertFalse(ReplaceRules.vanillaHandlesFirst(false, false)); // build mode
+		assertFalse(ReplaceRules.vanillaHandlesFirst(false, true));
+	}
+
+	@Test
+	void serverHonoursSkipFirstOnlyWhileLikeVanilla() {
+		assertTrue(ReplaceRules.shouldSkipFirst(true, true));
+		assertFalse(ReplaceRules.shouldSkipFirst(true, false)); // vanilla was cancelled, skipping would lose the block
+		assertFalse(ReplaceRules.shouldSkipFirst(false, true));
+		assertFalse(ReplaceRules.shouldSkipFirst(false, false));
+	}
 }

@@ -1,7 +1,8 @@
 package sophisticated.building.utilities;
 
 /**
- * Pure decisions for survival replace: placing onto a block that has to be mined first.
+ * Pure decisions for applying build-mode sets: survival replace (placing onto a block that has to be mined first),
+ * the item cost of multi-item states and the first block that vanilla handles itself.
  * No Minecraft imports so this class is directly unit-testable (see {@code ReplaceRulesTest}).
  */
 public final class ReplaceRules {
@@ -53,6 +54,45 @@ public final class ReplaceRules {
 		if (!oldHasItem) return Action.BREAK;
 		if (sameState || !replaceEnabled) return Action.SKIP;
 		return Action.REPLACE;
+	}
+
+	/**
+	 * Items a block state is made of: what breaking it drops, and what re-placing it (undo/redo) costs.
+	 *
+	 * @param doubleSlab the state is a double slab
+	 * @param countValue the value of its count property (candles, pickles, eggs, snow layers, petals), 0 without one
+	 */
+	public static int itemCount(boolean doubleSlab, int countValue) {
+		if (doubleSlab) return 2;
+		return Math.max(1, countValue);
+	}
+
+	/**
+	 * Items to charge for restoring a state with undo/redo: all the items it is made of, less those of the same block
+	 * that stays in place when it is placed over without mining (so a merge costs one, like vanilla).
+	 *
+	 * @param targetCount item count of the restored state
+	 * @param keptCount   item count of the current block if it is the same block and not mined, else 0
+	 */
+	public static int restoreCost(int targetCount, int keptCount) {
+		return Math.max(0, targetCount - keptCount);
+	}
+
+	/**
+	 * Client: vanilla places or mines the first block itself only in Disable mode without Quick Replace. Otherwise the
+	 * server cancels vanilla and the mod has to handle the first block too.
+	 */
+	public static boolean vanillaHandlesFirst(boolean buildModeDisabled, boolean quickReplacing) {
+		return buildModeDisabled && !quickReplacing;
+	}
+
+	/**
+	 * Server: whether the first block of a received set is left to vanilla. The client's flag is only honoured while
+	 * vanilla really handled the click ({@code ServerBuildState.isLikeVanilla}); if vanilla was cancelled, skipping
+	 * would lose the block.
+	 */
+	public static boolean shouldSkipFirst(boolean skipFirstFlag, boolean isLikeVanilla) {
+		return skipFirstFlag && isLikeVanilla;
 	}
 
 	/** Game time to apply a survival set with replacements: the client's time, or later while mining takes longer. */

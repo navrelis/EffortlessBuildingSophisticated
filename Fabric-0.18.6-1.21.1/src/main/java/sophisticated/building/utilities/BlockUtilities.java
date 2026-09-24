@@ -19,6 +19,8 @@ import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.List;
+
 //Common
 public class BlockUtilities {
 
@@ -31,8 +33,12 @@ public class BlockUtilities {
         return blockState != null && ReplaceRules.needsMining(blockState.isAir(), blockState.canBeReplaced());
     }
 
-    //True if next adds one to existing like a vanilla merge: a single slab becomes double, or exactly one integer
-    //property (candles, pickles, eggs...) goes up by one; all other properties equal except waterlogged
+    //Properties that count the items a block is made of (one more item placed onto the block adds one)
+    public static final List<IntegerProperty> COUNT_PROPERTIES = List.of(BlockStateProperties.CANDLES,
+            BlockStateProperties.PICKLES, BlockStateProperties.EGGS, BlockStateProperties.LAYERS, BlockStateProperties.FLOWER_AMOUNT);
+
+    //True if next adds one item to existing like a vanilla merge: a single slab becomes double, or exactly one count
+    //property (candles, pickles, eggs, snow layers, petals) goes up by one; all other properties equal except waterlogged
     public static boolean isOneStepMerge(BlockState existing, BlockState next) {
         if (existing == null || next == null || existing.getBlock() != next.getBlock()) return false;
         int steps = 0;
@@ -42,13 +48,28 @@ public class BlockUtilities {
             if (before.equals(after) || property == BlockStateProperties.WATERLOGGED) continue;
             if (property == BlockStateProperties.SLAB_TYPE && before != SlabType.DOUBLE && after == SlabType.DOUBLE) {
                 steps++;
-            } else if (property instanceof IntegerProperty && (Integer) after == (Integer) before + 1) {
+            } else if (COUNT_PROPERTIES.contains(property) && (Integer) after == (Integer) before + 1) {
                 steps++;
             } else {
                 return false;
             }
         }
         return steps == 1;
+    }
+
+    //Items the state is made of: 2 for a double slab, the count for candles, pickles, eggs, snow layers and petals, else 1
+    public static int itemCountForState(BlockState blockState) {
+        if (blockState == null) return 1;
+        boolean doubleSlab = blockState.hasProperty(BlockStateProperties.SLAB_TYPE)
+                && blockState.getValue(BlockStateProperties.SLAB_TYPE) == SlabType.DOUBLE;
+        int countValue = 0;
+        for (IntegerProperty property : COUNT_PROPERTIES) {
+            if (blockState.hasProperty(property)) {
+                countValue = blockState.getValue(property);
+                break;
+            }
+        }
+        return ReplaceRules.itemCount(doubleSlab, countValue);
     }
 
     @Deprecated //Use BlockEntry.setItemStackAndFindNewBlockState instead

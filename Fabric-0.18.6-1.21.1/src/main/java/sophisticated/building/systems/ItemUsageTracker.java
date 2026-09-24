@@ -72,6 +72,14 @@ public class ItemUsageTracker {
         return have >= newValue;
     }
 
+    //Server: counts count more items only if all of them are available, otherwise nothing is counted
+    //(a failed multi-item entry must not use up items that a later entry could still place)
+    public boolean tryIncreaseUsageCount(Item item, int count, Player player) {
+        if (increaseUsageCount(item, count, player)) return true;
+        decreaseUsageCount(item, count);
+        return false;
+    }
+
     //Takes back an increaseUsageCount for an entry that ended up not being placed
     public void decreaseUsageCount(Item item, int count) {
         if (item == null) return;

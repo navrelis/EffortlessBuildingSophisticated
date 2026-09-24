@@ -81,7 +81,7 @@ public class UndoRedo {
 		if (redoStack.isEmpty()) return false;
 
 		BlockSet blockSet = redoStack.pop();
-		SophisticatedBuilding.SERVER_BLOCK_PLACER.applyBlockSet(player, blockSet);
+		SophisticatedBuilding.SERVER_BLOCK_PLACER.redoBlockSet(player, blockSet);
 
 		return true;
 	}

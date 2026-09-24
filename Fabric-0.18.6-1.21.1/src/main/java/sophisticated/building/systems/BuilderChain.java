@@ -33,6 +33,7 @@ import sophisticated.building.utilities.BlockSet;
 import sophisticated.building.utilities.BlockUtilities;
 import sophisticated.building.utilities.BreakToolHelper;
 import sophisticated.building.utilities.ClientBlockUtilities;
+import sophisticated.building.utilities.ReplaceRules;
 import sophisticated.building.utilities.SurvivalHelper;
 
 import javax.annotation.Nullable;
@@ -113,6 +114,10 @@ public class BuilderChain {
             buildingState = BuildingState.IDLE;
 
             if (!blocks.isEmpty()) {
+                //Vanilla places the first block itself; nothing to send if that is the only one
+                blocks.skipFirst = vanillaHandlesFirst(buildMode);
+                if (!blocks.hasUnskippedEntries()) return;
+
                 // Randomize block states fresh before sending to server
                 // Use fresh random selection per block position.
                 randomizeBlockStatesFresh(player, player.getItemInHand(InteractionHand.MAIN_HAND));
@@ -130,7 +135,6 @@ public class BuilderChain {
                 ClientBlockUtilities.playSoundIfFurtherThanNormal(player, blocks.getLastBlockEntry(), false);
                 player.swing(InteractionHand.MAIN_HAND);
 
-                blocks.skipFirst = buildMode == BuildModeEnum.DISABLED;
                 long placeTime = player.level().getGameTime();
                 if (blocks.size() > 1) placeTime += ClientConfig.visuals.appearAnimationLength.get();
                 ClientPlayNetworking.send(new ServerPlaceBlocksPacket(blocks, placeTime));
@@ -167,14 +171,13 @@ public class BuilderChain {
             buildingState = BuildingState.IDLE;
 
             if (!blocks.isEmpty()) {
+                //Vanilla mines the first block itself; nothing to send if that is the only one.
+                //Set for this send before anything reads it (setStartPos/clear never reset it).
+                blocks.skipFirst = vanillaHandlesFirst(buildMode);
+                if (!blocks.hasUnskippedEntries()) return;
+
                 if (!player.isCreative()) {
-                    // buildMode == DISABLED is what the later assignment below will set
-                    // blocks.skipFirst to; compute it locally now rather than reading
-                    // blocks.skipFirst, which still holds whatever was assigned on the *previous*
-                    // send (setStartPos/clear never reset it) and would double-subtract when the
-                    // first entry is itself invalid.
-                    boolean skipFirst = buildMode == BuildModeEnum.DISABLED;
-                    BlockPos skipPos = skipFirst ? blocks.firstPos : null;
+                    BlockPos skipPos = blocks.skipFirst ? blocks.firstPos : null;
 
                     //The set may have changed since the last onTick plan; re-plan against the final set.
                     lastBreakPlan = BreakToolHelper.planClient(player, blocks, skipPos);
@@ -182,7 +185,7 @@ public class BuilderChain {
                     int validCount = 0;
                     for (BlockEntry entry : blocks) {
                         if (entry.invalid) continue;
-                        if (skipFirst && entry.blockPos.equals(blocks.firstPos)) continue;
+                        if (blocks.isSkipped(entry)) continue;
                         validCount++;
                     }
                     if (validCount <= 0) {
@@ -197,7 +200,6 @@ public class BuilderChain {
 
                 ClientBlockUtilities.playSoundIfFurtherThanNormal(player, blocks.getLastBlockEntry(), true);
                 player.swing(InteractionHand.MAIN_HAND);
-                blocks.skipFirst = buildMode == BuildModeEnum.DISABLED;
 
                 if (player.isCreative()) {
                     // Creative breaking is instant server-side; keep the immediate dissolve animation.
@@ -213,6 +215,13 @@ public class BuilderChain {
                 ClientPlayNetworking.send(new ServerBreakBlocksPacket(blocks));
             }
         }
+    }
+
+    //Vanilla places or mines the first block itself only in Disable mode without Quick Replace (the server cancels it
+    //otherwise), so only then the server must skip it
+    private static boolean vanillaHandlesFirst(BuildModeEnum buildMode) {
+        return ReplaceRules.vanillaHandlesFirst(buildMode == BuildModeEnum.DISABLED,
+                SophisticatedBuildingClient.BUILD_SETTINGS.isQuickReplacing());
     }
 
     private static int countInvalid(BlockSet blocks) {
@@ -280,7 +289,9 @@ public class BuilderChain {
         SophisticatedBuildingClient.BUILD_MODIFIERS.findCoordinates(blocks, player);
         SophisticatedBuildingClient.BUILDER_FILTER.filterOnCoordinates(blocks, player);
 
-        if (buildMode == BuildModeEnum.DISABLED && blocks.size() <= 1) {
+        //Vanilla alone handles a single block in Disable mode (with Quick Replace the mod replaces it instead)
+        boolean vanillaHandlesFirst = vanillaHandlesFirst(buildMode);
+        if (vanillaHandlesFirst && blocks.size() <= 1) {
             abilitiesState = AbilitiesState.NONE;
             return;
         }
@@ -289,7 +300,7 @@ public class BuilderChain {
         SophisticatedBuildingClient.BUILDER_FILTER.filterOnExistingBlockStates(blocks, player);
 
         if (getPretendBuildingState() == BuildingState.BREAKING && !player.isCreative()) {
-            BlockPos skipPos = buildMode == BuildModeEnum.DISABLED ? blocks.firstPos : null;
+            BlockPos skipPos = vanillaHandlesFirst ? blocks.firstPos : null;
             lastBreakPlan = BreakToolHelper.planClient(player, blocks, skipPos);
         } else {
             lastBreakPlan = null;

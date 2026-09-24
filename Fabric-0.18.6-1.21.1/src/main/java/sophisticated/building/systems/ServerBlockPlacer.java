@@ -38,6 +38,7 @@ public class ServerBlockPlacer {
 
     public void placeBlocksDelayed(Player player, BlockSet blocks, long placeTime) {
 
+        resolveSkipFirst(player, blocks);
         if (!checkAndNotifyAllowedToUseMod(player)) return;
         if (!validateBlockSet(player, blocks)) return;
 
@@ -55,7 +56,7 @@ public class ServerBlockPlacer {
         int totalTicks = 0;
         int replaceCount = 0;
         for (BlockEntry block : blocks) {
-            if (blocks.skipFirst && block.blockPos == blocks.firstPos) continue;
+            if (blocks.isSkipped(block)) continue;
             if (BlockUtilities.isNullOrAir(block.newBlockState)) continue;
 
             BlockState state = level.getBlockState(block.blockPos);
@@ -105,6 +106,7 @@ public class ServerBlockPlacer {
 //endregion
 
     public void breakBlocks(Player player, BlockSet blocks) {
+        resolveSkipFirst(player, blocks);
         if (player.isCreative()) {
             applyBlockSet(player, blocks);
             return;
@@ -122,7 +124,7 @@ public class ServerBlockPlacer {
         int totalTicks = 0;
         int blockCount = 0;
         for (BlockEntry block : blocks) {
-            if (blocks.skipFirst && block.blockPos == blocks.firstPos) continue;
+            if (blocks.isSkipped(block)) continue;
             blockCount++;
 
             var state = player.level().getBlockState(block.blockPos);
@@ -144,6 +146,15 @@ public class ServerBlockPlacer {
     }
 
     public void applyBlockSet(Player player, BlockSet blocks) {
+        applyBlockSet(player, blocks, false);
+    }
+
+    //Redo restores whole states, so multi-item states (double slabs, candles...) cost all their items
+    public void redoBlockSet(Player player, BlockSet blocks) {
+        applyBlockSet(player, blocks, true);
+    }
+
+    private void applyBlockSet(Player player, BlockSet blocks, boolean restoring) {
 
         if (!checkAndNotifyAllowedToUseMod(player)) return;
         if (!validateBlockSet(player, blocks)) return;
@@ -151,16 +162,17 @@ public class ServerBlockPlacer {
         SophisticatedBuilding.ITEM_USAGE_TRACKER.initialize();
         List<BreakToolHelper.ToolSlot> candidates = player.isCreative() ? null : BreakToolHelper.collectCandidates(player);
         var templates = new PlacementTemplates(player);
+        //Only the blocks the mod itself changed (never the skipped first block, which vanilla handled)
         var undoSet = new BlockSet();
         int survivalBreaksAttempted = 0;
         int survivalBreaksSucceeded = 0;
         for (BlockEntry block : blocks) {
-            if (blocks.skipFirst && block.blockPos == blocks.firstPos) continue;
+            if (blocks.isSkipped(block)) continue;
 
             boolean breaking = BlockUtilities.isNullOrAir(block.newBlockState);
             if (breaking && candidates != null) survivalBreaksAttempted++;
 
-            if (applyBlockEntry(player, block, candidates, templates)) {
+            if (applyBlockEntry(player, block, candidates, templates, restoring)) {
                 undoSet.add(block);
                 if (breaking && candidates != null) survivalBreaksSucceeded++;
             }
@@ -189,7 +201,7 @@ public class ServerBlockPlacer {
         var templates = new PlacementTemplates(player);
         var redoSet = new BlockSet();
         for (BlockEntry block : blocks) {
-            if (blocks.skipFirst && block.blockPos == blocks.firstPos) continue;
+            if (blocks.isSkipped(block)) continue;
 
             if (undoBlockEntry(player, block, candidates, templates)) {
                 redoSet.add(block);
@@ -206,8 +218,9 @@ public class ServerBlockPlacer {
         SophisticatedBuilding.UNDO_REDO.addRedo(player, redoSet);
     }
 
+    //restoring: redo, which charges the whole state (see restoreCost); a normal build charges one item per entry
     private boolean applyBlockEntry(Player player, BlockEntry block, @Nullable List<BreakToolHelper.ToolSlot> candidates,
-                                    PlacementTemplates templates) {
+                                    PlacementTemplates templates, boolean restoring) {
 
         block.existingBlockState = player.level().getBlockState(block.blockPos);
         boolean breaking = BlockUtilities.isNullOrAir(block.newBlockState);
@@ -219,20 +232,32 @@ public class ServerBlockPlacer {
         if (action == ReplaceRules.Action.SKIP) return false;
         if (!validateBlockEntry(player, block, action != ReplaceRules.Action.PLACE)) return false;
 
+        int count = restoring && !breaking ? restoreCost(action, block.existingBlockState, block.newBlockState) : 1;
+
         isPlacingOrBreakingBlocks = true;
-        boolean success = switch (action) {
-            case BREAK -> BlockPlacerHelper.breakBlock(player, block, candidates);
-            case REPLACE -> mineAndPlace(player, block, candidates, templates);
-            default -> placeIfAvailable(player, block, templates);
-        };
-        isPlacingOrBreakingBlocks = false;
-        return success;
+        try {
+            return switch (action) {
+                case BREAK -> BlockPlacerHelper.breakBlock(player, block, candidates);
+                case REPLACE -> mineAndPlace(player, block, candidates, templates, count);
+                default -> placeIfAvailable(player, block, templates, count);
+            };
+        } finally {
+            isPlacingOrBreakingBlocks = false;
+        }
     }
 
-    private boolean placeIfAvailable(Player player, BlockEntry block, PlacementTemplates templates) {
-        //If we have the item in our inventory, place it
-        if (SophisticatedBuilding.ITEM_USAGE_TRACKER.increaseUsageCount(block.item, 1, player)) {
-            return placeWithTemplate(player, block, templates, false);
+    //Undo/redo restore a whole state: a double slab costs two slabs, three candles three candles. The same block placed
+    //over without mining (a merge, snow layers) keeps its items, so only the difference is charged.
+    private static int restoreCost(ReplaceRules.Action action, BlockState current, BlockState target) {
+        boolean kept = action == ReplaceRules.Action.PLACE && current.is(target.getBlock());
+        return ReplaceRules.restoreCost(BlockUtilities.itemCountForState(target), kept ? BlockUtilities.itemCountForState(current) : 0);
+    }
+
+    //count: items the entry costs, all or nothing
+    private boolean placeIfAvailable(Player player, BlockEntry block, PlacementTemplates templates, int count) {
+        //If we have the items in our inventory, place it
+        if (SophisticatedBuilding.ITEM_USAGE_TRACKER.tryIncreaseUsageCount(block.item, count, player)) {
+            return placeWithTemplate(player, block, templates, false, count);
         }
         //Not having the item at this point would be a bit weird
         //It could mean the client/server are out of sync, or the inventory changed during the short delay period
@@ -240,35 +265,38 @@ public class ServerBlockPlacer {
         return false;
     }
 
-    //Survival replace: the item is checked first, then the block in the way is mined like a survival break
+    //Survival replace: the items are checked first, then the block in the way is mined like a survival break
     //(tool durability, drops to the inventory, exhaustion). Nothing is mined or charged if either fails.
     private boolean mineAndPlace(Player player, BlockEntry block, List<BreakToolHelper.ToolSlot> candidates,
-                                 PlacementTemplates templates) {
+                                 PlacementTemplates templates, int count) {
         var tracker = SophisticatedBuilding.ITEM_USAGE_TRACKER;
-        if (!tracker.increaseUsageCount(block.item, 1, player)) {
-            tracker.decreaseUsageCount(block.item, 1);
-            return false;
-        }
+        if (!tracker.tryIncreaseUsageCount(block.item, count, player)) return false;
         if (!BlockPlacerHelper.breakBlock(player, block, candidates)) {
-            tracker.decreaseUsageCount(block.item, 1);
+            tracker.decreaseUsageCount(block.item, count);
             return false;
         }
-        return placeWithTemplate(player, block, templates, true);
+        return placeWithTemplate(player, block, templates, true, count);
     }
 
     //Places the entry with the data of a real inventory stack; a stack with data is consumed right here in survival
     //uncountOnFailure: a failed placement is taken back from the usage count instead of being charged
-    private boolean placeWithTemplate(Player player, BlockEntry block, PlacementTemplates templates, boolean uncountOnFailure) {
+    private boolean placeWithTemplate(Player player, BlockEntry block, PlacementTemplates templates, boolean uncountOnFailure,
+                                      int count) {
+        var tracker = SophisticatedBuilding.ITEM_USAGE_TRACKER;
         var template = block.item == null ? null : templates.find(block.item);
         boolean success = BlockPlacerHelper.placeBlock(player, block, template == null ? ItemStack.EMPTY : template.stack());
         if (!success && uncountOnFailure) {
-            SophisticatedBuilding.ITEM_USAGE_TRACKER.decreaseUsageCount(block.item, 1);
+            tracker.decreaseUsageCount(block.item, count);
             return false;
         }
-        if (template != null && template.individual()) {
-            //Taken from the exact stack (only if placed); either way it is left out of the bulk removal
-            SophisticatedBuilding.ITEM_USAGE_TRACKER.addConsumedIndividually(block.item, 1);
-            if (success) template.stack().shrink(1);
+        //Each counted item comes from a template; the first one gives the placed block its data
+        for (int i = 0; i < count && template != null; i++) {
+            if (i > 0) template = templates.find(block.item);
+            if (template.individual()) {
+                //Taken from the exact stack (only if placed); either way it is left out of the bulk removal
+                tracker.addConsumedIndividually(block.item, 1);
+                if (success) template.stack().shrink(1);
+            }
         }
         return success;
     }
@@ -283,7 +311,7 @@ public class ServerBlockPlacer {
         tempBlockEntry.existingBlockState = block.newBlockState;
         tempBlockEntry.newBlockState = temp;
         if (!breaking) {
-            //Re-placing a broken block costs its item like any placement; blocks without an item stay free
+            //Re-placing a broken block costs its items like any placement; blocks without an item stay free
             Item item = temp.getBlock().asItem();
             tempBlockEntry.item = item == Items.AIR ? null : item;
         }
@@ -298,15 +326,18 @@ public class ServerBlockPlacer {
         //Update newBlockState for future redo's
         block.newBlockState = current;
 
-        isPlacingOrBreakingBlocks = true;
-        boolean success = switch (action) {
-            case BREAK -> BlockPlacerHelper.breakBlock(player, tempBlockEntry, candidates);
-            case REPLACE -> mineAndPlace(player, tempBlockEntry, candidates, templates);
-            default -> placeIfAvailable(player, tempBlockEntry, templates);
-        };
-        isPlacingOrBreakingBlocks = false;
+        int count = breaking ? 1 : restoreCost(action, current, temp);
 
-        return success;
+        isPlacingOrBreakingBlocks = true;
+        try {
+            return switch (action) {
+                case BREAK -> BlockPlacerHelper.breakBlock(player, tempBlockEntry, candidates);
+                case REPLACE -> mineAndPlace(player, tempBlockEntry, candidates, templates, count);
+                default -> placeIfAvailable(player, tempBlockEntry, templates, count);
+            };
+        } finally {
+            isPlacingOrBreakingBlocks = false;
+        }
     }
 
     private boolean checkAndNotifyAllowedToUseMod(Player player) {
@@ -334,23 +365,26 @@ public class ServerBlockPlacer {
         return true;
     }
 
+    //The client's skipFirst is decided when the click arrives: vanilla handled the first block only if it was not cancelled
+    private static void resolveSkipFirst(Player player, BlockSet blocks) {
+        blocks.skipFirst = ReplaceRules.shouldSkipFirst(blocks.skipFirst, ServerBuildState.isLikeVanilla(player));
+    }
+
     private boolean validateBlockSet(Player player, BlockSet blocks) {
 
         if (blocks.isEmpty()) {
             SophisticatedBuilding.log(player, ChatFormatting.RED + "No blocks to place.");
             return false;
         }
-        if (blocks.skipFirst && blocks.size() == 1 && blocks.iterator().next().blockPos == blocks.firstPos) {
-            SophisticatedBuilding.log(player, ChatFormatting.RED + "No blocks to place because the first block was skipped.");
-            return false;
-        }
+        //Vanilla already handled the only block
+        if (!blocks.hasUnskippedEntries()) return false;
         if (blocks.size() > ServerConfig.validation.maxBlocksPlacedAtOnce.get()) {
             SophisticatedBuilding.log(player, ChatFormatting.RED + "Too many blocks to place. Max: " + ServerConfig.validation.maxBlocksPlacedAtOnce.get());
             return false;
         }
 
         //Dont allow mixing breaking and placing blocks
-        if (isMixedPlacingAndBreaking(player, blocks)) {
+        if (isMixedPlacingAndBreaking(blocks)) {
             SophisticatedBuilding.log(player, ChatFormatting.RED + "Cannot mix breaking and placing blocks.");
             return false;
         }
@@ -358,25 +392,18 @@ public class ServerBlockPlacer {
         return true;
     }
 
-    private boolean isMixedPlacingAndBreaking(Player player, BlockSet blocks) {
+    private boolean isMixedPlacingAndBreaking(BlockSet blocks) {
 
-        //First determine if we are breaking or placing
-        var iterator = blocks.iterator();
+        //The first entry that is not skipped determines if we are breaking or placing
+        Boolean breaking = null;
+        for (BlockEntry block : blocks) {
+            if (blocks.isSkipped(block)) continue;
 
-        //Get any block from the set, skip first if we have to
-        var anyBlock = iterator.next();
-        if (blocks.skipFirst && anyBlock.blockPos == blocks.firstPos) {
-            anyBlock = iterator.next();
-        }
-
-        boolean breaking = anyBlock.newBlockState == null || anyBlock.newBlockState.isAir();
-
-        while (iterator.hasNext()) {
-            var block = iterator.next();
-            if (block.newBlockState == null || block.newBlockState.isAir()) {
-                if (!breaking) return true;
-            } else {
-                if (breaking) return true;
+            boolean blockBreaking = BlockUtilities.isNullOrAir(block.newBlockState);
+            if (breaking == null) {
+                breaking = blockBreaking;
+            } else if (breaking != blockBreaking) {
+                return true;
             }
         }
 
@@ -389,12 +416,12 @@ public class ServerBlockPlacer {
 
         if (breaking && BlockUtilities.isNullOrAir(block.existingBlockState)) return false;
 
-        if (breaking && !player.isCreative()) {
-            if (!player.level().mayInteract(player, block.blockPos)) return false;
-            if (player instanceof ServerPlayer serverPlayer
-                    && serverPlayer.blockActionRestricted(serverPlayer.level(), block.blockPos, serverPlayer.gameMode.getGameModeForPlayer())) {
-                return false;
-            }
+        //Like vanilla for every block use and break, in any game mode: spawn protection and world border
+        //(operators bypass spawn protection) and adventure mode restrictions
+        if (!player.level().mayInteract(player, block.blockPos)) return false;
+        if (player instanceof ServerPlayer serverPlayer
+                && serverPlayer.blockActionRestricted(serverPlayer.level(), block.blockPos, serverPlayer.gameMode.getGameModeForPlayer())) {
+            return false;
         }
 
         return true;

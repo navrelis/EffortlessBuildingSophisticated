@@ -76,6 +76,19 @@ public class BlockSet extends HashMap<BlockPos, BlockEntry> implements Iterable<
         return new HashSet<>(keySet());
     }
 
+    //The first position when skipFirst is set: vanilla places or mines that block itself, so the mod leaves it alone
+    public boolean isSkipped(BlockEntry blockEntry) {
+        return skipFirst && blockEntry.blockPos.equals(firstPos);
+    }
+
+    //Whether anything is left for the mod after the skipped first position
+    public boolean hasUnskippedEntries() {
+        for (BlockEntry blockEntry : this) {
+            if (!isSkipped(blockEntry)) return true;
+        }
+        return false;
+    }
+
     public BlockEntry getFirstBlockEntry() {
         return get(firstPos);
     }
