@@ -1,4 +1,4 @@
-# Testing Sophisticated Building 1.20.1
+# Testing Sophisticated Building 1.18.2
 
 Three layers, from fast to real:
 
@@ -6,7 +6,7 @@ Three layers, from fast to real:
 |---|---|---|
 | Unit tests | `gradlew build` | Pure logic in `common/src/test` (77 tests on Fabric incl. its config tests, 65 on Forge) |
 | Fabric GameTests | `gradlew runGametest` | 17 server-side building rules (`fabric/src/gametest`) |
-| **In-game smoke tests** | `gradlew runSmokeClient` / `gradlew runSmokeServer` | The mod works in a real game on this loader, including the Sophisticated Backpacks (SB) integration |
+| **In-game smoke tests** | `gradlew runSmokeClient` / `gradlew runSmokeServer` | The mod works in a real game on this loader, on Forge including the Sophisticated Backpacks (SB) integration |
 
 `gradlew build` compiles the smoke harness (so it cannot rot) but never runs it. The harness is dev-only: it lives in
 its own source set, is loaded only by the smoke runs, and never ends up in the mod jar.
@@ -23,15 +23,17 @@ Same for `forge`. Without `-PsmoketestOut` the result goes to `<loader>/build/sm
 - **runSmokeClient** starts a real client: muted, moved to a secondary monitor if there is one, and deaf to real
   keyboard and mouse input (its GLFW input callbacks are removed; the harness does not need them), so clicking into the
   window cannot disturb a run. On the title screen the harness creates a fresh superflat world with a unique name
-  (`sb-smoketest-<time>`, older ones are deleted) through the vanilla world creation flow (no quick play), runs the
-  client scenarios, writes the result and stops the game. It takes about a minute after the game has loaded. The game
+  (`sb-smoketest-<time>`, older ones are deleted) through `Minecraft#createLevel` (no quick play), runs the client
+  scenarios, writes the result and stops the game. It takes about a minute after the game has loaded. The game
   directory is `<loader>/build/smoketest/client-run`; putting `soundCategory_master:0.0` and `pauseOnLostFocus:false`
   into its `options.txt` beforehand also silences the title screen before the harness mutes the game.
 - **runSmokeServer** is headless (no GPU needed, for CI): a game test server runs the server scenarios with fake
-  survival players and real backpacks, writes the same result file and exits. On Forge the task starts every run on a
-  fresh superflat world (it writes the game directory's `server.properties` and deletes the old world): Forge 1.20.1's
-  game test server takes its world from `server.properties`, and with the default normal terrain the test structures
-  at y -60 sat in caves, where falling gravel could fill them (one flaky `sb.worn_backpack` in the first runs).
+  survival players (and real backpacks on Forge), writes the same result file and exits. On Forge the task starts every
+  run on a fresh superflat world (it writes `level-type=flat` into the game directory's `server.properties` and deletes
+  the old world): Forge's game test server takes its world from `server.properties`, and with the default normal
+  terrain the test structures sit in caves, where falling gravel could fill them. Minecraft 1.18.2 cannot read flat
+  `generator-settings` from `server.properties` (it logs `ERROR ... WorldGenSettings: ... Not a registry ops`, a vanilla
+  bug, not the mod's) and uses the default superflat layers.
 
 The game exits by itself in every case: after the scenarios, on a failure screen, on a crash (a JVM shutdown hook
 writes a failing `harness.completed` check), and after the internal watchdog (5 min,
@@ -58,7 +60,7 @@ deleted when the task starts.
 - A skipped check has `"passed": true`, `"skipped": true` and a detail starting with `SKIPPED:`.
 - Checks named `sb.*` are Sophisticated Backpacks checks. A loader build that ships the SB integration
   (`META-INF/services/sophisticated.building.platform.services.IBackpackIntegration`) must report passing `sb.*` checks;
-  on 1.20.1 both Fabric and Forge do.
+  on 1.18.2 that is Forge only. Fabric (no SB for 1.18.2) runs no `sb.*` checks and does not compile against SB.
 - The file is rewritten after every check (atomically), so a crash or a kill still leaves the checks done so far.
 
 ## Scenarios
@@ -82,30 +84,34 @@ server world.
 | `client.mirror_modifier` | "Add Mirror" in the modifier screen adds a mirror; a 3 block line places 6 blocks (line + mirror image). Screenshots `modifiers_screen`, `mirror_placed` |
 | `client.place_line_survival` | Survival (power level 3 via `/powerlevel`): a 5 block line consumes exactly 5 planks |
 | `client.undo_redo` | Undo removes the 5 blocks and gives the planks back (mined with the axe), redo restores them and charges them again |
-| `sb.hud_count_synced` | The client caches (`ClientBuildingUpgradeState`, `ClientBackpackItemCache` via `BuildingUpgradeStatePacket` / `BackpackItemCountPacket`) show tier 1 / 32 blocks and the backpack's 64 stone |
-| `sb.upgrade_supplies_blocks` | Holding 1 stone with a tier 1 Building Upgrade backpack: a 5 block line is placed from the backpack (64 -> 59), the held stone stays, the HUD count follows |
-| `sb.tier_cap` | A 6x6 floor (36) in survival: the preview shows 32 valid / 4 invalid and exactly 32 are placed, all from the backpack (tier 1 cap = 32) |
-| `sb.disabled_upgrade_ignored` | Upgrade disabled, holding 3 stone: only 3 of a 5 block line are placed, the backpack is untouched |
-| `sb.tool_swapper_tools` | Survival mass break of 5 stone with a stick in hand uses the diamond pickaxe from a Tool Swapper backpack (damage 5, cobblestone in the inventory); the client first learns the tool through `BackpackToolsPacket` |
-| `sb.worn_backpack_chest` | The backpack worn in the chest armor slot supplies a line |
-| `sb.worn_backpack` | The backpack worn in an accessory slot supplies a line: Curios `back` (Forge), Trinkets `chest/back` (Fabric server run). Skipped with the reason if no accessory mod is in the runtime: the Fabric client run has none, see "Adopting" item 5 |
+| `sb.hud_count_synced` | Forge: the client caches (`ClientBuildingUpgradeState`, `ClientBackpackItemCache` via `BuildingUpgradeStatePacket` / `BackpackItemCountPacket`) show tier 1 / 32 blocks and the backpack's 64 stone |
+| `sb.upgrade_supplies_blocks` | Forge: holding 1 stone with a tier 1 Building Upgrade backpack: a 5 block line is placed from the backpack (64 -> 59), the held stone stays, the HUD count follows |
+| `sb.tier_cap` | Forge: a 6x6 floor (36) in survival: the preview shows 32 valid / 4 invalid and exactly 32 are placed, all from the backpack (tier 1 cap = 32) |
+| `sb.disabled_upgrade_ignored` | Forge: upgrade disabled, holding 3 stone: only 3 of a 5 block line are placed, the backpack is untouched |
+| `sb.tool_swapper_tools` | Forge: survival mass break of 5 stone with a stick in hand uses the diamond pickaxe from a Tool Swapper backpack (damage 5, cobblestone in the inventory); the client first learns the tool through `BackpackToolsPacket` |
+| `sb.worn_backpack_chest` | Forge: the backpack worn in the chest armor slot supplies a line |
+| `sb.worn_backpack` | Forge: the backpack worn in the Curios `back` slot supplies a line |
 | `client.no_mod_errors` | No ERROR line from the mod's loggers and no WARN/ERROR carrying an exception thrown from the mod's code during the whole run |
+
+Fabric reports 10 checks (the `client.*` ones), Forge 17.
 
 ### Server (`runSmokeServer`, both loaders)
 
-Game tests with a fake survival player (Fabric API `FakePlayer`, Forge `FakePlayerFactory`). The block sets are
-written with the packets' `write` methods and read back with their `FriendlyByteBuf` constructors, exactly what
-arrives from a client, and handed to the packets' server handlers.
+Game tests with a fake survival player (Forge `FakePlayerFactory`; on Fabric, whose API 0.77 has no fake player,
+`VanillaFakePlayers`: a vanilla `ServerPlayer` outside the player list whose connection drops every packet). The block
+sets are written with the packets' `write` methods and read back with their `FriendlyByteBuf` constructors, exactly
+what arrives from a client, and handed to the packets' server handlers.
 
 | Check | Asserts |
 |---|---|
 | `server.place_line_survival` | 5 planks placed and consumed |
 | `server.undo_redo` | Undo/redo packets restore the inventory counts |
-| `sb.upgrade_supplies_blocks`, `sb.disabled_upgrade_ignored`, `sb.tier_cap`, `sb.tool_swapper_tools`, `sb.worn_backpack_chest`, `sb.worn_backpack` | As on the client, server side |
+| `sb.upgrade_supplies_blocks`, `sb.disabled_upgrade_ignored`, `sb.tier_cap`, `sb.tool_swapper_tools`, `sb.worn_backpack_chest`, `sb.worn_backpack` | Forge only: as on the client, server side |
 | `server.no_mod_errors` | As on the client |
 
-Game tests of other mods in the runtime are not checks: they are only logged when they pass; if one fails, the run
-fails with a `server.foreign_game_test` check (on 1.20.1 no other mod in the dev runtime registers one).
+Fabric reports 3 checks, Forge 9. Game tests of other mods in the runtime are not checks: they are only logged when
+they pass; if one fails, the run fails with a `server.foreign_game_test` check (on 1.18.2 no other mod in the dev
+runtime registers one).
 
 ## Layout
 
@@ -115,10 +121,10 @@ common/src/smoketest/java              loader-neutral harness (vanilla + mod API
   sophisticated/building/smoketest/
     SmokeTest, SmokeReport, SmokeWatchdog, ModErrorLogCapture     switches, JSON result, watchdog, log capture
     client/SmokeClient, ClientDriver, ClientScenarios, RadialMenuDriver, ClientWindow, SmokeClientPlatform
-    server/SmokeServer, ServerScenarios, SmokeServerPlatform
+    server/SmokeServer, ServerScenarios, SmokeServerPlatform, VanillaFakePlayers
     backpack/SmokeBackpacks, SmokeAccessorySlots                   service interfaces for the SB fixture
 common/src/smoketest/resources         data/sophisticatedbuilding/structures/smoketest_empty.nbt (empty game test template)
-common/src/smoketestBackpacks          SB fixture (SophisticatedBackpacksFixture, net.p3pp3rf1y API), only for loaders with SB
+common/src/smoketestBackpacks          SB fixture (SophisticatedBackpacksFixture, net.p3pp3rf1y API), only for loaders with SB (Forge)
 <loader>/src/smoketest                 loader glue: mod metadata, entry points, fake players, accessory slots
 ```
 
@@ -136,74 +142,61 @@ Loader glue per build:
 
 | | Fabric | Forge |
 |---|---|---|
-| Harness mod | `fabric.mod.json`, entrypoints `main`/`client`/`fabric-gametest` | `META-INF/mods.toml` + `pack.mcmeta`, `@Mod` |
-| Source set wiring | Loom runs `smokeClient`/`smokeServer` (`source sourceSets.smoketest`) | MDG Legacy runs `smokeClient`/`smokeServer` (`loadedMods` main + harness); SB and Curios through remapping configurations (`modLocalRuntime`, `modSmoketestLocalRuntime`) |
+| Harness mod | `fabric.mod.json`, entrypoints `main`/`client`/`fabric-gametest` | `META-INF/mods.toml` (`loaderVersion` `[40,)`) + `pack.mcmeta`, `@Mod` |
+| Source set wiring | Loom runs `smokeClient`/`smokeServer` (`source sourceSets.smoketest`); no SB fixture | MDG Legacy runs `smokeClient`/`smokeServer` (`loadedMods` main + harness); SB and Curios through remapping configurations (`modLocalRuntime`, `modSmoketestLocalRuntime`) |
 | Client tick hook | `ClientTickEvents.END_CLIENT_TICK` | `TickEvent.ClientTickEvent`, phase `END` |
 | Game tests | `FabricGameTest`, `EMPTY_STRUCTURE` | `@GameTestHolder`, template `smoketest_empty` |
-| Fake player | Fabric API `FakePlayer` | `FakePlayerFactory` |
+| Fake player | `VanillaFakePlayers` (Fabric API 0.77 has none) | `FakePlayerFactory` |
 | Held key in screens | nothing | `ForgeSmokeClientPlatform` (key conflict context) |
-| Accessory slot | Trinkets 3.7.2 + Cardinal Components 5.2.2 (smoke server run only) | Curios 5.14.1 (smoke runtime only) |
+| Accessory slot | none (no SB) | Curios 1.18.2-5.0.9.2 (smoke runtime only) |
 
 ## Adopting the harness in another Minecraft version (port)
 
 1. Copy `gradle/smoketest.gradle`, `common/src/smoketest`, `common/src/smoketestBackpacks` (if that version has SB)
    and `<loader>/src/smoketest` from this branch (the closest older one), and the `smoketest` source set, run and
-   `check` wiring from each `<loader>/build.gradle` (search for "smoke").
-2. Compile (`gradlew smoketestClasses`). What was adapted from 1.21.1 via 1.20.4 to 1.20.1, and what older versions
-   may need:
+   `check` wiring from each `<loader>/build.gradle` (search for "smoke"). A loader without SB drops the
+   `smoketestBackpacks` source directories, its `SmokeAccessorySlots` service and the `sb_` game tests (see the Fabric
+   folder of this branch).
+2. Compile (`gradlew smoketestClasses`). What was adapted from 1.21.1 via 1.20.4, 1.20.1 and 1.19.2 to 1.18.2, and
+   what older versions may need:
    - Java 17: no `List#getFirst/getLast` (`get(0)`, `get(size() - 1)`).
    - Packets: no `StreamCodec`; `ServerScenarios#roundTrip` writes with the payload's `write(FriendlyByteBuf)` and
-     reads with its `FriendlyByteBuf` constructor. 1.20.1 has no `CustomPacketPayload`: the payloads are the mod's
-     `ModPayload`.
-   - `VanillaFakePlayers` (a vanilla server player for loaders without a fake player API) is gone: it needs
-     `CommonListenerCookie` (1.20.2+), and both 1.20.1 loaders have a fake player API.
-   - World creation: `WorldOpenFlows#createFreshLevel(name, settings, options, dimensions)` has no screen argument
-     in 1.20.1.
-   - `ModErrorLogCapture`'s appender uses the `AbstractAppender(name, filter, layout, ignoreExceptions)` constructor:
-     the Forge 1.20.1 dev compile classpath has a log4j-core without `Property.EMPTY_ARRAY` and the properties
-     constructor.
+     reads with its `FriendlyByteBuf` constructor. Before 1.20.2 there is no `CustomPacketPayload`: the payloads are the
+     mod's `ModPayload`.
+   - `VanillaFakePlayers` (a vanilla server player for loaders without a fake player API): 1.18.2's `ServerPlayer`
+     constructor has no profile public key, and `ServerGamePacketListenerImpl#send` takes a netty
+     `GenericFutureListener` instead of a `PacketSendListener`.
+   - World creation: 1.18.2 has no world preset registry and no `WorldOpenFlows`; the harness builds the flat
+     generator itself (`FlatLevelSource` with `FlatLevelGeneratorSettings.getDefault`, what the private flat preset of
+     the world creation screen does) and calls `Minecraft#createLevel(name, settings, registryAccess, worldGen)`.
+   - Commands: `Commands#performCommand` (no `performPrefixedCommand`); options: `Options#renderDistance` is a field.
+   - `ClientWindow`: LWJGL 3.2.1 (Forge 1.18.2's runtime) has no `glfwGetMonitorWorkarea`; the window goes to the
+     secondary monitor's position (`glfwGetMonitorPos`) + 40 px.
+   - `ModErrorLogCapture`'s appender uses the `AbstractAppender(name, filter, layout, ignoreExceptions)` constructor
+     (older log4j-core on the Forge dev classpath).
    - Game test template folder `data/<ns>/structures/` (plural before 1.21) and the NBT `DataVersion` of
-     `smoketest_empty.nbt` (3465 = 1.20.1; 3700 on 1.20.4, 3955 on 1.21.1).
-   - Forge 1.20.1 / MDG Legacy: `META-INF/mods.toml` with `mandatory=` dependencies, a `pack.mcmeta` (pack format
-     15), `TickEvent.ClientTickEvent` with a phase, the no-argument `@Mod` constructor; mod dependencies are SRG-named
-     and go through MDG Legacy's remapping configurations; Curios 5 returns a capability `LazyOptional` from
-     `getCuriosInventory` (`resolve()` to an `Optional`).
+     `smoketest_empty.nbt` (2975 = 1.18.2; 3120 on 1.19.2, 3465 on 1.20.1, 3700 on 1.20.4, 3955 on 1.21.1).
+   - Forge 1.18.2 / MDG Legacy: `META-INF/mods.toml` with `loaderVersion="[40,)"` (a harness mod asking for a newer
+     javafml fails the loading), `pack.mcmeta` with pack format 8 and `forge:data_pack_format` 9,
+     `TickEvent.ClientTickEvent` with a phase, the no-argument `@Mod` constructor; mod dependencies are SRG-named and go
+     through MDG Legacy's remapping configurations; Curios 5 returns a capability `LazyOptional` from
+     `getCuriosInventory`. The game test server reads `level-type=flat` (no namespace in 1.18.2).
    - SB fixture: the wrapper lookup differs per loader (`BackpackWrapperLookup.get(stack)` on the Fabric port, the
-     `CapabilityBackpackWrapper` capability on Forge; both `LazyOptional`s), so the fixture resolves it by
-     reflection; `new ResourceLocation(ns, path)`; the Fabric port's inventory only takes items through the Fabric
-     Transfer API, so the fixture puts the contents into empty slots with `setStackInSlot` (both loaders have it)
-     instead of `insertItem`.
-   - Trinkets for 1.20.1 is 3.7.2 with Cardinal Components 5.2.2, group `dev.onyxstudios.cardinal-components-api`
-     (renamed `org.ladysnake.cardinal-components-api` in 6.x); both from the same Mavens as on 1.21.1.
-   - Unchanged and working as on 1.20.4: `LevelSettings`, `WorldDataConfiguration`, `WorldPresets.FLAT`,
-     `GlobalTestReporter`/`TestReporter`, `Screenshot.takeScreenshot`, `KeyMapping.set/click`, `Minecraft#submit`, the
-     `RadialMenu` / `ModifiersScreen` field names, Fabric `FakePlayer`, Forge `FakePlayerFactory`,
-     `GameTestHolder`/`PrefixGameTestTemplate`.
+     `CapabilityBackpackWrapper` capability on Forge; both `LazyOptional`s), so the fixture resolves it by reflection;
+     `new ResourceLocation(ns, path)`; the fixture puts the contents into empty slots with `setStackInSlot`.
+   - Unchanged and working as on 1.20.1: `LevelSettings`, `DataPackConfig`, `GlobalTestReporter`/`TestReporter`,
+     `Screenshot.takeScreenshot`, `KeyMapping.set/click`, `Minecraft#submit`, the `RadialMenu` / `ModifiersScreen`
+     field names, Forge `FakePlayerFactory`, `GameTestHolder`/`PrefixGameTestTemplate`.
 3. Run `runSmokeServer` first (headless), then `runSmokeClient`.
-4. Fabric: when a mod dependency (here Trinkets) is added to a build whose Loom remap cache already holds the
-   Sophisticated Backpacks jar, that cached jar keeps its calls into the new dependency in intermediary names
-   (`TrinketInventory.method_5439`), which fails with `NoSuchMethodError` in the dev runs (the mod logs "Could not link
-   SophisticatedBackpacks' PlayerInventoryProvider.runOnBackpacks", `sb.worn_backpack` fails). Delete
-   `fabric/.gradle/loom-cache/remapped_mods` (or run once with `--refresh-dependencies`); a fresh clone is not affected.
-5. Fabric 1.20.1: Trinkets 3.7.2 was built with Loom 0.11, and its client mixin `ClickableWidgetMixin` shadows
-   `AbstractWidget`'s field by its Yarn name (`hovered`), which the Mojang-mapped dev client cannot resolve: the client
-   crashes at startup (players run the intermediary jar and are not affected; Trinkets 3.8.1 for 1.20.4 is built with
-   Loom 1.4 and has the intermediary name). `fabric/build.gradle` therefore leaves Trinkets and Cardinal Components out
-   of the `runSmokeClient` classpath; the client reports `sb.worn_backpack` as skipped, `runSmokeServer` (no client
-   mixins) runs it with Trinkets.
 
-## Findings of the first runs (1.20.1)
+## Findings of the first runs (1.18.2)
 
-- Forge: the recipes that need Sophisticated Backpacks carried only Fabric and NeoForge 20.4 load conditions; Forge
-  1.20.1 reads `conditions` with `forge:mod_loaded`. Added, so a Forge server without SB loads the recipes without
-  errors (checked with a dev server without SB).
-- Forge: Forge 1.20.1's game test server built a normal-terrain world, see `runSmokeServer` above.
-- Fabric: the held-slot resend of 1.21.1 (`FabricCommonEvents`, a player holding exactly the blocks a build needs lost
-  the held block client side) is ported; `sb.upgrade_supplies_blocks`, `sb.tier_cap` and `sb.worn_backpack_chest`
-  pass with it.
-- Forge sends every payload encoded (a `SimpleChannel` message is written to a buffer when it is sent, also in
-  singleplayer), so the unencoded in-memory payload problem of NeoForge 1.20.4 does not exist here.
-- The Fabric SB port rescans Trinkets slots for backpacks only every 100 ticks: a backpack put into a Trinkets slot
-  supplies blocks after up to 5 s (the scenarios wait for it).
-- The same Forge harness also passes `runSmokeServer` on NeoForge 1.20.1-47.1.106 (9/9, all `sb.*`), with
-  `legacyForge { enable { neoForgeVersion = "1.20.1-47.1.106" } }` in place of the Forge version.
+- Fabric GameTests: 1.18.2's `PlayerList#placeNewPlayer` reads the server's profile cache, which the game test server
+  does not have (all 17 tests failed with a `NullPointerException`). `GameTestSupport#spawnPlayer` now adds the test
+  player to the level with its own fake connection instead of the player list.
+- Forge: the harness mod's `mods.toml` still asked for javafml 43 (1.19.2): Forge 1.18.2 refused to load it.
+- Forge: `level-type=minecraft:flat` is not a 1.18.2 level type; the game test server silently built normal terrain.
+  `runSmokeServer` now writes `level-type=flat`.
+- All 17 client checks (7 `sb.*`) and 9 server checks (6 `sb.*`) pass on Forge 40.3.12 with Sophisticated Backpacks
+  1.18.2-3.20.3.1063, Core 1.18.2-0.6.4.604 and Curios 1.18.2-5.0.9.2; Fabric passes its 10 client and 3 server
+  checks.
