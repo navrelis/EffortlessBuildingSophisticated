@@ -1,9 +1,10 @@
 # Testing across every version and loader
 
 `scripts/test-all-versions.ps1` is the one command that tests every Minecraft version branch and every loader:
-build, in-world GameTests, a dedicated server smoke boot, a client smoke boot, and the contract for an in-game
-scenario harness (`runSmokeServer`/`runSmokeClient`) another agent adds later. It prints a pass/fail table and
-writes `report.json`/`report.md` plus per-stage logs to a report directory.
+build, in-world GameTests, a dedicated server smoke boot, a client smoke boot, and the in-game scenario harness
+(`runSmokeServer`/`runSmokeClient`, see "`runSmokeServer` / `runSmokeClient` contract" below) - which exists on
+`mc/1.21.1` today and is ported onto each other branch in turn. It prints a pass/fail table and writes
+`report.json`/`report.md` plus per-stage logs to a report directory.
 
 ```powershell
 # from the repo root, PowerShell 7 (pwsh)
@@ -135,8 +136,21 @@ counts):
 
 ## `runSmokeServer` / `runSmokeClient` contract
 
-This is a contract for a harness **another agent adds later** - the stages already understand it, so nothing
-here needs to change once it exists.
+The harness exists today on `mc/1.21.1` (`common/src/smoketest`, `common/src/smoketestBackpacks`,
+`<loader>/src/smoketest`, `gradle/smoketest.gradle` - see `.knowledge/port-brief.md` "Smoke harness adoption"
+for how it's ported onto each other branch). This section is still written as a contract - what any branch's
+harness must provide - because `test-all-versions.ps1`'s smoke stage and CI's `discover`/`build` jobs
+(`templates/branch/.github/workflows/build.yml`) understand it generically, by task name and by the presence of
+a `src/smoketest` folder, with nothing branch-specific to change once a branch adds it.
+
+CI runs the headless half of this contract on every push/PR: the `discover` job's loader matrix adds
+`has_smoke` (true iff `<loader>/src/smoketest` exists), and the `build` job then runs
+`gradlew runSmokeServer -PsmoketestOut=<dir> --no-daemon --stacktrace` for loaders where it's true - only
+`runSmokeServer`, since `runSmokeClient` opens a window a CI runner doesn't have. The result JSON and its log
+are uploaded as the `<loader>-smoketest` workflow artifact with `if: always()`, so a failing smoke run's
+`smoketest-result.json` (and, per this contract, its checks) is still there to inspect; a failing
+`runSmokeServer` fails the CI job like any other step. A loader without `src/smoketest` skips both the run step
+and the upload step cleanly (`has_smoke` false).
 
 - If `<loader>/build.gradle` (or wherever the harness wires it up) defines a Gradle task named
   `runSmokeServer` and/or `runSmokeClient`, the smoke stage runs it as
@@ -269,10 +283,13 @@ use by another agent's build at the time.
 - No Backpack-named Fabric GameTests exist yet on `mc/1.21.1` - the SB gametest coverage table is implemented
   and ready, but currently always empty. Worth adding once the in-world backpack-supply behavior has GameTest
   coverage.
-- `runSmokeServer`/`runSmokeClient` don't exist yet anywhere on the branch, so the smoke stage's real behavior
-  (beyond the "missing harness" warn path) is exercised by the contract in this doc, not yet by a real harness
-  run end to end. Once the harness lands, re-verify the full contract (JSON schema, `sb.*` requirement, `n/a`
-  vs `warn` distinction) against its actual output.
+- `runSmokeServer`/`runSmokeClient` exist on `mc/1.21.1` (see the contract section above) and the full contract
+  (JSON schema, `sb.*` requirement, `n/a` vs `warn` distinction) has been exercised end to end there:
+  `test-all-versions.ps1 -Mc 1.21.1` reports smoke client 17/17 checks (7 `sb.*`) on fabric and neoforge, 10/10
+  on forge; `runSmokeServer` run standalone with the exact command line CI uses
+  (`gradlew runSmokeServer -PsmoketestOut=<dir> --no-daemon --stacktrace`) passes 9/9 checks (6 `sb.*`) on
+  fabric and neoforge and 3/3 (no SB shipped) on forge. Every other branch still hits the "missing harness"
+  `warn` path until the harness is ported onto it too.
 - The quickplay init script's task-name hook (`tasks.matching { it.name == 'runClient' }`) assumes the client
   run task is named exactly `runClient` and is JavaExec-based; true for Loom/MDG/FG7 today, but would need a
   loader-specific fallback if a future toolchain does it differently.

@@ -101,10 +101,15 @@ rather than `ubuntu-latest`, since the `ubuntu-latest` label is scheduled to mov
 deliberately in `templates/branch` when ready instead of picking up an unplanned runner change).
 
 1. A `discover` job builds a loader matrix: for each loader folder, its name, its `ci_gradle_jdk`
-   (see below), and whether it has a `src/gametest` folder.
+   (see below), whether it has a `src/gametest` folder, and whether it has a `src/smoketest`
+   folder (the in-game scenario harness, see `docs/TESTING.md` "runSmokeServer / runSmokeClient
+   contract").
 2. A `build` job runs once per loader in that matrix: `gradlew build --no-daemon --stacktrace`,
    then `gradlew runGametest --no-daemon --stacktrace` for loaders that have a gametest source set,
-   then uploads the built jar (excluding `-sources`) and test reports as workflow artifacts.
+   then `gradlew runSmokeServer -PsmoketestOut=<dir> --no-daemon --stacktrace` for loaders that
+   have a smoketest source set (headless — `runSmokeClient` needs a display, so it doesn't run in
+   CI), then uploads the built jar (excluding `-sources`), test reports, and (`if: always()`, so a
+   failing smoke run's result is still captured) the smoke test result/log as workflow artifacts.
 
 Actions are pinned to the latest major release that runs on the Node 24 runner (GitHub deprecated
 the Node 20 runtime across actions in 2025–2026): `actions/checkout@v7`, `actions/setup-java@v6`,

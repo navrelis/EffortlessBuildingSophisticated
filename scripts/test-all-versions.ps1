@@ -293,11 +293,15 @@ function Invoke-ServerStage {
     $latestLog = Join-Path $runDir 'logs/latest.log'
     $logPath = Join-Path $StageLogDir 'server.console.log'
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
-    # log4j2 rotates any pre-existing run/logs/latest.log into a dated .log.gz before this session's own first
-    # write, so reading latest.log from offset 0 is always this run's own output, never a stale previous one.
+    # log4j2 rotates a pre-existing run/logs/latest.log into a dated .log.gz once the new session's own logging
+    # inits - but that can lag behind this stage's first poll (gradlew.bat/JVM startup), so an unrotated stale
+    # latest.log from an earlier server run can still contain "Done (" when we start looking. Capture its length
+    # NOW, before launch, so Wait-ForLogPattern only ever matches against bytes written after this point (see its
+    # own comment) - never a stale "Done (" left over from a previous run in the same run dir.
+    $logBaseline = Get-LogBaselineLength -Path $latestLog
     $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs @('runServer', '--no-daemon') -LogPath $logPath -RedirectInput
 
-    $doneLine = Wait-ForLogPattern -Path $latestLog -Pattern 'Done \(' -TimeoutMinutes $TimeoutMinutes -Process $proc
+    $doneLine = Wait-ForLogPattern -Path $latestLog -Pattern 'Done \(' -TimeoutMinutes $TimeoutMinutes -Process $proc -BaselineLength $logBaseline
     Start-Sleep -Seconds 3   # let a couple more lines (mod init tail, SB registration) land after "Done ("
     $fullLog = if (Test-Path $latestLog) { Get-Content -LiteralPath $latestLog -Raw } else { '' }
 
@@ -450,6 +454,10 @@ function Invoke-ClientStage {
     # Mute BEFORE the game process starts (options.txt is read at boot). The window move has to wait for the
     # window to exist, so that half runs in a background job instead of blocking this stage's own log poll.
     Set-MinecraftMuted -RunDir $runDir
+    # Same stale-log race as the server stage: capture latest.log's pre-launch length so the join-line wait below
+    # can never match a "logged in with entity id" (or "Loaded N advancements") line left over from an earlier
+    # client run in this same run dir, in the window before log4j2 gets around to rotating it away.
+    $logBaseline = Get-LogBaselineLength -Path $latestLog
     $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs $taskArgs -LogPath $logPath
     $moveJob = Start-WindowMoveJob -GameProcessId $proc.Id
 
@@ -465,7 +473,7 @@ function Invoke-ClientStage {
     # the full -TimeoutMinutes.
     $joinPattern = if ($quickPlayUsed) { 'logged in with entity id' } else { 'Loaded \d+ advancements' }
     $quickPlayFailurePattern = 'Failed to Quick Play|Could not find world'
-    $matchedLine = Wait-ForLogPattern -Path $latestLog -Pattern "($joinPattern|$quickPlayFailurePattern)" -TimeoutMinutes $TimeoutMinutes -Process $proc
+    $matchedLine = Wait-ForLogPattern -Path $latestLog -Pattern "($joinPattern|$quickPlayFailurePattern)" -TimeoutMinutes $TimeoutMinutes -Process $proc -BaselineLength $logBaseline
     $quickPlayFailed = [bool]($matchedLine -and ($matchedLine -match $quickPlayFailurePattern))
     $joinLine = if ($quickPlayFailed) { $null } else { $matchedLine }
     if ($joinLine) { Start-Sleep -Seconds 30 }

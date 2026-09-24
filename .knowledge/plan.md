@@ -26,7 +26,7 @@ Status: open / in progress / in review / done. Chains: forward (1.21.1 -> 26.2) 
 | P-F2 | Port mc/1.21.5 (RenderPipeline rewrite, GameTest rework, B1 folded in) | Opus | P-F1 | with T1 | partial (WIP pushed) |
 | B1b | Leak fix on 1.21.4 | Sonnet | - | with P-F2 | done |
 | P-B2 | Port mc/1.20.1 (forge incl. NeoForge 1.20.1 compat, fabric SB port) | Opus | P-B1 | with P-F2 | partial (WIP local, not compiling) |
-| H1 | Adopt smoke harness on 1.21.4 (+ the 2 T1 prod fixes) | Sonnet | T1 | with P-F2, P-B2 | partial (untracked copies) |
+| H1 | Adopt smoke harness on 1.21.4 (+ the 2 T1 prod fixes) | Opus | T1 | with P-F2, P-B2 | done (13e138d) |
 | B1c+CI-S | Leak fix on 1.21.1; CI template runs runSmokeServer (headless sb.* in CI); sync 1.21.1+1.20.4 | Sonnet | T1 | with H1 | B1c done; CI-S template committed, not synced |
 | H* | Adopt the smoke harness in 1.20.4, 1.21.5 and every later port | tbd | H1 | - | open |
 | Z  | Final: e2e check all branches, graphify refresh, report, push | lead | all | - | open |

@@ -127,35 +127,76 @@ function Wait-GradleProcess {
 # file from scratch every poll.
 # ---------------------------------------------------------------------------------------------------------------
 
+function Get-LogBaselineLength {
+    <#
+        Byte length of $Path right now, or 0 if it doesn't exist yet. Call this immediately BEFORE starting the
+        next gradlew run/server/client process, and pass the result as Wait-ForLogPattern's -BaselineLength - see
+        that function's own comment for why this is needed (a previous stage's run/logs/latest.log can still be
+        sitting there, unrotated, when the new process's log-pattern wait starts polling).
+    #>
+    param([Parameter(Mandatory)][string]$Path)
+    try {
+        if (Test-Path -LiteralPath $Path) { return (Get-Item -LiteralPath $Path).Length }
+    } catch {
+        # Vanishes/locked between Test-Path and Get-Item - treat as "nothing there yet".
+    }
+    return 0
+}
+
 function Wait-ForLogPattern {
     <#
         Polls $Path (created late - e.g. run/logs/latest.log doesn't exist until the game starts logging) for a
         line matching $Pattern, up to $TimeoutMinutes. Returns the matched line, or $null on timeout. Also stops
         early (returns $null) if $Process exits before the pattern shows up.
 
-        Re-reads and re-scans the WHOLE file on every poll rather than tracking a byte offset: run/logs/latest.log
-        gets rotated away (log4j2 renames it into a dated .log.gz and starts a fresh, much smaller one) every time
-        a new gradlew run/server/client session starts logging - including right at the start of THIS wait, if the
-        previous stage in the same run dir left a latest.log behind. An offset tracked from the old file would
-        then sit past the end of the new, shorter one, silently skipping everything written to it until it grew
-        past that stale offset - which is exactly how an early match (e.g. "logged in with entity id", which
-        shows up well within the first screenful of a client log) can get skipped entirely. Log files here are at
-        most a few MB and this only runs for a few minutes at a 2s poll interval, so re-reading the whole file
-        each time is cheap enough to not be worth the bug class.
+        -BaselineLength (byte length of $Path immediately BEFORE the new process was started, via
+        Get-LogBaselineLength - 0 if the file didn't exist yet) exists to close a real race: run/logs/latest.log
+        gets rotated away by log4j2 (renamed into a dated .log.gz, replaced by a fresh, much smaller file) when a
+        new session starts logging, but that rotation happens on the NEW game JVM's own log4j2 init - which can
+        lag well behind this wait's first poll (gradlew.bat itself has to start, resolve/launch the game JVM,
+        etc). Scanning the WHOLE file from byte 0 on every poll, as this used to do unconditionally, could then
+        match a line already sitting in the STILL-UNROTATED previous run's latest.log (e.g. a stale "logged in
+        with entity id" from an earlier client stage, or a stale "Done (" from an earlier server stage) before
+        the new process has logged anything at all - a false-positive "reached the join line"/"server ready"
+        long before this run's own game state actually got there.
+
+        Fix: content at or before byte offset $BaselineLength is treated as stale and never scanned - matches
+        only ever come from bytes written after the new process's launch. $BaselineLength is captured as an
+        exact file-length snapshot (Get-LogBaselineLength) taken before anything new is written, so seeking to
+        it always lands exactly on a line boundary (the true end-of-file at capture time) - never mid-line -
+        which is what makes seek-and-scan-the-rest safe without any extra bookkeeping for a partial leading
+        line. If the file's current length ever drops below the tracked offset, that IS the rotation happening
+        (the old file was replaced by a smaller new one), so the offset resets to 0 and the new file is scanned
+        from its own start onward. This handles both shapes seen in practice: pure in-place appending (offset
+        never moves; the stale prefix is just permanently skipped) and rotate-then-grow (offset resets to 0 the
+        first time the file is observed shorter than it was pre-launch). Re-reads the tail on every poll rather
+        than keeping a live stream position across polls - log files here are at most a few MB and this only
+        runs for a few minutes at a 2s poll interval, so this is cheap enough to not be worth a stickier
+        offset-tracking scheme.
     #>
     param(
         [Parameter(Mandatory)][string]$Path,
         [Parameter(Mandatory)][string]$Pattern,
         [Parameter(Mandatory)][int]$TimeoutMinutes,
         [System.Diagnostics.Process]$Process,
-        [int]$PollSeconds = 2
+        [int]$PollSeconds = 2,
+        [long]$BaselineLength = 0
     )
+    $staleOffset = [Math]::Max(0, $BaselineLength)
     $deadline = (Get-Date).AddMinutes($TimeoutMinutes)
     while ((Get-Date) -lt $deadline) {
         if (Test-Path -LiteralPath $Path) {
             try {
                 $stream = [System.IO.File]::Open($Path, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
                 try {
+                    if ($stream.Length -lt $staleOffset) {
+                        # Shorter than it was before launch: log4j2 rotated it away and started a fresh file: the
+                        # whole thing (from here on, including this and every later poll) is new content.
+                        $staleOffset = 0
+                    }
+                    if ($staleOffset -gt 0) {
+                        [void]$stream.Seek($staleOffset, [System.IO.SeekOrigin]::Begin)
+                    }
                     $reader = [System.IO.StreamReader]::new($stream)
                     $content = $reader.ReadToEnd()
                     foreach ($line in ($content -split "`r?`n")) {

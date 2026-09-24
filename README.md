@@ -45,8 +45,9 @@ cd versions/1.21.1
 ```
 
 See `docs/PORTING.md` for how to create a new version branch, `docs/RELEASING.md` for cutting a
-release, and `docs/ARCHITECTURE.md` for how the common/platform-services split works inside a
-version branch.
+release, `docs/ARCHITECTURE.md` for how the common/platform-services split works inside a version
+branch, and `docs/TESTING.md` for `scripts/test-all-versions.ps1`, the one command that builds and
+smoke-tests every version branch and loader.
 
 ## Support matrix
 
@@ -87,6 +88,8 @@ docs/
   ARCHITECTURE.md          how a version branch's common/ + loader builds + platform services fit together
   PORTING.md               how to create/port a new mc/<version> branch, toolchain matrix, API-break list
   RELEASING.md             how to cut a release: version bump, build, jars, changelog, tagging
+  TESTING.md               scripts/test-all-versions.ps1: build/gametest/server/client/smoke stages,
+                           the runSmokeServer/runSmokeClient contract, SB coverage, reading the report
   history/                 superseded analysis notes and per-version patch notes, unchanged
 templates/
   branch/                  canonical per-branch CI/build/release infra (.github/workflows/build.yml,
@@ -97,6 +100,8 @@ scripts/
   build-all-versions.ps1   runs build-all.ps1 inside every versions/<mc> worktree
   sync-branch-infra.ps1    copies templates/branch/ into one or more versions/<mc> worktrees, reports
                            a diff summary, never commits; -Check exits non-zero on drift
+  test-all-versions.ps1    builds, GameTests, smoke-boots and (where present) runs the in-game smoke
+                           harness for every versions/<mc> worktree and loader — see docs/TESTING.md
 upstream/
   manifest.json            reproducible list of Sophisticated Backpacks/Core CurseForge files used for reference
   fetch-upstream.ps1        downloads the jars manifest.json describes
