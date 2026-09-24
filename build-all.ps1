@@ -2,9 +2,14 @@
 # Loaders are discovered generically (any top-level folder containing settings.gradle and gradlew), the same rule
 # used by release.ps1 and .github/workflows/build.yml, so this script can be copied unchanged onto other
 # Minecraft version branches.
-# Usage: ./build-all.ps1 [gradle tasks...]   (default: build)
+# Usage: ./build-all.ps1 [gradle tasks and options...]   (default: build)
+# Every gradlew call runs with --no-daemon (added unless the caller already passed it): a daemon left behind keeps
+# running after the script, and "gradlew --stop" would also kill the daemons of other builds on the machine.
 $ErrorActionPreference = 'Stop'
 [string[]]$tasks = if ($args.Count -gt 0) { $args } else { @('build') }
+if ($tasks -notcontains '--no-daemon') {
+    $tasks += '--no-daemon'
+}
 
 $loaders = Get-ChildItem -LiteralPath $PSScriptRoot -Directory |
     Where-Object {
