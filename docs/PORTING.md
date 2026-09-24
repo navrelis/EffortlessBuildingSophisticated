@@ -22,6 +22,9 @@ version needs, the API breaks to expect, and what "done" means for a port. Read
    Sophisticated Backpacks/Core dependency coordinates for this Minecraft version (see
    `upstream/README.md`'s file matrix and `upstream/manifest.json` for exact file names/CurseMaven
    coordinates). Add a `forge/` folder alongside `fabric/`/`neoforge/` if the branch targets Forge.
+   If one jar of a loader cannot cover every Minecraft version the branch declares, add a `<loader>-<mc>/` folder
+   for the older one (e.g. `forge-1.21/` on `mc/1.21.1`): a standalone build that compiles `../<loader>/src` except
+   the files its own `src/` overrides, jar `<mod_id>-<loader>-<mc>-<mod_version>.jar` (see `docs/ARCHITECTURE.md`).
 5. **Run `scripts/sync-branch-infra.ps1` for the new branch** (from `main`, e.g.
    `pwsh scripts/sync-branch-infra.ps1 -Mc <version>` once the worktree exists — see the last
    paragraph of this step-by-step list for registering it): copies the canonical
@@ -74,7 +77,7 @@ layer at all).
 | 1.19 / 1.19.1 / 1.19.2 | 41.1.0 / 42.0.9 / 43.5.2 (rec. 43.5.0) | MDG Legacy or FG6 + Gradle 8.8 | - / - / 2022.11.27 |
 | 1.20.1 | 47.4.23 / 47.4.10 (compile against 47.1.3 for NeoForge 47.1 cross-compat, see below) | MDG Legacy 2.0.147 + Gradle 8.14.5 (recommended) | 2023.09.03 |
 | 1.20.4 | 49.2.9 | FG >=6.0.16 + Gradle 8.12.1 (reobf) | 2024.04.14 |
-| 1.21 | 51.0.33 | FG >=6.0.24 + Gradle 8.7 (no reobf since 1.20.6) | 2024.11.10 |
+| 1.21 | 51.0.33 (the only one) | FG7 7.0.40 + Gradle 9.3.1 with `jopt-simple` forced to 5.0.4 (see Gotchas; no reobf since 1.20.6) | 2024.11.10 |
 | 1.21.1 | 52.1.16 / 52.1.0 | FG [7.0.3,8) -> 7.0.40 + Gradle 9.3.1 | 2024.11.17 |
 | 1.21.4 / 1.21.5 / 1.21.8 / 1.21.10 | 54.1.18 / 55.1.14 / 58.1.22 / 60.1.15 | FG7 + Gradle 9.3.1 | 2025.03.23 / 2025.06.15 / 2025.09.14 / 2025.10.12 |
 | 1.21.11 | 61.2.1 / 61.2.0 | FG7 + Gradle 9.5.0 | 2025.12.20 |
@@ -108,6 +111,10 @@ Fabric Loader 0.19.5 across every version. Loom 1.18.2 needs Gradle >=9.7 on JDK
   1.20.1 `0.92.12+1.20.1`; 1.20.4 `0.97.3+1.20.4`; 1.21 `0.102.0+1.21`; 1.21.1 `0.116.17+1.21.1`;
   1.21.4 `0.119.4`; 1.21.5 `0.128.2`; 1.21.8 `0.136.1`; 1.21.10 `0.138.4`; 1.21.11 `0.141.6`;
   26.1.x `0.155.3+26.1.2` (tagged for 26.1, 26.1.1, and 26.1.2 alike); 26.2 `0.161.0+26.2`.
+- Fabric API `ClientWorldEvents` (used by the Fabric build since 1.21.1) exists only from Fabric API 0.108.0+1.21.1
+  (`fabric-lifecycle-events-v1` 2.5.0); every `+1.21.1` build declares Minecraft `>=1.21 <1.21.2`, so it also runs on
+  1.21, while the newest `+1.21` build (0.102.0) lacks it and the client crashed with `NoClassDefFoundError`. Declare
+  the Fabric API floor the code needs (`"fabric-api": ">=0.108.0"` on `mc/1.21.1`) instead of `"*"`.
 
 ### Optional dependency (Curios / Trinkets / Accessories) availability
 
@@ -127,8 +134,14 @@ before relying on a merge, not just a successful compile.
   that changed between them. 1.18.2 is always separate (introduces `TagKey`/`Holder`).
 - **1.19.1 + 1.19.2**: merge. Adding plain 1.19 to that merge is possible (the only difference is
   chat signing) but needs a runtime test to confirm before doing it.
-- **1.21 + 1.21.1**: API-compatible (the only historical blocker was this mod's now-removed
-  Flywheel/Ponder pin).
+- **1.21 + 1.21.1**: merged on `mc/1.21.1` for Fabric and NeoForge, verified by running the 1.21.1 release jars
+  with the smoke harness in a 1.21 runtime (Fabric API 0.108.0+1.21.1; NeoForge 21.0.167 with Sophisticated Backpacks
+  1.21-3.20.26 / Core 1.21-0.7.13, all `sb.*` checks passing except the Curios one, as no Curios build exists for
+  NeoForge 21.0). Range `[1.21,1.21.1]` (Fabric `>=1.21 <=1.21.1`), NeoForge floor 21.0.167, optional
+  Backpacks `[3.20.26,)` / Core `[0.7.13,)`. Forge is **not** merged: Forge 51 (1.21) cannot load the Forge 52 jar
+  (no `FMLJavaModLoadingContext` constructor injection, no `AddGuiOverlayLayersEvent`/`ForgeLayeredDraw`, and its
+  `RegisterGuiOverlaysEvent` is never posted), so 1.21 gets its own `forge-1.21/` folder (no-argument mod
+  constructor, HUD drawn by a `Gui.render` mixin). Details: `TESTING.md` "Minecraft 1.21 check" on `mc/1.21.1`.
 - **26.1 + 26.1.1 + 26.1.2**: vanilla-identical, so they merge on Fabric and Forge. NeoForge is the
   exception: 26.1 and 26.1.1 only ever got beta NeoForge releases, so NeoForge support starts at
   26.1.2 only (which also renamed `BlockEvent.BreakEvent` to `BreakBlockEvent`, see the API-break
@@ -187,6 +200,11 @@ full changelog of every vanilla or loader change in that version.
 
 - Gradle 8.4 (ForgeGradle 6) cannot run on JDK 21 — set the Gradle JVM to JDK 17 explicitly even if
   the project itself targets Java 8. FG6 does not work at all with Gradle 9.
+- Forge 51 (1.21) dev runs stop with "Module jopt.simple not found, required by cpw.mods.modlauncher": its
+  `bootstrap-api` 2.1.3 pulls in jopt-simple 6.0-alpha-3 (module `joptsimple`). Force 5.0.4 in `build.gradle`
+  (`configurations.configureEach { resolutionStrategy.force 'net.sf.jopt-simple:jopt-simple:5.0.4' }`); the same
+  happens with FG6. Its game test server also never runs `ServerLifecycleHooks.handleServerAboutToStart`, so SERVER
+  configs stay unloaded in game tests unless the test mod calls it (see `forge-1.21/src/smoketest` on `mc/1.21.1`).
 - Don't run two ForgeGradle 7 builds in parallel against a cold Gradle cache — it can truncate the
   shared fatjar mid-write. The first FG7 configuration on a clean machine takes 6–8 minutes; that's
   expected, not a hang.

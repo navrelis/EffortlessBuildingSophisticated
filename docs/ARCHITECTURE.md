@@ -21,6 +21,8 @@ neoforge/                  NeoForge build (ModDevGradle): entry points, service 
                            ModConfigSpec configs, Sophisticated Backpacks integration with Curios
                            fallback where applicable
 forge/                     Forge build (ForgeGradle), where the branch targets Forge
+<loader>-<mc>/             a second build of one loader for another Minecraft version of the branch (e.g.
+                           forge-1.21/ on mc/1.21.1), when that loader needs its own jar there
 changelog/                 per-branch patch notes
 build-all.ps1              builds every loader folder in turn, stops at the first failure
 <loader>/release/          built jars for that branch (see docs/RELEASING.md)
@@ -31,6 +33,14 @@ Each loader folder is a **complete, standalone Gradle project** with its own wra
 `resources.srcDir "${commonDir}/src/main/resources"`) alongside its own loader-specific sources,
 and produces one mod jar. There is no separate `common` Gradle module or published artifact —
 `common/` is purely a shared source tree, included by path by every loader build.
+
+A `<loader>-<mc>/` folder exists where one jar per loader cannot cover every Minecraft version of a branch
+(`mc/1.21.1`: Forge 51 for 1.21 cannot load the Forge 52 jar for 1.21.1, while the Fabric and NeoForge jars cover
+both). It is a standalone build like the others, but compiles `../<loader>/src` as well: a `Sync` task copies those
+sources without the files its own `src/` has under the same path, so only the classes the older loader cannot run
+are duplicated. Its own `gradle.properties` sets the Minecraft version it targets (`forge_minecraft_version`,
+`forge_minecraft_version_range`), and its jar is `<mod_id>-<loader>-<mc>-<mod_version>.jar` (see
+docs/RELEASING.md).
 
 ## Platform services
 

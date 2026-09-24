@@ -29,13 +29,15 @@ pwsh ./release.ps1
 ```
 
 `build-all.ps1` builds every loader folder in turn (`fabric`, `neoforge`, and `forge` where
-present) and stops at the first failure. Each loader's jar lands in `<loader>/build/libs/`.
+present, plus any `<loader>-<mc>` folder such as `forge-1.21`) and stops at the first failure. Each
+loader's jar lands in `<loader>/build/libs/`.
 
 `release.ps1` (PowerShell 7, run from the branch's worktree root) does the same builds and then
 publishes: for each discovered loader it runs `gradlew build` (skip with `-NoBuild` to reuse an
 existing `build/libs` jar), locates the main jar
-`<loader>/build/libs/<mod_id>-<loader>-<minecraft_version>-<mod_version>.jar`, verifies the
-version embedded in the jar's mod metadata (`fabric.mod.json` / `neoforge.mods.toml` /
+`<loader>/build/libs/<mod_id>-<loader>-<minecraft_version>-<mod_version>.jar` (for a `<loader>-<mc>`
+folder: `<mod_id>-<loader>-<mc>-<mod_version>.jar`, e.g. `sophisticatedbuilding-forge-1.21-4.3.0.jar`), verifies
+the version embedded in the jar's mod metadata (`fabric.mod.json` / `neoforge.mods.toml` /
 `mods.toml`) matches `mod_version` from `gradle/shared.properties`, then clears `<loader>/release/`
 and copies the new jar there together with a `<loader>/release/SHA256SUMS.txt`. It prints a
 summary table and exits non-zero if any loader fails to build, produces no matching jar, or has a
