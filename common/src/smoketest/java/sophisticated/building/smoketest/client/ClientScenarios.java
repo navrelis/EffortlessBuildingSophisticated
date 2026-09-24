@@ -23,7 +23,6 @@ import net.minecraft.world.level.levelgen.FlatLevelSource;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.WorldGenSettings;
 import net.minecraft.world.level.levelgen.flat.FlatLevelGeneratorSettings;
-import net.minecraft.world.level.levelgen.structure.StructureSet;
 import net.minecraft.world.phys.Vec3;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuildingClient;
@@ -162,12 +161,11 @@ final class ClientScenarios {
             rules.getRule(GameRules.RULE_RANDOMTICKING).set(0, null);
             LevelSettings settings = new LevelSettings(WORLD_NAME, GameType.CREATIVE, false, Difficulty.PEACEFUL, true,
                     rules, DataPackConfig.DEFAULT);
-            // The built-in registries and the generator of 1.18.2's (private) flat world preset
+            // The built-in registries and the generator of 1.18.1's (private) flat world preset
             long seed = 20260924L;
-            RegistryAccess registryAccess = RegistryAccess.builtinCopy().freeze();
-            Registry<StructureSet> structureSets = registryAccess.registryOrThrow(Registry.STRUCTURE_SET_REGISTRY);
-            FlatLevelSource generator = new FlatLevelSource(structureSets,
-                    FlatLevelGeneratorSettings.getDefault(registryAccess.registryOrThrow(Registry.BIOME_REGISTRY), structureSets));
+            RegistryAccess.RegistryHolder registryAccess = RegistryAccess.builtin();
+            FlatLevelSource generator = new FlatLevelSource(
+                    FlatLevelGeneratorSettings.getDefault(registryAccess.registryOrThrow(Registry.BIOME_REGISTRY)));
             WorldGenSettings worldGen = new WorldGenSettings(seed, false, false, WorldGenSettings.withOverworld(
                     registryAccess.registryOrThrow(Registry.DIMENSION_TYPE_REGISTRY), DimensionType.defaultDimensions(registryAccess, seed), generator));
             // Creating the world blocks this task until the integrated server runs; the harness keeps polling below

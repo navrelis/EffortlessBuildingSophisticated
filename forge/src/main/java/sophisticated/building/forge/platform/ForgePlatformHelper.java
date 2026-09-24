@@ -1,6 +1,5 @@
 package sophisticated.building.forge.platform;
 
-import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -14,6 +13,7 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.attachment.PowerLevel;
 import sophisticated.building.forge.PowerLevelCapability;
@@ -25,8 +25,9 @@ import java.util.function.Supplier;
 
 public final class ForgePlatformHelper implements IPlatformHelper {
 
-    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registry.ITEM_REGISTRY, SophisticatedBuilding.MODID);
-    private static final DeferredRegister<MenuType<?>> CONTAINERS = DeferredRegister.create(Registry.MENU_REGISTRY, SophisticatedBuilding.MODID);
+    // Forge 1.18.1 creates deferred registers from its own registries only (registry keys from Forge 40 for 1.18.2)
+    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, SophisticatedBuilding.MODID);
+    private static final DeferredRegister<MenuType<?>> CONTAINERS = DeferredRegister.create(ForgeRegistries.CONTAINERS, SophisticatedBuilding.MODID);
 
     /** Registers the deferred registers filled by {@code SophisticatedBuilding}'s initialisation. */
     public static void registerDeferredRegisters(IEventBus modEventBus) {

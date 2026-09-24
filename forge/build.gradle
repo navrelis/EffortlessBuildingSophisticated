@@ -14,7 +14,7 @@ base {
 }
 
 java {
-    // Mojang ships Java 17 to end users in 1.18.2, so mods should target Java 17.
+    // Mojang ships Java 17 to end users since 1.18, so mods should target Java 17.
     toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
     withSourcesJar()
 }
@@ -55,15 +55,6 @@ repositories {
             }
         }
         filter { includeGroup('curse.maven') }
-    }
-    exclusiveContent {
-        forRepository {
-            maven {
-                name = 'Modrinth'
-                url = 'https://api.modrinth.com/maven'
-            }
-        }
-        filter { includeGroup('maven.modrinth') }
     }
 }
 
@@ -182,20 +173,19 @@ configurations {
     smoketestLocalRuntime
     smoketestRuntimeClasspath.extendsFrom localRuntime, smoketestLocalRuntime
 }
-// Forge 1.20.1 mods are published with SRG names: the mod* configurations remap them to the dev names
+// Forge 1.18.1 mods are published with SRG names: the mod* configurations remap them to the dev names
 // (modLocalRuntime and modSmoketestLocalRuntime like the built-in modCompileOnly)
 obfuscation.createRemappingConfiguration(configurations.localRuntime)
 obfuscation.createRemappingConfiguration(configurations.smoketestLocalRuntime)
 
 dependencies {
-    // Sophisticated Core/Backpacks: compiled against, and present in the dev runs (same versions, see
-    // gradle.properties) so runClient/runServer start with the backpack integration active. Optional for players.
-    modCompileOnly "curse.maven:${sophisticatedcore_cf}"
+    // Sophisticated Backpacks (Sophisticated Core included in the same jar on 1.18.1): compiled against, and present in
+    // the dev runs (same version, see gradle.properties) so runClient/runServer start with the backpack integration
+    // active. Optional for players.
     modCompileOnly "curse.maven:${sophisticatedbackpacks_cf}"
-    modLocalRuntime "curse.maven:${sophisticatedcore_cf}"
     modLocalRuntime "curse.maven:${sophisticatedbackpacks_cf}"
-    modCompileOnly "maven.modrinth:curios:${curios_version}"
-    modSmoketestLocalRuntime "maven.modrinth:curios:${curios_version}"
+    modCompileOnly "curse.maven:${curios_cf}"
+    modSmoketestLocalRuntime "curse.maven:${curios_cf}"
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

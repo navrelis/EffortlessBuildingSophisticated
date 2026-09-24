@@ -1,20 +1,20 @@
 package sophisticated.building.create.foundation.item;
 
-import net.minecraft.core.Registry;
-import net.minecraft.tags.TagKey;
+import net.minecraft.tags.Tag;
 import net.minecraft.world.item.Item;
 
 public class TagDependentIngredientItem extends Item {
 
-	private TagKey<Item> tag;
+	// Minecraft 1.18.1 has no TagKey (1.18.2+): the tag object itself holds the bound values
+	private Tag<Item> tag;
 
-	public TagDependentIngredientItem(Properties properties, TagKey<Item> tag) {
+	public TagDependentIngredientItem(Properties properties, Tag<Item> tag) {
 		super(properties);
 		this.tag = tag;
 	}
 
 	public boolean shouldHide() {
-		return Registry.ITEM.getTag(tag).isEmpty() || Registry.ITEM.getTag(tag).get().size() == 0;
+		return tag.getValues().isEmpty();
 	}
 
 }

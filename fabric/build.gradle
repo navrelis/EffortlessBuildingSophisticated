@@ -14,7 +14,7 @@ base {
 }
 
 java {
-    // Mojang ships Java 17 to end users in 1.18.2, so mods should target Java 17.
+    // Mojang ships Java 17 to end users since 1.18, so mods should target Java 17.
     toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
     withSourcesJar()
 }
@@ -37,7 +37,7 @@ sourceSets {
         runtimeClasspath += main.runtimeClasspath + main.output
     }
     // In-game smoke test harness (runSmokeClient / runSmokeServer, see TESTING.md): loader-neutral scenarios from
-    // ../common/src/smoketest and the Fabric glue from src/smoketest. No Sophisticated Backpacks on Fabric 1.18.2, so no
+    // ../common/src/smoketest and the Fabric glue from src/smoketest. No Sophisticated Backpacks on Fabric 1.18.1, so no
     // backpack fixture (../common/src/smoketestBackpacks) and no Trinkets. Own fabric.mod.json (mod
     // "sophisticatedbuilding_smoketest"); only loaded by the smoke runs, never packaged into the mod jar.
     smoketest {
@@ -78,7 +78,7 @@ loom {
     interfaceInjection {
         enableDependencyInterfaceInjection = false
     }
-    // Opens what Minecraft 1.18.2 keeps private and common/ uses (see the file)
+    // Opens what Minecraft 1.18.1 keeps private and common/ uses (see the file)
     accessWidenerPath = file('src/main/resources/sophisticatedbuilding.accesswidener')
     mixin {
         defaultRefmapName.set("${mod_id}.refmap.json")

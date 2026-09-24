@@ -4,7 +4,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.client.event.RenderLevelLastEvent;
 import net.minecraftforge.client.event.ScreenOpenEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.world.WorldEvent;
@@ -62,19 +62,17 @@ public class ForgeClientEvents {
     }
 
     @SubscribeEvent
-    public static void onRenderLevel(RenderLevelStageEvent event) {
-        // Block previews, mirror/array lines and ghost blocks after the translucent blocks; the outlines
-        // after the particles, as on the other loaders.
-        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
-            RenderHandler.onRenderWorld(event.getPoseStack());
-        } else if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
-            RenderHandler.onRenderOutlines(event.getPoseStack());
-        }
+    public static void onRenderLevel(RenderLevelLastEvent event) {
+        // Forge 1.18.1 has no render stages (RenderLevelStageEvent arrives with Forge 40 for 1.18.2): once the whole
+        // level is drawn, first the block previews, mirror/array lines and ghost blocks, then the outlines, in the same
+        // order as the stages on the other loaders.
+        RenderHandler.onRenderWorld(event.getPoseStack());
+        RenderHandler.onRenderOutlines(event.getPoseStack());
     }
 
     @SubscribeEvent
     public static void onRenderGui(RenderGameOverlayEvent.Post event) {
-        // Once per frame, after the whole HUD (1.18.2 also posts this event for single HUD elements)
+        // Once per frame, after the whole HUD (Forge 1.18.1 also posts this event for single HUD elements)
         if (event.getType() == RenderGameOverlayEvent.ElementType.ALL) {
             RenderHandler.onRenderGui(new GuiGraphics(event.getMatrixStack()));
         }

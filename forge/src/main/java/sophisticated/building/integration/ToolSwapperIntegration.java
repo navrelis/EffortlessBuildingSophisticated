@@ -32,7 +32,7 @@ public class ToolSwapperIntegration {
 	public static List<BreakToolHelper.ToolSlot> collectBackpackTools(Player player) {
 		List<BreakToolHelper.ToolSlot> tools = new ArrayList<>();
 
-		BackpackScanCompat.forEachBackpack(player, (backpack, invName, identifier, slot) -> {
+		BackpackScanCompat.forEachBackpack(player, (backpack, invName, slot) -> {
 			collectFromBackpack(backpack, tools);
 			return false;
 		});

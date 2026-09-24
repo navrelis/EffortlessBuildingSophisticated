@@ -51,7 +51,7 @@ public class BuildingUpgradeHelper {
         Set<ItemStack> visitedStacks = Collections.newSetFromMap(new IdentityHashMap<>());
         Set<UUID> visitedContentsUuids = new HashSet<>();
         try {
-            BackpackScanCompat.forEachBackpack(player, (backpack, invName, identifier, slot) -> {
+            BackpackScanCompat.forEachBackpack(player, (backpack, invName, slot) -> {
                 BuildingUpgradeWrapper wrapper = getBuildingUpgradeFromBackpack(backpack);
                 if (wrapper != null && wrapper.isEnabled()) {
                     visitedStacks.add(backpack);
@@ -95,7 +95,7 @@ public class BuildingUpgradeHelper {
         Set<ItemStack> visitedStacks = Collections.newSetFromMap(new IdentityHashMap<>());
         Set<UUID> visitedContentsUuids = new HashSet<>();
         try {
-            BackpackScanCompat.forEachBackpack(player, (backpack, invName, identifier, slot) -> {
+            BackpackScanCompat.forEachBackpack(player, (backpack, invName, slot) -> {
                 BuildingUpgradeWrapper wrapper = getBuildingUpgradeFromBackpack(backpack);
                 if (wrapper != null && wrapper.isEnabled()) {
                     visitedStacks.add(backpack);

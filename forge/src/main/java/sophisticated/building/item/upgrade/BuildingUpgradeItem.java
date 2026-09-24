@@ -3,20 +3,20 @@ package sophisticated.building.item.upgrade;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeSlotChangeResult;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 import sophisticated.building.SophisticatedBuilding;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.Set;
 
 /**
  * Building Upgrade item that can be placed in a backpack's upgrade slot.
@@ -33,21 +33,6 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
 
     
     public static final UpgradeType<BuildingUpgradeWrapper> TYPE = new UpgradeType<>(BuildingUpgradeWrapper::new);
-    public static final UpgradeGroup UPGRADE_GROUP = new UpgradeGroup("building_upgrades", 
-            TranslationHelper.INSTANCE.translUpgradeGroup("building_upgrades"));
-    
-    // Simple config that allows 1 upgrade per backpack
-    private static final IUpgradeCountLimitConfig LIMIT_CONFIG = new IUpgradeCountLimitConfig() {
-        @Override
-        public int getMaxUpgradesPerStorage(String storageType, @Nullable ResourceLocation upgradeRegistryName) {
-            return 1;
-        }
-        
-        @Override
-        public int getMaxUpgradesInGroupPerStorage(String storageType, UpgradeGroup upgradeGroup) {
-            return 1;
-        }
-    };
     
     private final int tier;
     private final int maxBlocks;
@@ -58,7 +43,7 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
      * @param maxBlocks Maximum blocks that can be placed at once with this upgrade
      */
     public BuildingUpgradeItem(int tier, int maxBlocks) {
-        super(SophisticatedBuilding.CREATIVE_TAB, LIMIT_CONFIG);
+        super(SophisticatedBuilding.CREATIVE_TAB);
         this.tier = tier;
         this.maxBlocks = maxBlocks;
     }
@@ -76,30 +61,6 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
         return TYPE;
     }
     
-    // Sophisticated Core 1.19.2 has no upgrade conflict definitions: the group limit of 1 keeps building upgrades
-    // exclusive (a second one is refused, swapping tiers stays possible, see canSwapUpgradeFor)
-    @Override
-    public UpgradeGroup getUpgradeGroup() {
-        return UPGRADE_GROUP;
-    }
-    
-    @Override
-    public int getUpgradesPerStorage(String storageType) {
-        // Only 1 building upgrade per backpack
-        return 1;
-    }
-    
-    @Override
-    public int getUpgradesInGroupPerStorage(String storageType) {
-        // Only 1 from the building upgrade group per backpack
-        return 1;
-    }
-    
-    @Override
-    public Component getName() {
-        return new TranslatableComponent(getDescriptionId());
-    }
-    
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flagIn) {
         tooltip.add(new TranslatableComponent("item.sophisticatedbuilding.building_upgrade.tooltip", maxBlocks)
@@ -112,24 +73,35 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
                 .withStyle(ChatFormatting.DARK_GRAY));
     }
     
+    // Sophisticated Backpacks 1.18.1 has no upgrade count limits or groups (they arrive with Sophisticated Core on
+    // 1.18.2): only one building upgrade per backpack, refused the way SB refuses a second battery or tool swapper
+    // upgrade. The slot being filled is not known here, so a tier is changed by taking the old upgrade out first.
     @Override
-    public UpgradeSlotChangeResult canAddUpgradeTo(IStorageWrapper storageWrapper, ItemStack upgradeStack, boolean firstLevelStorage, boolean isClientSide) {
-        // Use default implementation from parent
-        UpgradeSlotChangeResult result = super.canAddUpgradeTo(storageWrapper, upgradeStack, firstLevelStorage, isClientSide);
-        return result;
-    }
-    
-    @Override
-    public UpgradeSlotChangeResult canRemoveUpgradeFrom(IStorageWrapper storageWrapper, boolean isClientSide) {
+    public UpgradeSlotChangeResult canAddUpgradeTo(IStorageWrapper storageWrapper, ItemStack upgradeStack, boolean firstLevelStorage) {
+        Set<Integer> errorUpgradeSlots = new HashSet<>();
+        storageWrapper.getUpgradeHandler().getSlotWrappers().forEach((slot, wrapper) -> {
+            if (wrapper instanceof BuildingUpgradeWrapper) {
+                errorUpgradeSlots.add(slot);
+            }
+        });
+        if (!errorUpgradeSlots.isEmpty()) {
+            return new UpgradeSlotChangeResult.Fail(new TranslatableComponent("sophisticatedcore.gui.error.add.building_upgrade_conflict"),
+                    errorUpgradeSlots, Collections.emptySet(), Collections.emptySet());
+        }
         return new UpgradeSlotChangeResult.Success();
     }
     
     @Override
-    public UpgradeSlotChangeResult canSwapUpgradeFor(ItemStack upgradeStackToPut, IStorageWrapper storageWrapper, boolean isClientSide) {
+    public UpgradeSlotChangeResult canRemoveUpgradeFrom(IStorageWrapper storageWrapper) {
+        return new UpgradeSlotChangeResult.Success();
+    }
+    
+    @Override
+    public UpgradeSlotChangeResult canSwapUpgradeFor(ItemStack upgradeStackToPut, IStorageWrapper storageWrapper) {
         // Allow swapping building upgrades for other building upgrades (upgrading tiers)
         if (upgradeStackToPut.getItem() instanceof BuildingUpgradeItem) {
             return new UpgradeSlotChangeResult.Success();
         }
-        return super.canSwapUpgradeFor(upgradeStackToPut, storageWrapper, isClientSide);
+        return super.canSwapUpgradeFor(upgradeStackToPut, storageWrapper);
     }
 }
