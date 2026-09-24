@@ -17,14 +17,18 @@ Status: open / in progress / in review / done. Chains: forward (1.21.1 -> 26.2) 
 | P-B1 | Port mc/1.20.4 (fabric + neoforge; forge later) | Opus | F4 | with F2, F6a | done |
 | P-F1 | Port mc/1.21.4 (fabric, neoforge SB, forge) | Opus | F2 | with P-B1, F5 | done |
 | P* | Ports, one task per branch (see matrix below); forward chain and backward chain | Opus | F1, F2 | 2 chains | open |
-| T1 | In-game smoke-test harness incl. Sophisticated Backpacks functional scenarios (sb.* checks), dev-only, runSmokeClient/runSmokeServer, result JSON + screenshots; mc/1.21.1 first, then every port | Opus | F5 | - | in progress |
+| T1 | In-game smoke-test harness incl. Sophisticated Backpacks functional scenarios (sb.* checks), dev-only, runSmokeClient/runSmokeServer, result JSON + screenshots; mc/1.21.1 first, then every port | Opus | F5 | - | done |
 | T2 | scripts/test-all-versions.ps1 on main: runs build/unit/GameTest/smoke per branch+loader, report | Sonnet | - | with ports | done |
 | F7 | templates/branch on main (canonical CI/release/build-all, actions v5-era, ubuntu-24.04) + sync-branch-infra.ps1; applied to mc/1.20.4 + release jars | Sonnet | F5 | with T1, T2, P-F1 | done |
-| B1 | Fix OmegaRandomizerBagScreen native BufferBuilder leak (1.21.1, 1.20.4, then ports) | Sonnet | - | 1.20.4 first | in progress (1.20.4 done) |
+| B1 | Fix OmegaRandomizerBagScreen native BufferBuilder leak (1.21.1, 1.20.4, then ports) | Sonnet | - | 1.20.4 first | done |
 | P-B1f | Forge 1.20.4 build | Opus | P-B1 | - | open |
-| B2 | Forge 1.21.1 client crash (LootModifierManager; data pack flagged incompatible) | Opus (inside T1) | - | - | in progress |
-| P-F2 | Port mc/1.21.5 (RenderPipeline rewrite, GameTest rework, B1 folded in) | Opus | P-F1 | with T1 | in progress |
+| B2 | Forge 1.21.1 client crash (LootModifierManager; data pack flagged incompatible) | Opus (inside T1) | - | - | done (Forge upstream bug; our pack.mcmeta fixed) |
+| P-F2 | Port mc/1.21.5 (RenderPipeline rewrite, GameTest rework, B1 folded in) | Opus | P-F1 | with T1 | partial (WIP pushed) |
 | B1b | Leak fix on 1.21.4 | Sonnet | - | with P-F2 | done |
+| P-B2 | Port mc/1.20.1 (forge incl. NeoForge 1.20.1 compat, fabric SB port) | Opus | P-B1 | with P-F2 | partial (WIP local, not compiling) |
+| H1 | Adopt smoke harness on 1.21.4 (+ the 2 T1 prod fixes) | Sonnet | T1 | with P-F2, P-B2 | partial (untracked copies) |
+| B1c+CI-S | Leak fix on 1.21.1; CI template runs runSmokeServer (headless sb.* in CI); sync 1.21.1+1.20.4 | Sonnet | T1 | with H1 | B1c done; CI-S template committed, not synced |
+| H* | Adopt the smoke harness in 1.20.4, 1.21.5 and every later port | tbd | H1 | - | open |
 | Z  | Final: e2e check all branches, graphify refresh, report, push | lead | all | - | open |
 
 ## Definition of done
@@ -53,3 +57,6 @@ Status: open / in progress / in review / done. Chains: forward (1.21.1 -> 26.2) 
 | mc/1.16.5 | 1.16.4, 1.16.5 | SB | - | yes | back 7 |
 | mc/1.16.3 | 1.16.3 | SB | - | yes | back 8 |
 Toolchains per cell: scratchpad TOOLCHAINS.md (R3); copied into the hub porting guide in F6.
+
+
+Session stopped early by the user on 2026-09-24; continue from handoff.md.
