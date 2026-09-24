@@ -1,12 +1,19 @@
-# Sophisticated Building - Minecraft 1.21.11
+# Sophisticated Building - Minecraft 26.1.2
 
-This branch (`mc/1.21.11`) holds Sophisticated Building for Minecraft 1.21.11 on Fabric, NeoForge and Forge. It was
-ported from `mc/1.21.10` and keeps its layout: loader-neutral code lives once in `common/`, and every loader folder is
-a standalone Gradle build that compiles `common/` together with its own sources into one mod jar.
+This branch (`mc/26.1.2`) holds Sophisticated Building for Minecraft 26.1.2 on Fabric, NeoForge and Forge (the Fabric
+and Forge jars also run on 26.1 and 26.1.1). It was ported from `mc/1.21.11` and keeps its layout: loader-neutral
+code lives once in `common/`, and every loader folder is a standalone Gradle build that compiles `common/` together
+with its own sources into one mod jar.
 
-The jars declare exactly Minecraft 1.21.11, the only version they were run on (1.21.11 renamed `ResourceLocation` to
-`Identifier` and rewrote the render types, so 1.21.10 is not binary compatible; Sophisticated Backpacks for NeoForge
-1.21.11 itself requires Minecraft 1.21.11).
+Declared Minecraft versions, each one run (TESTING.md):
+
+* Fabric `>=26.1 <=26.1.2` and Forge `[26.1,26.1.2]`: 26.1, 26.1.1 and 26.1.2 are the same game for this mod; the
+  release jars passed `runSmokeServer` on 26.1 and 26.1.1 and `runSmokeClient` on 26.1 (Fabric API 0.155.3+26.1.2 on
+  all three; Forge 62.0.9 for 26.1, 63.0.2 for 26.1.1). The Forge jar accepts Forge 62.0.9 and later.
+* NeoForge `[26.1.2]` only: NeoForge for 26.1 and 26.1.1 never left beta, and the Sophisticated Backpacks/Core
+  builds for them are older, with a different API (see `docs/PORTING.md` on `main`); 26.1.2 renamed `BlockEvent.BreakEvent`.
+
+Minecraft is unobfuscated since 26.1: no mappings (no Mojang mappings, no Parchment), Java 25.
 
 ## Layout
 
@@ -15,16 +22,16 @@ gradle/shared.properties   mod id, name, version, license, authors, description,
 common/                    loader-neutral code and assets, no build of its own
   src/main/java              mod logic; loader APIs only through sophisticated.building.platform.Services
   src/main/resources         assets (item model definitions in assets/<modid>/items), data (recipes carry Fabric,
-                             NeoForge and Forge load conditions), mixin config (GuiGraphics accessor), GUI stencil shader
+                             NeoForge and Forge load conditions), mixin config (GuiGraphicsExtractor accessor), GUI stencil shader
   src/test/java              unit tests, run by every loader build
   src/smoketest              in-game smoke test harness (dev only, see TESTING.md)
   src/smoketestBackpacks     Sophisticated Backpacks fixture of the harness (NeoForge only)
 fabric/                    Fabric build (Loom): entry points, platform services, JSON config backend, GameTests
-                           (src/gametest); no backpack integration (no Sophisticated Backpacks for Fabric 1.21.11)
+                           (src/gametest); no backpack integration (no Sophisticated Backpacks for Fabric 26.1.2)
 neoforge/                  NeoForge build (ModDevGradle): entry points, platform services, ModConfigSpec configs,
                            power level attachment, Sophisticated Backpacks integration (official build) with Curios fallback
 forge/                     Forge build (ForgeGradle 7): entry points, platform services, ForgeConfigSpec configs,
-                           power level capability; no backpack integration (no Sophisticated Backpacks for Forge 1.21.11)
+                           power level capability; no backpack integration (no Sophisticated Backpacks for Forge 26.1.2)
 changelog/                 patch notes
 build-all.ps1              builds every loader folder in turn
 ```
@@ -42,12 +49,13 @@ The ghost block previews and outlines use the Catnip outliner and GUI widgets ve
 
 | | Fabric | NeoForge | Forge |
 |---|---|---|---|
-| Loader (built against) | Loader 0.19.5, Fabric API 0.141.6+1.21.11 | 21.11.45 | 61.2.1 |
-| Minimum declared | Loader 0.19.5, Fabric API 0.141.6 | 21.11.45; Backpacks 3.26.2, Core 1.5.0 (optional) | 61.2.1 |
-| Build plugin, Gradle | Loom 1.17.21 (`fabric-loom-remap`), Gradle 9.5.1 | ModDevGradle 2.0.147, Gradle 9.2.1 | ForgeGradle 7.0.40, Gradle 9.5.0 |
-| Sophisticated Backpacks | none | Backpacks 1.21.11-3.26.2.2155, Core 1.21.11-1.5.0.2340 (Modrinth maven) | none |
+| Minecraft declared | 26.1 - 26.1.2 | 26.1.2 | 26.1 - 26.1.2 |
+| Loader (built against) | Loader 0.19.5, Fabric API 0.155.3+26.1.2 | 26.1.2.109 | 64.1.3 |
+| Minimum declared | Loader 0.19.5, Fabric API 0.155.3 | 26.1.2.109; Backpacks 3.26.2, Core 1.5.0 (optional) | 62.0.9 (run on 62.0.9, 63.0.2, 64.1.3) |
+| Build plugin, Gradle | Loom 1.18.2 (`fabric-loom`, no remapping), Gradle 9.8.0 | ModDevGradle 2.0.147, Gradle 9.2.1 | ForgeGradle 7.0.40, Gradle 9.5.0 |
+| Sophisticated Backpacks | none | Backpacks 26.1.2-3.26.2.2156, Core 26.1.2-1.5.0.2334 (Modrinth maven) | none |
 
-Mappings: Mojang (Fabric, Forge), Mojang + Parchment 2025.12.20 (NeoForge). Java 21. Curios 14.0.0+1.21.11
+Mappings: none (unobfuscated Minecraft). Java 25. Curios 15.0.0+26.1.2
 (NeoForge, compile only and in the smoke runtime).
 
 ## Differences to mc/1.21.1
@@ -121,6 +129,44 @@ Mappings: Mojang (Fabric, Forge), Mojang + Parchment 2025.12.20 (NeoForge). Java
   - NeoForge and Forge: `VertexConsumer#putBulkData` has no `readExistingColor` flag any more (quads have no
     per-vertex colour array; NeoForge multiplies the quad's baked colours in itself). Forge 61: `KeyMapping`
     constructors take a sort order (0, as vanilla's default).
+* **Minecraft 26.1 (26.1.2):**
+  - Unobfuscated game, Java 25: no mappings in any build; Fabric uses the non-remapping Loom plugin (`fabric-loom`,
+    plain `implementation` dependencies, the mod jar comes from `jar`).
+  - `GuiGraphics` is `GuiGraphicsExtractor`: screens and widgets fill it in `extractRenderState` /
+    `extractWidgetRenderState` / `extractContents` (buttons) / `extractContent` (list entries) / `extractLabels` /
+    `extractBackground` instead of `render*`; its draw methods are `text`, `centeredText`, `item`, `itemDecorations`,
+    `outline`, `tooltip` (were `drawString`, `drawCenteredString`, `renderItem`, `renderItemDecorations`,
+    `renderOutline`, `renderTooltip`). The GUI render state moved to `client.renderer.state.gui` and takes elements with
+    `addGuiElement`; the accessor mixin `GuiGraphicsAccessor` now targets `GuiGraphicsExtractor`. The mod's own element
+    and icon classes keep their `render` methods.
+  - Container screens: the image size is final and passed to the constructor (`super(menu, inventory, title, 176,
+    134)`), `renderBg` is gone (the randomizer bags draw their background and missing-item overlay in
+    `extractBackground` after `super`), and vanilla draws the hovered-slot tooltip itself (the bags' own call is gone).
+  - Block models: no `BlockRenderDispatcher`/static `ModelBlockRenderer.renderModel`; the ghost blocks take the model
+    from `ModelManager#getBlockStateModelSet()`, `BlockStateModel`/`BlockStateModelPart` live in
+    `client.renderer.block.dispatch`, `BakedQuad` is a record in `client.resources.model.geometry`, and the quads are
+    written with `VertexConsumer#putBakedQuad(pose, quad, QuadInstance)` (colour, light and overlay in the
+    `QuadInstance`; NeoForge multiplies the baked quad colours in itself). `IClientHelper#putQuad` is gone (the same
+    call on every loader, now in `GhostBlockRenderer`); `collectModelParts` fills a list (`collectParts(random, list)`,
+    NeoForge with `BlockAndTintGetter.EMPTY`, Forge with `ModelData.EMPTY`).
+  - Render pipelines: depth test and depth writes are one optional `DepthStencilState` (the mirror/array lines and
+    planes have none: no depth test, no depth writes, as before), blending is a `ColorTargetState`.
+    `LightTexture.FULL_BRIGHT` is `LightCoordsUtil.FULL_BRIGHT`, `LevelRenderer#getLightCoords`. The vendored Catnip
+    render buffer mirrors vanilla's new fixed buffers (item and block-item sheets; the chest, sign, bed, shield and
+    shulker sheets are gone).
+  - `Player#displayClientMessage(msg, actionBar)` is `sendOverlayMessage` / `sendSystemMessage`; `Level#random` is
+    protected (`getRandom()`); `ClickType` is `ContainerInput`.
+* Fabric API 0.155 uses Mojang's names: `KeyMappingHelper`, `ClientLevelEvents.AFTER_CLIENT_LEVEL_CHANGE`,
+  `LevelRenderEvents.END_MAIN` (`context.poseStack()`), `ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL`,
+  `ServerTickEvents.END_LEVEL_TICK`, `PayloadTypeRegistry.serverboundPlay()`/`clientboundPlay()`.
+* NeoForge 26.1.2: `BlockEvent.BreakEvent` is `event.level.block.BreakBlockEvent` (same use: cancelling it denies the
+  break); the particles are drawn in two passes, the outlines follow the second one
+  (`RenderLevelStageEvent.AfterTranslucentParticles`, was `AfterParticles`).
+* Forge 64: `ModList` is static (`ModList.isLoaded`). The frame pass binds its target in the two-argument
+  `PassDefinition#extracts(bundle, pass)`: Forge 62/63 have only that one (abstract), Forge 64 added a `DeltaTracker`
+  overload that calls it; overriding the new overload failed on Forge 62 with an `AbstractMethodError` (found by the
+  26.1 client run). `pack.mcmeta` declares the Forge 64 MDK's range, `min_format` `[101, 1]` .. `max_format` 101
+  (26.1 to 26.1.2 data packs are 101.1).
 * Fabric: no Sophisticated Backpacks integration (the Building Upgrades are placeholder items, their recipes are not
   loaded). The HUD is registered with `HudElementRegistry.addLast` (Fabric API for 1.21.6+ deprecates
   `HudRenderCallback`). Fabric API for 1.21.9+ has no `WorldRenderEvents.AFTER_TRANSLUCENT`: the previews, lines and
@@ -128,7 +174,7 @@ Mappings: Mojang (Fabric, Forge), Mojang + Parchment 2025.12.20 (NeoForge). Java
   particles and weather).
 * NeoForge: Sophisticated Backpacks 3.26 (`UpgradeItemBase` takes the item properties). NeoForge 21.8: the power level
   attachment serializer writes a `ValueOutput` (same `powerLevel` key, existing player data keeps loading); one
-  `RenderLevelStageEvent` subclass per stage (`AfterTranslucentBlocks`, `AfterParticles`); client packets go through
+  `RenderLevelStageEvent` subclass per stage (`AfterTranslucentBlocks`, `AfterParticles`; 26.1.2: see above); client packets go through
   `ClientPacketDistributor`; bidirectional payloads register both handlers with `playBidirectional`.
   NeoForge 21.10 replaced the item handler capabilities with the transfer API: the randomizer bags expose their
   container component as `Capabilities.Item.ITEM` (`ItemAccessItemHandler`, was `ComponentItemHandler`), and the mod
@@ -151,8 +197,9 @@ Mappings: Mojang (Fabric, Forge), Mojang + Parchment 2025.12.20 (NeoForge). Java
 
 ## Build and test
 
-Each loader folder has its own Gradle wrapper (Fabric: Gradle 9.5.1, NeoForge: Gradle 9.2.1, Forge: Gradle 9.5.0).
-Java 21.
+Each loader folder has its own Gradle wrapper (Fabric: Gradle 9.8.0, NeoForge: Gradle 9.2.1, Forge: Gradle 9.5.0).
+Java 25, and Gradle itself must run on a JDK 25 (`JAVA_HOME`): Loom 1.18 and ModDevGradle for 26.x refuse to configure
+on an older JVM (CI: `ci_gradle_jdk=25` in every loader's `gradle.properties`).
 
 ```
 cd fabric   && ./gradlew build          # jar in fabric/build/libs, runs common + Fabric unit tests

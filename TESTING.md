@@ -283,6 +283,58 @@ GuiGraphicsAccessor from sophisticatedbuilding.mixins.json into net.minecraft.cl
   `SophisticatedBackpacksFixture` (SB 1.21.11-3.26.2.2155 / Core 1.21.11-1.5.0.2340 API identical), Curios glue
   (Curios 14.0.0+1.21.11), the 1.21.1 `smoketest_empty.nbt`.
 
+### What the 1.21.11 -> 26.1.2 adoption changed
+
+- `ClientScenarios#joinFreshWorld`: game rules are no longer part of `LevelSettings` (26.1:
+  `LevelSettings(name, gameType, DifficultySettings, allowCommands, dataConfiguration)`); the harness sets
+  `ADVANCE_TIME`, `ADVANCE_WEATHER`, `SPAWN_MOBS` and `RANDOM_TICK_SPEED` on `server.getGameRules()` once the world runs,
+  and noon through the overworld's world clock (`server.clockManager().setTotalTicks(clock, 6000)`; there is no
+  `ServerLevel#setDayTime` any more).
+- Forge harness mod: `loaderVersion="[64,)"`, `pack.mcmeta` `min_format` `[101, 1]`, `max_format` 101 (26.1.x data packs
+  are 101.1, resource packs 84; the Forge 64 MDK declares the same, and so does the mod's own `pack.mcmeta`).
+- Build: every loader needs Gradle on a JDK 25 (`JAVA_HOME`); Fabric runs Loom 1.18.2 without remapping, so its smoke
+  runs load the mod straight from the `main` output as the other loaders do.
+- Unchanged and working: `ClientDriver`, `RadialMenuDriver`, `ServerScenarios`, `VanillaFakePlayers`,
+  `SophisticatedBackpacksFixture` (SB 26.1.2-3.26.2.2156 / Core 26.1.2-1.5.0.2334 API identical), Curios glue
+  (Curios 15.0.0+26.1.2), the 1.21.1 `smoketest_empty.nbt`.
+
+## Minecraft 26.1 and 26.1.1 check
+
+The Fabric and Forge jars declare 26.1 to 26.1.2. That claim rests on running the **release jars** (built on this
+branch against 26.1.2) in a 26.1 and a 26.1.1 runtime with the smoke harness:
+
+- A detached worktree of this branch under `local/` (git-ignored) with `minecraft_version` switched to 26.1 / 26.1.1
+  (Forge: `forge_version` 62.0.9 / 63.0.2, the latest builds; the harness mod's `loaderVersion` `[62,)`). The mod is not
+  compiled there: the main source set is emptied and the release jar is put on the Fabric dev classpath (Fabric Loader
+  loads it as a mod) or copied into the Forge run's `mods` folder (the Forge dev runs then drop the
+  `--mixin.config` argument: the jar declares its mixin config in its manifest, as for a player). The harness is
+  compiled against the jar.
+- Fabric keeps Fabric API 0.155.3+26.1.2 (it declares `minecraft` `~26.1-`), so the declared floor is the tested one.
+- Jars run: `sophisticatedbuilding-fabric-26.1.2-4.3.0.jar` (SHA-256 `44a369e7...`) and
+  `sophisticatedbuilding-forge-26.1.2-4.3.0.jar` (`37ce896f...`), byte-identical to `<loader>/release/`.
+
+| Runtime | runSmokeServer | runSmokeClient |
+|---|---|---|
+| Fabric 26.1 (Loader 0.19.5, Fabric API 0.155.3) | 3 / 3 passed | 10 / 10 passed |
+| Fabric 26.1.1 | 3 / 3 passed | - |
+| Forge 26.1 (62.0.9) | 3 / 3 passed | 10 / 10 passed |
+| Forge 26.1.1 (63.0.2) | 3 / 3 passed | - |
+
+The first Forge 26.1 client run crashed at the first rendered frame: Forge 64 added
+`FramePassManager.PassDefinition#extracts(LevelTargetBundle, FramePass, DeltaTracker)` (which calls the two-argument
+`extracts`), Forge 62 only has the abstract two-argument method, and the mod overrode the new one
+(`AbstractMethodError`). The mod now overrides the two-argument method, which works on Forge 62 to 64; the servers never
+render, so only the client run found it. NeoForge is not claimed for 26.1/26.1.1 (beta-only NeoForge, older
+Sophisticated Backpacks/Core API).
+
+## Findings (26.1.2)
+
+- Results of the 26.1.2 runs: `runSmokeServer` 3 / 9 (1 skipped: `sb.worn_backpack`, see above) / 3 checks,
+  `runSmokeClient` 10 / 17 (8 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing; Fabric `runGametest`
+  "All 18 required tests passed" (17 + `minecraft:always_pass`).
+- As on 1.21.11, NeoForge lists the Sophisticated Backpacks, Core and Curios data packs as `TOO_OLD`; the mod's own data
+  pack is compatible (`client.mod_data_pack_compatible`).
+
 ## Findings (1.21.11)
 
 - Results of the 1.21.11 runs: `runSmokeServer` 3 / 9 (1 skipped: `sb.worn_backpack`, see above) / 3 checks,
