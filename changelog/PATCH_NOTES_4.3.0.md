@@ -33,14 +33,15 @@ previews and outlines are included directly (MIT-licensed, attribution included 
 
 * Minecraft 1.21.4.
 * Fabric Loader 0.19.5 or newer.
-* Fabric API (built against 0.119.4+1.21.4).
+* Fabric API 0.119.4+1.21.4 or newer (built and tested against it).
 
 ### NeoForge
 
 * Minecraft 1.21.4.
 * NeoForge 21.4.157 or newer (the latest 1.21.4 release, built and tested against it).
 * Optional: Sophisticated Backpacks for the Building Upgrades (built and tested against
-  Backpacks 1.21.4-3.27.2.2153 with Core 1.21.4-1.5.0.2336).
+  Backpacks 1.21.4-3.27.2.2153 with Core 1.21.4-1.5.0.2336). Older Backpacks/Core builds than 3.27.2 / 1.5.0 are not
+  accepted.
 * Curios API (compile-only, worn-backpack fallback scan): 10.0.1+1.21.4.
 
 ### Forge
