@@ -11,3 +11,5 @@
 - Server skipFirst uses identity (==) and never matches after decoding; left as is because Quick Replace in Disable mode relies on the server handling the first position. Reason: changing it would break creative/survival quick replace in Disable mode.
 - Survival: same-block targets are placed only as one-step merges (slab->double, +1 candle/pickle/egg), never mined; other same-block cases skipped. Server now rejects survival overwrites of non-replaceable blocks when survival replace is off. Reason: prevents mine-1-pay-1-get-2 dupes and closes a modified-client overwrite hole.
 - NeoForge keeps its uncapped Building Upgrade supply (tier only gates access); its tooltip is reworded instead of adding a cap + anchor. Reason: least-risk honest fix; a cap on NeoForge would need the Fabric anchor port and changes balance without being asked.
+- Version 4.2.1 for the limitation fixes. Reason: 4.2.0 jars may already be published by the user; a new version is safe either way.
+- The Fabric startup ERROR 'No data fixer registered for' is left alone: it comes from the unofficial Sophisticated Backpacks Fabric port (empty EntityType id), not from this mod.

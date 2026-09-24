@@ -10,6 +10,12 @@
 | T6 | NeoForge parity for T2, T3 + SERVER config entry (T5b ported separately) | NeoForge | Sonnet | T2, T3 | with T5 | done |
 | T7 | Release 4.2.0: version bump, patch notes, export jars, .gitignore negation for .knowledge | both | Sonnet | T6 | - | done |
 | T8 | Final: e2e smoke test (T8a Sonnet), graphify refresh, report, push, issue replies | - | lead | T7 | - | done |
+| L1 | Undo item counts + merge whitelist + skipFirst redesign + protection checks + finally | both | Opus | - | with L2, L3 | done |
+| L2 | NeoForge tier cap + anchor port + tooltip restore | NeoForge | Sonnet (worktree) | - | with L1, L3 | done |
+| L3 | Fabric config correction/backup + data-fixer investigation | Fabric | Sonnet (worktree) | - | with L1, L2 | done |
+| L4 | Fabric GameTests for server-side rules | Fabric | Opus | L1 | - | in progress |
+| L5 | Release 4.2.1 (patch notes, export) + smoke test | both | Sonnet | L1-L4 | - | open |
+| L6 | Final: graph, report, push, memory | - | lead | L5 | - | open |
 
 ## Definition of done (per task)
 - T1: config files are created with defaults on first start, missing keys filled, invalid JSON logged and defaults kept, values clamped to the NeoForge ranges; all existing call sites unchanged; client gets the server's ServerConfig values on join and restores its own on disconnect; Fabric build + tests green.

@@ -21,3 +21,13 @@
 - No new dependencies. Sophisticated integration must stay optional and guarded (Exception | LinkageError).
 - Commit trailer per session reminder: `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 - Never stage `graphify-out/` in feature commits; refresh the graph at the end.
+
+## Round 2 (user, 2026-09-24): fix the known limitations from report.md
+- NeoForge: cap Building Upgrade supply per build to the tier like Fabric (with held-block anchor), restore the tooltip.
+- Survival undo must charge the real item count of multi-item states (double slab 2, candles/pickles/eggs/snow layers/petals N); merge rule limited to real "count" properties.
+- Server skipFirst redesign: honour it only when vanilla handled the first block (Disable mode without Quick Replace), no chat spam.
+- Spawn protection / adventure-mode checks for every build-mode placement and break (vanilla parity); isPlacingOrBreakingBlocks reset in finally.
+- Fabric JSON config: correct and back up files with clamped/invalid values like NeoForge, so warnings don't repeat.
+- Investigate the Fabric "No data fixer registered for" startup ERROR; fix if it is ours.
+- Automated in-game coverage: Fabric GameTests for the server-side placement/replace/undo rules.
+- Release as 4.2.1 (4.2.0 jars may not be published; 4.2.1 includes everything).

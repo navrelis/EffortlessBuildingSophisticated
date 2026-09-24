@@ -19,3 +19,7 @@
 - 2026-09-24 T8a runtime smoke test (both loaders, exported jars) -> Sonnet, started.
 - 2026-09-24 T8a smoke test: both loaders load a world and join with the 4.2.0 jars; config entries present with enabled=false; build.gradle reverts confirmed. Accepted.
 - 2026-09-24 lead: graphify incremental refresh (5634 nodes / 14992 edges / 255 communities); test log folder ignored; report written.
+- 2026-09-24 round 2 started: L1 Opus (main tree), L2 Sonnet (worktree), L3 Sonnet (worktree).
+- 2026-09-24 L2 review: 1 correction (dead countBlockInBackpackClamped removed); accepted, NeoForge build green in worktree; diff held until L1 finishes.
+- 2026-09-24 L1 review: accepted without corrections (redo got its own entry point; merges charge only the difference). L3 review: accepted; startup "No data fixer" ERROR traced to Sophisticated Backpacks Fabric port (EntityType.Builder.build("") in ModItems), not ours. Combined build: Fabric 77/77, NeoForge green. Commits 1ee43a6, 662285e, 4c81b1b.
+- 2026-09-24 L4 Fabric GameTests -> Opus, started.
