@@ -1,7 +1,6 @@
 package sophisticated.building.item;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -22,7 +21,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.function.Consumer;
 
 @ParametersAreNonnullByDefault
-@MethodsReturnNonnullByDefault
 public class ReachUpgrade3Item extends Item {
 
 	public ReachUpgrade3Item(Item.Properties properties) {

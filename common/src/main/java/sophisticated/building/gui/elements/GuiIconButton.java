@@ -6,7 +6,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
@@ -16,16 +16,16 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 public class GuiIconButton extends Button {
 
-	private final ResourceLocation resourceLocation;
+	private final Identifier resourceLocation;
 	private final int iconX, iconY, iconWidth, iconHeight, iconAltX, iconAltY;
 	List<Component> tooltip = new ArrayList<>();
 	private boolean useAltIcon = false;
 
-	public GuiIconButton(int x, int y, int iconX, int iconY, ResourceLocation resourceLocation, Button.OnPress onPress) {
+	public GuiIconButton(int x, int y, int iconX, int iconY, Identifier resourceLocation, Button.OnPress onPress) {
 		this(x, y, 20, 20, iconX, iconY, 20, 20, 20, 0, resourceLocation, onPress);
 	}
 
-	public GuiIconButton(int x, int y, int width, int height, int iconX, int iconY, int iconWidth, int iconHeight, int iconAltX, int iconAltY, ResourceLocation resourceLocation, Button.OnPress onPress) {
+	public GuiIconButton(int x, int y, int width, int height, int iconX, int iconY, int iconWidth, int iconHeight, int iconAltX, int iconAltY, Identifier resourceLocation, Button.OnPress onPress) {
 		super(x, y, width, height, Component.empty(), onPress, DEFAULT_NARRATION);
 		this.iconX = iconX;
 		this.iconY = iconY;
@@ -49,7 +49,7 @@ public class GuiIconButton extends Button {
 	}
 
 	@Override
-	public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+	protected void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		int currentIconX = this.iconX;
 		int currentIconY = this.iconY;
 

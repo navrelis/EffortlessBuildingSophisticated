@@ -5,7 +5,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.SophisticatedBuilding;
@@ -14,9 +14,9 @@ import sophisticated.building.client.ClientBackpackItemCache;
 /**
  * Sync a single item count from a backpack to the client for HUD display.
  */
-public record BackpackItemCountPacket(ResourceLocation itemId, int count) implements CustomPacketPayload {
+public record BackpackItemCountPacket(Identifier itemId, int count) implements CustomPacketPayload {
     public static final StreamCodec<FriendlyByteBuf, BackpackItemCountPacket> CODEC = StreamCodec.composite(
-            ResourceLocation.STREAM_CODEC,
+            Identifier.STREAM_CODEC,
             BackpackItemCountPacket::itemId,
             ByteBufCodecs.INT,
             BackpackItemCountPacket::count,

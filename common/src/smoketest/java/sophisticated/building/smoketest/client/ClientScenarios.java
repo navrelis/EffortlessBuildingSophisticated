@@ -13,12 +13,12 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.LevelSettings;
 import net.minecraft.world.level.WorldDataConfiguration;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
@@ -154,10 +154,10 @@ final class ClientScenarios {
             deleteOldWorlds(d.mc.gameDirectory.toPath().resolve("saves"));
 
             GameRules rules = new GameRules(WorldDataConfiguration.DEFAULT.enabledFeatures());
-            rules.getRule(GameRules.RULE_DAYLIGHT).set(false, null);
-            rules.getRule(GameRules.RULE_WEATHER_CYCLE).set(false, null);
-            rules.getRule(GameRules.RULE_DOMOBSPAWNING).set(false, null);
-            rules.getRule(GameRules.RULE_RANDOMTICKING).set(0, null);
+            rules.set(GameRules.ADVANCE_TIME, false, null);
+            rules.set(GameRules.ADVANCE_WEATHER, false, null);
+            rules.set(GameRules.SPAWN_MOBS, false, null);
+            rules.set(GameRules.RANDOM_TICK_SPEED, 0, null);
             LevelSettings settings = new LevelSettings(WORLD_NAME, GameType.CREATIVE, false, Difficulty.PEACEFUL, true,
                     rules, WorldDataConfiguration.DEFAULT);
             // Creating the world blocks this task until the integrated server runs; the harness keeps polling below
@@ -346,7 +346,7 @@ final class ClientScenarios {
             return added;
         });
         // Rebuild the screen so its mirror entry shows the values set above
-        d.clientRun(() -> d.mc.screen.init(d.mc, d.mc.screen.width, d.mc.screen.height));
+        d.clientRun(() -> d.mc.screen.init(d.mc.screen.width, d.mc.screen.height));
         d.screenshot("modifiers_screen");
         // Closing the screen saves the modifiers (ModifierSettingsPacket to the server)
         d.clientRun(() -> d.mc.screen.onClose());

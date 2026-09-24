@@ -2,7 +2,7 @@ package sophisticated.building.item.upgrade;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -37,7 +37,7 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
     // Simple config that allows 1 upgrade per backpack
     private static final IUpgradeCountLimitConfig LIMIT_CONFIG = new IUpgradeCountLimitConfig() {
         @Override
-        public int getMaxUpgradesPerStorage(String storageType, @Nullable ResourceLocation upgradeRegistryName) {
+        public int getMaxUpgradesPerStorage(String storageType, @Nullable Identifier upgradeRegistryName) {
             return 1;
         }
         

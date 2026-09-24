@@ -1,7 +1,7 @@
 package sophisticated.building.smoketest.backpack;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -25,8 +25,8 @@ import java.util.List;
 public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
 
     /** Five upgrade slots, so a Building Upgrade and a Tool Swapper fit next to each other. */
-    private static final ResourceLocation BACKPACK = ResourceLocation.fromNamespaceAndPath("sophisticatedbackpacks", "diamond_backpack");
-    private static final ResourceLocation TOOL_SWAPPER = ResourceLocation.fromNamespaceAndPath("sophisticatedbackpacks", "tool_swapper_upgrade");
+    private static final Identifier BACKPACK = Identifier.fromNamespaceAndPath("sophisticatedbackpacks", "diamond_backpack");
+    private static final Identifier TOOL_SWAPPER = Identifier.fromNamespaceAndPath("sophisticatedbackpacks", "tool_swapper_upgrade");
 
     @Override
     public String describe() {
@@ -96,7 +96,7 @@ public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
     public void setBuildingUpgradeEnabled(ItemStack backpack, boolean enabled) {
         IBackpackWrapper wrapper = BackpackWrapper.fromStack(backpack);
         for (IUpgradeWrapper upgrade : wrapper.getUpgradeHandler().getSlotWrappers().values()) {
-            ResourceLocation id = BuiltInRegistries.ITEM.getKey(upgrade.getUpgradeStack().getItem());
+            Identifier id = BuiltInRegistries.ITEM.getKey(upgrade.getUpgradeStack().getItem());
             if (id.getNamespace().equals(SophisticatedBuilding.MODID) && id.getPath().startsWith("building_upgrade")) {
                 upgrade.setEnabled(enabled);
                 return;
@@ -129,7 +129,7 @@ public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
         return item(SophisticatedBuilding.asResource(path));
     }
 
-    private static Item item(ResourceLocation id) {
+    private static Item item(Identifier id) {
         Item item = BuiltInRegistries.ITEM.getValue(id);
         if (item == Items.AIR) {
             throw new IllegalStateException("Item " + id + " is not registered");

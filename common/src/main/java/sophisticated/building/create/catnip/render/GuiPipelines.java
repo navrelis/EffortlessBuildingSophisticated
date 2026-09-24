@@ -2,7 +2,7 @@ package sophisticated.building.create.catnip.render;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import sophisticated.building.SophisticatedBuilding;
 
 /**
@@ -15,8 +15,8 @@ public final class GuiPipelines {
 
 	/** Quads (position, UV, colour) that show only their vertex colour, where the bound texture is not transparent. */
 	public static final RenderPipeline STENCIL_GRADIENT = RenderPipeline.builder(RenderPipelines.GUI_TEXTURED_SNIPPET)
-		.withLocation(ResourceLocation.fromNamespaceAndPath(SophisticatedBuilding.MODID, "pipeline/gui_stencil_gradient"))
-		.withFragmentShader(ResourceLocation.fromNamespaceAndPath(SophisticatedBuilding.MODID, "core/gui_stencil_gradient"))
+		.withLocation(Identifier.fromNamespaceAndPath(SophisticatedBuilding.MODID, "pipeline/gui_stencil_gradient"))
+		.withFragmentShader(Identifier.fromNamespaceAndPath(SophisticatedBuilding.MODID, "core/gui_stencil_gradient"))
 		.build();
 
 	private GuiPipelines() {

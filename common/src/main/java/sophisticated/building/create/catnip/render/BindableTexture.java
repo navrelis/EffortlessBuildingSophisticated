@@ -1,6 +1,6 @@
 package sophisticated.building.create.catnip.render;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Adapted from Catnip ({@code sophisticated.building.create.catnip.render.BindableTexture}, MIT License, Copyright (c) 2022
@@ -8,6 +8,6 @@ import net.minecraft.resources.ResourceLocation;
  */
 public interface BindableTexture {
 
-	ResourceLocation getLocation();
+	Identifier getLocation();
 
 }

@@ -13,7 +13,7 @@ import sophisticated.building.create.catnip.data.Iterate;
 import sophisticated.building.create.catnip.render.BindableTexture;
 import sophisticated.building.create.catnip.render.OutlineRenderTypes;
 import sophisticated.building.create.catnip.render.SuperRenderTypeBuffer;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;

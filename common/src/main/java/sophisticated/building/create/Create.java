@@ -1,7 +1,7 @@
 package sophisticated.building.create;
 
 import com.mojang.logging.LogUtils;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import sophisticated.building.SophisticatedBuilding;
 import org.slf4j.Logger;
 
@@ -10,7 +10,7 @@ public class Create {
 
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public static ResourceLocation asResource(String path) {
-        return ResourceLocation.fromNamespaceAndPath(SophisticatedBuilding.MODID, path);
+    public static Identifier asResource(String path) {
+        return Identifier.fromNamespaceAndPath(SophisticatedBuilding.MODID, path);
     }
 }

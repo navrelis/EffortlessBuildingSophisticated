@@ -2,7 +2,7 @@ package sophisticated.building.create.catnip.render;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 
 /**
  * Adapted from Catnip ({@code sophisticated.building.create.catnip.render.SuperRenderTypeBuffer}, MIT License, Copyright (c) 2022

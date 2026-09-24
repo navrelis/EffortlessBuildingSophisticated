@@ -8,8 +8,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 import sophisticated.building.create.Create;
 import sophisticated.building.create.catnip.gui.UIRenderHelper;
@@ -17,7 +17,7 @@ import org.joml.Matrix4f;
 
 public class AllIcons implements ScreenElement {
 
-	public static final ResourceLocation ICON_ATLAS = Create.asResource("textures/gui/create_icons.png");
+	public static final Identifier ICON_ATLAS = Create.asResource("textures/gui/create_icons.png");
 	public static final int ICON_ATLAS_SIZE = 256;
 
 	private static int x = 0, y = -1;
@@ -170,7 +170,7 @@ public class AllIcons implements ScreenElement {
 	}
 
 	public void render(PoseStack ms, MultiBufferSource buffer, int color) {
-		VertexConsumer builder = buffer.getBuffer(RenderType.text(ICON_ATLAS));
+		VertexConsumer builder = buffer.getBuffer(RenderTypes.text(ICON_ATLAS));
 		Matrix4f matrix = ms.last().pose();
 		Color rgb = new Color(color);
 		int light = LightTexture.FULL_BRIGHT;

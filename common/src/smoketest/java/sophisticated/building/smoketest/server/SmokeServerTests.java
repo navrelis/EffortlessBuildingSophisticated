@@ -3,7 +3,7 @@ package sophisticated.building.smoketest.server;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import sophisticated.building.smoketest.SmokeTest;
 import sophisticated.building.smoketest.backpack.SmokeBackpacks;
 
@@ -42,6 +42,6 @@ public final class SmokeServerTests {
 
     /** {@code sophisticatedbuilding_smoketest:<name>}, the function the test instance JSON names. */
     public static ResourceKey<Consumer<GameTestHelper>> functionKey(String name) {
-        return ResourceKey.create(Registries.TEST_FUNCTION, ResourceLocation.fromNamespaceAndPath(SmokeTest.MOD_ID, name));
+        return ResourceKey.create(Registries.TEST_FUNCTION, Identifier.fromNamespaceAndPath(SmokeTest.MOD_ID, name));
     }
 }

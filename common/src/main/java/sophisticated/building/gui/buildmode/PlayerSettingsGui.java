@@ -1,6 +1,5 @@
 package sophisticated.building.gui.buildmode;
 
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
@@ -16,7 +15,6 @@ import sophisticated.building.SophisticatedBuilding;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
-@MethodsReturnNonnullByDefault
 public class PlayerSettingsGui extends Screen {
 
 	protected int left, right, top, bottom;

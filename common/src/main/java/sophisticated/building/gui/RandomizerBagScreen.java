@@ -4,7 +4,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
@@ -21,7 +21,7 @@ import java.util.Set;
 public class RandomizerBagScreen extends AbstractContainerScreen<RandomizerBagContainer> {
 	private Inventory inventory;
 
-	private static final ResourceLocation guiTextures = SophisticatedBuilding.asResource("textures/gui/container/randomizerbag.png");
+	private static final Identifier guiTextures = SophisticatedBuilding.asResource("textures/gui/container/randomizerbag.png");
 	
 	// Red overlay color (semi-transparent red)
 	private static final int MISSING_ITEM_COLOR = 0x80FF0000;

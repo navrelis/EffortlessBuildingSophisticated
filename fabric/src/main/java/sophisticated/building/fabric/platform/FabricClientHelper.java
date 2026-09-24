@@ -10,7 +10,7 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 import sophisticated.building.platform.services.IClientHelper;
@@ -21,7 +21,7 @@ import java.util.Locale;
 public final class FabricClientHelper implements IClientHelper {
 
     @Override
-    public KeyMapping.Category createKeyCategory(ResourceLocation id) {
+    public KeyMapping.Category createKeyCategory(Identifier id) {
         return KeyMapping.Category.register(id);
     }
 

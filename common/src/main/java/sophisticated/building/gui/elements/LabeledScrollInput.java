@@ -57,7 +57,7 @@ public class LabeledScrollInput extends ScrollInput {
         // Draw focus indicator when focused
         if (focused && visible) {
             int borderColor = 0xFFFFFF55; // Yellow tint for focus
-            guiGraphics.submitOutline(getX() - 1, getY() - 1, width + 2, height + 2, borderColor);
+            guiGraphics.renderOutline(getX() - 1, getY() - 1, width + 2, height + 2, borderColor);
         }
     }
     

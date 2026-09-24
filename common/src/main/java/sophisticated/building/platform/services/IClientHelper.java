@@ -8,7 +8,7 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -26,7 +26,7 @@ public interface IClientHelper {
      * instead of a translation key). Fabric registers it with vanilla at once; NeoForge registers it in its key
      * mapping event.
      */
-    KeyMapping.Category createKeyCategory(ResourceLocation id);
+    KeyMapping.Category createKeyCategory(Identifier id);
 
     /**
      * Creates one of the mod's key mappings (registered by the loader project). NeoForge makes it an

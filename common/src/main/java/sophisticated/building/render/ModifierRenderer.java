@@ -172,14 +172,14 @@ public class ModifierRenderer {
 
 	/**
 	 * One mirror line. The line shader draws a camera-facing quad along the direction passed as vertex normal, so
-	 * both vertices carry the normalized line direction.
+	 * both vertices carry the normalized line direction (and the line width, a vertex attribute since 1.21.11).
 	 */
 	private static void line(VertexConsumer buffer, PoseStack.Pose pose, double x1, double y1, double z1, double x2, double y2, double z2, Color c) {
 		Vector3f direction = new Vector3f((float) (x2 - x1), (float) (y2 - y1), (float) (z2 - z1)).normalize();
 		buffer.addVertex(pose, (float) x1, (float) y1, (float) z1).setColor(c.getRed(), c.getGreen(), c.getBlue(), lineAlpha)
-				.setNormal(pose, direction.x(), direction.y(), direction.z());
+				.setNormal(pose, direction.x(), direction.y(), direction.z()).setLineWidth(BuildRenderTypes.LINE_WIDTH);
 		buffer.addVertex(pose, (float) x2, (float) y2, (float) z2).setColor(c.getRed(), c.getGreen(), c.getBlue(), lineAlpha)
-				.setNormal(pose, direction.x(), direction.y(), direction.z());
+				.setNormal(pose, direction.x(), direction.y(), direction.z()).setLineWidth(BuildRenderTypes.LINE_WIDTH);
 	}
 }
 

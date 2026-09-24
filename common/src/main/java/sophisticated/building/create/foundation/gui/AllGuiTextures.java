@@ -4,7 +4,7 @@ import sophisticated.building.gui.ScreenElement;
 import sophisticated.building.utilities.Color;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import sophisticated.building.create.Create;
 
 public enum AllGuiTextures implements ScreenElement {
@@ -41,7 +41,7 @@ public enum AllGuiTextures implements ScreenElement {
 
 	public static final int FONT_COLOR = 0x575F7A;
 
-	public final ResourceLocation location;
+	public final Identifier location;
 	public int width, height;
 	public int startX, startY;
 
@@ -58,7 +58,7 @@ public enum AllGuiTextures implements ScreenElement {
 	}
 
 	private AllGuiTextures(String namespace, String location, int startX, int startY, int width, int height) {
-		this.location = ResourceLocation.fromNamespaceAndPath(namespace, "textures/gui/" + location + ".png");
+		this.location = Identifier.fromNamespaceAndPath(namespace, "textures/gui/" + location + ".png");
 		this.width = width;
 		this.height = height;
 		this.startX = startX;

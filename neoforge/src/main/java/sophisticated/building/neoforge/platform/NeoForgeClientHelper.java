@@ -10,7 +10,7 @@ import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.EmptyBlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
@@ -25,7 +25,7 @@ public final class NeoForgeClientHelper implements IClientHelper {
 
     /** Registered in NeoForge's key mapping event (SophisticatedBuildingNeoForgeClient#registerKeyMappings). */
     @Override
-    public KeyMapping.Category createKeyCategory(ResourceLocation id) {
+    public KeyMapping.Category createKeyCategory(Identifier id) {
         return new KeyMapping.Category(id);
     }
 
@@ -70,6 +70,6 @@ public final class NeoForgeClientHelper implements IClientHelper {
 
     @Override
     public void putQuad(VertexConsumer consumer, PoseStack.Pose pose, BakedQuad quad, float red, float green, float blue, float alpha, int packedLight, int packedOverlay) {
-        consumer.putBulkData(pose, quad, red, green, blue, alpha, packedLight, packedOverlay, true);
+        consumer.putBulkData(pose, quad, red, green, blue, alpha, packedLight, packedOverlay);
     }
 }

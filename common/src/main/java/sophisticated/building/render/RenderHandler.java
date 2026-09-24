@@ -43,7 +43,7 @@ public class RenderHandler {
 
 	public static void onRenderWorld(PoseStack ms) {
 		Minecraft mc = Minecraft.getInstance();
-		Vec3 cameraPos = mc.gameRenderer.getMainCamera().getPosition();
+		Vec3 cameraPos = mc.gameRenderer.getMainCamera().position();
 
 		MultiBufferSource.BufferSource buffer = MultiBufferSource.immediate(LEVEL_BUFFER);
 
@@ -75,7 +75,7 @@ public class RenderHandler {
 	 * keep those stages. The pose stack is untranslated, the outlines subtract the camera position.
 	 */
 	public static void onRenderOutlines(PoseStack ms) {
-		Vec3 cameraPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+		Vec3 cameraPos = Minecraft.getInstance().gameRenderer.getMainCamera().position();
 		float partialTicks = AnimationTickHolder.getPartialTicks();
 
 		ms.pushPose();

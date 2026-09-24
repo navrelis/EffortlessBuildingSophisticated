@@ -1,6 +1,6 @@
 package sophisticated.building.attachment;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.CommonConfig;
@@ -13,7 +13,7 @@ import sophisticated.building.platform.Services;
  * {@link sophisticated.building.platform.services.IPlatformHelper#getPowerLevel}).
  */
 public class AttachmentHandler {
-    public static final ResourceLocation POWER_LEVEL_CAP = SophisticatedBuilding.asResource("power_level");
+    public static final Identifier POWER_LEVEL_CAP = SophisticatedBuilding.asResource("power_level");
 
     public static PowerLevel getOrCreatePowerLevel(Player player) {
         if (player == null) {

@@ -1,7 +1,6 @@
 package sophisticated.building.gui.buildmodifier;
 
 import sophisticated.building.create.catnip.gui.widget.BoxWidget;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
@@ -16,7 +15,6 @@ import sophisticated.building.create.foundation.gui.AllIcons;
 import sophisticated.building.create.foundation.utility.Components;
 import sophisticated.building.platform.ClientServices;
 
-import javax.annotation.Nonnull;
 
 public class ModifiersScreen extends AbstractSimiScreen {
 	protected ModifiersScreenList list;
@@ -140,9 +138,9 @@ public class ModifiersScreen extends AbstractSimiScreen {
 	}
 	
 	@Override
-	public void resize(@Nonnull Minecraft client, int width, int height) {
+	public void resize(int width, int height) {
 		double scroll = list.scrollAmount();
-		init(client, width, height);
+		super.resize(width, height);
 		list.setScrollAmount(scroll);
 	}
 	

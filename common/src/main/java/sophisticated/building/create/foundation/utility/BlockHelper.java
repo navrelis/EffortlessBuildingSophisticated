@@ -14,6 +14,7 @@ import net.minecraft.stats.Stats;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -21,7 +22,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.BlockItemStateProperties;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseRailBlock;
 import net.minecraft.world.level.block.BedBlock;
@@ -37,6 +37,7 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.storage.TagValueInput;
 import sophisticated.building.SophisticatedBuilding;
@@ -134,7 +135,7 @@ public class BlockHelper {
 		}
 
 		if (world instanceof ServerLevel serverLevel && serverLevel.getGameRules()
-				.getBoolean(GameRules.RULE_DOBLOCKDROPS) && !Services.BLOCK_EVENTS.isRestoringBlockSnapshots(world)
+				.get(GameRules.BLOCK_DROPS) && !Services.BLOCK_EVENTS.isRestoringBlockSnapshots(world)
 				&& (player == null || !player.isCreative())) {
 			List<ItemStack> drops = Block.getDrops(state, serverLevel, pos, blockEntity, player, usedTool);
 			if (player != null)
@@ -143,7 +144,7 @@ public class BlockHelper {
 				droppedItemCallback.accept(itemStack);
 
 			if (state.getBlock() instanceof IceBlock && Services.BLOCK_EVENTS.doesBrokenIceTurnIntoWater(world, usedTool)) {
-				if (world.dimensionType().ultraWarm())
+				if (world.environmentAttributes().getValue(EnvironmentAttributes.WATER_EVAPORATES, pos))
 					return false;
 
 				BlockState blockstate = world.getBlockState(pos.below());
@@ -228,7 +229,7 @@ public class BlockHelper {
 		else if (state.is(BlockTags.CAULDRONS))
 			state = Blocks.CAULDRON.defaultBlockState();
 
-		if (world.dimensionType().ultraWarm() && state.getFluidState().is(FluidTags.WATER)) {
+		if (world.environmentAttributes().getValue(EnvironmentAttributes.WATER_EVAPORATES, target) && state.getFluidState().is(FluidTags.WATER)) {
 			int i = target.getX();
 			int j = target.getY();
 			int k = target.getZ();

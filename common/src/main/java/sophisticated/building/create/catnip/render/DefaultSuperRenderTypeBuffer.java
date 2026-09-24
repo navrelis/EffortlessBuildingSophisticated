@@ -1,9 +1,10 @@
 package sophisticated.building.create.catnip.render;
 
 import java.util.SortedMap;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.SectionBufferBuilderPack;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
@@ -69,19 +70,19 @@ public class DefaultSuperRenderTypeBuffer implements SuperRenderTypeBuffer {
 		private final SortedMap<RenderType, ByteBufferBuilder> fixedBuffers = Util.make(new Object2ObjectLinkedOpenHashMap<>(), map -> {
 			map.put(Sheets.solidBlockSheet(), fixedBufferPack.buffer(ChunkSectionLayer.SOLID));
 			map.put(Sheets.cutoutBlockSheet(), fixedBufferPack.buffer(ChunkSectionLayer.CUTOUT));
-			map.put(Sheets.bannerSheet(), fixedBufferPack.buffer(ChunkSectionLayer.CUTOUT_MIPPED));
 			map.put(Sheets.translucentItemSheet(), fixedBufferPack.buffer(ChunkSectionLayer.TRANSLUCENT));
+			put(map, Sheets.translucentBlockItemSheet());
 			put(map, Sheets.shieldSheet());
 			put(map, Sheets.bedSheet());
 			put(map, Sheets.shulkerBoxSheet());
 			put(map, Sheets.signSheet());
 			put(map, Sheets.hangingSignSheet());
 			map.put(Sheets.chestSheet(), new ByteBufferBuilder(786432));
-			put(map, RenderType.armorEntityGlint());
-			put(map, RenderType.glint());
-			put(map, RenderType.glintTranslucent());
-			put(map, RenderType.entityGlint());
-			put(map, RenderType.waterMask());
+			put(map, RenderTypes.armorEntityGlint());
+			put(map, RenderTypes.glint());
+			put(map, RenderTypes.glintTranslucent());
+			put(map, RenderTypes.entityGlint());
+			put(map, RenderTypes.waterMask());
 			ModelBakery.DESTROY_TYPES.forEach((renderType) -> {
 				put(map, renderType);
 			});

@@ -3,7 +3,8 @@ package sophisticated.building.create.catnip.gui;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.render.TextureSetup;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.joml.Matrix3x2fStack;
 import sophisticated.building.client.gui.GuiQuads;
@@ -65,7 +66,8 @@ public class UIRenderHelper {
 		float v0 = stencil.v() / (float) stencil.textureHeight();
 		float u1 = (stencil.u() + stencil.width()) / (float) stencil.textureWidth();
 		float v1 = (stencil.v() + stencil.height()) / (float) stencil.textureHeight();
-		TextureSetup texture = TextureSetup.singleTexture(Minecraft.getInstance().getTextureManager().getTexture(stencil.texture()).getTextureView());
+		AbstractTexture stencilTexture = Minecraft.getInstance().getTextureManager().getTexture(stencil.texture());
+		TextureSetup texture = TextureSetup.singleTexture(stencilTexture.getTextureView(), stencilTexture.getSampler());
 		GuiQuads.textured(graphics, GuiPipelines.STENCIL_GRADIENT, texture)
 			.vertex(x0, y0, u0, v0, gradient.colorAt(x0, y0))
 			.vertex(x0, y1, u0, v1, gradient.colorAt(x0, y1))
@@ -75,7 +77,7 @@ public class UIRenderHelper {
 	}
 
 	/** A region of a texture drawn at (x, y) with its own size. */
-	public record TextureRegion(ResourceLocation texture, int x, int y, int width, int height, int u, int v, int textureWidth, int textureHeight) {
+	public record TextureRegion(Identifier texture, int x, int y, int width, int height, int u, int v, int textureWidth, int textureHeight) {
 	}
 
 	/**

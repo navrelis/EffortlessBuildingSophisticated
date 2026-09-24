@@ -4,7 +4,7 @@ import sophisticated.building.utilities.Color;
 import sophisticated.building.gui.ScreenElement;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * GUI texture definitions for the mod.
@@ -19,7 +19,7 @@ public enum AllGuiTextures implements ScreenElement {
     ARROW_DOWN("modifiers", 243, 9, 9, 9),
     TRASH("modifiers", 234, 18, 9, 9),
     ;
-    public final ResourceLocation location;
+    public final Identifier location;
     public int width, height;
     public int startX, startY;
     private AllGuiTextures(String location, int width, int height) {
@@ -35,7 +35,7 @@ public enum AllGuiTextures implements ScreenElement {
     }
     
     private AllGuiTextures(String namespace, String location, int startX, int startY, int width, int height) {
-        this.location = ResourceLocation.fromNamespaceAndPath(namespace, "textures/gui/" + location + ".png");
+        this.location = Identifier.fromNamespaceAndPath(namespace, "textures/gui/" + location + ".png");
         this.width = width;
         this.height = height;
         this.startX = startX;

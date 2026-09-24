@@ -7,7 +7,7 @@ import sophisticated.building.create.catnip.theme.Color;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -55,7 +55,7 @@ public abstract class GhostBlockRenderer {
 			ms.pushPose();
 			ms.translate(pos.getX(), pos.getY(), pos.getZ());
 
-			VertexConsumer vb = buffer.getEarlyBuffer(RenderType.solid());
+			VertexConsumer vb = buffer.getEarlyBuffer(RenderTypes.solidMovingBlock());
 			ModelBlockRenderer.renderModel(ms.last(), vb, model, 1f, 1f, 1f, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
 
 			ms.popPose();
@@ -78,7 +78,7 @@ public abstract class GhostBlockRenderer {
 
 			BlockStateModel model = dispatcher.getBlockModel(state);
 			// Translucent block models outside the chunk renderer (1.21.6+: the chunk layers are no render types)
-			VertexConsumer vb = buffer.getEarlyBuffer(RenderType.translucentMovingBlock());
+			VertexConsumer vb = buffer.getEarlyBuffer(RenderTypes.translucentMovingBlock());
 
 			ms.pushPose();
 			ms.translate(pos.getX(), pos.getY(), pos.getZ());
