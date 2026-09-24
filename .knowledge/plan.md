@@ -1,27 +1,23 @@
-# Plan (4.2.0)
+# Plan (multi-version, 4.3.0)
 
-| ID | Task | Loader | Model | Depends | Parallel | Status |
-|----|------|--------|-------|---------|----------|--------|
-| T1 | Fabric JSON config files (common/server/client) + server->client sync + new `survivalReplace.enabled` (default false) | Fabric | Opus | - | with T3 | done |
-| T3 | #4 place with the real stack's data components (contents, name) and consume that exact stack; #1 hardening (third-party getStateForPlacement exceptions mark the entry invalid instead of crashing) | Fabric | Opus (worktree) | - | with T1 | done |
-| T5 | #3 audit: trace Building Upgrade item flow (client count -> packet -> server extraction) on both loaders, report concrete bugs | both | Sonnet (read-only) | - | with T1, T3 | done |
-| T2 | Survival replace: gate via config, mine replaced blocks with survival rules, delay + countdown, client preview marks unbreakable targets, safe survival undo/redo of replacements | Fabric | Opus | T1, T3 | - | done |
-| T5b | Fix T5 bugs: Fabric anchor only when backpack has the item; widen tick-sync catches; NeoForge Curios double scan; NeoForge tooltip | both | Sonnet | T5 | - | done |
-| T6 | NeoForge parity for T2, T3 + SERVER config entry (T5b ported separately) | NeoForge | Sonnet | T2, T3 | with T5 | done |
-| T7 | Release 4.2.0: version bump, patch notes, export jars, .gitignore negation for .knowledge | both | Sonnet | T6 | - | done |
-| T8 | Final: e2e smoke test (T8a Sonnet), graphify refresh, report, push, issue replies | - | lead | T7 | - | done |
-| L1 | Undo item counts + merge whitelist + skipFirst redesign + protection checks + finally | both | Opus | - | with L2, L3 | done |
-| L2 | NeoForge tier cap + anchor port + tooltip restore | NeoForge | Sonnet (worktree) | - | with L1, L3 | done |
-| L3 | Fabric config correction/backup + data-fixer investigation | Fabric | Sonnet (worktree) | - | with L1, L2 | done |
-| L4 | Fabric GameTests for server-side rules | Fabric | Opus | L1 | - | done |
-| L4b | Keep failed undo/redo entries on their stack + message; single-item removal keeps stack data; GameTests | both | Sonnet | L4 | - | done |
-| L5 | Release 4.2.1 (patch notes, export) + smoke test | both | Sonnet | L1-L4 | - | done |
-| L6 | Final: graph, report, push, memory | - | lead | L5 | - | done |
+Status: open / in progress / in review / done. Chains: forward (1.21.1 -> 26.2) and backward (1.21.1 -> 1.16.x) can run in parallel once F1 is done.
 
-## Definition of done (per task)
-- T1: config files are created with defaults on first start, missing keys filled, invalid JSON logged and defaults kept, values clamped to the NeoForge ranges; all existing call sites unchanged; client gets the server's ServerConfig values on join and restores its own on disconnect; Fabric build + tests green.
-- T3: placing a filled/renamed shulker (or any block item with data components) with any build mode keeps contents and name; survival consumes that exact stack; creative copies the template stack; plain blocks behave as before; an exception in a third-party getStateForPlacement marks that entry invalid and is logged once, no crash; Fabric build + tests green.
-- T5: written report with file:line evidence per step, verdict per step (works / broken), list of bugs.
-- T2: with config off, behaviour identical to 4.1.1 (replace creative-only); with config on, survival replace works with mining rules, unbreakable/protected targets are skipped and not consumed, delay+countdown shown; survival undo/redo of replacements never places blocks for free; Fabric build + tests green.
-- T6: NeoForge builds, same behaviour as Fabric; new SERVER config entry default false.
-- T7: both jars exported as 4.2.0, patch notes written.
+| ID | Task | Model | Depends | Parallel | Status |
+|----|------|-------|---------|----------|--------|
+| R1 | Read-only map: Fabric vs NeoForge 1.21.1 diff, loader touchpoints, Create stack, common/ split proposal | Sonnet | - | R2, R3 | done |
+| R2 | Download SB + Core jars per loader/MC into `upstream/`, manifest + fetch script | Sonnet | - | R1, R3 | done |
+| R3 | Toolchain matrix per MC/loader + merge analysis + proof builds (scratchpad) | Opus | - | R1, R2 | in progress |
+| F1 | Branch `mc/1.21.1`: restructure into `common/` + `fabric/` + `neoforge/`, tests green | Opus | R1, R3 | - | open |
+| F2 | Forge 1.21.1 loader folder (no SB for Forge 1.21.1) | tbd | F1 | - | open |
+| F3 | Vanilla preview renderer in common for versions without the Create stack | tbd | R1, F1 | - | open |
+| F4 | 1.21.1 dependency updates, version 4.3.0, jar naming, `release/` folders | Sonnet | F1 | - | open |
+| F5 | Per-branch CI (GitHub Actions) + build/export script | Sonnet | F1 | - | open |
+| F6 | Hub `main`: README + matrix, porting guide, worktree setup script, cleanup, changelog | Sonnet | F1-F5 | - | open |
+| P* | Ports (one task per version branch, details after R3): forward 1.21.4, 1.21.5, 1.21.8, 1.21.10, 1.21.11, 26.1.x, 26.2; backward 1.20.4, 1.20.1, 1.19.x, 1.18.x, 1.17.1, 1.16.x | Opus | F1-F5 | 2 chains | open |
+| Z  | Final: e2e check all branches, graphify refresh, report, push | lead | all | - | open |
+
+## Definition of done
+- R1/R3: written report with paths/evidence; R3 proof builds actually run.
+- R2: jars verified (size, zip, sha1), manifest + fetch script idempotent, only manifest/script/README/.gitignore tracked.
+- F1: same behaviour as 4.2.1; Fabric 77 unit + 17/17 GameTests, NeoForge build green; no logic drift between loaders.
+- Each port: all loader builds green, unit tests green, dedicated server starts (with SB where it exists), jar in `<loader>/release/`, CI file present, manual checklist entry.

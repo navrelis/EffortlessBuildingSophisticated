@@ -1,30 +1,6 @@
-# Log
+# Log (multi-version session; earlier sessions: see git history)
 
-- 2026-09-24 lead: analysed issues #1/#3/#4 and replace gating; user answered open questions; plan written.
-- 2026-09-24 T1 Fabric JSON config -> Opus, started.
-- 2026-09-24 T3 #4 storage-block data + #1 hardening -> Opus (worktree), started.
-- 2026-09-24 T5 #3 Building Upgrade audit -> Sonnet (read-only), started.
-- 2026-09-24 T1 review: 1 correction (whitelist excluded from client sync); accepted, Fabric build green 31/31 tests.
-- 2026-09-24 T3 review: accepted without corrections (applied worktree diff to main); Fabric build green 40/40 tests.
-- 2026-09-24 T2 survival replace (Fabric) -> Opus, started.
-- 2026-09-24 T2 review #1: correction sent (same-block SKIP regressed vanilla merges: slab->double slab, candles, pickles).
-- 2026-09-24 T2 review #2: merge fix accepted; Fabric build green 56/56 tests.
-- 2026-09-24 T6 NeoForge parity (T2+T3+config) -> Sonnet, started.
-- 2026-09-24 T6 review: accepted without corrections (files identical to Fabric except loader APIs, NeoForge snapshot/place events, anchor 0); NeoForge build green (no test source set).
-- 2026-09-24 T5 audit done: #3 works as designed on both loaders (enabled Building Upgrade supplies blocks, none without). Verified bugs: Fabric anchor reserves last block even if backpack lacks the item; narrow LinkageError-only catches in tick sync (both); NeoForge Curios backpacks scanned twice. Rejected: backpack data stacks (count and extraction both plain-only, consistent), NeoForge no-anchor (backpack drained first, harmless).
-- 2026-09-24 T5b -> Sonnet, started.
-- 2026-09-24 T5b review: accepted without corrections; Fabric 60/60 tests, NeoForge build green.
-- 2026-09-24 T7 release 4.2.0 -> Sonnet, started.
-- 2026-09-24 T7 review: 1 correction (4 patch-note inaccuracies); accepted. Jars 4.2.0 exported, Fabric 60/60 tests.
-- 2026-09-24 T8a runtime smoke test (both loaders, exported jars) -> Sonnet, started.
-- 2026-09-24 T8a smoke test: both loaders load a world and join with the 4.2.0 jars; config entries present with enabled=false; build.gradle reverts confirmed. Accepted.
-- 2026-09-24 lead: graphify incremental refresh (5634 nodes / 14992 edges / 255 communities); test log folder ignored; report written.
-- 2026-09-24 round 2 started: L1 Opus (main tree), L2 Sonnet (worktree), L3 Sonnet (worktree).
-- 2026-09-24 L2 review: 1 correction (dead countBlockInBackpackClamped removed); accepted, NeoForge build green in worktree; diff held until L1 finishes.
-- 2026-09-24 L1 review: accepted without corrections (redo got its own entry point; merges charge only the difference). L3 review: accepted; startup "No data fixer" ERROR traced to Sophisticated Backpacks Fabric port (EntityType.Builder.build("") in ModItems), not ours. Combined build: Fabric 77/77, NeoForge green. Commits 1ee43a6, 662285e, 4c81b1b.
-- 2026-09-24 L4 Fabric GameTests -> Opus, started.
-- 2026-09-24 L4 review: accepted; build green (77 unit), runGametest 16/16 passed (verified by lead). Open points from L4 -> L4b: skipped survival undo is dropped from the undo stack; single-item removeFromInventory rebuilds the held stack without its data.
-- 2026-09-24 L4b -> Sonnet, started.
-- 2026-09-24 L4b review: 1 correction (new GameTest not registered as entrypoint); accepted. Fabric 77 unit + 17/17 GameTests, NeoForge green (verified by lead).
-- 2026-09-24 L5 review: 1 correction (4 patch-note wordings); accepted. 4.2.1 jars exported, 77 unit + 17/17 GameTests, smoke test both loaders OK (one NeoForge JVM native crash in Flywheel shader compile on the first try, clean on retry; unrelated).
-- 2026-09-24 L6 lead: report updated for 4.2.1, graphify incremental refresh, final push.
+- 2026-09-24 lead: CurseForge file lists read (SB official 1072 files, Fabric port 29); scope questions answered by user.
+- 2026-09-24 R1 map -> Sonnet, R2 upstream download -> Sonnet, R3 toolchain research -> Opus: started.
+- 2026-09-24 R1 review: accepted. ~159/269 files identical, rest loader-API adapters; drift: NeoForge-only Curios dedup, CompatHelper caching, 3 lang keys missing on Fabric, 4 recipe file names; Catnip only used in RenderHandler ghost draw, vanilla FallbackPreviewRenderer exists in the 1.21.11 draft; SB code isolated in ~10 files (excludable where SB is absent).
+- 2026-09-24 R2 review: accepted without corrections (28 pairs, 50 jars verified, fetch script idempotent; old Forge 1.16-1.18.1 bundle Core; NeoForge 26.1/26.1.1 Core gap recorded). Follow-up for F6: manifest refresh script.

@@ -1,33 +1,31 @@
-# Requirements (session 2026-09-24)
+# Requirements (session 2026-09-24, multi-version)
 
 ## Goal
-1. Fix the open GitHub issues on navrelis/EffortlessBuildingSophisticated:
-   - #1 crash placing Create Aeronautics/Simulated redstone magnets (NPE: BlockPlaceContext.getPlayer() null)
-   - #3 items stored in backpacks are not used for placing
-   - #4 storage blocks (shulker boxes, Supplementaries sacks, placeable backpacks) lose contents and names when placed with build modes
-2. New config option (default OFF) that lets survival players use the radial-menu replace modes
-   (replace only air / blocks and air / only blocks / filtered by offhand, and Quick Replace).
+Sophisticated Building (only mod, only repo: navrelis/EffortlessBuildingSophisticated, public) for every Minecraft
+version that has a Sophisticated Backpacks (SB) release, on Forge, NeoForge and Fabric wherever that loader exists
+for the version. Backpacks integration only where SB exists for that loader+version; elsewhere the mod works without it.
 
 ## User answers
-- Survival replace: the replaced block is mined with survival-breaking rules (best tool from inventory / Tool Swapper, durability, drops to inventory, food exhaustion, protected/unbreakable blocks skipped, mining delay). Quick Replace works in survival too when enabled.
-- Fabric has no config files today (values hard-coded in SimpleConfigValue). Add JSON config files on Fabric via Gson (no new dependency) for all existing options plus the new one; server values synced to clients. NeoForge: new entry in the existing per-world SERVER config.
-- #3: expected behaviour is "with a Building Upgrade in the backpack, builds take items from it; without it they don't". Verify that this is true on both loaders, fix whatever does not work, then answer the ticket and close it.
-- Git: push to `main` (repo convention), release as 4.2.0 (patch notes + exported jars), then comment on #1/#3/#4 and close them.
+- Scope: every MC version with an SB release (release files, no alpha/beta). "Do whatever is needed, merge whatever you need"
+  -> one jar may cover several MC versions (declared range) when verified compatible.
+- Everything else: lead's defaults accepted, lead decides:
+  - `main` = hub (README + support matrix, porting guide, shared scripts, CI templates, .knowledge, docs, upstream manifest).
+  - One branch per MC version `mc/<version>` with `common/` + one folder per loader (`forge/`, `neoforge/`, `fabric/`),
+    each loader folder holds its Gradle project and `release/` with the latest built jar
+    `sophisticatedbuilding-<loader>-<mc>-<ver>.jar` (jars committed there only).
+  - Local: root = main checkout, version branches as git worktrees under `versions/<mc>/` (ignored on main).
+  - Upstream SB + Sophisticated Core jars: latest release per loader/version in `upstream/`, git-ignored (third-party,
+    public repo), reproducible via committed manifest + fetch script. Builds resolve deps from Maven (CurseMaven/Modrinth).
+  - Mod version 4.3.0 everywhere; update 1.21.1 deps to latest; no new gameplay features beyond porting; fix found bugs.
+  - CI: GitHub Actions per version branch (build all loaders + unit tests; GameTests where available).
+  - Every port: builds, unit tests green, dedicated server starts with SB (where it exists). In-game checks -> manual checklist.
+  - Cleanup: remove empty `net/`, `temp-fabric-src/`, `.scratch_javap/`; old `Fabric-0.19.2-1.21.11/` only as reference,
+    then removed; `DevInstance_*` -> ignored `local/`; patch notes into version branches, overall changelog on main.
+  - Push: new `mc/*` branches directly; main converted to hub after `mc/1.21.1` is verified.
 
 ## Constraints
-- Minecraft 1.21.1. Fabric Loader 0.18.6 / Fabric API 0.116.6 (primary), NeoForge 21.1.217 project (compiles against Sophisticated Core 1.21.1-1.5.1.2341 / Backpacks 1.21.1-3.26.3.2158).
-- Fabric Sophisticated ports: Core 1.2.9.21.168, Backpacks 3.23.4.3.106, Storage 1.3.7.9.139.
-- Both loaders must build; Fabric unit tests must stay green; keep feature parity.
-- No new dependencies. Sophisticated integration must stay optional and guarded (Exception | LinkageError).
-- Commit trailer per session reminder: `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
-- Never stage `graphify-out/` in feature commits; refresh the graph at the end.
-
-## Round 2 (user, 2026-09-24): fix the known limitations from report.md
-- NeoForge: cap Building Upgrade supply per build to the tier like Fabric (with held-block anchor), restore the tooltip.
-- Survival undo must charge the real item count of multi-item states (double slab 2, candles/pickles/eggs/snow layers/petals N); merge rule limited to real "count" properties.
-- Server skipFirst redesign: honour it only when vanilla handled the first block (Disable mode without Quick Replace), no chat spam.
-- Spawn protection / adventure-mode checks for every build-mode placement and break (vanilla parity); isPlacingOrBreakingBlocks reset in finally.
-- Fabric JSON config: correct and back up files with clamped/invalid values like NeoForge, so warnings don't repeat.
-- Investigate the Fabric "No data fixer registered for" startup ERROR; fix if it is ours.
-- Automated in-game coverage: Fabric GameTests for the server-side placement/replace/undo rules.
-- Release as 4.2.1 (4.2.0 jars may not be published; 4.2.1 includes everything).
+- Existing 1.21.1 code (4.2.1) is the source of truth: 77 Fabric unit tests + 17 GameTests must stay green.
+- Sophisticated integration stays optional and guarded (Exception | LinkageError).
+- No secrets, no third-party jars in git. Never force-push.
+- Commit trailer: `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
+- Never stage graphify-out/ in feature commits; refresh the graph at the end (incremental recipe, never plain `graphify update .`).
