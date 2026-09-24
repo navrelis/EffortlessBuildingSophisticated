@@ -4,6 +4,7 @@ import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.platform.BlendFactor;
 import com.mojang.blaze3d.platform.CompareOp;
 import net.minecraft.client.renderer.BindGroupLayouts;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -27,8 +28,20 @@ import java.util.function.Function;
  */
 public final class OutlineRenderTypes {
 
+	/**
+	 * The entity solid pipeline with a blend function that keeps the source colour, which draws like no blending. Since
+	 * 26.2 the game draws geometry without blending with the solid features, before the ghost blocks; with blending the
+	 * outline edges stay in the translucent custom geometry, in the order of their submits (after the ghost blocks, as
+	 * on earlier versions).
+	 */
+	private static final RenderPipeline SOLID_PIPELINE = RenderPipeline.builder(RenderPipelines.ENTITY_SNIPPET)
+		.withLocation(Identifier.fromNamespaceAndPath(SophisticatedBuilding.MODID, "pipeline/outline_solid"))
+		.withBindGroupLayout(BindGroupLayouts.SAMPLER1)
+		.withColorTargetState(new ColorTargetState(new BlendFunction(BlendFactor.ONE, BlendFactor.ZERO)))
+		.build();
+
 	private static final RenderType OUTLINE_SOLID =
-		RenderType.create(createLayerName("outline_solid"), RenderSetup.builder(RenderPipelines.ENTITY_SOLID)
+		RenderType.create(createLayerName("outline_solid"), RenderSetup.builder(SOLID_PIPELINE)
 			.withTexture("Sampler0", AllSpecialTextures.BLANK.getLocation())
 			.useLightmap()
 			.useOverlay()

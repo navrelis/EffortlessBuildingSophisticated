@@ -47,9 +47,9 @@ public class RenderHandler {
 	/**
 	 * Submits the mod's level geometry: mirror lines and planes, ghost blocks and the preview outlines (block clusters,
 	 * break box). Minecraft 26.2 has no immediate drawing during the level render any more: the geometry is recorded
-	 * here and submitted as custom geometry, which the game draws with the level's other submits (outline edges with
-	 * the solid features, everything translucent in the translucent custom geometry phase, before the translucent
-	 * terrain). {@code ms} is the pose stack of the level's submits (camera relative, untranslated).
+	 * here and submitted as custom geometry, which the game draws with the level's other submits (all of it has
+	 * blending, so it is drawn in the translucent custom geometry phase, before the translucent terrain, in the order
+	 * of the submit orders below). {@code ms} is the pose stack of the level's submits (camera relative, untranslated).
 	 */
 	public static void onSubmitLevel(PoseStack ms, SubmitNodeCollector collector) {
 		Vec3 cameraPos = Minecraft.getInstance().gameRenderer.mainCamera().position();
