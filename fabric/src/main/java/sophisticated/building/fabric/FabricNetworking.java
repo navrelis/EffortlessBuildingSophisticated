@@ -20,12 +20,12 @@ public final class FabricNetworking {
 
     public static void setupCommon() {
         for (PacketHandler.Payload<?> payload : PacketHandler.SERVERBOUND) {
-            registerType(PayloadTypeRegistry.playC2S(), payload);
+            registerType(PayloadTypeRegistry.serverboundPlay(), payload);
         }
         for (PacketHandler.Payload<?> payload : PacketHandler.CLIENTBOUND) {
-            registerType(PayloadTypeRegistry.playS2C(), payload);
+            registerType(PayloadTypeRegistry.clientboundPlay(), payload);
         }
-        PayloadTypeRegistry.playS2C().register(ServerConfigSyncPacket.ID, ServerConfigSyncPacket.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(ServerConfigSyncPacket.ID, ServerConfigSyncPacket.CODEC);
 
         for (PacketHandler.Payload<?> payload : PacketHandler.SERVERBOUND) {
             registerReceiver(payload);

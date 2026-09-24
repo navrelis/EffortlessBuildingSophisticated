@@ -1,6 +1,6 @@
 package sophisticated.building.create.catnip.gui.element;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import sophisticated.building.gui.ScreenElement;
 
 /**
@@ -31,10 +31,10 @@ public interface RenderElement extends FadableScreenElement {
 
 	float getZ();
 
-	void render(GuiGraphics graphics);
+	void render(GuiGraphicsExtractor graphics);
 
 	@Override
-	default void render(GuiGraphics graphics, int x, int y, float alpha) {
+	default void render(GuiGraphicsExtractor graphics, int x, int y, float alpha) {
 		this.at(x, y).withAlpha(alpha).render(graphics);
 	}
 }

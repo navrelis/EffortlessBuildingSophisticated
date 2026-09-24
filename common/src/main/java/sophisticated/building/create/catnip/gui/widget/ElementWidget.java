@@ -7,7 +7,7 @@ import sophisticated.building.create.catnip.animation.LerpedFloat;
 import sophisticated.building.create.catnip.gui.element.AbstractRenderElement;
 import sophisticated.building.create.catnip.gui.element.RenderElement;
 import sophisticated.building.gui.ScreenElement;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 /**
  * Adapted from Catnip ({@code sophisticated.building.create.catnip.gui.widget.ElementWidget}, MIT License, Copyright (c) 2022
@@ -119,7 +119,7 @@ public class ElementWidget extends AbstractSimiWidget {
 	}
 
 	@Override
-	protected void beforeRender(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+	protected void beforeRender(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
 		super.beforeRender(graphics, mouseX, mouseY, partialTicks);
 		isHovered = isMouseOver(mouseX, mouseY);
 
@@ -131,7 +131,7 @@ public class ElementWidget extends AbstractSimiWidget {
 	}
 
 	@Override
-	public void doRender(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+	public void doRender(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
 		Matrix3x2fStack poseStack = graphics.pose();
 		poseStack.pushMatrix();
 		poseStack.translate(getX() + paddingX, getY() + paddingY);

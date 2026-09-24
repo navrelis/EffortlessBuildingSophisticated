@@ -170,7 +170,11 @@ public final class SophisticatedBuilding {
     }
 
     public static void log(Player player, String msg, boolean actionBar) {
-        player.displayClientMessage(Component.literal(msg), actionBar);
+        if (actionBar) {
+            player.sendOverlayMessage(Component.literal(msg));
+        } else {
+            player.sendSystemMessage(Component.literal(msg));
+        }
     }
 
     // Log with translation supported, call either on client or server (which then sends a message)

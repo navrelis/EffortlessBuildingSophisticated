@@ -3,7 +3,7 @@ package sophisticated.building.create.catnip.gui.element;
 import sophisticated.building.client.gui.GuiQuads;
 import sophisticated.building.create.catnip.data.Couple;
 import sophisticated.building.create.catnip.theme.Color;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 /**
  * Adapted from Catnip ({@code sophisticated.building.create.catnip.gui.element.BoxElement}, MIT License, Copyright (c) 2022
@@ -70,14 +70,14 @@ public class BoxElement extends AbstractRenderElement {
 	}
 
 	@Override
-	public void render(GuiGraphics graphics) {
+	public void render(GuiGraphicsExtractor graphics) {
 		renderBox(graphics);
 	}
 
 	//total box width = 1 * 2 (outer border) + 1 * 2 (inner color border) + 2 * borderOffset + width
 	//defaults to 2 + 2 + 4 + 16 = 24px
 	//batch everything together (one GUI draw) to save a bunch of gl calls over ScreenUtils
-	protected void renderBox(GuiGraphics graphics) {
+	protected void renderBox(GuiGraphicsExtractor graphics) {
 		/*
 		*          _____________
 		*        _|_____________|_

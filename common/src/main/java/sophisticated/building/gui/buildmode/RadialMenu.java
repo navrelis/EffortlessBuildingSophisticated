@@ -6,7 +6,7 @@ import sophisticated.building.utilities.Color;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.resources.language.I18n;
@@ -116,11 +116,11 @@ public class RadialMenu extends Screen {
 	// Minecraft 1.21.6 draws the screen background (blur and menu background) before render; the radial menu only has its
 	// own fading gradient, drawn in render.
 	@Override
-	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+	public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, final int mouseX, final int mouseY, final float partialTicks) {
+	public void extractRenderState(GuiGraphicsExtractor guiGraphics, final int mouseX, final int mouseY, final float partialTicks) {
 		BuildModeEnum currentBuildMode = SophisticatedBuildingClient.BUILD_MODES.getBuildMode();
 
 		Matrix3x2fStack ms = guiGraphics.pose();
@@ -313,7 +313,7 @@ public class RadialMenu extends Screen {
 		}
 	}
 
-	private void drawIcons(GuiGraphics guiGraphics, double middleX, double middleY,
+	private void drawIcons(GuiGraphicsExtractor guiGraphics, double middleX, double middleY,
 						   ArrayList<MenuRegion> modes, ArrayList<MenuButton> buttons) {
 		//Draw buildmode icons
 		for (final MenuRegion menuRegion : modes) {
@@ -334,20 +334,20 @@ public class RadialMenu extends Screen {
 		}
 	}
 
-	private void drawTexts(GuiGraphics guiGraphics, BuildModeEnum currentBuildMode, double middleX, double middleY, ArrayList<MenuRegion> modes, ArrayList<MenuButton> buttons, OptionEnum[] options, int mouseX, int mouseY) {
+	private void drawTexts(GuiGraphicsExtractor guiGraphics, BuildModeEnum currentBuildMode, double middleX, double middleY, ArrayList<MenuRegion> modes, ArrayList<MenuButton> buttons, OptionEnum[] options, int mouseX, int mouseY) {
 		//Draw option strings
 		for (int i = 0; i < currentBuildMode.options.length; i++) {
 			OptionEnum option = options[i];
-			guiGraphics.drawString(font, I18n.get(option.name), (int) (middleX + buttonDistance - 9), (int) middleY - 37 + i * 39, optionTextColor);
+			guiGraphics.text(font, I18n.get(option.name), (int) (middleX + buttonDistance - 9), (int) middleY - 37 + i * 39, optionTextColor);
 		}
 
 		String credits = "Sophisticated Building";
-		guiGraphics.drawString(font, credits, width - font.width(credits) - 4, height - 10, watermarkTextColor);
+		guiGraphics.text(font, credits, width - font.width(credits) - 4, height - 10, watermarkTextColor);
 
 		//Draw power level info
 		String powerLevelValue = minecraft.player.isCreative() ? "Creative" : String.valueOf(AttachmentHandler.getPowerLevel(minecraft.player));
 		String powerLevelText = I18n.get("key.sophisticatedbuilding.power_level") + ": " + powerLevelValue;
-		guiGraphics.drawString(font, powerLevelText, width - font.width(powerLevelText) - 4, height - 22, minecraft.player.isCreative() ? watermarkTextColor : ARGB.opaque(ChatFormatting.DARK_PURPLE.getColor()));
+		guiGraphics.text(font, powerLevelText, width - font.width(powerLevelText) - 4, height - 22, minecraft.player.isCreative() ? watermarkTextColor : ARGB.opaque(ChatFormatting.DARK_PURPLE.getColor()));
 
 		//if hover over power level info, show tooltip
 		if (mouseX >= width - font.width(powerLevelText) - 14 && mouseX <= width && mouseY >= height - 24 && mouseY <= height) {
@@ -390,11 +390,11 @@ public class RadialMenu extends Screen {
 					fixed_x -= font.width(text) / 2;
 				}
 
-				guiGraphics.drawString(font, text, (int) middleX + fixed_x, (int) middleY + fixed_y, whiteTextColor);
+				guiGraphics.text(font, text, (int) middleX + fixed_x, (int) middleY + fixed_y, whiteTextColor);
 
 				//Draw description
 				text = I18n.get(menuRegion.mode.getDescriptionKey());
-				guiGraphics.drawString(font, text, (int) ((int) middleX - font.width(text) / 2f), (int) middleY + buildModeDescriptionHeight, descriptionTextColor);
+				guiGraphics.text(font, text, (int) ((int) middleX - font.width(text) / 2f), (int) middleY + buildModeDescriptionHeight, descriptionTextColor);
 			}
 		}
 

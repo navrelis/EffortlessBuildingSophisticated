@@ -2,7 +2,7 @@ package sophisticated.building.gui.buildmodifier;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import sophisticated.building.AllGuiTextures;
 import sophisticated.building.attachment.AttachmentHandler;
@@ -56,25 +56,25 @@ public class ArrayEntry extends BaseModifierEntry<Array> {
 	}
 
 	@Override
-	public void renderContent(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean hovering, float partialTicks) {
-		super.renderContent(guiGraphics, mouseX, mouseY, hovering, partialTicks);
+	public void extractContent(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, boolean hovering, float partialTicks) {
+		super.extractContent(guiGraphics, mouseX, mouseY, hovering, partialTicks);
 
 		//draw offset inputs
 		for (int i = 0; i < 3; i++) {
 			offsetInputs.get(i).setX(left + 49 + 20 * i);
 			offsetInputs.get(i).setY(top + 19);
-			offsetInputs.get(i).render(guiGraphics, mouseX, mouseY, partialTicks);
+			offsetInputs.get(i).extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
 		}
 		
 		//draw count input
 		countInput.setX(left + 49);
 		countInput.setY(top + 41);
-		countInput.render(guiGraphics, mouseX, mouseY, partialTicks);
+		countInput.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
 		
 		//draw reach label
 		reachLabel.setX(right - 8 - getFont().width(reachLabel.text));
 		reachLabel.setY(top + 24);
-		reachLabel.render(guiGraphics, mouseX, mouseY, partialTicks);
+		reachLabel.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
 	}
 
 	@Override

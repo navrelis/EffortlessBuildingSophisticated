@@ -12,20 +12,20 @@ public class Debug {
 	@Deprecated
 	public static void debugChat(String message) {
 		if (Minecraft.getInstance().player != null)
-			Minecraft.getInstance().player.displayClientMessage(Components.literal(message), false);
+			Minecraft.getInstance().player.sendSystemMessage(Components.literal(message));
 	}
 
 	@Deprecated
 	public static void debugChatAndShowStack(String message, int depth) {
 		if (Minecraft.getInstance().player != null)
-			Minecraft.getInstance().player.displayClientMessage(Components.literal(message).append("@")
-				.append(debugStack(depth)), false);
+			Minecraft.getInstance().player.sendSystemMessage(Components.literal(message).append("@")
+				.append(debugStack(depth)));
 	}
 
 	@Deprecated
 	public static void debugMessage(String message) {
 		if (Minecraft.getInstance().player != null)
-			Minecraft.getInstance().player.displayClientMessage(Components.literal(message), true);
+			Minecraft.getInstance().player.sendOverlayMessage(Components.literal(message));
 	}
 	
 	@Deprecated

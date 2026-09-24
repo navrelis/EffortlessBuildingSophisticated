@@ -1,7 +1,7 @@
 package sophisticated.building.create.foundation.gui.widget;
 
 import com.google.common.collect.ImmutableList;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import sophisticated.building.create.foundation.gui.AllGuiTextures;
 import org.jetbrains.annotations.NotNull;
@@ -17,7 +17,7 @@ public class Indicator extends AbstractSimiWidget {
 	}
 
 	@Override
-	public void renderWidget(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+	public void extractWidgetRenderState(@NotNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
 		if (!visible)
 			return;
 		AllGuiTextures toDraw;

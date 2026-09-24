@@ -1,7 +1,7 @@
 package sophisticated.building.create.foundation.gui.widget;
 
 import sophisticated.building.gui.ScreenElement;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import sophisticated.building.create.foundation.gui.AllGuiTextures;
@@ -20,7 +20,7 @@ public class IconButton extends AbstractSimiWidget {
 	}
 
 	@Override
-	public void doRender(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+	public void doRender(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
 		if (visible) {
 			isHovered = mouseX >= getX() && mouseY >= getY() && mouseX < getX() + width && mouseY < getY() + height;
 
@@ -32,7 +32,7 @@ public class IconButton extends AbstractSimiWidget {
 		}
 	}
 
-	protected void drawBg(GuiGraphics graphics, AllGuiTextures button) {
+	protected void drawBg(GuiGraphicsExtractor graphics, AllGuiTextures button) {
 		graphics.blit(RenderPipelines.GUI_TEXTURED, button.location, getX(), getY(), button.startX, button.startY, button.width, button.height, 256, 256);
 	}
 

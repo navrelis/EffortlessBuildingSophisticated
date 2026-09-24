@@ -1,7 +1,7 @@
 package sophisticated.building.gui.buildmodifier;
 
 import sophisticated.building.create.catnip.gui.widget.BoxWidget;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import sophisticated.building.ClientEvents;
@@ -145,7 +145,7 @@ public class ModifiersScreen extends AbstractSimiScreen {
 	}
 	
 	@Override
-	protected void renderWindow(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+	protected void renderWindow(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 	
 	}
 	

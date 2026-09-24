@@ -3,7 +3,7 @@ package sophisticated.building.gui;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -40,10 +40,9 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 	private Button resetWeightsButton;
 
 	public OmegaRandomizerBagScreen(OmegaRandomizerBagContainer randomizerBagContainer, Inventory playerInventory, Component title) {
-		super(randomizerBagContainer, playerInventory, title);
+		// Taller to fit 6 rows + player inventory
+		super(randomizerBagContainer, playerInventory, title, 176, 221);
 		this.inventory = playerInventory;
-		imageHeight = 221; // Taller to fit 6 rows + player inventory
-		imageWidth = 176;
 	}
 
 	@Override
@@ -80,9 +79,8 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		super.render(guiGraphics, mouseX, mouseY, partialTicks);
-		this.renderTooltip(guiGraphics, mouseX, mouseY);
+	public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		super.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
 		
 		// Render weight badges and tooltips
 		renderWeightBadges(guiGraphics, mouseX, mouseY);
@@ -137,13 +135,14 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		guiGraphics.drawString(this.font, this.title, 8, 6, 0xFF404040, false);
-		guiGraphics.drawString(this.font, this.playerInventoryTitle, 8, imageHeight - 94, 0xFF404040, false);
+	protected void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+		guiGraphics.text(this.font, this.title, 8, 6, 0xFF404040, false);
+		guiGraphics.text(this.font, this.playerInventoryTitle, 8, imageHeight - 94, 0xFF404040, false);
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+	public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		super.extractBackground(guiGraphics, mouseX, mouseY, partialTicks);
 		int marginHorizontal = (width - imageWidth) / 2;
 		int marginVertical = (height - imageHeight) / 2;
 		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, guiTextures, marginHorizontal, marginVertical, 0, 0, imageWidth, imageHeight, 256, 256);
@@ -152,7 +151,7 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 		renderMissingItemOverlays(guiGraphics);
 	}
 	
-	protected void renderMissingItemOverlays(GuiGraphics guiGraphics) {
+	protected void renderMissingItemOverlays(GuiGraphicsExtractor guiGraphics) {
 		Set<Item> missingItems = getMissingItems();
 		if (missingItems.isEmpty()) return;
 		
@@ -193,7 +192,7 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 		return missing;
 	}
 	
-	protected void renderWeightBadges(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+	protected void renderWeightBadges(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
 		if (Minecraft.getInstance().player == null) {
 			return;
 		}
@@ -247,7 +246,7 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 			// Draw a subtle background behind the weight for readability
 			guiGraphics.fill(badgeX - 2, badgeY - 1, badgeX + textWidth + 2, badgeY + badgeHeight, 0xAA000000);
 
-			guiGraphics.drawString(font, weightText, badgeX, badgeY, color, true);
+			guiGraphics.text(font, weightText, badgeX, badgeY, color, true);
 			
 			// Check if mouse is hovering over this slot for tooltip
 			if (mouseX >= slotX && mouseX < slotX + 16 && mouseY >= slotY && mouseY < slotY + 16 && totalWeight > 0) {
@@ -262,10 +261,10 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 		}
 
 		if (hoveredTooltip != null) {
-			// Offset tooltip to not overlap with item name tooltip (render below and to the right). GuiGraphics keeps only
+			// Offset tooltip to not overlap with item name tooltip (render below and to the right). GuiGraphicsExtractor keeps only
 			// one deferred tooltip per frame (the item tooltip), so this one is drawn now, in a stratum above the badges.
 			guiGraphics.nextStratum();
-			guiGraphics.renderTooltip(font, hoveredTooltip.stream().map(line -> ClientTooltipComponent.create(line.getVisualOrderText())).toList(),
+			guiGraphics.tooltip(font, hoveredTooltip.stream().map(line -> ClientTooltipComponent.create(line.getVisualOrderText())).toList(),
 				mouseX + 12, mouseY + 24, DefaultTooltipPositioner.INSTANCE, null);
 		}
 	}

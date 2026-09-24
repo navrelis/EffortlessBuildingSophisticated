@@ -2,7 +2,7 @@ package sophisticated.building.create.catnip.gui.element;
 
 import sophisticated.building.create.catnip.gui.UIRenderHelper;
 import sophisticated.building.create.catnip.theme.Color;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import javax.annotation.Nullable;
 
@@ -40,7 +40,7 @@ public class DelegatedStencilElement extends AbstractRenderElement {
 	}
 
 	@Override
-	public void render(GuiGraphics graphics) {
+	public void render(GuiGraphicsExtractor graphics) {
 		if (stencil == null)
 			return;
 

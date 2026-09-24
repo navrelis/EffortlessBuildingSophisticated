@@ -2,7 +2,7 @@ package sophisticated.building.client.gui;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.DeltaTracker;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import sophisticated.building.SophisticatedBuildingClient;
@@ -19,7 +19,7 @@ import java.util.Map;
  */
 public class MaterialCostOverlay {
 
-    public void render(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
 
@@ -56,9 +56,9 @@ public class MaterialCostOverlay {
             ItemStack stack = new ItemStack(entry.getKey());
             int count = entry.getValue();
 
-            guiGraphics.renderItem(stack, x, y);
-            guiGraphics.renderItemDecorations(mc.font, stack, x, y);
-            guiGraphics.drawString(mc.font, count + "x " + stack.getHoverName().getString(), x + 20, y + 4, 0xFFFFFFFF);
+            guiGraphics.item(stack, x, y);
+            guiGraphics.itemDecorations(mc.font, stack, x, y);
+            guiGraphics.text(mc.font, count + "x " + stack.getHoverName().getString(), x + 20, y + 4, 0xFFFFFFFF);
 
             y += 20;
         }

@@ -29,7 +29,7 @@ public class SophisticatedBuildingNeoForgeClient {
     }
 
     public static void registerGuiLayers(RegisterGuiLayersEvent event) {
-        event.registerAbove(VanillaGuiLayers.CROSSHAIR, SophisticatedBuilding.asResource("material_cost_overlay"), new MaterialCostOverlay()::render);
+        event.registerAbove(VanillaGuiLayers.CROSSHAIR, SophisticatedBuilding.asResource("material_cost_overlay"), new MaterialCostOverlay()::extractRenderState);
     }
 
     public static void onClientSetup(final FMLClientSetupEvent event) {

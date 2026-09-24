@@ -1,7 +1,7 @@
 package sophisticated.building.fabric;
 
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityLevelChangeEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -33,7 +33,7 @@ public final class FabricCommonEvents {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
                 CommonEvents.registerCommands(dispatcher));
 
-        ServerTickEvents.END_WORLD_TICK.register(CommonEvents::onLevelTick);
+        ServerTickEvents.END_LEVEL_TICK.register(CommonEvents::onLevelTick);
         ServerTickEvents.END_SERVER_TICK.register(FabricCommonEvents::onServerTick);
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             LAST_MAIN_HAND.clear();
@@ -83,7 +83,7 @@ public final class FabricCommonEvents {
             CommonEvents.onPlayerRespawned(newPlayer);
         });
 
-        ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) ->
+        ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register((player, origin, destination) ->
                 CommonEvents.onPlayerChangedDimension(player));
     }
 

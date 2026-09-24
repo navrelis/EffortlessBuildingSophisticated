@@ -5,7 +5,7 @@ import sophisticated.building.create.catnip.gui.UIRenderHelper;
 import sophisticated.building.create.catnip.theme.Color;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.input.CharacterEvent;
@@ -32,21 +32,21 @@ public class ModifiersScreenList extends ObjectSelectionList<ModifiersScreenList
     }
 
     @Override
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    public void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
         Color c = new Color(0x60_000000);
         UIRenderHelper.angledGradient(guiGraphics, 90, getX() + width / 2, getY(), width, 5, c, Color.TRANSPARENT_BLACK);
         UIRenderHelper.angledGradient(guiGraphics, -90, getX() + width / 2, getY() + getHeight(), width, 5, c, Color.TRANSPARENT_BLACK);
         UIRenderHelper.angledGradient(guiGraphics, 0, getX(), getY() + height / 2, height, 5, c, Color.TRANSPARENT_BLACK);
         UIRenderHelper.angledGradient(guiGraphics, 180, getX() + getWidth(), getY() + height / 2, height, 5, c, Color.TRANSPARENT_BLACK);
 
-        super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
+        super.extractWidgetRenderState(guiGraphics, mouseX, mouseY, partialTicks);
     }
     
-    public void renderWindowForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    public void renderWindowForeground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
         renderListForeground(guiGraphics, mouseX, mouseY, partialTicks);
     }
     
-    protected void renderListForeground(GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    protected void renderListForeground(GuiGraphicsExtractor guiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         for (Entry e : children()) {
             if (e.getY() + e.getHeight() >= this.getY() && e.getY() <= (this.getY() + this.getHeight())) {
                 e.renderForeground(guiGraphics, pMouseX, pMouseY, Objects.equals(this.getHovered(), e), pPartialTick);
@@ -149,14 +149,14 @@ public class ModifiersScreenList extends ObjectSelectionList<ModifiersScreenList
         }
     
         @Override
-        public void renderContent(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean hovering, float partialTicks) {
+        public void extractContent(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, boolean hovering, float partialTicks) {
     
 //            UIRenderHelper.streak(guiGraphics, 0, x - 10, y + height / 2, height - 6, width, 0xdd_000000);
 //            UIRenderHelper.streak(guiGraphics, 180, x + (int) (width * 1.35f) + 10, y + height / 2, height - 6, width / 8 * 7, 0xdd_000000);
     
         }
 
-        public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean p_230432_9_, float partialTicks) {
+        public void renderForeground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, boolean p_230432_9_, float partialTicks) {
             for (var listener : listeners) {
                 if (listener instanceof AbstractSimiWidget simiWidget && simiWidget.isHoveredOrFocused()
                     && simiWidget.visible) {

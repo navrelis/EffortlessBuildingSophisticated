@@ -1,13 +1,10 @@
 package sophisticated.building.platform.services;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.BlockModelPart;
-import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
@@ -61,8 +58,5 @@ public interface IClientHelper {
      * model with an empty level, Forge with empty model data and no chunk layer: since Minecraft 1.21.6 the chunk
      * layers are no render types, and the ghost blocks draw every part translucent anyway).
      */
-    List<BlockModelPart> collectModelParts(BlockStateModel model, BlockState state, RandomSource random);
-
-    /** Puts one tinted quad; NeoForge also multiplies the quad's own vertex colours in. */
-    void putQuad(VertexConsumer consumer, PoseStack.Pose pose, BakedQuad quad, float red, float green, float blue, float alpha, int packedLight, int packedOverlay);
+    List<BlockStateModelPart> collectModelParts(BlockStateModel model, BlockState state, RandomSource random);
 }

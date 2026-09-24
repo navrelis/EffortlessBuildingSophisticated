@@ -10,7 +10,7 @@ import sophisticated.building.create.catnip.gui.UIRenderHelper;
 import sophisticated.building.create.catnip.gui.element.BoxElement;
 import sophisticated.building.create.catnip.gui.element.DelegatedStencilElement;
 import sophisticated.building.create.catnip.theme.Color;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
 
 /**
@@ -122,7 +122,7 @@ public class BoxWidget extends ElementWidget {
 	}
 
 	@Override
-	protected void beforeRender(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+	protected void beforeRender(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
 		super.beforeRender(graphics, mouseX, mouseY, partialTicks);
 
 		if (isHovered != wasHovered) {
@@ -139,7 +139,7 @@ public class BoxWidget extends ElementWidget {
 	}
 
 	@Override
-	public void doRender(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+	public void doRender(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
 		float fadeValue = fade.getValue(partialTicks);
 		if (fadeValue < .1f)
 			return;

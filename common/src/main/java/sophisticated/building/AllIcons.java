@@ -4,8 +4,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import sophisticated.building.utilities.Color;
 import sophisticated.building.gui.ScreenElement;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
@@ -110,7 +110,7 @@ public class AllIcons implements ScreenElement {
         return new AllIcons(x = 0, ++y);
     }
 
-    public void render(GuiGraphics guiGraphics, int x, int y) {
+    public void render(GuiGraphicsExtractor guiGraphics, int x, int y) {
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ICON_ATLAS, x, y, iconX, iconY, 16, 16, 256, 256);
     }
 
@@ -118,7 +118,7 @@ public class AllIcons implements ScreenElement {
         VertexConsumer builder = buffer.getBuffer(RenderTypes.textSeeThrough(ICON_ATLAS));
         Matrix4f matrix = ms.last().pose();
         Color rgb = new Color(color);
-        int light = LightTexture.FULL_BRIGHT;
+        int light = LightCoordsUtil.FULL_BRIGHT;
         
         Vec3 vec1 = new Vec3(0, 0, 0);
         Vec3 vec2 = new Vec3(0, 1, 0);

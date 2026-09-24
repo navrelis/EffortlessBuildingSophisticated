@@ -1,6 +1,6 @@
 package sophisticated.building.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -27,25 +27,19 @@ public class RandomizerBagScreen extends AbstractContainerScreen<RandomizerBagCo
 	private static final int MISSING_ITEM_COLOR = 0x80FF0000;
 
 	public RandomizerBagScreen(RandomizerBagContainer randomizerBagContainer, Inventory playerInventory, Component title) {
-		super(randomizerBagContainer, playerInventory, title);
+		super(randomizerBagContainer, playerInventory, title, 176, 134);
 		this.inventory = playerInventory;
-		imageHeight = 134;
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		super.render(guiGraphics, mouseX, mouseY, partialTicks);
-		this.renderTooltip(guiGraphics, mouseX, mouseY);
+	protected void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+		guiGraphics.text(this.font, this.title, 8, 6, 0xFF404040, false);
+		guiGraphics.text(this.font, this.playerInventoryTitle, 8, imageHeight - 96 + 2, 0xFF404040, false);
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		guiGraphics.drawString(this.font, this.title, 8, 6, 0xFF404040, false);
-		guiGraphics.drawString(this.font, this.playerInventoryTitle, 8, imageHeight - 96 + 2, 0xFF404040, false);
-	}
-
-	@Override
-	protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+	public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		super.extractBackground(guiGraphics, mouseX, mouseY, partialTicks);
 		int marginHorizontal = (width - imageWidth) / 2;
 		int marginVertical = (height - imageHeight) / 2;
 		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, guiTextures, marginHorizontal, marginVertical, 0, 0, imageWidth, imageHeight, 256, 256);
@@ -58,7 +52,7 @@ public class RandomizerBagScreen extends AbstractContainerScreen<RandomizerBagCo
 	 * Renders a red semi-transparent overlay on bag slots where the template item
 	 * is not available in the player's inventory.
 	 */
-	protected void renderMissingItemOverlays(GuiGraphics guiGraphics) {
+	protected void renderMissingItemOverlays(GuiGraphicsExtractor guiGraphics) {
 		// Get set of missing items
 		Set<Item> missingItems = getMissingItems();
 		if (missingItems.isEmpty()) return;

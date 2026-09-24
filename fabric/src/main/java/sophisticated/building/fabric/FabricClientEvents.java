@@ -1,10 +1,10 @@
 package sophisticated.building.fabric;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.Screen;
@@ -44,7 +44,7 @@ public final class FabricClientEvents {
 
     private static void registerKeyMappings() {
         for (var keyBinding : ClientEvents.keyBindings) {
-            KeyBindingHelper.registerKeyBinding(keyBinding);
+            KeyMappingHelper.registerKeyMapping(keyBinding);
         }
     }
 
@@ -73,7 +73,7 @@ public final class FabricClientEvents {
             }
         });
 
-        ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register((client, world) -> {
+        ClientLevelEvents.AFTER_CLIENT_LEVEL_CHANGE.register((client, world) -> {
             if (lastWorld != null && lastWorld != world) {
                 sophisticated.building.create.events.ClientEvents.onUnloadWorld(lastWorld);
             }
@@ -88,18 +88,18 @@ public final class FabricClientEvents {
         // Block previews, mirror/array lines, ghost blocks and outlines all after the translucent
         // blocks, where Catnip drew its outliner on Fabric (Fabric API for 1.21.9+: the end of the main pass, which
         // follows the translucent terrain; AFTER_TRANSLUCENT is gone).
-        WorldRenderEvents.END_MAIN.register(context -> {
-            if (context.matrices() == null) {
+        LevelRenderEvents.END_MAIN.register(context -> {
+            if (context.poseStack() == null) {
                 return;
             }
-            RenderHandler.onRenderWorld(context.matrices());
-            RenderHandler.onRenderOutlines(context.matrices());
+            RenderHandler.onRenderWorld(context.poseStack());
+            RenderHandler.onRenderOutlines(context.poseStack());
         });
 
         // Last HUD element, where the deprecated HudRenderCallback drew (Fabric API for 1.21.6+).
         HudElementRegistry.addLast(SophisticatedBuilding.asResource("hud"), (guiGraphics, deltaTracker) -> {
             RenderHandler.onRenderGui(guiGraphics);
-            MATERIAL_COST_OVERLAY.render(guiGraphics, deltaTracker);
+            MATERIAL_COST_OVERLAY.extractRenderState(guiGraphics, deltaTracker);
         });
     }
 }

@@ -1,6 +1,6 @@
 package sophisticated.building.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 /**
  * A simple interface for renderable GUI elements.
@@ -14,5 +14,5 @@ public interface ScreenElement {
      * @param x The x position
      * @param y The y position
      */
-    void render(GuiGraphics graphics, int x, int y);
+    void render(GuiGraphicsExtractor graphics, int x, int y);
 }

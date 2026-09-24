@@ -1,6 +1,6 @@
 package sophisticated.building.gui.buildmodifier;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import sophisticated.building.AllGuiTextures;
 import sophisticated.building.buildmodifier.BaseModifier;
@@ -80,7 +80,7 @@ public abstract class BaseModifierEntry<T extends BaseModifier> extends Modifier
     }
 
     @Override
-    public void renderContent(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean hovering, float partialTicks) {
+    public void extractContent(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, boolean hovering, float partialTicks) {
 
         left = getX() + getWidth() / 2 - BACKGROUND_WIDTH / 2;
         right = getX() + getWidth() / 2 + BACKGROUND_WIDTH / 2;
@@ -91,28 +91,28 @@ public abstract class BaseModifierEntry<T extends BaseModifier> extends Modifier
         
         enableButton.setX(left + 4);
         enableButton.setY(top + 3);
-        enableButton.render(guiGraphics, mouseX, mouseY, partialTicks);
+        enableButton.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
         if (modifier.enabled)
             AllGuiTextures.CHECKMARK.render(guiGraphics, left + 5, top + 3);
         
         nameLabel.setX(left + 18);
         nameLabel.setY(top + 4);
-        nameLabel.render(guiGraphics, mouseX, mouseY, partialTicks);
+        nameLabel.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
     
         moveUpButton.visible = screen.canMoveUp(this);
         moveDownButton.visible = screen.canMoveDown(this);
         
         moveUpButton.setX(right - 31);
         moveUpButton.setY(top + 3);
-        moveUpButton.render(guiGraphics, mouseX, mouseY, partialTicks);
+        moveUpButton.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
         
         moveDownButton.setX(right - 22);
         moveDownButton.setY(top + 3);
-        moveDownButton.render(guiGraphics, mouseX, mouseY, partialTicks);
+        moveDownButton.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
         
         removeButton.setX(right - 13);
         removeButton.setY(top + 3);
-        removeButton.render(guiGraphics, mouseX, mouseY, partialTicks);
+        removeButton.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
     }
 
     public void onValueChanged() {

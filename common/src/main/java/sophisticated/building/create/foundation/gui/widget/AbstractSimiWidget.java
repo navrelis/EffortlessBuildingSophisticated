@@ -1,7 +1,7 @@
 package sophisticated.building.create.foundation.gui.widget;
 
 import sophisticated.building.create.catnip.gui.TickableGuiEventListener;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -67,21 +67,21 @@ public abstract class AbstractSimiWidget extends AbstractWidget implements Ticka
 	public void tick() {}
 
 	@Override
-	public void renderWidget(@Nonnull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+	public void extractWidgetRenderState(@Nonnull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
 		beforeRender(graphics, mouseX, mouseY, partialTicks);
 		doRender(graphics, mouseX, mouseY, partialTicks);
 		afterRender(graphics, mouseX, mouseY, partialTicks);
 		wasHovered = isHoveredOrFocused();
 	}
 
-	protected void beforeRender(@Nonnull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+	protected void beforeRender(@Nonnull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
 		graphics.pose().pushMatrix();
 	}
 
-	protected void doRender(@Nonnull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+	protected void doRender(@Nonnull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
 	}
 
-	protected void afterRender(@Nonnull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+	protected void afterRender(@Nonnull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
 		graphics.pose().popMatrix();
 	}
 

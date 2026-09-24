@@ -30,7 +30,7 @@ public class SophisticatedBuildingForgeClient {
 
     public static void addGuiOverlayLayers(AddGuiOverlayLayersEvent event) {
         ForgeLayeredDraw root = event.getLayeredDraw();
-        root.addAbove(ForgeLayeredDraw.PRE_SLEEP_STACK, SophisticatedBuilding.asResource("material_cost_overlay"), ForgeLayeredDraw.CROSSHAIR, new MaterialCostOverlay()::render);
+        root.addAbove(ForgeLayeredDraw.PRE_SLEEP_STACK, SophisticatedBuilding.asResource("material_cost_overlay"), ForgeLayeredDraw.CROSSHAIR, new MaterialCostOverlay()::extractRenderState);
         // Build hints, stacks and HUDs on top of the whole HUD, like NeoForge's RenderGuiEvent.Post.
         root.add(SophisticatedBuilding.asResource("hud"), (guiGraphics, deltaTracker) -> RenderHandler.onRenderGui(guiGraphics));
     }

@@ -1,7 +1,7 @@
 package sophisticated.building.create.catnip.gui;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.render.TextureSetup;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.resources.Identifier;
@@ -22,9 +22,9 @@ import sophisticated.building.create.catnip.theme.Color;
 public class UIRenderHelper {
 
 	/**
-	 * @see #angledGradient(GuiGraphics, float, int, int, float, float, Color, Color)
+	 * @see #angledGradient(GuiGraphicsExtractor, float, int, int, float, float, Color, Color)
 	 */
-	public static void angledGradient(GuiGraphics graphics, float angle, int x, int y, float breadth, float length, Couple<Color> c) {
+	public static void angledGradient(GuiGraphicsExtractor graphics, float angle, int x, int y, float breadth, float length, Couple<Color> c) {
 		angledGradient(graphics, angle, x, y, breadth, length, c.getFirst(), c.getSecond());
 	}
 
@@ -36,7 +36,7 @@ public class UIRenderHelper {
 	 * @param endColor   the color at the ending edge
 	 * @param breadth    the total width of the gradient
 	 */
-	public static void angledGradient(GuiGraphics graphics, float angle, int x, int y, float breadth, float length, Color startColor, Color endColor) {
+	public static void angledGradient(GuiGraphicsExtractor graphics, float angle, int x, int y, float breadth, float length, Color startColor, Color endColor) {
 		Matrix3x2fStack poseStack = graphics.pose();
 		poseStack.pushMatrix();
 		poseStack.translate(x, y);
@@ -57,7 +57,7 @@ public class UIRenderHelper {
 	 * Draws the gradient only where {@code stencil} is not transparent: the stencil region is drawn with the gradient's
 	 * colour at each corner (the gradient is linear, so the interpolation across the quad matches it exactly).
 	 */
-	public static void stencilledGradient(GuiGraphics graphics, TextureRegion stencil, Gradient gradient) {
+	public static void stencilledGradient(GuiGraphicsExtractor graphics, TextureRegion stencil, Gradient gradient) {
 		float x0 = stencil.x();
 		float y0 = stencil.y();
 		float x1 = x0 + stencil.width();
@@ -81,7 +81,7 @@ public class UIRenderHelper {
 	}
 
 	/**
-	 * A linear gradient as drawn by {@link #angledGradient(GuiGraphics, float, int, int, float, float, Color, Color)}:
+	 * A linear gradient as drawn by {@link #angledGradient(GuiGraphicsExtractor, float, int, int, float, float, Color, Color)}:
 	 * it starts at (x, y) and runs {@code length} in the direction of {@code angle}.
 	 */
 	public record Gradient(float angle, float x, float y, float length, Color startColor, Color endColor) {

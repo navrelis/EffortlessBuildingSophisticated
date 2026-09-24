@@ -3,7 +3,7 @@ package sophisticated.building.create.foundation.gui;
 import org.joml.Matrix3x2fStack;
 import sophisticated.building.create.catnip.animation.AnimationTickHolder;
 import sophisticated.building.create.catnip.gui.TickableGuiEventListener;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Renderable;
@@ -106,7 +106,7 @@ public abstract class AbstractSimiScreen extends Screen {
 	}
 
 	@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+	public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
 		partialTicks = AnimationTickHolder.getPartialTicksUI();
 		Matrix3x2fStack ms = graphics.pose();
 		
@@ -115,7 +115,7 @@ public abstract class AbstractSimiScreen extends Screen {
 		prepareFrame();
 
 		renderWindowBackground(graphics, mouseX, mouseY, partialTicks);
-		super.render(graphics, mouseX, mouseY, partialTicks);
+		super.extractRenderState(graphics, mouseX, mouseY, partialTicks);
 		renderWindow(graphics, mouseX, mouseY, partialTicks);
 		renderWindowForeground(graphics, mouseX, mouseY, partialTicks);
 
@@ -125,8 +125,8 @@ public abstract class AbstractSimiScreen extends Screen {
 	}
 
 	@Override
-	public void renderBackground(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-//		super.renderBackground(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+	public void extractBackground(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+//		super.extractBackground(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 	}
 
 	@Override
@@ -145,13 +145,13 @@ public abstract class AbstractSimiScreen extends Screen {
 
 	protected void prepareFrame() {}
 
-	protected void renderWindowBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-		this.renderTransparentBackground(graphics); //Manually draw background
+	protected void renderWindowBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
+		this.extractTransparentBackground(graphics); //Manually draw background
 	}
 
-	protected abstract void renderWindow(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks);
+	protected abstract void renderWindow(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks);
 
-	protected void renderWindowForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+	protected void renderWindowForeground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
 		for (GuiEventListener listener : children()) {
 			if (listener instanceof Renderable widget) {
 				if (widget instanceof AbstractSimiWidget simiWidget && simiWidget.isMouseOver(mouseX, mouseY)
@@ -175,7 +175,7 @@ public abstract class AbstractSimiScreen extends Screen {
 	protected void endFrame() {}
 
 	@Deprecated
-	protected void debugWindowArea(GuiGraphics graphics) {
+	protected void debugWindowArea(GuiGraphicsExtractor graphics) {
 		graphics.fill(guiLeft + windowWidth, guiTop + windowHeight, guiLeft, guiTop, 0xD3D3D3D3);
 	}
 

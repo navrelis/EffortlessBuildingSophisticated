@@ -4,10 +4,10 @@ import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.TextureSetup;
-import net.minecraft.client.gui.render.state.GuiElementRenderState;
+import net.minecraft.client.renderer.state.gui.GuiElementRenderState;
 import net.minecraft.client.renderer.RenderPipelines;
 import org.joml.Matrix3x2f;
 import sophisticated.building.mixin.GuiGraphicsAccessor;
@@ -15,7 +15,7 @@ import sophisticated.building.mixin.GuiGraphicsAccessor;
 import javax.annotation.Nullable;
 
 /**
- * Free-form GUI quads. Minecraft 1.21.6 replaced the immediate GUI buffers with render states, and {@link GuiGraphics}
+ * Free-form GUI quads. Minecraft 1.21.6 replaced the immediate GUI buffers with render states, and {@link GuiGraphicsExtractor}
  * only submits axis-aligned rectangles; this element submits any number of quads (four vertices each, in GUI
  * coordinates, transformed by the pose at the time of {@link #submit}). The GUI render state layers it like any vanilla
  * element: above what was submitted before it where the bounds intersect. The quads are not clipped by an enabled
@@ -33,7 +33,7 @@ public final class GuiQuads implements GuiElementRenderState {
 	@Nullable
 	private ScreenRectangle bounds;
 
-	private GuiQuads(GuiGraphics graphics, RenderPipeline pipeline, TextureSetup textureSetup, boolean textured) {
+	private GuiQuads(GuiGraphicsExtractor graphics, RenderPipeline pipeline, TextureSetup textureSetup, boolean textured) {
 		this.pipeline = pipeline;
 		this.textureSetup = textureSetup;
 		this.textured = textured;
@@ -41,12 +41,12 @@ public final class GuiQuads implements GuiElementRenderState {
 	}
 
 	/** Untextured quads (position and colour, the vanilla GUI pipeline); the pose is the current one of {@code graphics}. */
-	public static GuiQuads colored(GuiGraphics graphics) {
+	public static GuiQuads colored(GuiGraphicsExtractor graphics) {
 		return new GuiQuads(graphics, RenderPipelines.GUI, TextureSetup.noTexture(), false);
 	}
 
 	/** Quads with position, UV and colour drawn by {@code pipeline} with {@code textureSetup}. */
-	public static GuiQuads textured(GuiGraphics graphics, RenderPipeline pipeline, TextureSetup textureSetup) {
+	public static GuiQuads textured(GuiGraphicsExtractor graphics, RenderPipeline pipeline, TextureSetup textureSetup) {
 		return new GuiQuads(graphics, pipeline, textureSetup, true);
 	}
 
@@ -66,7 +66,7 @@ public final class GuiQuads implements GuiElementRenderState {
 	}
 
 	/** Submits the quads to the GUI render state of {@code graphics}; nothing is drawn without a complete quad. */
-	public void submit(GuiGraphics graphics) {
+	public void submit(GuiGraphicsExtractor graphics) {
 		if (colors.size() < 4) {
 			return;
 		}
@@ -83,7 +83,7 @@ public final class GuiQuads implements GuiElementRenderState {
 		int x0 = (int) Math.floor(minX);
 		int y0 = (int) Math.floor(minY);
 		bounds = new ScreenRectangle(x0, y0, (int) Math.ceil(maxX) - x0, (int) Math.ceil(maxY) - y0).transformMaxBounds(pose);
-		((GuiGraphicsAccessor) graphics).sophisticatedbuilding$getGuiRenderState().submitGuiElement(this);
+		((GuiGraphicsAccessor) graphics).sophisticatedbuilding$getGuiRenderState().addGuiElement(this);
 	}
 
 	@Override

@@ -2,7 +2,7 @@ package sophisticated.building.create.foundation.gui.widget;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import sophisticated.building.create.foundation.utility.Components;
@@ -69,7 +69,7 @@ public class Label extends AbstractSimiWidget {
 	}
 
 	@Override
-	protected void doRender(@Nonnull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+	protected void doRender(@Nonnull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
 		if (text == null || text.getString().isEmpty())
 			return;
 
@@ -77,7 +77,7 @@ public class Label extends AbstractSimiWidget {
 		if (suffix != null && !suffix.isEmpty())
 			copy.append(suffix);
 
-		graphics.drawString(font, copy, getX(), getY(), color, hasShadow);
+		graphics.text(font, copy, getX(), getY(), color, hasShadow);
 	}
 
 }

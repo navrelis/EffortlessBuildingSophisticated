@@ -4,7 +4,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -127,7 +127,7 @@ public class DiamondRandomizerBagContainer extends AbstractContainerMenu {
 	 * be able to save properly
 	 */
 	@Override
-	public void clicked(int slot, int dragType, ClickType clickTypeIn, Player player) {
+	public void clicked(int slot, int dragType, ContainerInput clickTypeIn, Player player) {
 		// this will prevent the player from interacting with the item that opened the inventory:
 		Slot clickedSlot = slot >= 0 && slot < slots.size() ? getSlot(slot) : null;
 		if (clickedSlot != null && clickedSlot.getItem().equals(player.getMainHandItem())) {

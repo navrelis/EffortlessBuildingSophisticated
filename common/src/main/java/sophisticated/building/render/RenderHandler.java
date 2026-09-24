@@ -7,7 +7,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
@@ -85,7 +85,7 @@ public class RenderHandler {
 		ms.popPose();
 	}
 
-	public static void onRenderGui(GuiGraphics guiGraphics) {
+	public static void onRenderGui(GuiGraphicsExtractor guiGraphics) {
 		renderSubText(guiGraphics);
 
 		drawStacks(guiGraphics);
@@ -105,7 +105,7 @@ public class RenderHandler {
 			normalColor + "Left-click to " + highlightColor + "break, " +
 			normalColor + "Right-click to " + highlightColor + "cancel");
 
-	private static void renderSubText(GuiGraphics guiGraphics) {
+	private static void renderSubText(GuiGraphicsExtractor guiGraphics) {
 		var state = SophisticatedBuildingClient.BUILDER_CHAIN.getBuildingState();
 		if (state == BuilderChain.BuildingState.IDLE) return;
 
@@ -120,12 +120,12 @@ public class RenderHandler {
 		ms.pushMatrix();
 		ms.translate(screenWidth / 2.0f, screenHeight - 54);
 		int l = font.width(text);
-		guiGraphics.drawString(font, text, (int)((float)(-l / 2)), -4, 0xffffffff, true);
+		guiGraphics.text(font, text, (int)((float)(-l / 2)), -4, 0xffffffff, true);
 		ms.popMatrix();
 	}
 
 	//Draw item stacks at cursor, showing what will be used and what is missing
-	private static void drawStacks(GuiGraphics guiGraphics) {
+	private static void drawStacks(GuiGraphicsExtractor guiGraphics) {
 		Minecraft mc = Minecraft.getInstance();
 		var player = mc.player;
 		if (player == null) return;
@@ -174,7 +174,7 @@ public class RenderHandler {
 
 	//Show the survival break plan: the tools that will be used (with counts) and a barrier icon
 	//with the count of blocks that cannot be broken.
-	private static void drawBreakPlanStacks(GuiGraphics guiGraphics, Minecraft mc, net.minecraft.world.entity.player.Player player) {
+	private static void drawBreakPlanStacks(GuiGraphicsExtractor guiGraphics, Minecraft mc, net.minecraft.world.entity.player.Player player) {
 		if (player.isCreative()) return;
 
 		var plan = SophisticatedBuildingClient.BUILDER_CHAIN.getBreakPlan();
@@ -205,7 +205,7 @@ public class RenderHandler {
 			String seconds = String.format(Locale.ROOT, "%.1f", plan.delayTicks / 20f);
 			String text = I18n.get("sophisticatedbuilding.hud.break_estimate", seconds);
 			Font font = Minecraft.getInstance().font;
-			guiGraphics.drawString(font, text, x + i * 20 + 4, y + 4, 0xffffffff, true);
+			guiGraphics.text(font, text, x + i * 20 + 4, y + 4, 0xffffffff, true);
 		}
 	}
 
@@ -213,7 +213,7 @@ public class RenderHandler {
 	 * Draws the on-screen countdown until the current survival break actually applies: centred
 	 * text with the block count and remaining seconds, plus a progress bar below it (T-S10).
 	 */
-	private static void drawBreakCountdown(GuiGraphics guiGraphics) {
+	private static void drawBreakCountdown(GuiGraphicsExtractor guiGraphics) {
 		if (!ClientBreakCountdown.hasActive()) return;
 
 		Minecraft mc = Minecraft.getInstance();
@@ -230,7 +230,7 @@ public class RenderHandler {
 
 		int textX = screenWidth / 2;
 		int textY = screenHeight / 2 + 24;
-		guiGraphics.drawCenteredString(font, text, textX, textY, 0xffffffff);
+		guiGraphics.centeredText(font, text, textX, textY, 0xffffffff);
 
 		int barWidth = 100;
 		int barHeight = 4;
@@ -245,13 +245,13 @@ public class RenderHandler {
 		}
 	}
 
-	private static void drawItemStack(GuiGraphics guiGraphics, ItemStack stack, int x, int y, boolean missing) {
-		guiGraphics.renderItem(stack, x, y);
+	private static void drawItemStack(GuiGraphicsExtractor guiGraphics, ItemStack stack, int x, int y, boolean missing) {
+		guiGraphics.item(stack, x, y);
 
 		// Draw count text, red if missing (above the item: the GUI render state layers it over the item it intersects).
 		Font font = Minecraft.getInstance().font;
 		String text = String.valueOf(stack.getCount());
-		guiGraphics.drawString(font, text, x + 19 - 2 - font.width(text), y + 6 + 3, ARGB.opaque(missing ? ChatFormatting.RED.getColor() : ChatFormatting.WHITE.getColor()), true);
+		guiGraphics.text(font, text, x + 19 - 2 - font.width(text), y + 6 + 3, ARGB.opaque(missing ? ChatFormatting.RED.getColor() : ChatFormatting.WHITE.getColor()), true);
 	}
 
 	protected static VertexConsumer beginLines(MultiBufferSource.BufferSource renderTypeBuffer) {
@@ -273,7 +273,7 @@ public class RenderHandler {
 	/**
 	 * Draw the randomizer bag HUD.
 	 */
-	private static void drawRandomizerBagHUD(GuiGraphics guiGraphics) {
+	private static void drawRandomizerBagHUD(GuiGraphicsExtractor guiGraphics) {
 		var player = Minecraft.getInstance().player;
 		if (player == null) return;
 
@@ -371,14 +371,14 @@ public class RenderHandler {
 	/**
 	 * Draw a single item stack for the randomizer bag HUD with custom count.
 	 */
-	private static void drawRandomizerHUDItem(GuiGraphics guiGraphics, ItemStack stack, int x, int y, int count, float scale) {
+	private static void drawRandomizerHUDItem(GuiGraphicsExtractor guiGraphics, ItemStack stack, int x, int y, int count, float scale) {
 		Matrix3x2fStack ms = guiGraphics.pose();
 		ms.pushMatrix();
 		ms.translate(x, y);
 		ms.scale(scale, scale);
 		
 		// Render item at origin (since we've translated)
-		guiGraphics.renderItem(stack, 0, 0);
+		guiGraphics.item(stack, 0, 0);
 
 		// Draw count text
 		Font font = Minecraft.getInstance().font;
@@ -394,7 +394,7 @@ public class RenderHandler {
 			color = ARGB.opaque(ChatFormatting.WHITE.getColor());
 		}
 		
-		guiGraphics.drawString(font, text, 16 - 2 - font.width(text), 6 + 3, color, true);
+		guiGraphics.text(font, text, 16 - 2 - font.width(text), 6 + 3, color, true);
 		ms.popMatrix();
 	}
 

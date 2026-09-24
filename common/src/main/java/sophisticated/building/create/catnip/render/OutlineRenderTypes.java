@@ -1,7 +1,10 @@
 package sophisticated.building.create.catnip.render;
 
 import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.ColorTargetState;
+import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.platform.CompareOp;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -17,7 +20,8 @@ import java.util.function.Function;
  * Render types of the outliner. Adapted from Catnip ({@code sophisticated.building.create.catnip.render.PonderRenderTypes},
  * MIT License, Copyright (c) 2022 The Create Team, see LICENSE_Ponder.txt); the fluid type is removed. The translucent
  * types use the entity translucent shader without depth writes, culled or not (Minecraft 1.21.5 render pipelines;
- * since 1.21.11 a render type is a pipeline plus a {@link RenderSetup}).
+ * since 1.21.11 a render type is a pipeline plus a {@link RenderSetup}; since 26.1 blending and depth writes are
+ * the pipeline's colour target and depth stencil states).
  */
 public final class OutlineRenderTypes {
 
@@ -34,9 +38,9 @@ public final class OutlineRenderTypes {
 			.withLocation(Identifier.fromNamespaceAndPath(SophisticatedBuilding.MODID, "pipeline/outline_translucent" + (cull ? "_cull" : "")))
 			.withShaderDefine("ALPHA_CUTOUT", 0.1F)
 			.withSampler("Sampler1")
-			.withBlend(BlendFunction.TRANSLUCENT)
+			.withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
 			.withCull(cull)
-			.withDepthWrite(false)
+			.withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
 			.build());
 
 	private static final BiFunction<Identifier, Boolean, RenderType> OUTLINE_TRANSLUCENT = Util.memoize((texture, cull) ->

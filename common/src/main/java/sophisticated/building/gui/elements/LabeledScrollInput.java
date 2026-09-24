@@ -2,7 +2,7 @@ package sophisticated.building.gui.elements;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
@@ -47,17 +47,17 @@ public class LabeledScrollInput extends ScrollInput {
     }
 
     @Override
-    public void doRender(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    public void doRender(@NotNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
         super.doRender(guiGraphics, mouseX, mouseY, partialTicks);
 
         label.setX(getX() + width / 2 - Minecraft.getInstance().font.width(label.text) / 2);
         label.setY(getY() + height / 2 - Minecraft.getInstance().font.lineHeight / 2);
-        label.render(guiGraphics, mouseX, mouseY, partialTicks);
+        label.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
         
         // Draw focus indicator when focused
         if (focused && visible) {
             int borderColor = 0xFFFFFF55; // Yellow tint for focus
-            guiGraphics.renderOutline(getX() - 1, getY() - 1, width + 2, height + 2, borderColor);
+            guiGraphics.outline(getX() - 1, getY() - 1, width + 2, height + 2, borderColor);
         }
     }
     

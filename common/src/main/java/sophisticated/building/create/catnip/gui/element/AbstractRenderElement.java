@@ -1,6 +1,6 @@
 package sophisticated.building.create.catnip.gui.element;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import sophisticated.building.gui.ScreenElement;
 
 /**
@@ -11,7 +11,7 @@ public abstract class AbstractRenderElement implements RenderElement {
 
 	public static RenderElement EMPTY = new AbstractRenderElement() {
 		@Override
-		public void render(GuiGraphics graphics) {
+		public void render(GuiGraphicsExtractor graphics) {
 		}
 	};
 
@@ -85,7 +85,7 @@ public abstract class AbstractRenderElement implements RenderElement {
 		}
 
 		@Override
-		public void render(GuiGraphics graphics) {
+		public void render(GuiGraphicsExtractor graphics) {
 			renderable.render(graphics, (int) x, (int) y);
 		}
 	}

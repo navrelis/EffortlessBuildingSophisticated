@@ -1,7 +1,7 @@
 package sophisticated.building.gui.buildmode;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ObjectSelectionList;
@@ -83,17 +83,17 @@ public class PlayerSettingsGui extends Screen {
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		super.render(guiGraphics, mouseX, mouseY, partialTicks);
+	public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		super.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
 
 		int yy = top;
-		guiGraphics.drawString(font, "Shader type", left, yy + 5, 0xFFFFFFFF, false);
+		guiGraphics.text(font, "Shader type", left, yy + 5, 0xFFFFFFFF, false);
 
 		yy += 50;
-		guiGraphics.drawString(font, "Shader speed", left, yy + 5, 0xFFFFFFFF, false);
+		guiGraphics.text(font, "Shader speed", left, yy + 5, 0xFFFFFFFF, false);
 
 		if (showShaderList)
-			this.shaderTypeList.render(guiGraphics, mouseX, mouseY, partialTicks);
+			this.shaderTypeList.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
 	}
 
 	@Override
@@ -210,11 +210,11 @@ public class PlayerSettingsGui extends Screen {
 			}
 
 			@Override
-			public void renderContent(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean hovered, float partialTicks) {
+			public void extractContent(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, boolean hovered, float partialTicks) {
 				int rowTop = getContentY();
 				int rowHeight = getContentHeight();
 				if (rowTop + 10 > ShaderTypeList.this.getY() && rowTop + rowHeight - 5 < (ShaderTypeList.this.getY() + ShaderTypeList.this.getHeight()))
-					guiGraphics.drawString(font, shaderType.name, ShaderTypeList.this.getX() + 8, rowTop + 4, 0xFFFFFFFF, false);
+					guiGraphics.text(font, shaderType.name, ShaderTypeList.this.getX() + 8, rowTop + 4, 0xFFFFFFFF, false);
 			}
 
 			@Override

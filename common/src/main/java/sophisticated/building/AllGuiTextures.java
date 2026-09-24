@@ -2,7 +2,7 @@ package sophisticated.building;
 
 import sophisticated.building.utilities.Color;
 import sophisticated.building.gui.ScreenElement;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 
@@ -42,11 +42,11 @@ public enum AllGuiTextures implements ScreenElement {
         this.startY = startY;
     }
     
-    public void render(GuiGraphics ms, int x, int y) {
+    public void render(GuiGraphicsExtractor ms, int x, int y) {
         ms.blit(RenderPipelines.GUI_TEXTURED, location, x, y, startX, startY, width, height, 256, 256);
     }
     
-    public void render(GuiGraphics ms, int x, int y, Color c) {
+    public void render(GuiGraphicsExtractor ms, int x, int y, Color c) {
         ms.blit(RenderPipelines.GUI_TEXTURED, location, x, y, startX, startY, width, height, 256, 256, c.toARGB());
     }
 }

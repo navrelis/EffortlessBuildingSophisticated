@@ -14,7 +14,7 @@ import sophisticated.building.create.catnip.math.AngleHelper;
 import sophisticated.building.create.catnip.render.BindableTexture;
 import sophisticated.building.create.catnip.render.SuperRenderTypeBuffer;
 import sophisticated.building.create.catnip.theme.Color;
-import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
@@ -531,7 +531,7 @@ public abstract class Outline {
 			lineWidth = 1 / 32f;
 			fadeLineWidth = true;
 			rgb = Color.WHITE;
-			lightmap = LightTexture.FULL_BRIGHT;
+			lightmap = LightCoordsUtil.FULL_BRIGHT;
 		}
 
 		// builder
