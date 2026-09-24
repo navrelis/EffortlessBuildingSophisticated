@@ -17,7 +17,13 @@ import sophisticated.building.SophisticatedBuilding;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 public class BuildingUpgradeHelper {
 
@@ -28,7 +34,9 @@ public class BuildingUpgradeHelper {
      * (Trinkets, and the official port's own Curios compat, see
      * net.p3pp3rf1y.sophisticatedbackpacks.compat.curios.CuriosCompat); {@link CuriosCompatHelper}
      * is still consulted afterwards as a belt-and-braces fallback in case a given backpacks build
-     * does not auto-register a Curios handler. Must only be called on the logical server: on the
+     * does not auto-register a Curios handler. When the provider's own scan already covered
+     * Curios, a stack it yielded would otherwise be visited a second time here; those duplicates
+     * are skipped (see {@link #alreadyVisited}). Must only be called on the logical server: on the
      * client the backpack upgrade inventory is never fully synced (see
      * 03_ROOT_CAUSE_BUILDING_UPGRADE.md RC2), so this always returns null there.
      */
@@ -40,11 +48,17 @@ public class BuildingUpgradeHelper {
         }
 
         BuildingUpgradeWrapper[] best = new BuildingUpgradeWrapper[1];
+        Set<ItemStack> visitedStacks = Collections.newSetFromMap(new IdentityHashMap<>());
+        Set<UUID> visitedContentsUuids = new HashSet<>();
         try {
             BackpackScanCompat.forEachBackpack(player, (backpack, invName, identifier, slot) -> {
                 BuildingUpgradeWrapper wrapper = getBuildingUpgradeFromBackpack(backpack);
-                if (wrapper != null && wrapper.isEnabled() && (best[0] == null || wrapper.getTier() > best[0].getTier())) {
-                    best[0] = wrapper;
+                if (wrapper != null && wrapper.isEnabled()) {
+                    visitedStacks.add(backpack);
+                    backpackContentsUuid(wrapper).ifPresent(visitedContentsUuids::add);
+                    if (best[0] == null || wrapper.getTier() > best[0].getTier()) {
+                        best[0] = wrapper;
+                    }
                 }
                 return false;
             });
@@ -54,6 +68,9 @@ public class BuildingUpgradeHelper {
 
         if (CuriosCompatHelper.isCuriosLoaded()) {
             for (ItemStack stack : CuriosCompatHelper.getBackpacksFromCurios(player)) {
+                if (alreadyVisited(stack, visitedStacks, visitedContentsUuids)) {
+                    continue;
+                }
                 BuildingUpgradeWrapper wrapper = getBuildingUpgradeFromBackpack(stack);
                 if (wrapper != null && wrapper.isEnabled() && (best[0] == null || wrapper.getTier() > best[0].getTier())) {
                     best[0] = wrapper;
@@ -75,10 +92,14 @@ public class BuildingUpgradeHelper {
             return wrappers;
         }
 
+        Set<ItemStack> visitedStacks = Collections.newSetFromMap(new IdentityHashMap<>());
+        Set<UUID> visitedContentsUuids = new HashSet<>();
         try {
             BackpackScanCompat.forEachBackpack(player, (backpack, invName, identifier, slot) -> {
                 BuildingUpgradeWrapper wrapper = getBuildingUpgradeFromBackpack(backpack);
                 if (wrapper != null && wrapper.isEnabled()) {
+                    visitedStacks.add(backpack);
+                    backpackContentsUuid(wrapper).ifPresent(visitedContentsUuids::add);
                     wrappers.add(wrapper);
                 }
                 return false;
@@ -89,6 +110,9 @@ public class BuildingUpgradeHelper {
 
         if (CuriosCompatHelper.isCuriosLoaded()) {
             for (ItemStack stack : CuriosCompatHelper.getBackpacksFromCurios(player)) {
+                if (alreadyVisited(stack, visitedStacks, visitedContentsUuids)) {
+                    continue;
+                }
                 BuildingUpgradeWrapper wrapper = getBuildingUpgradeFromBackpack(stack);
                 if (wrapper != null && wrapper.isEnabled()) {
                     wrappers.add(wrapper);
@@ -97,6 +121,47 @@ public class BuildingUpgradeHelper {
         }
 
         return wrappers;
+    }
+
+    /**
+     * Whether {@code curiosStack} was already visited by {@link BackpackScanCompat#forEachBackpack}
+     * (which, on backpacks builds with a Curios compat handler registered, already scans worn
+     * Curios slots itself). {@link CuriosCompatHelper#getBackpacksFromCurios} is only a fallback
+     * for builds that lack that handler, so without this check the same backpack could be counted
+     * (and extracted from) twice: once through the provider's scan, once through this fallback.
+     * <p>
+     * Checked first by reference identity, which holds whenever Curios hands back the same
+     * {@link ItemStack} instance the provider's scan already saw (true for the built-in
+     * {@code ItemStackHandler}-backed slot storage Curios uses). As a second safety net in case a
+     * given Curios/Backpacks build instead hands back a copy, it falls back to comparing the
+     * backpack's persistent contents UUID ({@link IStorageWrapper#getContentsUuid()}), which is
+     * stable across copies of the same backpack stack.
+     */
+    private static boolean alreadyVisited(ItemStack curiosStack, Set<ItemStack> visitedStacks, Set<UUID> visitedContentsUuids) {
+        if (visitedStacks.contains(curiosStack)) {
+            return true;
+        }
+        if (visitedContentsUuids.isEmpty()) {
+            return false;
+        }
+        Optional<UUID> contentsUuid = backpackContentsUuid(curiosStack);
+        return contentsUuid.isPresent() && visitedContentsUuids.contains(contentsUuid.get());
+    }
+
+    private static Optional<UUID> backpackContentsUuid(BuildingUpgradeWrapper wrapper) {
+        try {
+            return wrapper.getStorageWrapper().getContentsUuid();
+        } catch (Exception | LinkageError e) {
+            return Optional.empty();
+        }
+    }
+
+    private static Optional<UUID> backpackContentsUuid(ItemStack backpackStack) {
+        try {
+            return BackpackWrapper.fromStack(backpackStack).getContentsUuid();
+        } catch (Exception | LinkageError e) {
+            return Optional.empty();
+        }
     }
 
     /**

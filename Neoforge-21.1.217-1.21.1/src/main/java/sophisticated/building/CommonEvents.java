@@ -72,7 +72,7 @@ public class CommonEvents {
 
 			LAST_UPGRADE_STATE.put(player.getUUID(), new int[] { tier, maxBlocks });
 			PacketDistributor.sendToPlayer(player, new BuildingUpgradeStatePacket(tier, maxBlocks));
-		} catch (LinkageError ignored) {
+		} catch (Exception | LinkageError ignored) {
 			// Optional SophisticatedBackpacks integration missing.
 		}
 	}
@@ -246,7 +246,7 @@ public class CommonEvents {
 					}
 				}
 			}
-		} catch (LinkageError ignored) {
+		} catch (Exception | LinkageError ignored) {
 			// SophisticatedCore not available
 		}
 	}
@@ -302,7 +302,7 @@ public class CommonEvents {
 
 			sendBuildingUpgradeState(serverPlayer, false);
 			sendBackpackTools(serverPlayer, false);
-		} catch (LinkageError ignored) {
+		} catch (Exception | LinkageError ignored) {
 			// SophisticatedCore not available
 		}
 	}

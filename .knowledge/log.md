@@ -11,3 +11,6 @@
 - 2026-09-24 T2 review #2: merge fix accepted; Fabric build green 56/56 tests.
 - 2026-09-24 T6 NeoForge parity (T2+T3+config) -> Sonnet, started.
 - 2026-09-24 T6 review: accepted without corrections (files identical to Fabric except loader APIs, NeoForge snapshot/place events, anchor 0); NeoForge build green (no test source set).
+- 2026-09-24 T5 audit done: #3 works as designed on both loaders (enabled Building Upgrade supplies blocks, none without). Verified bugs: Fabric anchor reserves last block even if backpack lacks the item; narrow LinkageError-only catches in tick sync (both); NeoForge Curios backpacks scanned twice. Rejected: backpack data stacks (count and extraction both plain-only, consistent), NeoForge no-anchor (backpack drained first, harmless).
+- 2026-09-24 T5b -> Sonnet, started.
+- 2026-09-24 T5b review: accepted without corrections; Fabric 60/60 tests, NeoForge build green.

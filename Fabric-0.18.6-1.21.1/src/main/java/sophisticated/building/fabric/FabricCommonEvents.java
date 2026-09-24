@@ -217,7 +217,7 @@ public final class FabricCommonEvents {
 
             LAST_UPGRADE_STATE.put(player.getUUID(), new int[] { tier, maxBlocks });
             ServerPlayNetworking.send(player, new BuildingUpgradeStatePacket(tier, maxBlocks));
-        } catch (LinkageError ignored) {
+        } catch (Exception | LinkageError ignored) {
             // Optional SophisticatedBackpacks integration missing.
         }
     }
@@ -247,7 +247,7 @@ public final class FabricCommonEvents {
                     }
                 }
             }
-        } catch (LinkageError ignored) {
+        } catch (Exception | LinkageError ignored) {
             // Optional SophisticatedBackpacks integration missing.
         }
     }
@@ -292,7 +292,7 @@ public final class FabricCommonEvents {
             }
 
             lastCounts.keySet().removeIf(item -> !itemsToSync.contains(item));
-        } catch (LinkageError ignored) {
+        } catch (Exception | LinkageError ignored) {
             // Optional SophisticatedBackpacks integration missing.
         }
     }

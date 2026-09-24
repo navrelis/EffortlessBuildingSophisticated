@@ -28,28 +28,41 @@ public class InventoryHelper {
 		}
 
 		boolean hasUpgrade;
+		int backpackCount = 0;
 		if (player.level().isClientSide()) {
 			hasUpgrade = ClientBuildingUpgradeState.hasUpgrade();
+			if (hasUpgrade) {
+				backpackCount = ClientBackpackItemCache.getCount(item);
+			}
 		} else {
 			try {
 				hasUpgrade = sophisticated.building.item.upgrade.BuildingUpgradeHelper.getEffectiveMaxBlocksForPlayer(
 						player, new ItemStack(item)) > 0;
-			} catch (Exception e) {
+				if (hasUpgrade) {
+					backpackCount = sophisticated.building.item.upgrade.BuildingUpgradeHelper.countBlockInBackpacksForDisplay(
+							player, new ItemStack(item));
+				}
+			} catch (Exception | LinkageError e) {
 				return 0;
 			}
 		}
 
-		if (!hasUpgrade) {
-			return 0;
-		}
-
 		int selectedSlot = player.getInventory().selected;
 		ItemStack selectedStack = player.getInventory().getItem(selectedSlot);
-		if (!selectedStack.isEmpty() && selectedStack.getItem() == item && selectedStack.getCount() > 0) {
-			return 1;
-		}
+		boolean holdsItem = !selectedStack.isEmpty() && selectedStack.getItem() == item && selectedStack.getCount() > 0;
 
-		return 0;
+		return reservedHeld(hasUpgrade, backpackCount, holdsItem);
+	}
+
+	/**
+	 * Pure decision of whether to reserve one held block as the build anchor: only when a Building
+	 * Upgrade is active, at least one backpack actually contains the item, and the selected slot
+	 * holds it. No backpack can ever supply an item it does not contain, so anchoring the last held
+	 * block in that case would make it unplaceable for no reason. Extracted so it can be unit
+	 * tested directly (T5b).
+	 */
+	public static int reservedHeld(boolean hasUpgrade, int backpackCount, boolean holdsItem) {
+		return (hasUpgrade && backpackCount > 0 && holdsItem) ? 1 : 0;
 	}
 
 	/**
