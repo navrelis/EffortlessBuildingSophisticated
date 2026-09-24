@@ -56,7 +56,7 @@ public final class BackpackScanCompat {
     public static boolean forEachBackpack(Player player, PlayerInventoryProvider.BackpackInventorySlotConsumer consumer) {
         Optional<MethodHandle> methodHandle = handle();
         if (methodHandle.isEmpty()) {
-            reportUnavailable();
+            reportUnavailable(null);
             return false;
         }
 
@@ -67,7 +67,7 @@ public final class BackpackScanCompat {
             methodHandle.get().invoke(PlayerInventoryProvider.get(), player, consumer);
             return true;
         } catch (LinkageError e) {
-            reportUnavailable();
+            reportUnavailable(e);
             return false;
         } catch (RuntimeException | Error e) {
             throw e;
@@ -76,12 +76,12 @@ public final class BackpackScanCompat {
         }
     }
 
-    private static void reportUnavailable() {
+    private static void reportUnavailable(Throwable cause) {
         if (REPORTED.compareAndSet(false, true)) {
             SophisticatedBuilding.logger.warn(
                     "Could not link SophisticatedBackpacks' PlayerInventoryProvider.runOnBackpacks (installed version: {}). "
                             + "The Building Upgrade / Tool Swapper backpack scan is disabled until this mod is rebuilt against that Backpacks build.",
-                    installedBackpacksVersion());
+                    installedBackpacksVersion(), cause);
         } else {
             SophisticatedBuilding.logger.debug(
                     "SophisticatedBackpacks' PlayerInventoryProvider.runOnBackpacks is still not linkable (installed version: {}).",
