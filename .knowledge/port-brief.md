@@ -78,3 +78,8 @@ MDG Legacy skips recompiling Minecraft when the env var `CI=true` (GitHub Action
 on remapped classes -> unit tests fail on CI only ("SHA-256 digest error for ...IForgePlayer.class"). Every MDG Legacy
 forge build must use `legacyForge { enable { forgeVersion = "..."; disableRecompilation = false } }` (see mc/1.20.1
 forge/build.gradle) and be checked once with `CI=true` set locally.
+
+## Dependency floors (B5)
+fabric.mod.json: `"fabric-api": ">=${fabric_api_version_min}"` with `fabric_api_version_min` = the Fabric API version the
+branch runs (see mc/1.21.8). NeoForge/Forge optional SB/Core `versionRange` = the builds the branch actually ran.
+Never `"*"` or untested older floors.

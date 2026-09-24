@@ -63,4 +63,4 @@ Session stopped early by the user on 2026-09-24; continue from handoff.md.
 | V1 | 1.21.1 jars on MC 1.21 (Fabric, NeoForge yes; Forge no) | Opus | - | - | done (f0dbd72) |
 | V2 | Forge 1.21 jar (forge-1.21/ on mc/1.21.1) | Opus | V1 | - | done (58ea037) |
 | B4 | 1.20.1 Forge unit tests fail on CI only (SecurityException signed IForgePlayer) | Opus | - | - | done |
-| B5 | fabric-api floor = tested version on every branch (was "*") | tbd | ports | - | in progress (finished branches) |
+| B5 | fabric-api floor = tested version on every branch (was "*") | tbd | ports | - | done on finished branches; ports adopt it |

@@ -71,3 +71,4 @@
 - 2026-09-25 V3 accepted: release.ps1 template names <loader>-<mc> folder jars; docs updated; synced to mc/1.21.1 (release reproduced byte-identical). Pushed.
 - 2026-09-25 B5 sweep (fabric-api floors, dependency ranges, release.ps1 template sync on 1.20.1/1.20.4/1.21.4/1.21.5/1.21.8; NeoForge 20.4 payload gotcha in PORTING.md) -> V agent.
 - 2026-09-25 P-F6 port 26.1.2 started from mc/1.21.11 WIP f1a5853.
+- 2026-09-25 B5 accepted: fabric-api >= tested version on 1.20.1/1.20.4/1.21.4/1.21.5/1.21.8, NeoForge SB/Core floors = tested on 1.21.4/1.21.5/1.21.8; release jars rebuilt; release.ps1 template synced. Pushed. Running ports must adopt the same (brief).
