@@ -1,6 +1,5 @@
 package sophisticated.building.render;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -39,8 +38,6 @@ import java.util.Map;
 public class RenderHandler {
 
 	private static final ByteBufferBuilder LEVEL_BUFFER = new ByteBufferBuilder(1536);
-	private static final ByteBufferBuilder GUI_BUFFER = new ByteBufferBuilder(1536);
-	private static final ByteBufferBuilder TEXT_BUFFER = new ByteBufferBuilder(1536);
 
 	public static void onRenderWorld(PoseStack ms) {
 		Minecraft mc = Minecraft.getInstance();
@@ -120,11 +117,8 @@ public class RenderHandler {
 		PoseStack ms = guiGraphics.pose();
 		ms.pushPose();
 		ms.translate(screenWidth / 2.0, screenHeight - 54, 0.0D);
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
 		int l = font.width(text);
 		guiGraphics.drawString(font, text, (int)((float)(-l / 2)), -4, 0xffffffff, true);
-		RenderSystem.disableBlend();
 		ms.popPose();
 	}
 
@@ -258,9 +252,7 @@ public class RenderHandler {
 		Font font = Minecraft.getInstance().font;
 		String text = String.valueOf(stack.getCount());
 		ms.translate(0.0D, 0.0D, 200.0F);
-		MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(TEXT_BUFFER);
-		font.drawInBatch(text, (float)(x + 19 - 2 - font.width(text)), (float)(y + 6 + 3), missing ? ChatFormatting.RED.getColor() : ChatFormatting.WHITE.getColor(), true, ms.last().pose(), multibuffersource$buffersource, Font.DisplayMode.NORMAL, 0, 15728880);
-		multibuffersource$buffersource.endBatch();
+		guiGraphics.drawString(font, text, x + 19 - 2 - font.width(text), y + 6 + 3, missing ? ChatFormatting.RED.getColor() : ChatFormatting.WHITE.getColor(), true);
 		ms.popPose();
 	}
 
@@ -394,8 +386,6 @@ public class RenderHandler {
 		Font font = Minecraft.getInstance().font;
 		String text = formatCount(count);
 		ms.translate(0.0D, 0.0D, 200.0F);
-		// Reuse GUI buffer for text rendering
-		MultiBufferSource.BufferSource multibuffersource = MultiBufferSource.immediate(GUI_BUFFER);
 		
 		// Color based on count: red if 0, yellow if low (<=31), white otherwise (32+)
 		int color;
@@ -407,8 +397,7 @@ public class RenderHandler {
 			color = ChatFormatting.WHITE.getColor();
 		}
 		
-		font.drawInBatch(text, (float)(16 - 2 - font.width(text)), (float)(6 + 3), color, true, ms.last().pose(), multibuffersource, Font.DisplayMode.NORMAL, 0, 15728880);
-		multibuffersource.endBatch();
+		guiGraphics.drawString(font, text, 16 - 2 - font.width(text), 6 + 3, color, true);
 		ms.popPose();
 	}
 

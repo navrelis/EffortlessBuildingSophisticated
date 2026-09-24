@@ -47,7 +47,7 @@ public class InventoryHelper {
 			}
 		}
 
-		int selectedSlot = player.getInventory().selected;
+		int selectedSlot = player.getInventory().getSelectedSlot();
 		ItemStack selectedStack = player.getInventory().getItem(selectedSlot);
 		boolean holdsItem = !selectedStack.isEmpty() && selectedStack.getItem() == item && selectedStack.getCount() > 0;
 
@@ -95,7 +95,7 @@ public class InventoryHelper {
 
 	@Deprecated //Use BlockHelper.findAndRemoveInInventory instead
 	public static ItemStack findItemStackInInventory(Player player, Block block) {
-		for (ItemStack invStack : player.getInventory().items) {
+		for (ItemStack invStack : player.getInventory().getNonEquipmentItems()) {
 			if (!invStack.isEmpty() && invStack.getItem() instanceof BlockItem &&
 				((BlockItem) invStack.getItem()).getBlock().equals(block)) {
 				return invStack;
@@ -106,7 +106,7 @@ public class InventoryHelper {
 
 	public static int findTotalBlocksInInventory(Player player, Block block) {
 		int total = 0;
-		for (ItemStack invStack : player.getInventory().items) {
+		for (ItemStack invStack : player.getInventory().getNonEquipmentItems()) {
 			if (!invStack.isEmpty() && invStack.getItem() instanceof BlockItem &&
 				((BlockItem) invStack.getItem()).getBlock().equals(block)) {
 				total += invStack.getCount();
@@ -124,7 +124,7 @@ public class InventoryHelper {
 	 */
 	public static int findTotalItemsForDisplay(Player player, Item item) {
 		int total = 0;
-		for (ItemStack invStack : player.getInventory().items) {
+		for (ItemStack invStack : player.getInventory().getNonEquipmentItems()) {
 			if (!invStack.isEmpty() && invStack.getItem().equals(item)) {
 				total += invStack.getCount();
 			}
@@ -143,7 +143,7 @@ public class InventoryHelper {
 	 */
 	public static int findTotalItemsInInventory(Player player, Item item) {
 		int total = 0;
-		for (ItemStack invStack : player.getInventory().items) {
+		for (ItemStack invStack : player.getInventory().getNonEquipmentItems()) {
 			if (!invStack.isEmpty() && invStack.getItem().equals(item)) {
 				total += invStack.getCount();
 			}
@@ -241,7 +241,7 @@ public class InventoryHelper {
 		if (player.isCreative()) return;
 
 		int amountFound = 0;
-		int preferredSlot = player.getInventory().selected;
+		int preferredSlot = player.getInventory().getSelectedSlot();
 		int reservedHeld = getReservedHeldCount(player, item);
 
 		// Prefer backpacks first so building upgrades are consumed before player inventory

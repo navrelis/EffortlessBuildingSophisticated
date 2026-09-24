@@ -12,7 +12,7 @@ base {
 }
 
 java {
-    // Mojang ships Java 21 to end users in 1.21.4, so mods should target Java 21.
+    // Mojang ships Java 21 to end users in 1.21.5, so mods should target Java 21.
     toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
     withSourcesJar()
 }
@@ -42,6 +42,8 @@ minecraft {
             // "REGISTRIES": log the firing of registry events.
             systemProperty 'forge.logging.markers', 'REGISTRIES'
             systemProperty 'forge.logging.console.level', 'debug'
+            // Mixin reads its configs from the jar manifest (see jar below); the dev runs name them on the command line.
+            args "--mixin.config=${mod_id}.forge.mixins.json"
         }
 
         register('client')
@@ -125,6 +127,8 @@ tasks.named('check') {
 // Resolved while configuring: the configuration cache cannot read project properties at execution time.
 def licenseFileName = "LICENSE_${mod_id}.txt"
 tasks.named('jar', Jar) {
+    // The world previews are added to the level frame graph by a mixin (Forge 55 has no level render event).
+    manifest.attributes('MixinConfigs': "${mod_id}.forge.mixins.json")
     from(file('../LICENSE.txt')) {
         rename { licenseFileName }
     }

@@ -35,13 +35,13 @@ public class PlacementTemplates {
     // Search order: main hand, offhand, rest of the main inventory
     public Template find(Item item) {
         Inventory inventory = player.getInventory();
-        ItemStack mainHand = inventory.getSelected();
+        ItemStack mainHand = inventory.getSelectedItem();
         List<ItemStack> candidates = new ArrayList<>();
         addIfMatching(candidates, mainHand, item);
-        addIfMatching(candidates, inventory.offhand.get(0), item);
-        for (int i = 0; i < inventory.items.size(); i++) {
-            if (i == inventory.selected) continue;
-            addIfMatching(candidates, inventory.items.get(i), item);
+        addIfMatching(candidates, inventory.getItem(Inventory.SLOT_OFFHAND), item);
+        for (int i = 0; i < inventory.getNonEquipmentItems().size(); i++) {
+            if (i == inventory.getSelectedSlot()) continue;
+            addIfMatching(candidates, inventory.getNonEquipmentItems().get(i), item);
         }
 
         if (player.isCreative()) {

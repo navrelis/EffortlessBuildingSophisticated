@@ -1,6 +1,5 @@
 package sophisticated.building.create;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import sophisticated.building.create.catnip.render.BindableTexture;
 import net.minecraft.resources.ResourceLocation;
 
@@ -21,10 +20,6 @@ public enum AllSpecialTextures implements BindableTexture {
 
 	AllSpecialTextures(String filename) {
 		location = Create.asResource(ASSET_PATH + filename);
-	}
-
-	public void bind() {
-		RenderSystem.setShaderTexture(0, location);
 	}
 
 	public ResourceLocation getLocation() {

@@ -105,6 +105,6 @@ public class PowerLevel {
 	}
 
 	public void deserializeNBT(Provider provider, CompoundTag nbt) {
-		setPowerLevel(nbt.getInt("powerLevel"));
+		setPowerLevel(nbt.getIntOr("powerLevel", 0));
 	}
 }

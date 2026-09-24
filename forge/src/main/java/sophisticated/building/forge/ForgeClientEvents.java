@@ -1,12 +1,10 @@
 package sophisticated.building.forge;
 
+import com.mojang.blaze3d.framegraph.FrameGraphBuilder;
 import com.mojang.blaze3d.framegraph.FramePass;
-import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.resource.ResourceHandle;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.LevelTargetBundle;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.AddFramePassEvent;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.ScreenEvent;
@@ -66,18 +64,17 @@ public class ForgeClientEvents {
         sophisticated.building.create.events.ClientEvents.onUnloadWorld(event.getLevel());
     }
 
-    @SubscribeEvent
-    public static void onAddFramePass(AddFramePassEvent event) {
-        // Forge 54 has no render stage event any more: one frame pass after the vanilla ones (after the translucent
-        // blocks, particles and weather) draws the block previews, mirror/array lines and ghost blocks, then the
-        // outlines, into the main target. The camera rotation is already on the model view stack while the frame
-        // graph runs, so the handlers start from an identity pose (as on Fabric and NeoForge).
-        LevelTargetBundle targets = event.getBundle();
-        FramePass pass = event.createPass(SophisticatedBuilding.asResource("previews"));
+    /**
+     * Adds the frame pass of the world previews to the level frame graph, called by {@code LevelRendererMixin} after the
+     * vanilla passes were added. Forge 55 has no render stage or frame pass event: one frame pass after the vanilla ones
+     * (after the translucent blocks, particles, clouds and weather) draws the block previews, mirror/array lines and
+     * ghost blocks, then the outlines, into the main target. The camera rotation is already on the model view stack while
+     * the frame graph runs, so the handlers start from an identity pose (as on Fabric and NeoForge).
+     */
+    public static void addPreviewPass(FrameGraphBuilder frameGraph, LevelTargetBundle targets) {
+        FramePass pass = frameGraph.addPass(SophisticatedBuilding.asResource("previews").toString());
         targets.main = pass.readsAndWrites(targets.main);
-        ResourceHandle<RenderTarget> main = targets.main;
         pass.executes(() -> {
-            main.get().bindWrite(false);
             RenderHandler.onRenderWorld(new PoseStack());
             RenderHandler.onRenderOutlines(new PoseStack());
         });

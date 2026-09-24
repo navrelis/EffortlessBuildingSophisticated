@@ -56,8 +56,8 @@ public class Array extends BaseModifier {
 	@Override
 	public void deserializeNBT(CompoundTag compound) {
 		super.deserializeNBT(compound);
-		int[] offsetArray = compound.getIntArray("offset");
+		int[] offsetArray = compound.getIntArray("offset").orElse(new int[0]);
 		offset = new Vec3i(offsetArray[0], offsetArray[1], offsetArray[2]);
-		count = compound.getInt("count");
+		count = compound.getIntOr("count", 0);
 	}
 }

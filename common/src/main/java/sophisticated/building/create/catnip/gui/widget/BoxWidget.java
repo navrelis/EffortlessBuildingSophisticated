@@ -4,13 +4,11 @@ import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-
 import sophisticated.building.create.catnip.animation.LerpedFloat;
 import sophisticated.building.create.catnip.data.Couple;
 import sophisticated.building.create.catnip.gui.UIRenderHelper;
 import sophisticated.building.create.catnip.gui.element.BoxElement;
-import sophisticated.building.create.catnip.gui.element.FadableScreenElement;
+import sophisticated.building.create.catnip.gui.element.DelegatedStencilElement;
 import sophisticated.building.create.catnip.theme.Color;
 import net.minecraft.client.gui.GuiGraphics;
 
@@ -20,7 +18,7 @@ import net.minecraft.client.gui.GuiGraphics;
  */
 public class BoxWidget extends ElementWidget {
 
-	public static final Function<BoxWidget, FadableScreenElement> gradientFactory = (box) -> (ms, w, h, alpha) -> UIRenderHelper.angledGradient(ms, 90, w / 2, -2, w + 4, h + 4, box.gradientColor);
+	public static final Function<BoxWidget, DelegatedStencilElement.GradientRenderer> gradientFactory = (box) -> (w, h, alpha) -> new UIRenderHelper.Gradient(90, w / 2, -2, h + 4, box.gradientColor.getFirst(), box.gradientColor.getSecond());
 
 	protected BoxElement box;
 
@@ -125,8 +123,6 @@ public class BoxWidget extends ElementWidget {
 	@Override
 	protected void beforeRender(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
 		super.beforeRender(graphics, mouseX, mouseY, partialTicks);
-
-		RenderSystem.enableDepthTest();
 
 		if (isHovered != wasHovered) {
 			animateGradientFromState();

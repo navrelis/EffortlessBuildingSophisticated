@@ -11,6 +11,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.attachment.AttachmentHandler;
@@ -18,7 +19,7 @@ import sophisticated.building.attachment.PowerLevel;
 import sophisticated.building.create.foundation.item.TooltipHelper;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.List;
+import java.util.function.Consumer;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
@@ -61,8 +62,8 @@ public class PowerLevelItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag tooltipFlag) {
-        tooltip.addAll(TooltipHelper.cutTextComponent(Component.translatable(getDescriptionId() + ".desc"), ChatFormatting.GRAY, ChatFormatting.GRAY));
-        tooltip.addAll(TooltipHelper.cutTextComponent(Component.translatable("key.sophisticatedbuilding.upgrade_power_level"), ChatFormatting.BLUE, ChatFormatting.BLUE));
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay tooltipDisplay, Consumer<Component> tooltip, TooltipFlag tooltipFlag) {
+        TooltipHelper.cutTextComponent(Component.translatable(getDescriptionId() + ".desc"), ChatFormatting.GRAY, ChatFormatting.GRAY).forEach(tooltip);
+        TooltipHelper.cutTextComponent(Component.translatable("key.sophisticatedbuilding.upgrade_power_level"), ChatFormatting.BLUE, ChatFormatting.BLUE).forEach(tooltip);
     }
 }

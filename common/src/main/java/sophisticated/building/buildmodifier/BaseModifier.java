@@ -19,6 +19,6 @@ public abstract class BaseModifier {
     }
 
     public void deserializeNBT(CompoundTag compound) {
-        enabled = compound.getBoolean("enabled");
+        enabled = compound.getBooleanOr("enabled", false);
     }
 }

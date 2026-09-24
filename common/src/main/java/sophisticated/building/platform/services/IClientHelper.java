@@ -6,12 +6,11 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.core.Direction;
+import net.minecraft.client.renderer.block.model.BlockModelPart;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Locale;
 
@@ -50,10 +49,10 @@ public interface IClientHelper {
     Locale getLocale();
 
     /**
-     * The quads of a block model for one side, as the loader provides them to a renderer drawing into
-     * {@code renderType} (NeoForge passes empty model data and the render type).
+     * The parts of a block model, as the loader provides them to a renderer drawing into {@code renderType} without
+     * level context (NeoForge asks the model with an empty level, Forge with empty model data and the render type).
      */
-    List<BakedQuad> getModelQuads(BakedModel model, BlockState state, @Nullable Direction side, RandomSource random, RenderType renderType);
+    List<BlockModelPart> collectModelParts(BlockStateModel model, BlockState state, RandomSource random, RenderType renderType);
 
     /** Puts one tinted quad; NeoForge also multiplies the quad's own vertex colours in. */
     void putQuad(VertexConsumer consumer, PoseStack.Pose pose, BakedQuad quad, float red, float green, float blue, float alpha, int packedLight, int packedOverlay);

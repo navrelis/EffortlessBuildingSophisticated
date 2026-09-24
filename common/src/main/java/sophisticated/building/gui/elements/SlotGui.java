@@ -1,18 +1,11 @@
 package sophisticated.building.gui.elements;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
-import net.minecraft.client.renderer.CoreShaders;
 import net.minecraft.util.Mth;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -76,7 +69,7 @@ public abstract class SlotGui extends AbstractContainerEventHandler implements R
 
 	protected abstract void renderItem(GuiGraphics guiGraphics, int p_renderItem_1_, int p_renderItem_2_, int p_renderItem_3_, int p_renderItem_4_, int p_renderItem_5_, int p_renderItem_6_, float p_renderItem_7_);
 
-	protected void renderHeader(int p_renderHeader_1_, int p_renderHeader_2_, Tesselator p_renderHeader_3_) {
+	protected void renderHeader(int p_renderHeader_1_, int p_renderHeader_2_) {
 	}
 
 	protected void clickedHeader(int p_clickedHeader_1_, int p_clickedHeader_2_) {
@@ -220,8 +213,6 @@ public abstract class SlotGui extends AbstractContainerEventHandler implements R
 
 	protected void renderList(GuiGraphics guiGraphics, int p_renderList_1_, int p_renderList_2_, int p_renderList_3_, int p_renderList_4_, float p_renderList_5_) {
 		int i = this.getItemCount();
-		Tesselator tessellator = Tesselator.getInstance();
-		BufferBuilder bufferbuilder;
 
 		for (int j = 0; j < i; ++j) {
 			int k = p_renderList_2_ + j * this.itemHeight + this.headerHeight;
@@ -233,23 +224,9 @@ public abstract class SlotGui extends AbstractContainerEventHandler implements R
 			if (this.renderSelection && this.isSelectedItem(j)) {
 				int i1 = this.x0 + this.width / 2 - this.getRowWidth() / 2;
 				int j1 = this.x0 + this.width / 2 + this.getRowWidth() / 2;
-				RenderSystem.setShader(CoreShaders.POSITION);
-				float f = this.isFocused() ? 1.0F : 0.5F;
-				RenderSystem.setShaderColor(f, f, f, 1.0F);
-				bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-				bufferbuilder.addVertex(i1, k + l + 2, 0.0F);
-				bufferbuilder.addVertex(j1, k + l + 2, 0.0F);
-				bufferbuilder.addVertex(j1, k - 2, 0.0F);
-				bufferbuilder.addVertex(i1, k - 2, 0.0F);
-				BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
-				RenderSystem.setShaderColor(0.0F, 0.0F, 0.0F, 1.0F);
-				bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-				bufferbuilder.addVertex(i1 + 1, k + l + 1, 0.0F);
-				bufferbuilder.addVertex(j1 - 1, k + l + 1, 0.0F);
-				bufferbuilder.addVertex(j1 - 1, k - 1, 0.0F);
-				bufferbuilder.addVertex(i1 + 1, k - 1, 0.0F);
-				BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
-				RenderSystem.setShader(CoreShaders.POSITION_TEX);
+				int outline = this.isFocused() ? 0xFFFFFFFF : 0xFF808080;
+				guiGraphics.fill(i1, k - 2, j1, k + l + 2, outline);
+				guiGraphics.fill(i1 + 1, k - 1, j1 - 1, k + l + 1, 0xFF000000);
 			}
 
 			this.renderItem(guiGraphics, j, p_renderList_1_, k, l, p_renderList_3_, p_renderList_4_, p_renderList_5_);

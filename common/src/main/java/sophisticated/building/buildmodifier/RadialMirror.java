@@ -177,11 +177,11 @@ public class RadialMirror extends BaseModifier {
 	@Override
 	public void deserializeNBT(CompoundTag nbt) {
 		super.deserializeNBT(nbt);
-		position = new Vec3(nbt.getDouble("positionX"), nbt.getDouble("positionY"), nbt.getDouble("positionZ"));
-		slices = nbt.getInt("slices");
-		alternate = nbt.getBoolean("alternate");
-		radius = nbt.getInt("radius");
-		drawLines = nbt.getBoolean("drawLines");
-		drawPlanes = nbt.getBoolean("drawPlanes");
+		position = new Vec3(nbt.getDoubleOr("positionX", 0), nbt.getDoubleOr("positionY", 0), nbt.getDoubleOr("positionZ", 0));
+		slices = nbt.getIntOr("slices", 0);
+		alternate = nbt.getBooleanOr("alternate", false);
+		radius = nbt.getIntOr("radius", 0);
+		drawLines = nbt.getBooleanOr("drawLines", false);
+		drawPlanes = nbt.getBooleanOr("drawPlanes", false);
 	}
 }

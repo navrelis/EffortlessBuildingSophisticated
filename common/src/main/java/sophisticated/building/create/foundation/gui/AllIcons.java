@@ -1,6 +1,5 @@
 package sophisticated.building.create.foundation.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import sophisticated.building.gui.ScreenElement;
@@ -12,6 +11,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import sophisticated.building.create.Create;
+import sophisticated.building.create.catnip.gui.UIRenderHelper;
 import org.joml.Matrix4f;
 
 public class AllIcons implements ScreenElement {
@@ -163,10 +163,6 @@ public class AllIcons implements ScreenElement {
 		return new AllIcons(x = 0, ++y);
 	}
 
-	public void bind() {
-		RenderSystem.setShaderTexture(0, ICON_ATLAS);
-	}
-
 	@Override
 	public void render(GuiGraphics graphics, int x, int y) {
 		graphics.blit(RenderType::guiTextured, ICON_ATLAS, x, y, iconX, iconY, 16, 16, 256, 256);
@@ -203,7 +199,7 @@ public class AllIcons implements ScreenElement {
 
 	public sophisticated.building.create.catnip.gui.element.DelegatedStencilElement asStencil() {
 		return new sophisticated.building.create.catnip.gui.element.DelegatedStencilElement()
-				.withStencilRenderer((ms, w, h, alpha) -> this.render(ms, 0, 0))
+				.withStencil(new UIRenderHelper.TextureRegion(ICON_ATLAS, 0, 0, 16, 16, iconX, iconY, 256, 256))
 				.withBounds(16, 16);
 	}
 

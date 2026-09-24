@@ -7,11 +7,12 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.core.Direction;
+import net.minecraft.client.renderer.block.model.BlockModelPart;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.EmptyBlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.neoforged.neoforge.client.settings.KeyModifier;
 import sophisticated.building.platform.services.IClientHelper;
@@ -56,8 +57,8 @@ public final class NeoForgeClientHelper implements IClientHelper {
     }
 
     @Override
-    public List<BakedQuad> getModelQuads(BakedModel model, BlockState state, Direction side, RandomSource random, RenderType renderType) {
-        return model.getQuads(state, side, random, ModelData.EMPTY, renderType);
+    public List<BlockModelPart> collectModelParts(BlockStateModel model, BlockState state, RandomSource random, RenderType renderType) {
+        return model.collectParts(EmptyBlockAndTintGetter.INSTANCE, BlockPos.ZERO, state, random);
     }
 
     @Override

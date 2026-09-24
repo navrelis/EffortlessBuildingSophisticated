@@ -1,53 +1,50 @@
 package sophisticated.building.render;
 
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.platform.DepthTestFunction;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import net.minecraft.client.renderer.RenderStateShard;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
+import sophisticated.building.SophisticatedBuilding;
 
 import java.util.OptionalDouble;
 
-public class BuildRenderTypes extends RenderType {
-	public static final RenderType LINES;
-	public static final RenderType PLANES;
+/**
+ * Render types of the mirror lines and planes. Both are drawn without depth test, so they stay visible through blocks.
+ * Minecraft 1.21.5 moved the GL state (shader, blending, depth, culling, write masks) into render pipelines.
+ */
+public abstract class BuildRenderTypes extends RenderType {
+	private static final int INITIAL_BUFFER_SIZE = 128;
 
-	static {
-		final LineStateShard LINE = new LineStateShard(OptionalDouble.of(2.0));
-		final int INITIAL_BUFFER_SIZE = 128;
-		RenderType.CompositeState renderState;
+	/** Lines of the vanilla line shader (camera-facing quads, 2 px wide); every vertex needs the line direction as normal. */
+	private static final RenderPipeline LINES_PIPELINE = RenderPipeline.builder(RenderPipelines.LINES_SNIPPET)
+			.withLocation(ResourceLocation.fromNamespaceAndPath(SophisticatedBuilding.MODID, "pipeline/lines"))
+			.withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+			.build();
 
-		//LINES
-		renderState = CompositeState.builder()
-				.setLineState(LINE)
-				.setShaderState(RenderStateShard.RENDERTYPE_LINES_SHADER)
-				.setLayeringState(VIEW_OFFSET_Z_LAYERING)
-				.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-				.setTextureState(RenderStateShard.NO_TEXTURE)
-				.setDepthTestState(RenderStateShard.NO_DEPTH_TEST)
-				.setLightmapState(RenderStateShard.NO_LIGHTMAP)
-				.setWriteMaskState(COLOR_DEPTH_WRITE)
-				.setCullState(RenderStateShard.NO_CULL)
-				.createCompositeState(false);
-		LINES = RenderType.create("sb_lines",
-			DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.LINES, INITIAL_BUFFER_SIZE, false, false, renderState);
+	/** Translucent planes as triangle strips, visible from both sides, without depth writes. */
+	private static final RenderPipeline PLANES_PIPELINE = RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
+			.withLocation(ResourceLocation.fromNamespaceAndPath(SophisticatedBuilding.MODID, "pipeline/planes"))
+			.withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLE_STRIP)
+			.withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+			.withDepthWrite(false)
+			.withCull(false)
+			.build();
 
-		//PLANES
-		renderState = CompositeState.builder()
-				.setLineState(LINE)
-				.setShaderState(RenderStateShard.RENDERTYPE_LINES_SHADER)
-				.setLayeringState(VIEW_OFFSET_Z_LAYERING)
-				.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-				.setTextureState(RenderStateShard.NO_TEXTURE)
-				.setDepthTestState(RenderStateShard.NO_DEPTH_TEST)
-				.setLightmapState(RenderStateShard.NO_LIGHTMAP)
-				.setWriteMaskState(COLOR_WRITE)
-				.setCullState(RenderStateShard.NO_CULL)
-				.createCompositeState(false);
-		PLANES = RenderType.create("sb_planes",
-			DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLE_STRIP, INITIAL_BUFFER_SIZE, false, false, renderState);
-	}
+	public static final RenderType LINES = RenderType.create("sb_lines", INITIAL_BUFFER_SIZE, LINES_PIPELINE,
+			CompositeState.builder()
+					.setLineState(new LineStateShard(OptionalDouble.of(2.0)))
+					.setLayeringState(VIEW_OFFSET_Z_LAYERING)
+					.createCompositeState(false));
 
-	public BuildRenderTypes(String p_173178_, VertexFormat p_173179_, VertexFormat.Mode p_173180_, int p_173181_, boolean p_173182_, boolean p_173183_, Runnable p_173184_, Runnable p_173185_) {
-		super(p_173178_, p_173179_, p_173180_, p_173181_, p_173182_, p_173183_, p_173184_, p_173185_);
+	public static final RenderType PLANES = RenderType.create("sb_planes", INITIAL_BUFFER_SIZE, PLANES_PIPELINE,
+			CompositeState.builder()
+					.setLayeringState(VIEW_OFFSET_Z_LAYERING)
+					.createCompositeState(false));
+
+	private BuildRenderTypes(String name, int bufferSize, boolean affectsCrumbling, boolean sortOnUpload, Runnable setupState, Runnable clearState) {
+		super(name, bufferSize, affectsCrumbling, sortOnUpload, setupState, clearState);
 	}
 }

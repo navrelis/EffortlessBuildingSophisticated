@@ -46,7 +46,7 @@ public class OmegaRandomizerBagItem extends AbstractRandomizerBagItem {
         var tag = customData.copyTag();
         if (!tag.contains(WEIGHTS_TAG)) return DEFAULT_WEIGHT;
         
-        var weightsArray = tag.getIntArray(WEIGHTS_TAG);
+        var weightsArray = tag.getIntArray(WEIGHTS_TAG).orElse(new int[0]);
         if (weightsArray.length <= slotIndex) return DEFAULT_WEIGHT;
         
         return Math.max(MIN_WEIGHT, Math.min(MAX_WEIGHT, weightsArray[slotIndex]));
@@ -64,7 +64,7 @@ public class OmegaRandomizerBagItem extends AbstractRandomizerBagItem {
         
         int[] weights;
         if (tag.contains(WEIGHTS_TAG)) {
-            weights = tag.getIntArray(WEIGHTS_TAG);
+            weights = tag.getIntArray(WEIGHTS_TAG).orElse(new int[0]);
             if (weights.length < INV_SIZE) {
                 // Expand array
                 int[] newWeights = new int[INV_SIZE];

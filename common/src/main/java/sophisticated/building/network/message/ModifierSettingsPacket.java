@@ -24,7 +24,7 @@ public record ModifierSettingsPacket(CompoundTag modifiersTag) implements Custom
 	private static final String DATA_KEY = SophisticatedBuilding.MODID + ":buildModifiers";
 
 	public ModifierSettingsPacket(Player player) {
-		this(player != null ? Services.PLATFORM.getPersistentData(player).getCompound(DATA_KEY) : new CompoundTag());
+		this(player != null ? Services.PLATFORM.getPersistentData(player).getCompoundOrEmpty(DATA_KEY) : new CompoundTag());
 	}
 
 	@Override

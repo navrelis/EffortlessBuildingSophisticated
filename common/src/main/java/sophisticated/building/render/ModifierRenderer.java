@@ -9,6 +9,7 @@ import sophisticated.building.buildmodifier.BaseModifier;
 import sophisticated.building.buildmodifier.Mirror;
 import sophisticated.building.buildmodifier.RadialMirror;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 import java.awt.*;
 import java.util.List;
@@ -115,11 +116,9 @@ public class ModifierRenderer {
 			VertexConsumer buffer = RenderHandler.beginLines(renderTypeBuffer);
 
 			Vec3 middle = posA.add(posB).scale(0.5);
-			buffer.addVertex(matrixPos, (float) posA.x, (float) middle.y, (float) posA.z).setColor(c.getRed(), c.getGreen(), c.getBlue(), lineAlpha);
-			buffer.addVertex(matrixPos, (float) posB.x, (float) middle.y, (float) posB.z).setColor(c.getRed(), c.getGreen(), c.getBlue(), lineAlpha);
+			line(buffer, ms.last(), posA.x, middle.y, posA.z, posB.x, middle.y, posB.z, c);
 			if (drawVerticalLines) {
-				buffer.addVertex(matrixPos, (float) middle.x, (float) posA.y, (float) middle.z).setColor(c.getRed(), c.getGreen(), c.getBlue(), lineAlpha);
-				buffer.addVertex(matrixPos, (float) middle.x, (float) posB.y, (float) middle.z).setColor(c.getRed(), c.getGreen(), c.getBlue(), lineAlpha);
+				line(buffer, ms.last(), middle.x, posA.y, middle.z, middle.x, posB.y, middle.z, c);
 			}
 
 			RenderHandler.endLines(renderTypeBuffer);
@@ -149,10 +148,8 @@ public class ModifierRenderer {
 			VertexConsumer buffer = RenderHandler.beginLines(renderTypeBuffer);
 
 			Vec3 middle = posA.add(posB).scale(0.5);
-			buffer.addVertex(matrixPos, (float) middle.x, (float) middle.y, (float) posA.z).setColor(c.getRed(), c.getGreen(), c.getBlue(), lineAlpha);
-			buffer.addVertex(matrixPos, (float) middle.x, (float) middle.y, (float) posB.z).setColor(c.getRed(), c.getGreen(), c.getBlue(), lineAlpha);
-			buffer.addVertex(matrixPos, (float) posA.x, (float) middle.y, (float) middle.z).setColor(c.getRed(), c.getGreen(), c.getBlue(), lineAlpha);
-			buffer.addVertex(matrixPos, (float) posB.x, (float) middle.y, (float) middle.z).setColor(c.getRed(), c.getGreen(), c.getBlue(), lineAlpha);
+			line(buffer, matrixStack.last(), middle.x, middle.y, posA.z, middle.x, middle.y, posB.z, c);
+			line(buffer, matrixStack.last(), posA.x, middle.y, middle.z, posB.x, middle.y, middle.z, c);
 
 			RenderHandler.endLines(renderTypeBuffer);
 		}
@@ -162,18 +159,27 @@ public class ModifierRenderer {
 
 //        GL11.glColor4d(100, 100, 100, 255);
 		VertexConsumer buffer = RenderHandler.beginLines(renderTypeBuffer);
-		Matrix4f matrixPos = matrixStack.last().pose();
+		PoseStack.Pose pose = matrixStack.last();
 
 		Vec3 pos = m.position.add(epsilon);
 
-		buffer.addVertex(matrixPos, (float) pos.x - m.radius, (float) pos.y, (float) pos.z).setColor(colorX.getRed(), colorX.getGreen(), colorX.getBlue(), lineAlpha);
-		buffer.addVertex(matrixPos, (float) pos.x + m.radius, (float) pos.y, (float) pos.z).setColor(colorX.getRed(), colorX.getGreen(), colorX.getBlue(), lineAlpha);
-		buffer.addVertex(matrixPos, (float) pos.x, (float) pos.y - m.radius, (float) pos.z).setColor(colorY.getRed(), colorY.getGreen(), colorY.getBlue(), lineAlpha);
-		buffer.addVertex(matrixPos, (float) pos.x, (float) pos.y + m.radius, (float) pos.z).setColor(colorY.getRed(), colorY.getGreen(), colorY.getBlue(), lineAlpha);
-		buffer.addVertex(matrixPos, (float) pos.x, (float) pos.y, (float) pos.z - m.radius).setColor(colorZ.getRed(), colorZ.getGreen(), colorZ.getBlue(), lineAlpha);
-		buffer.addVertex(matrixPos, (float) pos.x, (float) pos.y, (float) pos.z + m.radius).setColor(colorZ.getRed(), colorZ.getGreen(), colorZ.getBlue(), lineAlpha);
+		line(buffer, pose, pos.x - m.radius, pos.y, pos.z, pos.x + m.radius, pos.y, pos.z, colorX);
+		line(buffer, pose, pos.x, pos.y - m.radius, pos.z, pos.x, pos.y + m.radius, pos.z, colorY);
+		line(buffer, pose, pos.x, pos.y, pos.z - m.radius, pos.x, pos.y, pos.z + m.radius, colorZ);
 
 		RenderHandler.endLines(renderTypeBuffer);
+	}
+
+	/**
+	 * One mirror line. The line shader draws a camera-facing quad along the direction passed as vertex normal, so
+	 * both vertices carry the normalized line direction.
+	 */
+	private static void line(VertexConsumer buffer, PoseStack.Pose pose, double x1, double y1, double z1, double x2, double y2, double z2, Color c) {
+		Vector3f direction = new Vector3f((float) (x2 - x1), (float) (y2 - y1), (float) (z2 - z1)).normalize();
+		buffer.addVertex(pose, (float) x1, (float) y1, (float) z1).setColor(c.getRed(), c.getGreen(), c.getBlue(), lineAlpha)
+				.setNormal(pose, direction.x(), direction.y(), direction.z());
+		buffer.addVertex(pose, (float) x2, (float) y2, (float) z2).setColor(c.getRed(), c.getGreen(), c.getBlue(), lineAlpha)
+				.setNormal(pose, direction.x(), direction.y(), direction.z());
 	}
 }
 

@@ -1,8 +1,7 @@
 package sophisticated.building.gametest;
 
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -19,7 +18,7 @@ import static sophisticated.building.gametest.GameTestSupport.*;
  * Survival mining never uses the empty hand for a block with hardness > 0 (ToolSelector.select returns -2 without a
  * tool candidate), so stone without a pickaxe, like bedrock, is skipped with nothing mined or consumed.
  */
-public class SurvivalReplaceGameTest implements FabricGameTest {
+public class SurvivalReplaceGameTest {
 
     private static final BlockPos REL = new BlockPos(3, 1, 3);
     private static final int PICKAXE_SLOT = 4;
@@ -45,7 +44,7 @@ public class SurvivalReplaceGameTest implements FabricGameTest {
         }
     }
 
-    @GameTest(template = EMPTY_STRUCTURE)
+    @GameTest
     public void offRejectsOverwrite(GameTestHelper helper) {
         ServerPlayer player = builder(helper, true);
         try (var config = ConfigScope.baseline()) {
@@ -62,7 +61,7 @@ public class SurvivalReplaceGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = EMPTY_STRUCTURE)
+    @GameTest
     public void onMinesWithPickaxe(GameTestHelper helper) {
         ServerPlayer player = builder(helper, true);
         try (var config = ConfigScope.baseline()) {
@@ -75,7 +74,7 @@ public class SurvivalReplaceGameTest implements FabricGameTest {
             expectEquals(helper, "dirt left", 3, count(player, Items.DIRT));
             expectEquals(helper, "cobblestone received", 1, count(player, Items.COBBLESTONE));
             ItemStack pickaxe = player.getInventory().getItem(PICKAXE_SLOT);
-            helper.assertTrue(pickaxe.is(Items.IRON_PICKAXE), "Pickaxe should still be in its slot, found " + pickaxe);
+            expectTrue(helper, pickaxe.is(Items.IRON_PICKAXE), "Pickaxe should still be in its slot, found " + pickaxe);
             expectEquals(helper, "pickaxe damage", 1, pickaxe.getDamageValue());
         } finally {
             removePlayer(player);
@@ -83,7 +82,7 @@ public class SurvivalReplaceGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = EMPTY_STRUCTURE)
+    @GameTest
     public void onSkipsBedrock(GameTestHelper helper) {
         ServerPlayer player = builder(helper, true);
         try (var config = ConfigScope.baseline()) {
@@ -100,7 +99,7 @@ public class SurvivalReplaceGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = EMPTY_STRUCTURE)
+    @GameTest
     public void onSkipsStoneWithoutPickaxe(GameTestHelper helper) {
         ServerPlayer player = builder(helper, false);
         try (var config = ConfigScope.baseline()) {
@@ -118,7 +117,7 @@ public class SurvivalReplaceGameTest implements FabricGameTest {
     }
 
     //The real network path: placeBlocksDelayed waits for the mining time (iron pickaxe on stone: 8 ticks), then tick() applies
-    @GameTest(template = EMPTY_STRUCTURE, batch = "survival_replace_delayed", timeoutTicks = 200)
+    @GameTest(environment = "sophisticatedbuilding-gametest:survival_replace_delayed", maxTicks = 200)
     public void onDelayedWaitsForMining(GameTestHelper helper) {
         ServerPlayer player = builder(helper, true);
         var config = ConfigScope.baseline();
@@ -135,7 +134,7 @@ public class SurvivalReplaceGameTest implements FabricGameTest {
                 .thenExecute(() -> {
                     try {
                         long elapsed = helper.getLevel().getGameTime() - start;
-                        helper.assertTrue(elapsed >= 8, "Replace should wait for the 8 mining ticks, placed after " + elapsed);
+                        expectTrue(helper, elapsed >= 8, "Replace should wait for the 8 mining ticks, placed after " + elapsed);
                         expectEquals(helper, "dirt left", 3, count(player, Items.DIRT));
                         expectEquals(helper, "cobblestone received", 1, count(player, Items.COBBLESTONE));
                         expectEquals(helper, "pickaxe damage", 1, player.getInventory().getItem(PICKAXE_SLOT).getDamageValue());

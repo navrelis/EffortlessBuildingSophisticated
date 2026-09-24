@@ -1,8 +1,7 @@
 package sophisticated.building.gametest;
 
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -19,13 +18,13 @@ import static sophisticated.building.gametest.GameTestSupport.*;
  * server (GameTestServer) never reports spawn protection (MinecraftServer.isUnderSpawnProtection returns false and
  * only DedicatedServer overrides it), so the world border stands in for Level.mayInteract.
  */
-public class ProtectionGameTest implements FabricGameTest {
+public class ProtectionGameTest {
 
     private static final BlockPos INSIDE = new BlockPos(1, 1, 1);
     private static final BlockPos OUTSIDE = new BlockPos(6, 1, 6);
 
     //Own batch: the world border is global, so no other test may run while it is shrunk
-    @GameTest(template = EMPTY_STRUCTURE, batch = "world_border")
+    @GameTest(environment = "sophisticatedbuilding-gametest:world_border")
     public void worldBorderSkipsOutside(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
         WorldBorder border = helper.getLevel().getWorldBorder();
@@ -39,7 +38,7 @@ public class ProtectionGameTest implements FabricGameTest {
             //A 3x3 border around INSIDE; OUTSIDE is 5 blocks away on both axes
             border.setCenter(inside.getX() + 0.5, inside.getZ() + 0.5);
             border.setSize(3);
-            helper.assertTrue(border.isWithinBounds(inside) && !border.isWithinBounds(outside), "Border setup failed");
+            expectTrue(helper, border.isWithinBounds(inside) && !border.isWithinBounds(outside), "Border setup failed");
 
             SophisticatedBuilding.SERVER_BLOCK_PLACER.applyBlockSet(player, set(
                     place(inside, Blocks.STONE.defaultBlockState()),
@@ -57,7 +56,7 @@ public class ProtectionGameTest implements FabricGameTest {
     }
 
     //Adventure players may not build (Abilities.mayBuild is false), so the whole set is rejected
-    @GameTest(template = EMPTY_STRUCTURE)
+    @GameTest
     public void adventureModeRejected(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.ADVENTURE);
         try (var config = ConfigScope.baseline()) {

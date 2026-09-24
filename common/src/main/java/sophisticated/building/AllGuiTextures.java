@@ -1,6 +1,5 @@
 package sophisticated.building;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import sophisticated.building.utilities.Color;
 import sophisticated.building.gui.ScreenElement;
 import net.minecraft.client.gui.GuiGraphics;
@@ -41,10 +40,6 @@ public enum AllGuiTextures implements ScreenElement {
         this.height = height;
         this.startX = startX;
         this.startY = startY;
-    }
-    
-    public void bind() {
-        RenderSystem.setShaderTexture(0, location);
     }
     
     public void render(GuiGraphics ms, int x, int y) {

@@ -1,12 +1,5 @@
 package sophisticated.building.gui.elements;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -14,6 +7,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.util.Mth;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -79,22 +73,16 @@ public class GuiScrollPane extends SlotGui {
 			int scrollbarRight = scrollbarLeft + 6;
 			this.capYPosition();
 
-			Tesselator tessellator = Tesselator.getInstance();
-
 			int insideLeft = this.x0 + this.width / 2 - this.getRowWidth() / 2 + 2;
 			int insideTop = this.y0 + 4 - (int) this.yo;
 			if (this.renderHeader) {
-				this.renderHeader(insideLeft, insideTop, tessellator);
+				this.renderHeader(insideLeft, insideTop);
 			}
 
 			//All entries
 			this.renderList(guiGraphics, insideLeft, insideTop, mouseXIn, mouseYIn, partialTicks);
-			RenderSystem.disableDepthTest();
 
-			RenderSystem.enableBlend();
-			RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ZERO, GlStateManager.DestFactor.ONE);
-
-			//Draw scrollbar
+			//Draw scrollbar (without depth test, over the entries)
 			int maxScroll = this.getMaxScroll();
 			if (maxScroll > 0) {
 				int k1 = (int) ((float) ((this.y1 - this.y0) * (this.y1 - this.y0)) / (float) this.getMaxPosition());
@@ -104,29 +92,10 @@ public class GuiScrollPane extends SlotGui {
 					l1 = this.y0;
 				}
 
-				BufferBuilder bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-				bufferbuilder.addVertex(scrollbarLeft, this.y1, 0.0F).setUv(0.0F, 1.0F).setColor(0, 0, 0, 255);
-				bufferbuilder.addVertex(scrollbarRight, this.y1, 0.0F).setUv(1.0F, 1.0F).setColor(0, 0, 0, 255);
-				bufferbuilder.addVertex(scrollbarRight, this.y0, 0.0F).setUv(1.0F, 0.0F).setColor(0, 0, 0, 255);
-				bufferbuilder.addVertex(scrollbarLeft, this.y0, 0.0F).setUv(0.0F, 0.0F).setColor(0, 0, 0, 255);
-				BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
-
-				bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-				bufferbuilder.addVertex(scrollbarLeft, l1 + k1, 0.0F).setUv(0.0F, 1.0F).setColor(128, 128, 128, 255);
-				bufferbuilder.addVertex(scrollbarRight, l1 + k1, 0.0F).setUv(1.0F, 1.0F).setColor(128, 128, 128, 255);
-				bufferbuilder.addVertex(scrollbarRight, l1, 0.0F).setUv(1.0F, 0.0F).setColor(128, 128, 128, 255);
-				bufferbuilder.addVertex(scrollbarLeft, l1, 0.0F).setUv(0.0F, 0.0F).setColor(128, 128, 128, 255);
-				BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
-
-				bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-				bufferbuilder.addVertex(scrollbarLeft, l1 + k1 - 1, 0.0F).setUv(0.0F, 1.0F).setColor(192, 192, 192, 255);
-				bufferbuilder.addVertex(scrollbarRight - 1, l1 + k1 - 1, 0.0F).setUv(1.0F, 1.0F).setColor(192, 192, 192, 255);
-				bufferbuilder.addVertex(scrollbarRight - 1, l1, 0.0F).setUv(1.0F, 0.0F).setColor(192, 192, 192, 255);
-				bufferbuilder.addVertex(scrollbarLeft, l1, 0.0F).setUv(0.0F, 0.0F).setColor(192, 192, 192, 255);
-				BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
+				guiGraphics.fill(RenderType.guiOverlay(), scrollbarLeft, this.y0, scrollbarRight, this.y1, 0xFF000000);
+				guiGraphics.fill(RenderType.guiOverlay(), scrollbarLeft, l1, scrollbarRight, l1 + k1, 0xFF808080);
+				guiGraphics.fill(RenderType.guiOverlay(), scrollbarLeft, l1, scrollbarRight - 1, l1 + k1 - 1, 0xFFC0C0C0);
 			}
-
-			RenderSystem.disableBlend();
 		}
 	}
 
@@ -281,7 +250,6 @@ public class GuiScrollPane extends SlotGui {
 	@Override
 	protected void renderList(GuiGraphics guiGraphics, int insideLeft, int insideTop, int mouseXIn, int mouseYIn, float partialTicks) {
 		int itemCount = this.getItemCount();
-		Tesselator tessellator = Tesselator.getInstance();
 
 		int y = this.headerHeight + insideTop;
 		int contentHeight = getMaxPosition();
@@ -302,22 +270,9 @@ public class GuiScrollPane extends SlotGui {
 			if (this.renderSelection && this.isSelectedItem(i)) {
 				int i1 = this.x0 + this.width / 2 - this.getRowWidth() / 2;
 				int j1 = this.x0 + this.width / 2 + this.getRowWidth() / 2;
-				float f = this.isFocused() ? 1.0F : 0.5F;
-				RenderSystem.setShaderColor(f, f, f, 1.0F);
-				BufferBuilder bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-				bufferbuilder.addVertex(i1, y + entryHeight2 + 2, 0.0f);
-				bufferbuilder.addVertex(j1, y + entryHeight2 + 2, 0.0f);
-				bufferbuilder.addVertex(j1, y - 2, 0.0f);
-				bufferbuilder.addVertex(i1, y - 2, 0.0f);
-				BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
-
-				RenderSystem.setShaderColor(0.0F, 0.0F, 0.0F, 1.0F);
-				bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-				bufferbuilder.addVertex(i1 + 1, y + entryHeight2 + 1, 0.0f);
-				bufferbuilder.addVertex(j1 - 1, y + entryHeight2 + 1, 0.0f);
-				bufferbuilder.addVertex(j1 - 1, y - 1, 0.0f);
-				bufferbuilder.addVertex(i1 + 1, y - 1, 0.0f);
-				BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
+				int outline = this.isFocused() ? 0xFFFFFFFF : 0xFF808080;
+				guiGraphics.fill(i1, y - 2, j1, y + entryHeight2 + 2, outline);
+				guiGraphics.fill(i1 + 1, y - 1, j1 - 1, y + entryHeight2 + 1, 0xFF000000);
 			}
 
 			this.renderItem(guiGraphics, i, insideLeft, y, entryHeight2, mouseXIn, mouseYIn, partialTicks);

@@ -1,8 +1,7 @@
 package sophisticated.building.gametest;
 
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -20,7 +19,7 @@ import static sophisticated.building.gametest.GameTestSupport.*;
  * "like vanilla" (no build mode, no Quick Replace); otherwise vanilla was cancelled and the mod places it too.
  * The flag is resolved in placeBlocksDelayed, so these tests use the real delayed path and tick().
  */
-public class SkipFirstGameTest implements FabricGameTest {
+public class SkipFirstGameTest {
 
     private static final BlockPos A = new BlockPos(1, 1, 3);
     private static final BlockPos B = new BlockPos(3, 1, 3);
@@ -37,12 +36,12 @@ public class SkipFirstGameTest implements FabricGameTest {
         SophisticatedBuilding.SERVER_BLOCK_PLACER.placeBlocksDelayed(player, stoneRow(helper), helper.getLevel().getGameTime());
     }
 
-    @GameTest(template = EMPTY_STRUCTURE, batch = "skip_first", timeoutTicks = 100)
+    @GameTest(environment = "sophisticatedbuilding-gametest:skip_first", maxTicks = 100)
     public void likeVanillaSkipsFirst(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
         var config = ConfigScope.baseline();
         player.getInventory().setItem(0, new ItemStack(Items.STONE, 3));
-        helper.assertTrue(ServerBuildState.isLikeVanilla(player), "Player should start like vanilla");
+        expectTrue(helper, ServerBuildState.isLikeVanilla(player), "Player should start like vanilla");
 
         placeNow(helper, player);
 
@@ -62,13 +61,13 @@ public class SkipFirstGameTest implements FabricGameTest {
                 .thenSucceed();
     }
 
-    @GameTest(template = EMPTY_STRUCTURE, batch = "skip_first", timeoutTicks = 100)
+    @GameTest(environment = "sophisticatedbuilding-gametest:skip_first", maxTicks = 100)
     public void quickReplacingPlacesFirst(GameTestHelper helper) {
         //Quick Replace needs canReplaceBlocks: creative always, survival only with survival replace enabled
         ServerPlayer player = spawnPlayer(helper, GameType.CREATIVE);
         var config = ConfigScope.baseline();
         ServerBuildState.setIsQuickReplacing(player, true);
-        helper.assertTrue(!ServerBuildState.isLikeVanilla(player), "Quick replacing player should not be like vanilla");
+        expectTrue(helper, !ServerBuildState.isLikeVanilla(player), "Quick replacing player should not be like vanilla");
 
         placeNow(helper, player);
 
@@ -85,7 +84,7 @@ public class SkipFirstGameTest implements FabricGameTest {
                 .thenSucceed();
     }
 
-    @GameTest(template = EMPTY_STRUCTURE, batch = "skip_first", timeoutTicks = 100)
+    @GameTest(environment = "sophisticatedbuilding-gametest:skip_first", maxTicks = 100)
     public void buildModePlacesFirst(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
         var config = ConfigScope.baseline();

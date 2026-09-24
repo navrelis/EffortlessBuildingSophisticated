@@ -50,12 +50,12 @@ public class ForgeCommonEvents {
 			event.setCanceled(true);
 			//Notify client to not decrease itemstack
 			if (player instanceof ServerPlayer serverPlayer) {
-				int slotIndex = 36 + serverPlayer.getInventory().selected;
+				int slotIndex = 36 + serverPlayer.getInventory().getSelectedSlot();
 				serverPlayer.connection.send(new ClientboundContainerSetSlotPacket(
 						serverPlayer.inventoryMenu.containerId,
 						serverPlayer.inventoryMenu.incrementStateId(),
 						slotIndex,
-						serverPlayer.getInventory().getSelected()
+						serverPlayer.getInventory().getSelectedItem()
 				));
 			}
 		}

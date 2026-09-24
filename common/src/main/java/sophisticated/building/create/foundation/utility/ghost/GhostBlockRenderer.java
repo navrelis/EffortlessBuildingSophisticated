@@ -11,8 +11,9 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.BlockModelPart;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
@@ -45,18 +46,17 @@ public abstract class GhostBlockRenderer {
 		public void render(PoseStack ms, SuperRenderTypeBuffer buffer, GhostBlockParams params) {
 			BlockRenderDispatcher dispatcher = Minecraft.getInstance()
 				.getBlockRenderer();
-			ModelBlockRenderer renderer = dispatcher.getModelRenderer();
 
 			BlockState state = params.state;
 			BlockPos pos = params.pos;
 
-			BakedModel model = dispatcher.getBlockModel(state);
+			BlockStateModel model = dispatcher.getBlockModel(state);
 
 			ms.pushPose();
 			ms.translate(pos.getX(), pos.getY(), pos.getZ());
 
 			VertexConsumer vb = buffer.getEarlyBuffer(RenderType.solid());
-			renderer.renderModel(ms.last(), vb, state, model, 1f, 1f, 1f, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
+			ModelBlockRenderer.renderModel(ms.last(), vb, model, 1f, 1f, 1f, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
 
 			ms.popPose();
 		}
@@ -76,7 +76,7 @@ public abstract class GhostBlockRenderer {
 			float scale = params.scaleSupplier.get();
 			Color color = params.rgbSupplier.get();
 
-			BakedModel model = dispatcher.getBlockModel(state);
+			BlockStateModel model = dispatcher.getBlockModel(state);
 			RenderType layer = RenderType.translucent();
 			VertexConsumer vb = buffer.getEarlyBuffer(layer);
 
@@ -95,19 +95,14 @@ public abstract class GhostBlockRenderer {
 
 		// ModelBlockRenderer
 		public void renderModel(PoseStack.Pose pose, VertexConsumer consumer,
-			@Nullable BlockState state, BakedModel model, float red, float green, float blue,
+			@Nullable BlockState state, BlockStateModel model, float red, float green, float blue,
 			float alpha, int packedLight, int packedOverlay, RenderType renderType) {
-			RandomSource random = RandomSource.create();
-
-			for (Direction direction : Direction.values()) {
-				random.setSeed(42L);
-				renderQuadList(pose, consumer, red, green, blue, alpha,
-					ClientServices.CLIENT.getModelQuads(model, state, direction, random, renderType), packedLight, packedOverlay);
+			for (BlockModelPart part : ClientServices.CLIENT.collectModelParts(model, state, RandomSource.create(42L), renderType)) {
+				for (Direction direction : Direction.values()) {
+					renderQuadList(pose, consumer, red, green, blue, alpha, part.getQuads(direction), packedLight, packedOverlay);
+				}
+				renderQuadList(pose, consumer, red, green, blue, alpha, part.getQuads(null), packedLight, packedOverlay);
 			}
-
-			random.setSeed(42L);
-			renderQuadList(pose, consumer, red, green, blue, alpha,
-				ClientServices.CLIENT.getModelQuads(model, state, null, random, renderType), packedLight, packedOverlay);
 		}
 
 		// ModelBlockRenderer

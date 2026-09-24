@@ -139,12 +139,12 @@ public class Mirror extends BaseModifier {
 	@Override
 	public void deserializeNBT(CompoundTag compound) {
 		super.deserializeNBT(compound);
-		position = new Vec3(compound.getDouble("positionX"), compound.getDouble("positionY"), compound.getDouble("positionZ"));
-		mirrorX = compound.getBoolean("mirrorX");
-		mirrorY = compound.getBoolean("mirrorY");
-		mirrorZ = compound.getBoolean("mirrorZ");
-		radius = compound.getInt("radius");
-		drawLines = compound.getBoolean("drawLines");
-		drawPlanes = compound.getBoolean("drawPlanes");
+		position = new Vec3(compound.getDoubleOr("positionX", 0), compound.getDoubleOr("positionY", 0), compound.getDoubleOr("positionZ", 0));
+		mirrorX = compound.getBooleanOr("mirrorX", false);
+		mirrorY = compound.getBooleanOr("mirrorY", false);
+		mirrorZ = compound.getBooleanOr("mirrorZ", false);
+		radius = compound.getIntOr("radius", 0);
+		drawLines = compound.getBooleanOr("drawLines", false);
+		drawPlanes = compound.getBooleanOr("drawPlanes", false);
 	}
 }

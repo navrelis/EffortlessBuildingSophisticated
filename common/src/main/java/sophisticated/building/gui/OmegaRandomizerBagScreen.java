@@ -1,7 +1,5 @@
 package sophisticated.building.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -10,7 +8,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
@@ -250,13 +247,10 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 			else color = 0xFFCC0000; // Dark red for 71+
 			
 			// Draw a subtle background behind the weight for readability
-			RenderSystem.disableDepthTest();
-			guiGraphics.fill(badgeX - 2, badgeY - 1, badgeX + textWidth + 2, badgeY + badgeHeight, 0xAA000000);
-			RenderSystem.enableDepthTest();
-			
-			MultiBufferSource.BufferSource buffer = MultiBufferSource.immediate(new ByteBufferBuilder(1536));
-			font.drawInBatch(weightText, badgeX, badgeY, color, true, ms.last().pose(), buffer, Font.DisplayMode.NORMAL, 0, 15728880);
-			buffer.endBatch();
+			guiGraphics.fill(RenderType.guiOverlay(), badgeX - 2, badgeY - 1, badgeX + textWidth + 2, badgeY + badgeHeight, 0xAA000000);
+
+			// Drawn through the GUI buffer source (no buffer of its own per badge and frame).
+			guiGraphics.drawString(font, weightText, badgeX, badgeY, color, true);
 			
 			ms.popPose();
 			

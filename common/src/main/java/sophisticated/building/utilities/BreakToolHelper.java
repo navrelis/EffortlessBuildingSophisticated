@@ -1,12 +1,13 @@
 package sophisticated.building.utilities;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.DiggerItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ShearsItem;
+import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import sophisticated.building.ServerConfig;
@@ -46,17 +47,26 @@ public class BreakToolHelper {
 		if (stack.isEmpty()) {
 			return false;
 		}
-		if (stack.getItem() instanceof DiggerItem || stack.getItem() instanceof ShearsItem) {
+		if (isDiggerTool(stack) || stack.getItem() instanceof ShearsItem) {
 			return true;
 		}
 		return stack.is(ItemTags.PICKAXES) || stack.is(ItemTags.AXES) || stack.is(ItemTags.SHOVELS) || stack.is(ItemTags.HOES);
+	}
+
+	/**
+	 * Pickaxes, axes, shovels, hoes and other digging tools (built with {@code Item.Properties#tool}; before Minecraft
+	 * 1.21.5 these were {@code DiggerItem}s): a tool rule that mines and drops the blocks of a tag.
+	 */
+	private static boolean isDiggerTool(ItemStack stack) {
+		Tool tool = stack.get(DataComponents.TOOL);
+		return tool != null && tool.rules().stream().anyMatch(rule -> rule.correctForDrops().orElse(false) && rule.blocks().unwrapKey().isPresent());
 	}
 
 	public static List<ToolSlot> collectCandidates(Player player) {
 		List<ToolSlot> candidates = new ArrayList<>();
 
 		var inventory = player.getInventory();
-		int selected = inventory.selected;
+		int selected = inventory.getSelectedSlot();
 
 		addPlayerSlot(candidates, inventory, selected, true);
 		for (int i = 0; i < 9; i++) {

@@ -5,6 +5,7 @@ import io.netty.channel.embedded.EmbeddedChannel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.Connection;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -52,7 +53,7 @@ public final class GameTestSupport {
         server.getPlayerList().placeNewPlayer(connection, player, cookie);
         player.setGameMode(gameType);
         player.getInventory().clearContent();
-        player.getInventory().selected = 0;
+        player.getInventory().setSelectedSlot(0);
         ServerBuildState.setIsUsingBuildMode(player, false);
         ServerBuildState.setIsQuickReplacing(player, false);
         return player;
@@ -159,14 +160,19 @@ public final class GameTestSupport {
 
     //region Assertions
 
+    /** {@link GameTestHelper#assertTrue} with a plain text message. */
+    public static void expectTrue(GameTestHelper helper, boolean condition, String message) {
+        helper.assertTrue(condition, Component.literal(message));
+    }
+
     public static void expectEquals(GameTestHelper helper, String what, Object expected, Object actual) {
-        helper.assertTrue(expected == null ? actual == null : expected.equals(actual),
+        expectTrue(helper, expected == null ? actual == null : expected.equals(actual),
                 what + ": expected " + expected + " but was " + actual);
     }
 
     public static void expectState(GameTestHelper helper, BlockPos relativePos, BlockState expected) {
         BlockState actual = helper.getBlockState(relativePos);
-        helper.assertTrue(actual == expected, "Block at " + relativePos + ": expected " + expected + " but was " + actual);
+        expectTrue(helper, actual == expected, "Block at " + relativePos + ": expected " + expected + " but was " + actual);
     }
 
     //endregion

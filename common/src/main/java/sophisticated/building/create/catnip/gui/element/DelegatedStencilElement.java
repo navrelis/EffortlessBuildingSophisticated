@@ -4,49 +4,50 @@ import sophisticated.building.create.catnip.gui.UIRenderHelper;
 import sophisticated.building.create.catnip.theme.Color;
 import net.minecraft.client.gui.GuiGraphics;
 
+import javax.annotation.Nullable;
+
 /**
- * Adapted from Catnip ({@code sophisticated.building.create.catnip.gui.element.DelegatedStencilElement}, MIT License, Copyright (c) 2022
- * The Create Team, see LICENSE_Ponder.txt).
+ * Adapted from Catnip ({@code sophisticated.building.create.catnip.gui.element.DelegatedStencilElement} and
+ * {@code StencilElement}, MIT License, Copyright (c) 2022 The Create Team, see LICENSE_Ponder.txt). Catnip rendered the
+ * stencil (an icon) into the GL stencil buffer and then any element (a gradient) through it; Minecraft 1.21.5 has no
+ * stencil state, so the stencil is a texture region and the element a gradient, drawn together by
+ * {@link UIRenderHelper#stencilledGradient}.
  */
-public class DelegatedStencilElement extends AbstractRenderElement implements StencilElement {
+public class DelegatedStencilElement extends AbstractRenderElement {
 
-	protected static final FadableScreenElement EMPTY_RENDERER = (graphics, width, height, alpha) -> {
-	};
-	protected static final FadableScreenElement DEFAULT_ELEMENT = (graphics, width, height, alpha) -> UIRenderHelper.angledGradient(graphics, 0, -3, 5, height + 4, width + 6, new Color(0xff_10dd10).scaleAlpha(alpha), new Color(0xff_1010dd).scaleAlpha(alpha));
-
-	protected FadableScreenElement stencil;
-	protected FadableScreenElement element;
-
-	public DelegatedStencilElement() {
-		stencil = EMPTY_RENDERER;
-		element = DEFAULT_ELEMENT;
+	/** The gradient shown through the stencil, in element coordinates (the element is {@code width} x {@code height}). */
+	@FunctionalInterface
+	public interface GradientRenderer {
+		UIRenderHelper.Gradient gradient(int width, int height, float alpha);
 	}
 
-	public DelegatedStencilElement(FadableScreenElement stencil, FadableScreenElement element) {
+	protected static final GradientRenderer DEFAULT_ELEMENT = (width, height, alpha) -> new UIRenderHelper.Gradient(0, -3, 5, width + 6, new Color(0xff_10dd10).scaleAlpha(alpha), new Color(0xff_1010dd).scaleAlpha(alpha));
+
+	@Nullable
+	protected UIRenderHelper.TextureRegion stencil;
+	protected GradientRenderer element = DEFAULT_ELEMENT;
+
+	public <T extends DelegatedStencilElement> T withStencil(UIRenderHelper.TextureRegion stencil) {
 		this.stencil = stencil;
-		this.element = element;
-	}
-
-	public <T extends DelegatedStencilElement> T withStencilRenderer(FadableScreenElement renderer) {
-		stencil = renderer;
 		//noinspection unchecked
 		return (T) this;
 	}
 
-	public <T extends DelegatedStencilElement> T withElementRenderer(FadableScreenElement renderer) {
+	public <T extends DelegatedStencilElement> T withElementRenderer(GradientRenderer renderer) {
 		element = renderer;
 		//noinspection unchecked
 		return (T) this;
 	}
 
 	@Override
-	public void renderStencil(GuiGraphics graphics) {
-		stencil.render(graphics, width, height, 1);
-	}
+	public void render(GuiGraphics graphics) {
+		if (stencil == null)
+			return;
 
-	@Override
-	public void renderElement(GuiGraphics graphics) {
-		element.render(graphics, width, height, alpha);
+		graphics.pose().pushPose();
+		graphics.pose().translate(getX(), getY(), getZ());
+		UIRenderHelper.stencilledGradient(graphics, stencil, element.gradient(width, height, alpha));
+		graphics.pose().popPose();
 	}
 
 }

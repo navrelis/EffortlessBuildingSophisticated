@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeSlotChangeResult;
@@ -103,14 +104,14 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
     }
     
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
-        tooltip.add(Component.translatable("item.sophisticatedbuilding.building_upgrade.tooltip", maxBlocks)
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay tooltipDisplay, Consumer<Component> tooltip, TooltipFlag flagIn) {
+        tooltip.accept(Component.translatable("item.sophisticatedbuilding.building_upgrade.tooltip", maxBlocks)
                 .withStyle(ChatFormatting.GRAY));
         if (tier == 5) { // Omega tier
-            tooltip.add(Component.translatable("item.sophisticatedbuilding.building_upgrade.omega_tooltip")
+            tooltip.accept(Component.translatable("item.sophisticatedbuilding.building_upgrade.omega_tooltip")
                     .withStyle(ChatFormatting.GOLD));
         }
-        tooltip.add(Component.translatable("item.sophisticatedbuilding.building_upgrade.backpack_tooltip")
+        tooltip.accept(Component.translatable("item.sophisticatedbuilding.building_upgrade.backpack_tooltip")
                 .withStyle(ChatFormatting.DARK_GRAY));
     }
     

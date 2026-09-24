@@ -1,9 +1,8 @@
 package sophisticated.building.gametest;
 
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -20,7 +19,7 @@ import java.util.List;
 import static sophisticated.building.gametest.GameTestSupport.*;
 
 /** #4: storage blocks placed with build modes keep the contents and name of the inventory stack. */
-public class StorageDataGameTest implements FabricGameTest {
+public class StorageDataGameTest {
 
     private static final String NAME = "Build Loot";
 
@@ -39,12 +38,12 @@ public class StorageDataGameTest implements FabricGameTest {
 
     private static void expectLoot(GameTestHelper helper, BlockPos rel) {
         helper.assertBlockPresent(Blocks.SHULKER_BOX, rel);
-        ShulkerBoxBlockEntity box = helper.getBlockEntity(rel);
-        helper.assertTrue(hasLoot(box), "Placed shulker box should have 7 diamonds and the name '" + NAME
+        ShulkerBoxBlockEntity box = helper.getBlockEntity(rel, ShulkerBoxBlockEntity.class);
+        expectTrue(helper, hasLoot(box), "Placed shulker box should have 7 diamonds and the name '" + NAME
                 + "', has " + box.getItem(0) + " named " + box.getCustomName());
     }
 
-    @GameTest(template = EMPTY_STRUCTURE)
+    @GameTest
     public void survivalKeepsContentsAndName(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
         try (var config = ConfigScope.baseline()) {
@@ -55,7 +54,7 @@ public class StorageDataGameTest implements FabricGameTest {
                     set(place(helper.absolutePos(rel), Blocks.SHULKER_BOX.defaultBlockState())));
 
             expectLoot(helper, rel);
-            helper.assertTrue(player.getMainHandItem().isEmpty(), "The survival player's shulker box should be used up, main hand has " + player.getMainHandItem());
+            expectTrue(helper, player.getMainHandItem().isEmpty(), "The survival player's shulker box should be used up, main hand has " + player.getMainHandItem());
             expectEquals(helper, "shulker boxes left", 0, count(player, Items.SHULKER_BOX));
         } finally {
             removePlayer(player);
@@ -64,7 +63,7 @@ public class StorageDataGameTest implements FabricGameTest {
     }
 
     //A plain stack in hand and a stack with data elsewhere: two placements use one of each, both are consumed once
-    @GameTest(template = EMPTY_STRUCTURE)
+    @GameTest
     public void survivalPlainAndNamedStacksBothConsumedOnce(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
         try (var config = ConfigScope.baseline()) {
@@ -79,8 +78,8 @@ public class StorageDataGameTest implements FabricGameTest {
 
             helper.assertBlockPresent(Blocks.SHULKER_BOX, relA);
             helper.assertBlockPresent(Blocks.SHULKER_BOX, relB);
-            ShulkerBoxBlockEntity a = helper.getBlockEntity(relA);
-            ShulkerBoxBlockEntity b = helper.getBlockEntity(relB);
+            ShulkerBoxBlockEntity a = helper.getBlockEntity(relA, ShulkerBoxBlockEntity.class);
+            ShulkerBoxBlockEntity b = helper.getBlockEntity(relB, ShulkerBoxBlockEntity.class);
             int withLoot = (hasLoot(a) ? 1 : 0) + (hasLoot(b) ? 1 : 0);
             int empty = (a.isEmpty() && a.getCustomName() == null ? 1 : 0) + (b.isEmpty() && b.getCustomName() == null ? 1 : 0);
             expectEquals(helper, "placed boxes with the named stack's data", 1, withLoot);
@@ -92,7 +91,7 @@ public class StorageDataGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = EMPTY_STRUCTURE)
+    @GameTest
     public void creativeCopiesDataAndKeepsStack(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.CREATIVE);
         try (var config = ConfigScope.baseline()) {
@@ -104,7 +103,7 @@ public class StorageDataGameTest implements FabricGameTest {
 
             expectLoot(helper, rel);
             ItemStack held = player.getMainHandItem();
-            helper.assertTrue(held.is(Items.SHULKER_BOX) && held.getCount() == 1 && ItemStack.isSameItemSameComponents(held, namedShulker()),
+            expectTrue(helper, held.is(Items.SHULKER_BOX) && held.getCount() == 1 && ItemStack.isSameItemSameComponents(held, namedShulker()),
                     "The creative player's stack should be kept unchanged, main hand has " + held);
         } finally {
             removePlayer(player);

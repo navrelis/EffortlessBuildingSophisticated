@@ -17,7 +17,7 @@ public class BuildingUpgradeContainer extends UpgradeContainerBase<BuildingUpgra
     @Override
     public void handlePacket(CompoundTag data) {
         if (data.contains(DATA_ENABLED)) {
-            setEnabled(data.getBoolean(DATA_ENABLED));
+            setEnabled(data.getBooleanOr(DATA_ENABLED, false));
         }
     }
 

@@ -1,19 +1,14 @@
 package sophisticated.building.gui.buildmode;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import sophisticated.building.utilities.Color;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.CoreShaders;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.Direction;
@@ -33,7 +28,6 @@ import sophisticated.building.create.foundation.item.ItemDescription;
 import sophisticated.building.create.foundation.item.TooltipHelper;
 import sophisticated.building.create.foundation.utility.Components;
 import sophisticated.building.create.foundation.utility.Lang;
-import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 
@@ -132,15 +126,6 @@ public class RadialMenu extends Screen {
 		final int endColor = (int) (visibility * 128) << 24;
 
 		guiGraphics.fillGradient(0, 0, width, height, startColor, endColor);
-		// The buttons below are drawn immediately: flush the batched background first so it stays underneath.
-		guiGraphics.flush();
-
-		RenderSystem.enableBlend();
-		RenderSystem.blendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
-		RenderSystem.setShader(CoreShaders.POSITION_COLOR);
-		final Tesselator tesselator = Tesselator.getInstance();
-		final BufferBuilder buffer = tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-
 		final double middleX = width / 2.0;
 		final double middleY = height / 2.0;
 
@@ -208,15 +193,14 @@ public class RadialMenu extends Screen {
 		switchTo = null;
 		doAction = null;
 
-		//Draw buildmode backgrounds
-		drawRadialButtonBackgrounds(currentBuildMode, buffer, middleX, middleY, mouseXCenter, mouseYCenter, mouseRadians,
-				quarterCircle, modes);
-
-		//Draw action backgrounds
-		drawSideButtonBackgrounds(buffer, middleX, middleY, mouseXCenter, mouseYCenter, buttons);
-
-		BufferUploader.drawWithShader(buffer.buildOrThrow());
-		RenderSystem.disableBlend();
+		//Draw buildmode and action backgrounds (same GUI batch as the background gradient, drawn before the icons)
+		final double buttonRadians = mouseRadians;
+		guiGraphics.drawSpecial(buffers -> {
+			VertexConsumer buffer = buffers.getBuffer(RenderType.gui());
+			drawRadialButtonBackgrounds(currentBuildMode, buffer, middleX, middleY, mouseXCenter, mouseYCenter, buttonRadians,
+					quarterCircle, modes);
+			drawSideButtonBackgrounds(buffer, middleX, middleY, mouseXCenter, mouseYCenter, buttons);
+		});
 
 		ms.translate(0, 0, 200);
 		
@@ -227,7 +211,7 @@ public class RadialMenu extends Screen {
 		ms.popPose();
 	}
 
-	private void drawRadialButtonBackgrounds(BuildModeEnum currentBuildMode, BufferBuilder buffer, double middleX, double middleY,
+	private void drawRadialButtonBackgrounds(BuildModeEnum currentBuildMode, VertexConsumer buffer, double middleX, double middleY,
 											 double mouseXCenter, double mouseYCenter, double mouseRadians, double quarterCircle, ArrayList<MenuRegion> modes) {
 		if (!modes.isEmpty()) {
 			final int totalModes = Math.max(3, modes.size());
@@ -292,7 +276,7 @@ public class RadialMenu extends Screen {
 		}
 	}
 
-	private void drawSideButtonBackgrounds(BufferBuilder buffer, double middleX, double middleY, double mouseXCenter, double mouseYCenter, ArrayList<MenuButton> buttons) {
+	private void drawSideButtonBackgrounds(VertexConsumer buffer, double middleX, double middleY, double mouseXCenter, double mouseYCenter, ArrayList<MenuButton> buttons) {
 		for (final MenuButton btn : buttons) {
 
 			final boolean isHighlighted = btn.x1 <= mouseXCenter && btn.x2 >= mouseXCenter && btn.y1 <= mouseYCenter && btn.y2 >= mouseYCenter;
