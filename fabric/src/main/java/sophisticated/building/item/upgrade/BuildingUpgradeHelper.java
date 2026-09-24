@@ -4,7 +4,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.p3pp3rf1y.sophisticatedbackpacks.backpack.wrapper.BackpackWrapper;
+import net.p3pp3rf1y.sophisticatedbackpacks.common.BackpackWrapperLookup;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
@@ -86,7 +86,10 @@ public class BuildingUpgradeHelper {
         }
 
         try {
-            IStorageWrapper wrapper = BackpackWrapper.fromData(backpackStack);
+            IStorageWrapper wrapper = BackpackWrapperLookup.get(backpackStack).orElse(null);
+            if (wrapper == null) {
+                return null;
+            }
 
             UpgradeHandler upgradeHandler = wrapper.getUpgradeHandler();
             var typeWrappers = upgradeHandler.getTypeWrappers(BuildingUpgradeItem.TYPE);

@@ -2,7 +2,7 @@ package sophisticated.building.integration;
 
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.p3pp3rf1y.sophisticatedbackpacks.backpack.wrapper.BackpackWrapper;
+import net.p3pp3rf1y.sophisticatedbackpacks.common.BackpackWrapperLookup;
 import net.p3pp3rf1y.sophisticatedbackpacks.upgrades.toolswapper.ToolSwapMode;
 import net.p3pp3rf1y.sophisticatedbackpacks.upgrades.toolswapper.ToolSwapperUpgradeWrapper;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
@@ -46,7 +46,10 @@ public class ToolSwapperIntegration {
 		}
 
 		try {
-			IStorageWrapper wrapper = BackpackWrapper.fromData(backpackStack);
+			IStorageWrapper wrapper = BackpackWrapperLookup.get(backpackStack).orElse(null);
+			if (wrapper == null) {
+				return;
+			}
 			ToolSwapperUpgradeWrapper toolSwapper = null;
 			for (IUpgradeWrapper slotWrapper : wrapper.getUpgradeHandler().getSlotWrappers().values()) {
 				if (slotWrapper instanceof ToolSwapperUpgradeWrapper candidate

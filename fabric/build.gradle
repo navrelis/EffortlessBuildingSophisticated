@@ -4,6 +4,8 @@ plugins {
     id 'idea'
 }
 
+apply from: '../gradle/smoketest.gradle'
+
 version = mod_version
 group = mod_group
 
@@ -38,6 +40,16 @@ sourceSets {
         compileClasspath += main.compileClasspath + main.output
         runtimeClasspath += main.runtimeClasspath + main.output
     }
+    // In-game smoke test harness (runSmokeClient / runSmokeServer, see TESTING.md): loader-neutral scenarios from
+    // ../common/src/smoketest, the Sophisticated Backpacks fixture from ../common/src/smoketestBackpacks and the Fabric
+    // glue from src/smoketest. Own fabric.mod.json (mod "sophisticatedbuilding_smoketest"); only loaded by the smoke
+    // runs, never packaged into the mod jar.
+    smoketest {
+        java.srcDirs "${commonDir}/src/smoketest/java", "${commonDir}/src/smoketestBackpacks/java"
+        resources.srcDirs "${commonDir}/src/smoketest/resources", "${commonDir}/src/smoketestBackpacks/resources"
+        compileClasspath += main.compileClasspath + main.output
+        runtimeClasspath += main.runtimeClasspath + main.output
+    }
     // Empty source set of the clientExported run: Minecraft and Fabric Loader only, so every mod (this one included)
     // comes from run-exported/mods. This project, its remapped mod dependencies (resolved lazily, Loom creates that
     // configuration later) and the dev-only libraries are left out.
@@ -45,6 +57,11 @@ sourceSets {
         def excluded = main.output + files({ configurations.modRuntimeClasspathMainMapped }) + configurations.localRuntime
         runtimeClasspath = main.runtimeClasspath.filter { file -> file.name.startsWith('fabric-loader-') || !excluded.contains(file) }
     }
+}
+
+// mod* configurations (remapped) for the smoke source set, e.g. modSmoketestRuntimeOnly; before the dependencies
+loom {
+    createRemapConfigurations(sourceSets.smoketest)
 }
 
 repositories {
@@ -65,6 +82,25 @@ repositories {
             }
         }
         filter { includeGroup('maven.modrinth') }
+    }
+    // Trinkets and Cardinal Components, only in the smoke runs (worn backpack in a Trinkets slot, sb.worn_backpack)
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'Ladysnake'
+                url = 'https://maven.ladysnake.org/releases'
+            }
+        }
+        filter { includeGroup('dev.onyxstudios.cardinal-components-api') }
+    }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'TerraformersMC'
+                url = 'https://maven.terraformersmc.com/releases'
+            }
+        }
+        filter { includeGroup('dev.emi') }
     }
     mavenCentral()
 }
@@ -119,6 +155,16 @@ dependencies {
     // Required by Core and Backpacks at runtime; the 1.20.1 Core jar does not nest it.
     modLocalRuntime "maven.modrinth:forge-config-api-port:${forgeconfigapiport_version}"
 
+    // Smoke test harness only: Trinkets (with its Cardinal Components) so a backpack can be worn in a Trinkets slot
+    modSmoketestCompileOnly("dev.emi:trinkets:${trinkets_version}") { transitive = false }
+    modSmoketestCompileOnly("dev.onyxstudios.cardinal-components-api:cardinal-components-base:${cardinal_components_version}") { transitive = false }
+    // Not transitive: its POM drags in an old Fabric Loader/API. Loom drops the jars it nests, so Cardinal Components
+    // (base, entity) are declared on their own.
+    modSmoketestRuntimeOnly("dev.emi:trinkets:${trinkets_version}") { transitive = false }
+    ['base', 'entity'].each { cca ->
+        modSmoketestRuntimeOnly("dev.onyxstudios.cardinal-components-api:cardinal-components-${cca}:${cardinal_components_version}") { transitive = false }
+    }
+
     compileOnly 'javax.annotation:javax.annotation-api:1.3.2'
     compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
 
@@ -161,7 +207,39 @@ loom {
             runDir 'build/gametest'
             source sourceSets.gametest
         }
+        // Smoke test harness (see TESTING.md): a real client creates a fresh superflat world, runs the client
+        // scenarios, writes <smoketestOut>/smoketest-result.json and exits. gradlew runSmokeClient -PsmoketestOut=<dir>
+        smokeClient {
+            client()
+            configName = 'Smoke Test Client'
+            runDir 'build/smoketest/client-run'
+            source sourceSets.smoketest
+            vmArg '-Dsophisticatedbuilding.smoketest.mode=client'
+            vmArg "-Dsophisticatedbuilding.smoketest.out=${smoketestOutDir('client')}"
+        }
+        // Headless: a game test server runs the server scenarios (fake survival players, real backpacks) and writes
+        // the same JSON. gradlew runSmokeServer -PsmoketestOut=<dir>
+        smokeServer {
+            server()
+            configName = 'Smoke Test Server'
+            runDir 'build/smoketest/server-run'
+            source sourceSets.smoketest
+            vmArg '-Dfabric-api.gametest'
+            vmArg '-Dsophisticatedbuilding.smoketest.mode=server'
+            vmArg "-Dsophisticatedbuilding.smoketest.out=${smoketestOutDir('server')}"
+        }
     }
+}
+
+// The smoke runs pass or fail on the result file they write (shared logic in ../gradle/smoketest.gradle)
+tasks.named('runSmokeClient') { verifySmokeRun(it, smoketestOutDir('client')) }
+tasks.named('runSmokeServer') { verifySmokeRun(it, smoketestOutDir('server')) }
+// Trinkets 3.7.2, the last one for 1.20.1, was built with Loom 0.11: its client mixin ClickableWidgetMixin shadows
+// AbstractWidget's field by its Yarn name ("hovered"), which a Mojang-mapped dev client cannot resolve (the client
+// crashes at startup; players run the intermediary jar and are not affected). So the client smoke run leaves Trinkets
+// and its Cardinal Components out and reports sb.worn_backpack as skipped; runSmokeServer covers it with Trinkets.
+tasks.named('runSmokeClient', JavaExec) {
+    classpath = classpath.filter { file -> !file.name.startsWith('trinkets') && !file.name.startsWith('cardinal-components') }
 }
 
 processResources {
@@ -207,9 +285,10 @@ tasks.register('checkCommonIsLoaderNeutral') {
     }
 }
 
-// build compiles the game tests (so they cannot rot) but never runs them; that is runGametest's job.
+// build compiles the game tests and the smoke harness (so they cannot rot) but never runs them; that is the job of
+// runGametest and runSmokeClient / runSmokeServer.
 tasks.named('check') {
-    dependsOn tasks.named('gametestClasses'), tasks.named('checkCommonIsLoaderNeutral')
+    dependsOn tasks.named('gametestClasses'), tasks.named('smoketestClasses'), tasks.named('checkCommonIsLoaderNeutral')
 }
 
 // Resolved while configuring: the configuration cache cannot read project properties at execution time.

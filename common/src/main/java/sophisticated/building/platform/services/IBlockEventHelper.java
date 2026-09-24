@@ -40,32 +40,32 @@ public interface IBlockEventHelper {
     boolean isRestoringBlockSnapshots(Level level);
 
     /**
-     * Called after the drops of a player-broken block were collected. NeoForge pops the block's
-     * experience for the used tool (NeoForge 20.4 has no block drops event); Fabric does nothing (experience comes from
+     * Called after the drops of a player-broken block were collected. Forge pops the experience of the
+     * block break event (Forge moved it there from spawnAfterBreak); Fabric does nothing (experience comes from
      * {@link BlockState#spawnAfterBreak}, see {@link #getSpawnAfterBreakTool}).
      */
     void onBlockDropsCollected(ServerLevel level, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, Player player, ItemStack tool);
 
     /**
-     * The tool passed to {@link BlockState#spawnAfterBreak}. NeoForge passes an empty stack
-     * ({@link #onBlockDropsCollected} already popped the experience), Fabric the used tool.
+     * The tool passed to {@link BlockState#spawnAfterBreak}: the used tool on both loaders (on Forge it drops no
+     * experience, {@link #onBlockDropsCollected} pops it).
      */
     ItemStack getSpawnAfterBreakTool(ItemStack tool);
 
     /**
-     * Whether breaking ice with {@code tool} turns it into water like vanilla mining does. NeoForge:
+     * Whether breaking ice with {@code tool} turns it into water like vanilla mining does. Forge:
      * without Silk Touch. Fabric: never (4.2.1 behaviour).
      */
     boolean doesBrokenIceTurnIntoWater(Level level, ItemStack tool);
 
-    /** NeoForge's post-placement update when a rail is placed without updates; nothing on Fabric. */
+    /** Forge's post-placement update when a rail is placed without updates; nothing on Fabric. */
     void markAndNotifyBlock(Level level, BlockPos pos, LevelChunk chunk, BlockState oldState, BlockState newState, int flags);
 
     /**
      * Places a block that plants itself with custom placement (NeoForge 1.21+ {@code SpecialPlantable}).
      *
-     * @return true if the block is such a plantable and was handled; always false on Fabric and on NeoForge
-     * 20.4, which has no such interface
+     * @return true if the block is such a plantable and was handled; always false on Fabric and on Forge
+     * 1.20.1, which have no such interface
      */
     boolean placeSpecialPlantable(Level level, BlockState state, BlockPos pos, ItemStack stack);
 

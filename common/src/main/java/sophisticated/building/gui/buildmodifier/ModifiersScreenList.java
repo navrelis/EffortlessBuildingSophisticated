@@ -21,7 +21,10 @@ public class ModifiersScreenList extends ObjectSelectionList<ModifiersScreenList
 
     public ModifiersScreenList(Minecraft mc, int width, int height, int y1, int itemHeight) {
         super(mc, width, height, y1, y1 + height, itemHeight);
-//        setRenderBackground(false);
+        // Not the dirt background and dirt bands of 1.20.1 lists: a translucent dark background (see render), like
+        // the list background of the 1.21 builds
+        setRenderBackground(false);
+        setRenderTopAndBottom(false);
         headerHeight = 3;
     }
 
@@ -32,6 +35,7 @@ public class ModifiersScreenList extends ObjectSelectionList<ModifiersScreenList
         UIRenderHelper.angledGradient(guiGraphics, -90, x0 + width / 2, y1, width, 5, c, Color.TRANSPARENT_BLACK);
         UIRenderHelper.angledGradient(guiGraphics, 0, x0, y0 + height / 2, height, 5, c, Color.TRANSPARENT_BLACK);
         UIRenderHelper.angledGradient(guiGraphics, 180, x1, y0 + height / 2, height, 5, c, Color.TRANSPARENT_BLACK);
+        guiGraphics.fill(x0, y0, x1, y1, 0x80_000000);
 
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
     }
