@@ -1,17 +1,17 @@
 package sophisticated.building.network.message;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.attachment.AttachmentHandler;
 import sophisticated.building.attachment.PowerLevel;
+import sophisticated.building.network.ModPayload;
 
 /**
  * Sync power level from server to client
  */
-public record PowerLevelPacket(int powerLevel) implements CustomPacketPayload {
+public record PowerLevelPacket(int powerLevel) implements ModPayload {
 	public static final ResourceLocation ID = SophisticatedBuilding.asResource("power_level");
 
 	public PowerLevelPacket(FriendlyByteBuf buf) {

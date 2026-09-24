@@ -1,18 +1,18 @@
 package sophisticated.building.network.message;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.item.OmegaRandomizerBagItem;
+import sophisticated.building.network.ModPayload;
 
 /**
  * Packet to update slot weight in Omega Randomizer Bag
  */
-public record OmegaBagWeightPacket(int slotIndex, int weight) implements CustomPacketPayload {
+public record OmegaBagWeightPacket(int slotIndex, int weight) implements ModPayload {
 	public static final ResourceLocation ID = SophisticatedBuilding.asResource("omega_bag_weight");
 
 	public OmegaBagWeightPacket(FriendlyByteBuf buf) {

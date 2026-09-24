@@ -124,11 +124,6 @@ public abstract class AbstractSimiScreen extends Screen {
 	}
 
 	@Override
-	public void renderBackground(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-//		super.renderBackground(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-	}
-
-	@Override
 	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
 		boolean keyPressed = super.keyPressed(keyCode, scanCode, modifiers);
 		if (keyPressed || getFocused() instanceof EditBox)
@@ -145,7 +140,7 @@ public abstract class AbstractSimiScreen extends Screen {
 	protected void prepareFrame() {}
 
 	protected void renderWindowBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-		this.renderTransparentBackground(graphics); //Manually draw background
+		this.renderBackground(graphics); //Manually draw background
 	}
 
 	protected abstract void renderWindow(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks);

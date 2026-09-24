@@ -1,18 +1,18 @@
 package sophisticated.building.network.message;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.ServerConfig;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.config.ModConfigs;
+import sophisticated.building.network.ModPayload;
 
 /**
  * Sends all {@link ServerConfig} values (compact values-only JSON) to the client on join, so
  * client-side decisions (e.g. {@code PowerLevel.canBreakFar}) use the server's settings.
  */
-public record ServerConfigSyncPacket(String json) implements CustomPacketPayload {
+public record ServerConfigSyncPacket(String json) implements ModPayload {
 	public static final ResourceLocation ID = SophisticatedBuilding.asResource("server_config_sync");
 
 	private static final int MAX_JSON_LENGTH = 1 << 20;

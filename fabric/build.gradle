@@ -12,7 +12,7 @@ base {
 }
 
 java {
-    // Mojang ships Java 17 to end users in 1.20.4, so mods should target Java 17.
+    // Mojang ships Java 17 to end users in 1.20.1, so mods should target Java 17.
     toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
     withSourcesJar()
 }
@@ -57,14 +57,22 @@ repositories {
         }
         filter { includeGroup('curse.maven') }
     }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'Modrinth'
+                url = 'https://api.modrinth.com/maven'
+            }
+        }
+        filter { includeGroup('maven.modrinth') }
+    }
     mavenCentral()
 }
 
-// The Sophisticated Core jar nests (META-INF/jars, partly nested twice) Porting Lib modules built for it
-// (3.1.0-soph.1+1.20.4, published on no Maven), Forge Config API Port (with Night Config shaded) and Team Reborn
-// Energy. Their types are part of Core's public API and Core needs them at runtime, but Loom does not expose a
-// dependency's nested jars, so they are extracted from the resolved Core jar into build/sophisticatedcore-nested,
-// one jar per mod id (the same module is nested at several levels under different file names).
+// The Sophisticated Core jar nests (META-INF/jars) the Porting Lib modules it was built with (2.3.2+1.20.1),
+// MixinExtras and Team Reborn Energy. Their types are part of Core's public API and Core needs them at runtime, but
+// Loom does not expose a dependency's nested jars, so they are extracted from the resolved Core jar into
+// build/sophisticatedcore-nested, one jar per mod id (a module nested at several levels is extracted once).
 def extractNestedJars
 extractNestedJars = { File jar, File into, Map<String, File> found ->
     new java.util.zip.ZipFile(jar).withCloseable { zip ->
@@ -85,8 +93,13 @@ extractNestedJars = { File jar, File into, Map<String, File> found ->
     }
     return found
 }
-def sophisticatedCoreJar = configurations.detachedConfiguration(dependencies.create("curse.maven:${sophisticatedcore_cf}")).singleFile
-def sophisticatedCoreNestedJars = files(extractNestedJars(sophisticatedCoreJar, layout.buildDirectory.dir('sophisticatedcore-nested').get().asFile, [:]).values().sort())
+// Resolved lazily, when Loom processes the mod dependencies: for Minecraft 1.20.1 Loom still adds the LWJGL upgrade
+// repository while setting up Minecraft, which fails once a configuration was resolved during configuration.
+def sophisticatedCoreNestedDir = layout.buildDirectory.dir('sophisticatedcore-nested').get().asFile
+def sophisticatedCoreNestedJars = files({
+    def sophisticatedCoreJar = configurations.detachedConfiguration(dependencies.create("curse.maven:${sophisticatedcore_cf}")).singleFile
+    extractNestedJars(sophisticatedCoreJar, sophisticatedCoreNestedDir, [:]).values().sort()
+})
 
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
@@ -103,6 +116,8 @@ dependencies {
     // The jars nested in Sophisticated Core (see above).
     modCompileOnly sophisticatedCoreNestedJars
     modLocalRuntime sophisticatedCoreNestedJars
+    // Required by Core and Backpacks at runtime; the 1.20.1 Core jar does not nest it.
+    modLocalRuntime "maven.modrinth:forge-config-api-port:${forgeconfigapiport_version}"
 
     compileOnly 'javax.annotation:javax.annotation-api:1.3.2'
     compileOnly 'com.google.code.findbugs:jsr305:3.0.2'

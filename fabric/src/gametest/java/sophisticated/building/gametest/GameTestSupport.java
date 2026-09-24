@@ -5,12 +5,10 @@ import io.netty.channel.embedded.EmbeddedChannel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.Connection;
-import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -46,14 +44,12 @@ public final class GameTestSupport {
         ServerLevel level = helper.getLevel();
         MinecraftServer server = level.getServer();
         GameProfile profile = new GameProfile(UUID.randomUUID(), "sb-gametest");
-        CommonListenerCookie cookie = CommonListenerCookie.createInitial(profile);
-        ServerPlayer player = new ServerPlayer(server, level, profile, cookie.clientInformation());
+        ServerPlayer player = new ServerPlayer(server, level, profile);
+        // As vanilla's makeMockServerPlayerInLevel: the embedded channel activates the connection and swallows what
+        // the server sends
         Connection connection = new Connection(PacketFlow.SERVERBOUND);
-        EmbeddedChannel channel = new EmbeddedChannel(connection);
-        // 1.20.4 checks the listener against the protocol stored on the channel
-        channel.attr(Connection.ATTRIBUTE_SERVERBOUND_PROTOCOL).set(ConnectionProtocol.PLAY.codec(PacketFlow.SERVERBOUND));
-        channel.attr(Connection.ATTRIBUTE_CLIENTBOUND_PROTOCOL).set(ConnectionProtocol.PLAY.codec(PacketFlow.CLIENTBOUND));
-        server.getPlayerList().placeNewPlayer(connection, player, cookie);
+        new EmbeddedChannel(connection);
+        server.getPlayerList().placeNewPlayer(connection, player);
         player.setGameMode(gameType);
         player.getInventory().clearContent();
         player.getInventory().selected = 0;

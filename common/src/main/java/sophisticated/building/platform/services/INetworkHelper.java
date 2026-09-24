@@ -1,7 +1,7 @@
 package sophisticated.building.platform.services;
 
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
+import sophisticated.building.network.ModPayload;
 
 /**
  * Sends the mod's payloads. Registration of the payload types and their handlers happens in the
@@ -10,7 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 public interface INetworkHelper {
 
     /** Client only. */
-    void sendToServer(CustomPacketPayload payload);
+    void sendToServer(ModPayload payload);
 
-    void sendToPlayer(ServerPlayer player, CustomPacketPayload payload);
+    void sendToPlayer(ServerPlayer player, ModPayload payload);
 }

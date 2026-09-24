@@ -1,14 +1,14 @@
 package sophisticated.building.network.message;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.SophisticatedBuilding;
+import sophisticated.building.network.ModPayload;
 import sophisticated.building.systems.ServerBuildState;
 
-public record IsUsingBuildModePacket(boolean isUsingBuildMode) implements CustomPacketPayload {
+public record IsUsingBuildModePacket(boolean isUsingBuildMode) implements ModPayload {
 	public static final ResourceLocation ID = SophisticatedBuilding.asResource("is_using_build_mode");
 
 	public IsUsingBuildModePacket(FriendlyByteBuf buf) {

@@ -4,7 +4,7 @@ import java.util.SortedMap;
 import net.minecraft.Util;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.SectionBufferBuilderPack;
+import net.minecraft.client.renderer.ChunkBufferBuilderPack;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.resources.model.ModelBakery;
 import com.mojang.blaze3d.vertex.BufferBuilder;
@@ -64,7 +64,7 @@ public class DefaultSuperRenderTypeBuffer implements SuperRenderTypeBuffer {
 
 	public static class SuperRenderTypeBufferPhase {
 		// Visible clones from RenderBuffers
-		private final SectionBufferBuilderPack fixedBufferPack = new SectionBufferBuilderPack();
+		private final ChunkBufferBuilderPack fixedBufferPack = new ChunkBufferBuilderPack();
 		private final SortedMap<RenderType, BufferBuilder> fixedBuffers = Util.make(new Object2ObjectLinkedOpenHashMap<>(), map -> {
 			map.put(Sheets.solidBlockSheet(), fixedBufferPack.builder(RenderType.solid()));
 			map.put(Sheets.cutoutBlockSheet(), fixedBufferPack.builder(RenderType.cutout()));

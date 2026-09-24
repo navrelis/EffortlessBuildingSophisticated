@@ -5,7 +5,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -14,8 +13,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class GuiCheckBoxFixed extends Button {
-	// Sprite path is relative to textures/gui/sprites/ and no file extension
-	private static final ResourceLocation CHECKBOX_SPRITE = new ResourceLocation("widget/button_disabled");
 	private final int boxWidth;
 	private boolean isChecked;
 
@@ -30,8 +27,8 @@ public class GuiCheckBoxFixed extends Button {
 
 	@Override
 	public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partial) {
-		// Use blitSprite for modern nine-slice rendering
-		guiGraphics.blitSprite(CHECKBOX_SPRITE, this.getX(), this.getY(), this.boxWidth, this.height);
+		// The disabled button texture, nine-sliced like vanilla buttons (the widget/button_disabled sprite of 1.20.2+)
+		guiGraphics.blitNineSliced(WIDGETS_LOCATION, this.getX(), this.getY(), this.boxWidth, this.height, 20, 4, 200, 20, 0, 46);
 		int color = 14737632;
 
 		if (!this.active) {

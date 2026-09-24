@@ -1,7 +1,6 @@
 package sophisticated.building.network;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.network.message.BackpackItemCountPacket;
@@ -58,13 +57,13 @@ public final class PacketHandler {
 	/**
 	 * One payload type in one direction.
 	 *
-	 * @param failureKey NeoForge disconnects with the translation key
+	 * @param failureKey Forge disconnects with the translation key
 	 *                   {@code sophisticatedbuilding.networking.<failureKey>.failed} when the handler throws;
 	 *                   null to only drop the failure. On Fabric the game's task queue logs it.
 	 */
-	public record Payload<T extends CustomPacketPayload>(ResourceLocation id,
-														 FriendlyByteBuf.Reader<T> reader,
-														 BiConsumer<T, Player> handler,
-														 @Nullable String failureKey) {
+	public record Payload<T extends ModPayload>(ResourceLocation id,
+												FriendlyByteBuf.Reader<T> reader,
+												BiConsumer<T, Player> handler,
+												@Nullable String failureKey) {
 	}
 }

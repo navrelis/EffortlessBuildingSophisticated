@@ -33,6 +33,8 @@ public class GoldenRandomizerBagScreen extends AbstractContainerScreen<GoldenRan
 
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		// The dimmed world behind the screen (drawn by super.render from 1.20.2 on)
+		this.renderBackground(guiGraphics);
 		super.render(guiGraphics, mouseX, mouseY, partialTicks);
 		this.renderTooltip(guiGraphics, mouseX, mouseY);
 	}

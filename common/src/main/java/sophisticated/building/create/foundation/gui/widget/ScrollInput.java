@@ -117,12 +117,11 @@ public class ScrollInput extends AbstractSimiWidget {
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+	public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
 		if (!this.visible || !this.isHovered) return false; //Added
 
-		// Use scrollY for vertical mouse wheel (the standard scroll axis)
-		// Also check scrollX for horizontal scroll wheels
-		double scroll = scrollY != 0 ? scrollY : scrollX;
+		// 1.20.1 only reports the vertical mouse wheel
+		double scroll = delta;
 		if (scroll == 0) return false;
 		
 		if (inverted)

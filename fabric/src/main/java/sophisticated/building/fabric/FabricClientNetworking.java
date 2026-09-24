@@ -1,8 +1,8 @@
 package sophisticated.building.fabric;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import sophisticated.building.SophisticatedBuilding;
+import sophisticated.building.network.ModPayload;
 import sophisticated.building.network.PacketHandler;
 import sophisticated.building.network.message.ServerConfigSyncPacket;
 
@@ -24,7 +24,7 @@ public final class FabricClientNetworking {
         SophisticatedBuilding.log("Registered client networking receivers");
     }
 
-    private static <T extends CustomPacketPayload> void registerReceiver(PacketHandler.Payload<T> payload) {
+    private static <T extends ModPayload> void registerReceiver(PacketHandler.Payload<T> payload) {
         ClientPlayNetworking.registerGlobalReceiver(payload.id(), (client, handler, buf, responseSender) -> {
             T packet = payload.reader().apply(buf);
             client.execute(() -> payload.handler().accept(packet, client.player));

@@ -86,6 +86,8 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		// The dimmed world behind the screen (drawn by super.render from 1.20.2 on)
+		this.renderBackground(guiGraphics);
 		super.render(guiGraphics, mouseX, mouseY, partialTicks);
 		this.renderTooltip(guiGraphics, mouseX, mouseY);
 		
@@ -94,9 +96,9 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+	public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
 		if (Minecraft.getInstance().player == null) {
-			return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+			return super.mouseScrolled(mouseX, mouseY, delta);
 		}
 		// Check if mouse is over a template slot
 		for (int i = 0; i < OmegaRandomizerBagItem.INV_SIZE; i++) {
@@ -121,9 +123,9 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 						if (weightSteps[j] > currentWeight) { currentIndex = Math.max(0, j - 1); break; }
 					}
 					
-					if (scrollY > 0 && currentIndex < weightSteps.length - 1) { // Scroll up = increase
+					if (delta > 0 && currentIndex < weightSteps.length - 1) { // Scroll up = increase
 						newWeight = weightSteps[currentIndex + 1];
-					} else if (scrollY < 0 && currentIndex > 0) { // Scroll down = decrease
+					} else if (delta < 0 && currentIndex > 0) { // Scroll down = decrease
 						newWeight = weightSteps[currentIndex - 1];
 					}
 					
@@ -138,7 +140,7 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 			}
 		}
 		
-		return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+		return super.mouseScrolled(mouseX, mouseY, delta);
 	}
 
 	@Override

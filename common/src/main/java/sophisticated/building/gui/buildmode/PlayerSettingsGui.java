@@ -85,6 +85,8 @@ public class PlayerSettingsGui extends Screen {
 
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		// The dimmed world behind the screen (drawn by super.render from 1.20.2 on)
+		this.renderBackground(guiGraphics);
 		super.render(guiGraphics, mouseX, mouseY, partialTicks);
 
 		int yy = top;
@@ -132,8 +134,8 @@ public class PlayerSettingsGui extends Screen {
 	class ShaderTypeList extends ObjectSelectionList<PlayerSettingsGui.ShaderTypeList.ShaderTypeEntry> {
 
 		public ShaderTypeList(Minecraft mcIn) {
-			super(mcIn, 180, 140, top + 20, /*top + 100,*/ 18);
-			this.setX(right - width);
+			super(mcIn, 180, 140, top + 20, top + 160, 18);
+			this.setLeftPos(right - width);
 
 			for (int i = 0; i < 40; i++) {
 
@@ -183,9 +185,9 @@ public class PlayerSettingsGui extends Screen {
 		}
 
 		@Override
-		public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+		public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
 			if (!showShaderList) return false;
-			return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+			return super.mouseScrolled(mouseX, mouseY, delta);
 		}
 
 		@Override
@@ -212,8 +214,8 @@ public class PlayerSettingsGui extends Screen {
 
 			@Override
 			public void render(GuiGraphics guiGraphics, int itemIndex, int rowTop, int rowLeft, int rowWidth, int rowHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
-				if (rowTop + 10 > ShaderTypeList.this.getY() && rowTop + rowHeight - 5 < (ShaderTypeList.this.getY() + ShaderTypeList.this.getHeight()))
-					guiGraphics.drawString(font, shaderType.name, ShaderTypeList.this.getX() + 8, rowTop + 4, 0xFFFFFF, false);
+				if (rowTop + 10 > ShaderTypeList.this.y0 && rowTop + rowHeight - 5 < ShaderTypeList.this.y1)
+					guiGraphics.drawString(font, shaderType.name, ShaderTypeList.this.x0 + 8, rowTop + 4, 0xFFFFFF, false);
 			}
 
 			@Override

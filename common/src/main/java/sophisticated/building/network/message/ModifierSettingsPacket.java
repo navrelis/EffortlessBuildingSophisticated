@@ -2,18 +2,18 @@ package sophisticated.building.network.message;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.SophisticatedBuildingClient;
+import sophisticated.building.network.ModPayload;
 import sophisticated.building.platform.Services;
 
 /**
  * Sync build modifiers between server and client, for saving and loading.
  */
-public record ModifierSettingsPacket(CompoundTag modifiersTag) implements CustomPacketPayload {
+public record ModifierSettingsPacket(CompoundTag modifiersTag) implements ModPayload {
 	public static final ResourceLocation ID = SophisticatedBuilding.asResource("modifier_settings");
 	// Key of the modifier settings in the per-player data (see IPlatformHelper.getPersistentData)
 	private static final String DATA_KEY = SophisticatedBuilding.MODID + ":buildModifiers";

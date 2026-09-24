@@ -1,11 +1,11 @@
 package sophisticated.building.network.message;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.client.ClientBuildingUpgradeState;
+import sophisticated.building.network.ModPayload;
 
 /**
  * Sync the player's best (highest-tier) Building Upgrade tier and effective max-blocks limit from
@@ -13,7 +13,7 @@ import sophisticated.building.client.ClientBuildingUpgradeState;
  * 03_ROOT_CAUSE_BUILDING_UPGRADE.md RC2); it only ever uses the last value synced through this
  * packet, via {@link ClientBuildingUpgradeState}.
  */
-public record BuildingUpgradeStatePacket(int tier, int maxBlocks) implements CustomPacketPayload {
+public record BuildingUpgradeStatePacket(int tier, int maxBlocks) implements ModPayload {
     public static final ResourceLocation ID = SophisticatedBuilding.asResource("building_upgrade_state");
 
     public BuildingUpgradeStatePacket(FriendlyByteBuf buf) {

@@ -20,20 +20,20 @@ import java.util.Objects;
 public class ModifiersScreenList extends ObjectSelectionList<ModifiersScreenList.Entry> implements TickableGuiEventListener {
 
     public ModifiersScreenList(Minecraft mc, int width, int height, int y1, int itemHeight) {
-        super(mc, width, height, y1, itemHeight);
+        super(mc, width, height, y1, y1 + height, itemHeight);
 //        setRenderBackground(false);
         headerHeight = 3;
     }
 
     @Override
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         Color c = new Color(0x60_000000);
-        UIRenderHelper.angledGradient(guiGraphics, 90, getX() + width / 2, getY(), width, 5, c, Color.TRANSPARENT_BLACK);
-        UIRenderHelper.angledGradient(guiGraphics, -90, getX() + width / 2, getY() + getHeight(), width, 5, c, Color.TRANSPARENT_BLACK);
-        UIRenderHelper.angledGradient(guiGraphics, 0, getX(), getY() + height / 2, height, 5, c, Color.TRANSPARENT_BLACK);
-        UIRenderHelper.angledGradient(guiGraphics, 180, getX() + getWidth(), getY() + height / 2, height, 5, c, Color.TRANSPARENT_BLACK);
+        UIRenderHelper.angledGradient(guiGraphics, 90, x0 + width / 2, y0, width, 5, c, Color.TRANSPARENT_BLACK);
+        UIRenderHelper.angledGradient(guiGraphics, -90, x0 + width / 2, y1, width, 5, c, Color.TRANSPARENT_BLACK);
+        UIRenderHelper.angledGradient(guiGraphics, 0, x0, y0 + height / 2, height, 5, c, Color.TRANSPARENT_BLACK);
+        UIRenderHelper.angledGradient(guiGraphics, 180, x1, y0 + height / 2, height, 5, c, Color.TRANSPARENT_BLACK);
 
-        super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
+        super.render(guiGraphics, mouseX, mouseY, partialTicks);
     }
     
     public void renderWindowForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
@@ -49,7 +49,7 @@ public class ModifiersScreenList extends ObjectSelectionList<ModifiersScreenList
         for(int i1 = 0; i1 < l; ++i1) {
             int j1 = this.getRowTop(i1);
             int k1 = j1 + itemHeight;
-            if (k1 >= this.getY() && j1 <= (this.getY() + this.getHeight())) {
+            if (k1 >= this.y0 && j1 <= this.y1) {
                 renderItemForeground(guiGraphics, pMouseX, pMouseY, pPartialTick, i1, i, j1, j, k);
             }
         }
@@ -82,12 +82,16 @@ public class ModifiersScreenList extends ObjectSelectionList<ModifiersScreenList
     }
     
     @Override
-    public boolean mouseScrolled(double pMouseX, double pMouseY, double scrollX, double scrollY) {
-        if (children().stream().anyMatch(e -> e.mouseScrolled(pMouseX, pMouseY, scrollX, scrollY)))
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double delta) {
+        if (children().stream().anyMatch(e -> e.mouseScrolled(pMouseX, pMouseY, delta)))
             return true;
-        return super.mouseScrolled(pMouseX, pMouseY, scrollX, scrollY);
+        return super.mouseScrolled(pMouseX, pMouseY, delta);
     }
     
+    public int getWidth() {
+        return width;
+    }
+
     @Override
     public int getRowWidth() {
         return width - 16;
@@ -95,7 +99,7 @@ public class ModifiersScreenList extends ObjectSelectionList<ModifiersScreenList
 
     @Override
     protected int getScrollbarPosition() {
-        return getX() + this.width - 6;
+        return x0 + this.width - 6;
     }
 
     @Override
@@ -128,8 +132,8 @@ public class ModifiersScreenList extends ObjectSelectionList<ModifiersScreenList
         }
     
         @Override
-        public boolean mouseScrolled(double x, double y, double scrollX, double scrollY) {
-            return getGuiListeners().stream().anyMatch(l -> l.mouseScrolled(x, y, scrollX, scrollY));
+        public boolean mouseScrolled(double x, double y, double delta) {
+            return getGuiListeners().stream().anyMatch(l -> l.mouseScrolled(x, y, delta));
         }
     
         @Override

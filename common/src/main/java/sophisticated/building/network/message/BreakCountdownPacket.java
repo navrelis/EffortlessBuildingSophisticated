@@ -1,11 +1,11 @@
 package sophisticated.building.network.message;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.client.ClientBreakCountdown;
+import sophisticated.building.network.ModPayload;
 
 /**
  * Sent right after the server enqueues a survival break as a {@code DelayedEntry}, so the client
@@ -13,7 +13,7 @@ import sophisticated.building.client.ClientBreakCountdown;
  * instant and sends nothing. {@code placing} marks a survival placement that mines the blocks it
  * replaces; {@code blockCount} is then the number of replaced blocks.
  */
-public record BreakCountdownPacket(int delayTicks, int blockCount, boolean placing) implements CustomPacketPayload {
+public record BreakCountdownPacket(int delayTicks, int blockCount, boolean placing) implements ModPayload {
 	public static final ResourceLocation ID = SophisticatedBuilding.asResource("break_countdown");
 
 	public BreakCountdownPacket(FriendlyByteBuf buf) {

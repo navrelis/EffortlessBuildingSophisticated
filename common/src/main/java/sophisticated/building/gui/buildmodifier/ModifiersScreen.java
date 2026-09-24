@@ -40,7 +40,7 @@ public class ModifiersScreen extends AbstractSimiScreen {
 		int listR = this.width / 2 + listWidth / 2;
 
 		list = new ModifiersScreenList(minecraft, listWidth, height - 80, 45, 68);
-		list.setX(this.width / 2 - list.getWidth() / 2);
+		list.setLeftPos(this.width / 2 - list.getWidth() / 2);
 
 		addRenderableWidget(list);
 

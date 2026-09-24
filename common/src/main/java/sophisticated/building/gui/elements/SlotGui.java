@@ -177,11 +177,11 @@ public abstract class SlotGui extends AbstractContainerEventHandler implements R
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+	public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
 		if (!this.isVisible()) {
 			return false;
 		} else {
-			this.yo -= scrollX * (double) this.itemHeight / 2.0D;
+			this.yo -= delta * (double) this.itemHeight / 2.0D;
 			return true;
 		}
 	}
