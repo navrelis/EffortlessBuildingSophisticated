@@ -8,7 +8,7 @@
 | T2 | Survival replace: gate via config, mine replaced blocks with survival rules, delay + countdown, client preview marks unbreakable targets, safe survival undo/redo of replacements | Fabric | Opus | T1, T3 | - | done |
 | T5b | Fix T5 bugs: Fabric anchor only when backpack has the item; widen tick-sync catches; NeoForge Curios double scan; NeoForge tooltip | both | Sonnet | T5 | - | done |
 | T6 | NeoForge parity for T2, T3 + SERVER config entry (T5b ported separately) | NeoForge | Sonnet | T2, T3 | with T5 | done |
-| T7 | Release 4.2.0: version bump, patch notes, export jars, .gitignore negation for .knowledge | both | Sonnet | T6 | - | open |
+| T7 | Release 4.2.0: version bump, patch notes, export jars, .gitignore negation for .knowledge | both | Sonnet | T6 | - | done |
 | T8 | Final: e2e check, graphify refresh, report, push, issue replies | - | lead | T7 | - | open |
 
 ## Definition of done (per task)
