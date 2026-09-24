@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "sophisticatedbuilding_smoketest",
+  "version": "1.0.0",
+  "name": "Sophisticated Building Smoke Test",
+  "description": "In-game smoke test harness. Only loaded by the runSmokeClient / runSmokeServer tasks, never packaged.",
+  "license": "LGPL-3.0-only",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "sophisticated.building.smoketest.fabric.FabricSmokeTest"
+    ],
+    "client": [
+      "sophisticated.building.smoketest.fabric.FabricSmokeTestClient"
+    ]
+  },
+  "depends": {
+    "sophisticatedbuilding": "*",
+    "fabric-api": "*"
+  }
+}
