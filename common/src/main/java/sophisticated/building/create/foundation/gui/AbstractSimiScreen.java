@@ -1,6 +1,5 @@
 package sophisticated.building.create.foundation.gui;
 
-import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
 import sophisticated.building.create.catnip.animation.AnimationTickHolder;
 import sophisticated.building.create.catnip.gui.TickableGuiEventListener;

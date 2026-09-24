@@ -4,7 +4,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerType;
-import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import sophisticated.building.item.upgrade.BuildingUpgradeWrapper;
 
 public class BuildingUpgradeContainer extends UpgradeContainerBase<BuildingUpgradeWrapper, BuildingUpgradeContainer> {
