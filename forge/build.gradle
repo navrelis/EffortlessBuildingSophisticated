@@ -204,7 +204,7 @@ dependencies {
 // A missing property will result in an error. Properties are expanded using ${} Groovy notation.
 var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
     var replaceProperties = [
-            minecraft_version_range   : minecraft_version_range,
+            minecraft_version_range   : forge_minecraft_version_range,
             forge_version_range       : forge_version_range,
             forge_loader_version_range: forge_loader_version_range,
             mod_id                    : mod_id,
