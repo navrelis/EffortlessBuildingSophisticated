@@ -6,7 +6,6 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import sophisticated.building.create.catnip.render.SuperRenderTypeBuffer;
 import sophisticated.building.create.catnip.theme.Color;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
@@ -111,7 +110,7 @@ public abstract class GhostBlockRenderer {
 			ms.translate(-.5, -.5, -.5);
 
 			renderModel(ms.last(), vb, state, model, color.getRedAsFloat(), color.getGreenAsFloat(), color.getBlueAsFloat(), alpha,
-				LevelRenderer.getLightCoords(mc.level, pos), OverlayTexture.NO_OVERLAY);
+				LightCoordsUtil.getLightCoords(mc.level, pos), OverlayTexture.NO_OVERLAY);
 
 			ms.popPose();
 		}

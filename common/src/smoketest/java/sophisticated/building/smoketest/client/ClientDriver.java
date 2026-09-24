@@ -172,7 +172,7 @@ public final class ClientDriver {
                 throw new RuntimeException(e);
             }
         }
-        String screen = String.valueOf(mc.screen == null ? null : mc.screen.getClass().getName());
+        String screen = String.valueOf(mc.gui.screen() == null ? null : mc.gui.screen().getClass().getName());
         throw new AssertionError("Timed out after " + timeoutSeconds + " s waiting for " + what + " (screen: " + screen + ")");
     }
 
@@ -290,7 +290,7 @@ public final class ClientDriver {
 
     /** Saves the last rendered frame as {@code <out>/screenshots/<name>.png} and lists it in the result. */
     public void screenshot(String name) {
-        clientRun(() -> mc.getToastManager().clear());
+        clientRun(() -> mc.gui.toastManager().clear());
         waitTicks(2);
         Path file = SmokeTest.outDir().resolve("screenshots").resolve(name + ".png");
         // 1.21.5+: the frame is read back from the GPU asynchronously; the callback owns (and closes) the image
@@ -301,7 +301,7 @@ public final class ClientDriver {
             } catch (Exception e) {
                 throw new RuntimeException("Could not create " + file.getParent(), e);
             }
-            Screenshot.takeScreenshot(mc.getMainRenderTarget(), image -> {
+            Screenshot.takeScreenshot(mc.gameRenderer.mainRenderTarget(), image -> {
                 try (NativeImage owned = image) {
                     owned.writeToFile(file);
                     written.complete(null);

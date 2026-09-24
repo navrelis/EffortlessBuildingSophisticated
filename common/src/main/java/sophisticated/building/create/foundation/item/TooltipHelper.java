@@ -6,6 +6,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.Item;
@@ -200,7 +201,7 @@ public class TooltipHelper {
 
 	private static boolean findTooltip(ItemStack stack) {
 		String key = getTooltipTranslationKey(stack);
-		if (I18n.exists(key)) {
+		if (Language.getInstance().has(key)) {
 			cachedTooltips.put(key, buildToolTip(key, stack));
 			return true;
 		}
@@ -212,13 +213,13 @@ public class TooltipHelper {
 		ItemDescription tooltip = new ItemDescription(ItemDescription.Palette.Blue);
 		String summaryKey = translationKey + ".summary";
 
-		if (I18n.exists(summaryKey))
+		if (Language.getInstance().has(summaryKey))
 			tooltip = tooltip.withSummary(Components.literal(I18n.get(summaryKey)));
 
 		for (int i = 1; i < 100; i++) {
 			String conditionKey = translationKey + ".condition" + i;
 			String behaviourKey = translationKey + ".behaviour" + i;
-			if (!I18n.exists(conditionKey))
+			if (!Language.getInstance().has(conditionKey))
 				break;
 			if (i == 1)
 				tooltip.getLinesOnShift()
@@ -229,7 +230,7 @@ public class TooltipHelper {
 		for (int i = 1; i < 100; i++) {
 			String controlKey = translationKey + ".control" + i;
 			String actionKey = translationKey + ".action" + i;
-			if (!I18n.exists(controlKey))
+			if (!Language.getInstance().has(controlKey))
 				break;
 			tooltip.withControl(I18n.get(controlKey), I18n.get(actionKey));
 		}

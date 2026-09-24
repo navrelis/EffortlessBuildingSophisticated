@@ -2,7 +2,7 @@ package sophisticated.building.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+import sophisticated.building.create.catnip.render.RecordingBufferSource;
 import net.minecraft.world.phys.Vec3;
 import sophisticated.building.SophisticatedBuildingClient;
 import sophisticated.building.buildmodifier.BaseModifier;
@@ -24,7 +24,7 @@ public class ModifierRenderer {
 	protected static final int planeAlpha = 50;
 	protected static final Vec3 epsilon = new Vec3(0.001, 0.001, 0.001); //prevents z-fighting
 
-	public static void render(PoseStack ms, BufferSource buffer) {
+	public static void render(PoseStack ms, RecordingBufferSource buffer) {
         List<BaseModifier> modifierSettingsList = SophisticatedBuildingClient.BUILD_MODIFIERS.getModifierSettingsList();
 
         for (BaseModifier modifierSettings : modifierSettingsList) {
@@ -38,7 +38,7 @@ public class ModifierRenderer {
     }
 
     //Mirror lines and areas
-    private static void renderMirror(PoseStack ms, BufferSource buffer, Mirror m) {
+    private static void renderMirror(PoseStack ms, RecordingBufferSource buffer, Mirror m) {
 
         if (m != null && m.enabled && (m.mirrorX || m.mirrorY || m.mirrorZ)) {
             Vec3 pos = m.position.add(epsilon);
@@ -72,7 +72,7 @@ public class ModifierRenderer {
     }
 
     //Radial mirror lines and areas
-    private static void renderRadialMirror(PoseStack ms, BufferSource buffer, RadialMirror r) {
+    private static void renderRadialMirror(PoseStack ms, RecordingBufferSource buffer, RadialMirror r) {
 
 		if (r != null && r.enabled) {
 			Vec3 pos = r.position.add(epsilon);
@@ -93,72 +93,52 @@ public class ModifierRenderer {
 		}
 	}
 
-	protected static void drawMirrorPlane(PoseStack ms, BufferSource renderTypeBuffer, Vec3 posA, Vec3 posB, Color c, boolean drawLines, boolean drawPlanes, boolean drawVerticalLines) {
+	protected static void drawMirrorPlane(PoseStack ms, RecordingBufferSource renderTypeBuffer, Vec3 posA, Vec3 posB, Color c, boolean drawLines, boolean drawPlanes, boolean drawVerticalLines) {
 
 //        GL11.glColor4d(c.getRed(), c.getGreen(), c.getBlue(), planeAlpha);
 		Matrix4f matrixPos = ms.last().pose();
 
 		if (drawPlanes) {
-			VertexConsumer buffer = RenderHandler.beginPlanes(renderTypeBuffer);
+			VertexConsumer buffer = renderTypeBuffer.getBuffer(BuildRenderTypes.PLANES);
 
-			buffer.addVertex(matrixPos, (float) posA.x, (float) posA.y, (float) posA.z).setColor(c.getRed(), c.getGreen(), c.getBlue(), planeAlpha);
-			buffer.addVertex(matrixPos, (float) posA.x, (float) posB.y, (float) posA.z).setColor(c.getRed(), c.getGreen(), c.getBlue(), planeAlpha);
-			buffer.addVertex(matrixPos, (float) posB.x, (float) posA.y, (float) posB.z).setColor(c.getRed(), c.getGreen(), c.getBlue(), planeAlpha);
-			buffer.addVertex(matrixPos, (float) posB.x, (float) posB.y, (float) posB.z).setColor(c.getRed(), c.getGreen(), c.getBlue(), planeAlpha);
-			//backface (using triangle strip)
-			buffer.addVertex(matrixPos, (float) posA.x, (float) posA.y, (float) posA.z).setColor(c.getRed(), c.getGreen(), c.getBlue(), planeAlpha);
-			buffer.addVertex(matrixPos, (float) posA.x, (float) posB.y, (float) posA.z).setColor(c.getRed(), c.getGreen(), c.getBlue(), planeAlpha);
-
-			RenderHandler.endPlanes(renderTypeBuffer);
+			plane(buffer, matrixPos, posA.x, posA.y, posA.z, posA.x, posB.y, posA.z, posB.x, posB.y, posB.z, posB.x, posA.y, posB.z, c);
 		}
 
 		if (drawLines) {
-			VertexConsumer buffer = RenderHandler.beginLines(renderTypeBuffer);
+			VertexConsumer buffer = renderTypeBuffer.getBuffer(BuildRenderTypes.LINES);
 
 			Vec3 middle = posA.add(posB).scale(0.5);
 			line(buffer, ms.last(), posA.x, middle.y, posA.z, posB.x, middle.y, posB.z, c);
 			if (drawVerticalLines) {
 				line(buffer, ms.last(), middle.x, posA.y, middle.z, middle.x, posB.y, middle.z, c);
 			}
-
-			RenderHandler.endLines(renderTypeBuffer);
 		}
 	}
 
-	protected static void drawMirrorPlaneY(PoseStack matrixStack, BufferSource renderTypeBuffer, Vec3 posA, Vec3 posB, Color c, boolean drawLines, boolean drawPlanes) {
+	protected static void drawMirrorPlaneY(PoseStack matrixStack, RecordingBufferSource renderTypeBuffer, Vec3 posA, Vec3 posB, Color c, boolean drawLines, boolean drawPlanes) {
 
 //        GL11.glColor4d(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
 		Matrix4f matrixPos = matrixStack.last().pose();
 
 		if (drawPlanes) {
-			VertexConsumer buffer = RenderHandler.beginPlanes(renderTypeBuffer);
+			VertexConsumer buffer = renderTypeBuffer.getBuffer(BuildRenderTypes.PLANES);
 
-			buffer.addVertex(matrixPos, (float) posA.x, (float) posA.y, (float) posA.z).setColor(c.getRed(), c.getGreen(), c.getBlue(), planeAlpha);
-			buffer.addVertex(matrixPos, (float) posA.x, (float) posA.y, (float) posB.z).setColor(c.getRed(), c.getGreen(), c.getBlue(), planeAlpha);
-			buffer.addVertex(matrixPos, (float) posB.x, (float) posA.y, (float) posA.z).setColor(c.getRed(), c.getGreen(), c.getBlue(), planeAlpha);
-			buffer.addVertex(matrixPos, (float) posB.x, (float) posA.y, (float) posB.z).setColor(c.getRed(), c.getGreen(), c.getBlue(), planeAlpha);
-			//backface (using triangle strip)
-			buffer.addVertex(matrixPos, (float) posA.x, (float) posA.y, (float) posA.z).setColor(c.getRed(), c.getGreen(), c.getBlue(), planeAlpha);
-			buffer.addVertex(matrixPos, (float) posA.x, (float) posA.y, (float) posB.z).setColor(c.getRed(), c.getGreen(), c.getBlue(), planeAlpha);
-
-			RenderHandler.endPlanes(renderTypeBuffer);
+			plane(buffer, matrixPos, posA.x, posA.y, posA.z, posA.x, posA.y, posB.z, posB.x, posA.y, posB.z, posB.x, posA.y, posA.z, c);
 		}
 
 		if (drawLines) {
-			VertexConsumer buffer = RenderHandler.beginLines(renderTypeBuffer);
+			VertexConsumer buffer = renderTypeBuffer.getBuffer(BuildRenderTypes.LINES);
 
 			Vec3 middle = posA.add(posB).scale(0.5);
 			line(buffer, matrixStack.last(), middle.x, middle.y, posA.z, middle.x, middle.y, posB.z, c);
 			line(buffer, matrixStack.last(), posA.x, middle.y, middle.z, posB.x, middle.y, middle.z, c);
-
-			RenderHandler.endLines(renderTypeBuffer);
 		}
 	}
 
-	protected static void drawMirrorLines(PoseStack matrixStack, BufferSource renderTypeBuffer, Mirror m) {
+	protected static void drawMirrorLines(PoseStack matrixStack, RecordingBufferSource renderTypeBuffer, Mirror m) {
 
 //        GL11.glColor4d(100, 100, 100, 255);
-		VertexConsumer buffer = RenderHandler.beginLines(renderTypeBuffer);
+		VertexConsumer buffer = renderTypeBuffer.getBuffer(BuildRenderTypes.LINES);
 		PoseStack.Pose pose = matrixStack.last();
 
 		Vec3 pos = m.position.add(epsilon);
@@ -166,8 +146,21 @@ public class ModifierRenderer {
 		line(buffer, pose, pos.x - m.radius, pos.y, pos.z, pos.x + m.radius, pos.y, pos.z, colorX);
 		line(buffer, pose, pos.x, pos.y - m.radius, pos.z, pos.x, pos.y + m.radius, pos.z, colorY);
 		line(buffer, pose, pos.x, pos.y, pos.z - m.radius, pos.x, pos.y, pos.z + m.radius, colorZ);
+	}
 
-		RenderHandler.endLines(renderTypeBuffer);
+	/**
+	 * One mirror plane, corners in order around its edge. Until Minecraft 26.1 the plane was a triangle strip of six
+	 * vertices, which covered it twice; since 26.2 the planes are quads (strips cannot be batched), so the quad is
+	 * drawn twice to keep the plane's opacity.
+	 */
+	private static void plane(VertexConsumer buffer, Matrix4f matrixPos, double x1, double y1, double z1, double x2, double y2, double z2,
+							  double x3, double y3, double z3, double x4, double y4, double z4, Color c) {
+		for (int i = 0; i < 2; i++) {
+			buffer.addVertex(matrixPos, (float) x1, (float) y1, (float) z1).setColor(c.getRed(), c.getGreen(), c.getBlue(), planeAlpha);
+			buffer.addVertex(matrixPos, (float) x2, (float) y2, (float) z2).setColor(c.getRed(), c.getGreen(), c.getBlue(), planeAlpha);
+			buffer.addVertex(matrixPos, (float) x3, (float) y3, (float) z3).setColor(c.getRed(), c.getGreen(), c.getBlue(), planeAlpha);
+			buffer.addVertex(matrixPos, (float) x4, (float) y4, (float) z4).setColor(c.getRed(), c.getGreen(), c.getBlue(), planeAlpha);
+		}
 	}
 
 	/**

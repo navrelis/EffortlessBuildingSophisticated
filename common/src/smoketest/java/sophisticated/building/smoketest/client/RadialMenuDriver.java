@@ -42,7 +42,7 @@ final class RadialMenuDriver {
             // Opening a screen releases every key mapping; the player still holds the key
             KeyMapping.set(key, true);
         });
-        d.waitUntil("the radial menu to open", 40, () -> d.mc.screen instanceof RadialMenu);
+        d.waitUntil("the radial menu to open", 40, () -> d.mc.gui.screen() instanceof RadialMenu);
         d.waitTicks(5);
         d.waitUntil("the radial menu to render (mouse tracking initialised)", 40, () -> getBoolean("mouseInitialized"));
     }
@@ -72,7 +72,7 @@ final class RadialMenuDriver {
             KeyMapping.set(key, false);
         });
         d.clientRun(restoreKey);
-        d.waitUntil("the radial menu to close after releasing its key", 40, () -> !(d.mc.screen instanceof RadialMenu));
+        d.waitUntil("the radial menu to close after releasing its key", 40, () -> !(d.mc.gui.screen() instanceof RadialMenu));
     }
 
     /** Full selection; fails if the mode did not become active. */

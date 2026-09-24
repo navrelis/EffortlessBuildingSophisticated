@@ -132,7 +132,7 @@ final class ClientScenarios {
         try {
             d.clientRun(() -> {
                 KeyMapping.releaseAll();
-                if (d.mc.screen != null) d.mc.setScreen(null);
+                if (d.mc.gui.screen() != null) d.mc.gui.setScreen(null);
                 SophisticatedBuildingClient.BUILDER_CHAIN.cancel();
             });
             d.waitTicks(5);
@@ -144,7 +144,7 @@ final class ClientScenarios {
     //region World
 
     private String joinFreshWorld() {
-        d.waitUntilRealtime("the title screen", 600, () -> d.mc.getOverlay() == null && d.mc.screen != null && d.mc.level == null);
+        d.waitUntilRealtime("the title screen", 600, () -> d.mc.gui.overlay() == null && d.mc.gui.screen() != null && d.mc.level == null);
         d.clientRun(() -> {
             // An unfocused window must not pause the game (options changed in memory only)
             d.mc.options.pauseOnLostFocus = false;
@@ -159,11 +159,11 @@ final class ClientScenarios {
             // Creating the world blocks this task until the integrated server runs; the harness keeps polling below
             d.mc.execute(() -> d.mc.createWorldOpenFlows().createFreshLevel(WORLD_NAME, settings, new WorldOptions(20260924L, false, false),
                     registries -> registries.lookupOrThrow(Registries.WORLD_PRESET).getOrThrow(WorldPresets.FLAT).value().createWorldDimensions(),
-                    d.mc.screen));
+                    d.mc.gui.screen()));
         });
         d.waitUntilRealtime("the new world to load", 300, () -> {
             failOnErrorScreen();
-            return d.mc.level != null && d.mc.player != null && d.mc.screen == null && d.mc.getSingleplayerServer() != null;
+            return d.mc.level != null && d.mc.player != null && d.mc.gui.screen() == null && d.mc.getSingleplayerServer() != null;
         });
         d.waitTicks(20);
 
@@ -197,7 +197,7 @@ final class ClientScenarios {
 
     /** A failure screen (world creation failed, disconnected) never goes away by itself: fail at once. */
     private void failOnErrorScreen() {
-        var screen = d.mc.screen;
+        var screen = d.mc.gui.screen();
         if (screen instanceof net.minecraft.client.gui.screens.DisconnectedScreen
                 || screen instanceof net.minecraft.client.gui.screens.AlertScreen
                 || screen instanceof net.minecraft.client.gui.screens.ErrorScreen) {
@@ -264,7 +264,7 @@ final class ClientScenarios {
         giveHotbar(new ItemStack(Items.STONE, 64));
         radial.open();
         d.screenshot("radial_menu");
-        boolean visible = d.client(() -> d.mc.screen instanceof RadialMenu);
+        boolean visible = d.client(() -> d.mc.gui.screen() instanceof RadialMenu);
         if (!visible) throw new AssertionError("The radial menu closed while the radial key was held");
         radial.hover(BuildModeEnum.LINE);
         radial.clickAndRelease();
@@ -325,12 +325,12 @@ final class ClientScenarios {
         giveHotbar(new ItemStack(Items.STONE, 64));
 
         d.clientRun(ClientEvents::openModifierSettings);
-        d.waitUntil("the modifier screen to open", 40, () -> d.mc.screen instanceof ModifiersScreen);
+        d.waitUntil("the modifier screen to open", 40, () -> d.mc.gui.screen() instanceof ModifiersScreen);
         d.waitTicks(5);
         int before = d.client(() -> SophisticatedBuildingClient.BUILD_MODIFIERS.getModifierSettingsList().size());
         d.clientRun(() -> {
-            AbstractWidget addMirror = widget((ModifiersScreen) d.mc.screen, "addMirrorButton");
-            d.mc.screen.mouseClicked(new MouseButtonEvent(addMirror.getX() + addMirror.getWidth() / 2.0, addMirror.getY() + addMirror.getHeight() / 2.0,
+            AbstractWidget addMirror = widget((ModifiersScreen) d.mc.gui.screen(), "addMirrorButton");
+            d.mc.gui.screen().mouseClicked(new MouseButtonEvent(addMirror.getX() + addMirror.getWidth() / 2.0, addMirror.getY() + addMirror.getHeight() / 2.0,
                     new MouseButtonInfo(0, 0)), false);
         });
         Mirror mirror = d.client(() -> {
@@ -348,11 +348,11 @@ final class ClientScenarios {
             return added;
         });
         // Rebuild the screen so its mirror entry shows the values set above
-        d.clientRun(() -> d.mc.screen.init(d.mc.screen.width, d.mc.screen.height));
+        d.clientRun(() -> d.mc.gui.screen().init(d.mc.gui.screen().width, d.mc.gui.screen().height));
         d.screenshot("modifiers_screen");
         // Closing the screen saves the modifiers (ModifierSettingsPacket to the server)
-        d.clientRun(() -> d.mc.screen.onClose());
-        d.waitUntil("the modifier screen to close", 40, () -> d.mc.screen == null);
+        d.clientRun(() -> d.mc.gui.screen().onClose());
+        d.waitUntil("the modifier screen to close", 40, () -> d.mc.gui.screen() == null);
 
         try {
             List<BlockPos> original = row(start, 3);
@@ -713,7 +713,7 @@ final class ClientScenarios {
                 + ", game mode " + d.mc.gameMode.getPlayerMode() + ", power level " + AttachmentHandler.getPowerLevel(d.mc.player)
                 + ", player at " + d.mc.player.position() + " yaw " + d.mc.player.getYRot() + " pitch " + d.mc.player.getXRot()
                 + ", crosshair " + (d.mc.hitResult == null ? "none" : d.mc.hitResult.getType() + " " + d.mc.hitResult.getLocation())
-                + ", screen " + (d.mc.screen == null ? "none" : d.mc.screen.getClass().getSimpleName());
+                + ", screen " + (d.mc.gui.screen() == null ? "none" : d.mc.gui.screen().getClass().getSimpleName());
     }
 
     /** Turns to the second target and returns the preview the BuilderChain computed from it. */

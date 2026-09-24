@@ -37,7 +37,7 @@ sourceSets {
         runtimeClasspath += main.runtimeClasspath + main.output
     }
     // In-game smoke test harness (runSmokeClient / runSmokeServer, see TESTING.md): loader-neutral scenarios from
-    // ../common/src/smoketest and the Fabric glue from src/smoketest. No Sophisticated Backpacks on Fabric 26.1.2, so no
+    // ../common/src/smoketest and the Fabric glue from src/smoketest. No Sophisticated Backpacks on Fabric 26.2, so no
     // backpack fixture (../common/src/smoketestBackpacks) and no Trinkets. Own fabric.mod.json (mod
     // "sophisticatedbuilding_smoketest"); only loaded by the smoke runs, never packaged into the mod jar.
     smoketest {

@@ -1,16 +1,15 @@
 package sophisticated.building.render;
 
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import org.joml.Matrix3x2fStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
@@ -21,7 +20,7 @@ import sophisticated.building.create.CreateClient;
 import sophisticated.building.create.catnip.animation.AnimationTickHolder;
 import sophisticated.building.create.catnip.outliner.Outliner;
 import sophisticated.building.create.catnip.render.DefaultSuperRenderTypeBuffer;
-import sophisticated.building.create.catnip.render.SuperRenderTypeBuffer;
+import sophisticated.building.create.catnip.render.RecordingBufferSource;
 import sophisticated.building.client.ClientBreakCountdown;
 import sophisticated.building.inventory.IItemHandler;
 import sophisticated.building.item.AbstractRandomizerBagItem;
@@ -34,55 +33,49 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Main render class for Sophisticated Building. The loader projects call {@link #onRenderWorld} and
- * {@link #onRenderOutlines} from their level render stages and {@link #onRenderGui} from their HUD hook.
+ * Main render class for Sophisticated Building. The loader projects call {@link #onSubmitLevel} while the level's
+ * submits are collected and {@link #onRenderGui} from their HUD hook.
  */
 public class RenderHandler {
 
-	private static final ByteBufferBuilder LEVEL_BUFFER = new ByteBufferBuilder(1536);
+	/** Mirror and radial mirror lines and planes, submitted before everything else ({@link #MODIFIER_ORDER}). */
+	private static final RecordingBufferSource MODIFIER_BUFFER = new RecordingBufferSource();
+	private static final int MODIFIER_ORDER = 0;
+	/** Ghost blocks (early layer), outline edges (default) and outline faces (late) follow in orders 1 to 3. */
+	private static final int PREVIEW_FIRST_ORDER = 1;
 
-	public static void onRenderWorld(PoseStack ms) {
-		Minecraft mc = Minecraft.getInstance();
-		Vec3 cameraPos = mc.gameRenderer.getMainCamera().position();
-
-		MultiBufferSource.BufferSource buffer = MultiBufferSource.immediate(LEVEL_BUFFER);
+	/**
+	 * Submits the mod's level geometry: mirror lines and planes, ghost blocks and the preview outlines (block clusters,
+	 * break box). Minecraft 26.2 has no immediate drawing during the level render any more: the geometry is recorded
+	 * here and submitted as custom geometry, which the game draws with the level's other submits (outline edges with
+	 * the solid features, everything translucent in the translucent custom geometry phase, before the translucent
+	 * terrain). {@code ms} is the pose stack of the level's submits (camera relative, untranslated).
+	 */
+	public static void onSubmitLevel(PoseStack ms, SubmitNodeCollector collector) {
+		Vec3 cameraPos = Minecraft.getInstance().gameRenderer.mainCamera().position();
+		float partialTicks = AnimationTickHolder.getPartialTicks();
+		DefaultSuperRenderTypeBuffer previewBuffer = DefaultSuperRenderTypeBuffer.getInstance();
+		MODIFIER_BUFFER.reset();
+		previewBuffer.reset();
 
 		ms.pushPose();
 		ms.translate(-cameraPos.x(), -cameraPos.y(), -cameraPos.z());
 
 		//Mirror and radial mirror lines and areas
-		ModifierRenderer.render(ms, buffer);
+		ModifierRenderer.render(ms, MODIFIER_BUFFER);
 
-		renderGhostBlocks(ms);
+		//Ghost blocks (block previews) through the Catnip-style layered buffer
+		CreateClient.GHOST_BLOCKS.renderAll(ms, previewBuffer);
 
 		ms.popPose();
 
-//		renderSubText(ms);
-	}
-
-	/**
-	 * Render the ghost blocks (block previews) through the Catnip-style layered buffer.
-	 */
-	private static void renderGhostBlocks(PoseStack ms) {
-		SuperRenderTypeBuffer ghostBuffer = DefaultSuperRenderTypeBuffer.getInstance();
-		CreateClient.GHOST_BLOCKS.renderAll(ms, ghostBuffer);
-		ghostBuffer.draw();
-	}
-
-	/**
-	 * Render the preview outlines (block clusters, break box). Catnip rendered its outliner itself,
-	 * after the translucent blocks on Fabric and after the particles on NeoForge; the loader projects
-	 * keep those stages. The pose stack is untranslated, the outlines subtract the camera position.
-	 */
-	public static void onRenderOutlines(PoseStack ms) {
-		Vec3 cameraPos = Minecraft.getInstance().gameRenderer.getMainCamera().position();
-		float partialTicks = AnimationTickHolder.getPartialTicks();
-
+		//The outlines subtract the camera position themselves
 		ms.pushPose();
-		SuperRenderTypeBuffer buffer = DefaultSuperRenderTypeBuffer.getInstance();
-		Outliner.getInstance().renderOutlines(ms, buffer, cameraPos, partialTicks);
-		buffer.draw();
+		Outliner.getInstance().renderOutlines(ms, previewBuffer, cameraPos, partialTicks);
 		ms.popPose();
+
+		MODIFIER_BUFFER.submit(collector.order(MODIFIER_ORDER));
+		previewBuffer.submit(collector, PREVIEW_FIRST_ORDER);
 	}
 
 	public static void onRenderGui(GuiGraphicsExtractor guiGraphics) {
@@ -251,23 +244,7 @@ public class RenderHandler {
 		// Draw count text, red if missing (above the item: the GUI render state layers it over the item it intersects).
 		Font font = Minecraft.getInstance().font;
 		String text = String.valueOf(stack.getCount());
-		guiGraphics.text(font, text, x + 19 - 2 - font.width(text), y + 6 + 3, ARGB.opaque(missing ? ChatFormatting.RED.getColor() : ChatFormatting.WHITE.getColor()), true);
-	}
-
-	protected static VertexConsumer beginLines(MultiBufferSource.BufferSource renderTypeBuffer) {
-		return renderTypeBuffer.getBuffer(BuildRenderTypes.LINES);
-	}
-
-	protected static void endLines(MultiBufferSource.BufferSource renderTypeBuffer) {
-		renderTypeBuffer.endBatch();
-	}
-
-	protected static VertexConsumer beginPlanes(MultiBufferSource.BufferSource renderTypeBuffer) {
-		return renderTypeBuffer.getBuffer(BuildRenderTypes.PLANES);
-	}
-
-	protected static void endPlanes(MultiBufferSource.BufferSource renderTypeBuffer) {
-		renderTypeBuffer.endBatch();
+		guiGraphics.text(font, text, x + 19 - 2 - font.width(text), y + 6 + 3, ARGB.opaque(missing ? TextColor.RED.getValue() : TextColor.WHITE.getValue()), true);
 	}
 
 	/**
@@ -387,11 +364,11 @@ public class RenderHandler {
 		// Color based on count: red if 0, yellow if low (<=31), white otherwise (32+)
 		int color;
 		if (count == 0) {
-			color = ARGB.opaque(ChatFormatting.RED.getColor());
+			color = ARGB.opaque(TextColor.RED.getValue());
 		} else if (count <= 31) {
-			color = ARGB.opaque(ChatFormatting.YELLOW.getColor());
+			color = ARGB.opaque(TextColor.YELLOW.getValue());
 		} else {
-			color = ARGB.opaque(ChatFormatting.WHITE.getColor());
+			color = ARGB.opaque(TextColor.WHITE.getValue());
 		}
 		
 		guiGraphics.text(font, text, 16 - 2 - font.width(text), 6 + 3, color, true);

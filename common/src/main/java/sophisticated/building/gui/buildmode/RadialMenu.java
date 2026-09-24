@@ -10,10 +10,12 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.locale.Language;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.ARGB;
@@ -91,7 +93,7 @@ public class RadialMenu extends Screen {
 	}
 
 	public boolean isVisible() {
-		return Minecraft.getInstance().screen instanceof RadialMenu;
+		return Minecraft.getInstance().gui.screen() instanceof RadialMenu;
 	}
 
 	@Override
@@ -347,7 +349,7 @@ public class RadialMenu extends Screen {
 		//Draw power level info
 		String powerLevelValue = minecraft.player.isCreative() ? "Creative" : String.valueOf(AttachmentHandler.getPowerLevel(minecraft.player));
 		String powerLevelText = I18n.get("key.sophisticatedbuilding.power_level") + ": " + powerLevelValue;
-		guiGraphics.text(font, powerLevelText, width - font.width(powerLevelText) - 4, height - 22, minecraft.player.isCreative() ? watermarkTextColor : ARGB.opaque(ChatFormatting.DARK_PURPLE.getColor()));
+		guiGraphics.text(font, powerLevelText, width - font.width(powerLevelText) - 4, height - 22, minecraft.player.isCreative() ? watermarkTextColor : ARGB.opaque(TextColor.DARK_PURPLE.getValue()));
 
 		//if hover over power level info, show tooltip
 		if (mouseX >= width - font.width(powerLevelText) - 14 && mouseX <= width && mouseY >= height - 24 && mouseY <= height) {
@@ -525,7 +527,7 @@ public class RadialMenu extends Screen {
 						  final Direction textSide) {
 			this.name = I18n.get(action.getNameKey());
 
-			if (I18n.exists(action.getDescriptionKey())) {
+			if (Language.getInstance().has(action.getDescriptionKey())) {
 				this.description = I18n.get(action.getDescriptionKey());
 			}
 

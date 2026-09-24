@@ -59,7 +59,7 @@ public class ClientEvents {
     public static void onClientTickPost() {
         if (!isGameActive()) return;
 
-        Screen gui = Minecraft.getInstance().screen;
+        Screen gui = Minecraft.getInstance().gui.screen();
         if (gui == null || !gui.isPauseScreen()) {
             ticksInGame++;
         }
@@ -71,7 +71,7 @@ public class ClientEvents {
         if (player == null) return;
         BuildModeEnum buildMode = SophisticatedBuildingClient.BUILD_MODES.getBuildMode();
 
-        if (mc.screen != null ||
+        if (mc.gui.screen() != null ||
             RadialMenu.instance.isVisible()) {
             return;
         }
@@ -118,7 +118,7 @@ public class ClientEvents {
         if (keyBindings[0].isDown()) {
             if (!AttachmentHandler.isDisabled(player)) {
                 if (!RadialMenu.instance.isVisible()) {
-                    Minecraft.getInstance().setScreen(RadialMenu.instance);
+                    Minecraft.getInstance().gui.setScreen(RadialMenu.instance);
                 }
             } else {
                 SophisticatedBuilding.log(player, "Build modes are disabled until your reach has increased. Increase your reach with craftable reach upgrades.");
@@ -160,13 +160,13 @@ public class ClientEvents {
         if (AttachmentHandler.isDisabled(player)) {
             SophisticatedBuilding.log(player, "Build modifiers are disabled until your power level has increased. Increase your power level by consuming certain items.");
         } else {
-            mc.setScreen(new ModifiersScreen());
+            mc.gui.setScreen(new ModifiersScreen());
         }
     }
 
     public static void openPlayerSettings() {
         Minecraft mc = Minecraft.getInstance();
-        mc.setScreen(new PlayerSettingsGui());
+        mc.gui.setScreen(new PlayerSettingsGui());
     }
 
     public static void onGuiOpen(Screen newScreen) {

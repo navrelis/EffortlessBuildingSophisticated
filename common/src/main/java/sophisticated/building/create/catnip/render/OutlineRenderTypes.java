@@ -5,6 +5,7 @@ import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.CompareOp;
+import net.minecraft.client.renderer.BindGroupLayouts;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -21,7 +22,8 @@ import java.util.function.Function;
  * MIT License, Copyright (c) 2022 The Create Team, see LICENSE_Ponder.txt); the fluid type is removed. The translucent
  * types use the entity translucent shader without depth writes, culled or not (Minecraft 1.21.5 render pipelines;
  * since 1.21.11 a render type is a pipeline plus a {@link RenderSetup}; since 26.1 blending and depth writes are
- * the pipeline's colour target and depth stencil states).
+ * the pipeline's colour target and depth stencil states; since 26.2 the depth buffer is reversed, a nearer fragment has
+ * the greater depth, and render types have no buffer size).
  */
 public final class OutlineRenderTypes {
 
@@ -30,17 +32,16 @@ public final class OutlineRenderTypes {
 			.withTexture("Sampler0", AllSpecialTextures.BLANK.getLocation())
 			.useLightmap()
 			.useOverlay()
-			.bufferSize(256)
 			.createRenderSetup());
 
 	private static final Function<Boolean, RenderPipeline> TRANSLUCENT_PIPELINE = Util.memoize(cull ->
 		RenderPipeline.builder(RenderPipelines.ENTITY_SNIPPET)
 			.withLocation(Identifier.fromNamespaceAndPath(SophisticatedBuilding.MODID, "pipeline/outline_translucent" + (cull ? "_cull" : "")))
 			.withShaderDefine("ALPHA_CUTOUT", 0.1F)
-			.withSampler("Sampler1")
+			.withBindGroupLayout(BindGroupLayouts.SAMPLER1)
 			.withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
 			.withCull(cull)
-			.withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
+			.withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
 			.build());
 
 	private static final BiFunction<Identifier, Boolean, RenderType> OUTLINE_TRANSLUCENT = Util.memoize((texture, cull) ->
@@ -49,7 +50,6 @@ public final class OutlineRenderTypes {
 			.useLightmap()
 			.useOverlay()
 			.sortOnUpload()
-			.bufferSize(256)
 			.createRenderSetup()));
 
 	public static RenderType outlineSolid() {

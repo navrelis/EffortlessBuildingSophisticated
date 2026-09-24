@@ -64,7 +64,7 @@ public final class FabricClientEvents {
             sophisticated.building.create.events.ClientEvents.onTick();
 
             // Fabric has no screen opening event: detect the change once per tick.
-            Screen currentScreen = client.screen;
+            Screen currentScreen = client.gui.screen();
             if (currentScreen != lastScreen) {
                 if (currentScreen != null) {
                     ClientEvents.onGuiOpen(currentScreen);
@@ -85,16 +85,11 @@ public final class FabricClientEvents {
     }
 
     private static void registerRenderEvents() {
-        // Block previews, mirror/array lines, ghost blocks and outlines all after the translucent
-        // blocks, where Catnip drew its outliner on Fabric (Fabric API for 1.21.9+: the end of the main pass, which
-        // follows the translucent terrain; AFTER_TRANSLUCENT is gone).
-        LevelRenderEvents.END_MAIN.register(context -> {
-            if (context.poseStack() == null) {
-                return;
-            }
-            RenderHandler.onRenderWorld(context.poseStack());
-            RenderHandler.onRenderOutlines(context.poseStack());
-        });
+        // Block previews, mirror/array lines, ghost blocks and outlines: Minecraft 26.2 has no immediate drawing in the
+        // level render any more, so they are submitted with the level's other geometry (Fabric API for 26.2: while the
+        // submits are collected) and drawn by the game in its feature phases.
+        LevelRenderEvents.COLLECT_SUBMITS.register(context ->
+                RenderHandler.onSubmitLevel(context.poseStack(), context.submitNodeCollector()));
 
         // Last HUD element, where the deprecated HudRenderCallback drew (Fabric API for 1.21.6+).
         HudElementRegistry.addLast(SophisticatedBuilding.asResource("hud"), (guiGraphics, deltaTracker) -> {

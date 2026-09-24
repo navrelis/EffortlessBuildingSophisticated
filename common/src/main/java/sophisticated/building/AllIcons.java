@@ -1,17 +1,9 @@
 package sophisticated.building;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import sophisticated.building.utilities.Color;
 import sophisticated.building.gui.ScreenElement;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.util.LightCoordsUtil;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix4f;
 
 /**
  * Icon definitions for the mod's GUI.
@@ -113,34 +105,4 @@ public class AllIcons implements ScreenElement {
     public void render(GuiGraphicsExtractor guiGraphics, int x, int y) {
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ICON_ATLAS, x, y, iconX, iconY, 16, 16, 256, 256);
     }
-
-    public void render(PoseStack ms, MultiBufferSource buffer, int color) {
-        VertexConsumer builder = buffer.getBuffer(RenderTypes.textSeeThrough(ICON_ATLAS));
-        Matrix4f matrix = ms.last().pose();
-        Color rgb = new Color(color);
-        int light = LightCoordsUtil.FULL_BRIGHT;
-        
-        Vec3 vec1 = new Vec3(0, 0, 0);
-        Vec3 vec2 = new Vec3(0, 1, 0);
-        Vec3 vec3 = new Vec3(1, 1, 0);
-        Vec3 vec4 = new Vec3(1, 0, 0);
-        
-        float u1 = iconX * 1f / ICON_ATLAS_SIZE;
-        float u2 = (iconX + 16) * 1f / ICON_ATLAS_SIZE;
-        float v1 = iconY * 1f / ICON_ATLAS_SIZE;
-        float v2 = (iconY + 16) * 1f / ICON_ATLAS_SIZE;
-        
-        vertex(builder, matrix, vec1, rgb, u1, v1, light);
-        vertex(builder, matrix, vec2, rgb, u1, v2, light);
-        vertex(builder, matrix, vec3, rgb, u2, v2, light);
-        vertex(builder, matrix, vec4, rgb, u2, v1, light);
-    }
-    
-    private void vertex(VertexConsumer builder, Matrix4f matrix, Vec3 vec, Color rgb, float u, float v, int light) {
-        builder.addVertex(matrix, (float) vec.x, (float) vec.y, (float) vec.z)
-            .setColor(rgb.getRedAsInt(), rgb.getGreenAsInt(), rgb.getBlueAsInt(), 255)
-            .setUv(u, v)
-            .setLight(light);
-    }
 }
-

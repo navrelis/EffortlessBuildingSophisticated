@@ -7,8 +7,8 @@ import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
+import net.neoforged.neoforge.client.event.SubmitCustomGeometryEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuilding;
@@ -61,17 +61,12 @@ public class NeoForgeClientEvents {
         sophisticated.building.create.events.ClientEvents.onUnloadWorld(event.getLevel());
     }
 
-    // Block previews, mirror/array lines and ghost blocks after the translucent blocks; the outlines
-    // after the particles, where Catnip drew its outliner on NeoForge (one event per stage since NeoForge 21.6; since
-    // 26.1 the particles are drawn in two passes, the outlines follow the second, translucent one).
+    // Block previews, mirror/array lines, ghost blocks and outlines: Minecraft 26.2 has no immediate drawing in the level
+    // render any more, so they are submitted with the level's other geometry (NeoForge 26.2: the custom geometry event,
+    // while the submits are collected) and drawn by the game in its feature phases.
     @SubscribeEvent
-    public static void onRenderLevelAfterTranslucentBlocks(RenderLevelStageEvent.AfterTranslucentBlocks event) {
-        RenderHandler.onRenderWorld(event.getPoseStack());
-    }
-
-    @SubscribeEvent
-    public static void onRenderLevelAfterParticles(RenderLevelStageEvent.AfterTranslucentParticles event) {
-        RenderHandler.onRenderOutlines(event.getPoseStack());
+    public static void onSubmitCustomGeometry(SubmitCustomGeometryEvent event) {
+        RenderHandler.onSubmitLevel(event.getPoseStack(), event.getSubmitNodeCollector());
     }
 
     @SubscribeEvent
