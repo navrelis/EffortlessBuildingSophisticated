@@ -10,6 +10,8 @@ import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -37,20 +39,22 @@ public final class GameTestSupport {
     //region Players
 
     /**
-     * A real {@link ServerPlayer} on a fake connection, in the given game mode. Vanilla's
-     * {@code makeMockServerPlayerInLevel} hard-codes {@code isCreative() == true}, so it cannot test survival,
-     * and {@code makeMockPlayer} is not a ServerPlayer (skips the adventure check and the packets the mod sends).
+     * A real {@link ServerPlayer} on a fake connection, in the given game mode, added to the test level. Vanilla's
+     * {@code makeMockPlayer} is not a ServerPlayer (skips the adventure check and the packets the mod sends), and
+     * Minecraft 1.18.2 has no {@code makeMockServerPlayerInLevel}. The player is not put into the player list: 1.18.2's
+     * {@code PlayerList#placeNewPlayer} needs the profile cache, which the game test server does not have.
      */
     public static ServerPlayer spawnPlayer(GameTestHelper helper, GameType gameType) {
         ServerLevel level = helper.getLevel();
         MinecraftServer server = level.getServer();
         GameProfile profile = new GameProfile(UUID.randomUUID(), "sb-gametest");
         ServerPlayer player = new ServerPlayer(server, level, profile);
-        // As vanilla's makeMockServerPlayerInLevel: the embedded channel activates the connection and swallows what
-        // the server sends
+        // As vanilla's makeMockServerPlayerInLevel (1.19+): the embedded channel activates the connection and swallows
+        // what the server sends
         Connection connection = new Connection(PacketFlow.SERVERBOUND);
         new EmbeddedChannel(connection);
-        server.getPlayerList().placeNewPlayer(connection, player);
+        player.connection = new ServerGamePacketListenerImpl(server, connection, player);
+        level.addNewPlayer(player);
         player.setGameMode(gameType);
         player.getInventory().clearContent();
         player.getInventory().selected = 0;
@@ -67,6 +71,8 @@ public final class GameTestSupport {
         MinecraftServer server = player.getServer();
         if (server != null && server.getPlayerList().getPlayer(player.getUUID()) != null) {
             server.getPlayerList().remove(player);
+        } else {
+            player.getLevel().removePlayerImmediately(player, Entity.RemovalReason.DISCARDED);
         }
     }
 

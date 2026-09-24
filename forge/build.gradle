@@ -156,7 +156,7 @@ legacyForge {
 // The smoke runs pass or fail on the result file they write (shared logic in ../gradle/smoketest.gradle)
 tasks.named('runSmokeClient') { verifySmokeRun(it, smoketestOutDir('client')) }
 tasks.named('runSmokeServer') { verifySmokeRun(it, smoketestOutDir('server')) }
-// Forge 1.20.1's game test server creates its world from server.properties (default: normal terrain), so the test
+// Forge 1.18.2's game test server creates its world from server.properties (default: normal terrain), so the test
 // structures at y -60 sat in caves and gravel could fall into them. Every run starts on a fresh superflat world, like
 // the vanilla game test server on the other loaders.
 def smokeServerDir = file('build/smoketest/server-run')
@@ -164,10 +164,11 @@ tasks.named('runSmokeServer') {
     doFirst {
         new File(smokeServerDir, 'world').deleteDir()
         smokeServerDir.mkdirs()
-        // The vanilla default superflat layers (without them the server logs an ERROR and uses the same default)
-        new File(smokeServerDir, 'server.properties').text = 'level-type=minecraft\\:flat\n' +
-                'generator-settings={"layers":[{"block":"minecraft:bedrock","height":1},{"block":"minecraft:dirt","height":2},' +
-                '{"block":"minecraft:grass_block","height":1}],"biome":"minecraft:plains"}\n'
+        // 1.18.2 names the level type without namespace ("minecraft:flat" silently falls back to normal terrain). It
+        // cannot parse any flat generator-settings from server.properties (vanilla bug: WorldGenSettings logs the ERROR
+        // "Not a registry ops"), and then uses the default superflat layers (bedrock, 2 dirt, grass), which are the ones
+        // the other branches write here.
+        new File(smokeServerDir, 'server.properties').text = 'level-type=flat\n'
     }
 }
 
@@ -182,7 +183,7 @@ configurations {
     smoketestLocalRuntime
     smoketestRuntimeClasspath.extendsFrom localRuntime, smoketestLocalRuntime
 }
-// Forge 1.20.1 mods are published with SRG names: the mod* configurations remap them to the dev names
+// Forge 1.18.2 mods are published with SRG names: the mod* configurations remap them to the dev names
 // (modLocalRuntime and modSmoketestLocalRuntime like the built-in modCompileOnly)
 obfuscation.createRemappingConfiguration(configurations.localRuntime)
 obfuscation.createRemappingConfiguration(configurations.smoketestLocalRuntime)
