@@ -3,7 +3,6 @@ package sophisticated.building.forge;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.capabilities.AutoRegisterCapability;
 import net.minecraftforge.common.capabilities.Capability;
@@ -35,7 +34,7 @@ public final class PowerLevelCapability {
     }
 
     @SubscribeEvent
-    public static void attach(AttachCapabilitiesEvent<Entity> event) {
+    public static void attach(AttachCapabilitiesEvent.Entities event) {
         if (event.getObject() instanceof Player) {
             event.addCapability(AttachmentHandler.POWER_LEVEL_CAP, new Provider());
         }
