@@ -38,3 +38,4 @@ for the version. Backpacks integration only where SB exists for that loader+vers
 - User addition: the tests must also prove the mod works WITH Sophisticated Backpacks (not only build/start):
   in-world checks where SB exists - Building Upgrade supplies blocks, disabled upgrade ignored, tier cap, HUD count
   sync, Tool Swapper tools for survival breaking, worn backpack (Curios/Trinkets/Accessories where present).
+- User (2026-09-24): every test client must start MUTED and on the SECOND monitor (secondary = DISPLAY1 left of the primary). -> scripts/lib/GameWindow.ps1 + move-game-window.ps1 (T2), built into the smoke harness (T1); add to PORT_BRIEF.

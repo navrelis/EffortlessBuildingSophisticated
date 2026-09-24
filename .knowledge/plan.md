@@ -15,13 +15,16 @@ Status: open / in progress / in review / done. Chains: forward (1.21.1 -> 26.2) 
 | F6a | Hub `main`: README + matrix, docs (architecture, porting, releasing), worktree + build-all-versions scripts, upstream refresh script + weekly watch workflow, cleanup/local/ | Sonnet | F1 | with F2, P-B1 | done |
 | F6b | Hub docs: CI + release sections after F5 | Sonnet | F5, F6a | - | open |
 | P-B1 | Port mc/1.20.4 (fabric + neoforge; forge later) | Opus | F4 | with F2, F6a | done |
-| P-F1 | Port mc/1.21.4 (fabric, neoforge SB, forge) | Opus | F2 | with P-B1, F5 | in progress |
+| P-F1 | Port mc/1.21.4 (fabric, neoforge SB, forge) | Opus | F2 | with P-B1, F5 | done |
 | P* | Ports, one task per branch (see matrix below); forward chain and backward chain | Opus | F1, F2 | 2 chains | open |
 | T1 | In-game smoke-test harness incl. Sophisticated Backpacks functional scenarios (sb.* checks), dev-only, runSmokeClient/runSmokeServer, result JSON + screenshots; mc/1.21.1 first, then every port | Opus | F5 | - | in progress |
-| T2 | scripts/test-all-versions.ps1 on main: runs build/unit/GameTest/smoke per branch+loader, report | Sonnet | - | with ports | in progress |
-| F7 | templates/branch on main (canonical CI/release/build-all, actions v5-era, ubuntu-24.04) + sync-branch-infra.ps1; applied to mc/1.20.4 + release jars | Sonnet | F5 | with T1, T2, P-F1 | in progress |
-| B1 | Fix OmegaRandomizerBagScreen native BufferBuilder leak (1.21.1, 1.20.4, then ports) | tbd | T1 | - | open |
+| T2 | scripts/test-all-versions.ps1 on main: runs build/unit/GameTest/smoke per branch+loader, report | Sonnet | - | with ports | done |
+| F7 | templates/branch on main (canonical CI/release/build-all, actions v5-era, ubuntu-24.04) + sync-branch-infra.ps1; applied to mc/1.20.4 + release jars | Sonnet | F5 | with T1, T2, P-F1 | done |
+| B1 | Fix OmegaRandomizerBagScreen native BufferBuilder leak (1.21.1, 1.20.4, then ports) | Sonnet | - | 1.20.4 first | in progress (1.20.4 done) |
 | P-B1f | Forge 1.20.4 build | Opus | P-B1 | - | open |
+| B2 | Forge 1.21.1 client crash (LootModifierManager; data pack flagged incompatible) | Opus (inside T1) | - | - | in progress |
+| P-F2 | Port mc/1.21.5 (RenderPipeline rewrite, GameTest rework, B1 folded in) | Opus | P-F1 | with T1 | in progress |
+| B1b | Leak fix on 1.21.4 | Sonnet | - | with P-F2 | done |
 | Z  | Final: e2e check all branches, graphify refresh, report, push | lead | all | - | open |
 
 ## Definition of done

@@ -1,0 +1,317 @@
+# Testing across every version and loader
+
+`scripts/test-all-versions.ps1` is the one command that tests every Minecraft version branch and every loader:
+build, in-world GameTests, a dedicated server smoke boot, a client smoke boot, and the contract for an in-game
+scenario harness (`runSmokeServer`/`runSmokeClient`) another agent adds later. It prints a pass/fail table and
+writes `report.json`/`report.md` plus per-stage logs to a report directory.
+
+```powershell
+# from the repo root, PowerShell 7 (pwsh)
+pwsh scripts/test-all-versions.ps1                                   # everything, every versions/<mc> worktree
+pwsh scripts/test-all-versions.ps1 -Mc 1.21.1                        # one version, every loader
+pwsh scripts/test-all-versions.ps1 -Mc 1.21.1 -Loader fabric,neoforge -Stages build,gametest
+pwsh scripts/test-all-versions.ps1 -Headless -KeepGoing:$false       # no windows, stop at first failure
+pwsh scripts/test-all-versions.ps1 -WhatIf                           # dry run: which stages WOULD run
+```
+
+`-Mc`, `-Loader` and `-Stages` accept comma-separated values in one token (`-Stages build,gametest`) - the
+robust form from any shell. Space-separated bare tokens after one of these flags
+(`-Stages build gametest`) only bind correctly to the array when PowerShell itself is doing the invoking; from
+an external shell (`pwsh -File ... -Stages build gametest` from bash/cmd) the second token is silently dropped,
+which is exactly why the script accepts (and this doc recommends) the comma-separated form.
+
+See the script's own comment-based help (`Get-Help scripts/test-all-versions.ps1 -Full`) for every parameter.
+
+## Stages, in order, and how each one decides pass/fail
+
+Stages always run in this fixed order regardless of the order given to `-Stages`: `build`, `gametest`,
+`server`, `client`, `smoke`. One Minecraft instance and one Gradle invocation at a time, sequentially, for every
+(version, loader) combination - never two in parallel, and never two ForgeGradle builds in parallel against a
+cold cache (`docs/PORTING.md` "Gotchas").
+
+1. **build** - `gradlew build --no-daemon --stacktrace`. Pass iff the process exits 0. The detail always
+   includes `build/test-results/test/*.xml`'s summed tests/failures/errors/skipped counts, whether the stage
+   passed or not.
+
+2. **gametest** - only for a loader with a `src/gametest` folder (Fabric's own convention on this branch; see
+   `docs/ARCHITECTURE.md`). NeoForge and Forge don't use this mechanism here, so this stage reports `n/a` for
+   them - that is expected, not a gap. Runs `gradlew runGametest --no-daemon --stacktrace`; pass iff the
+   captured log matches `All \d+ required tests passed`, and the matched count is recorded. GameTest classes or
+   method names containing `Backpack` are additionally collected as SB gametest coverage and listed in their
+   own report section/table (currently empty on this branch - none of the existing GameTest classes are
+   Backpack-related; see "Sophisticated Backpacks coverage" below).
+
+3. **server** - accepts the EULA (writes `eula=true` to `<loader>/run/eula.txt`), pins `server-port` in
+   `<loader>/run/server.properties` to a freshly-chosen free TCP port (never the fixed default 25565 - a real
+   collision risk when another Minecraft server, e.g. another agent's dev run, is already listening on it on
+   the same machine), starts `gradlew runServer --no-daemon` in the background, and waits for `Done (` in
+   `<loader>/run/logs/latest.log` (falling back to the Gradle console log). It then checks:
+   - no `ERROR`/`Exception` log line mentioning `sophisticatedbuilding` or `sophisticated.building`;
+   - **where this (version, loader) ships a Sophisticated Backpacks integration** (see "SB availability"
+     below) - `sophisticatedbackpacks` and `sophisticatedcore` both show up as loaded mods (Fabric Loader's
+     `Loading N mods: \n\t- <modid> <version>` lines, or FML's `Name Version (<modid>)` ModDiscoverer lines) AND
+     `Registered Sophisticated Backpacks upgrade containers` is logged. **Missing SB evidence where SB is
+     expected fails the stage** - this proves the mod actually works with Sophisticated Backpacks in the dev
+     runtime, not just that the server started.
+   Stops the server by writing `stop` to its stdin (works because the process is launched with
+   `RedirectStandardInput`, not through cmd.exe's own `>` file redirection, which would otherwise cut it off
+   from a controllable stdin pipe), falling back to killing the process tree it started if that doesn't exit
+   within 60s.
+
+4. **client** - skipped (`n/a`, "skipped: runSmokeClient covers join-and-check for this loader") for a loader
+   whose build already defines a `runSmokeClient` task (detected by a cheap text search of that loader's
+   `*.gradle` files for the literal task name - no extra Gradle invocation) - that harness's own join-and-check
+   already covers "does the client boot and join without errors", so running the plain stage on top would only
+   open a second, redundant Minecraft window. It's the fallback for a loader that doesn't have the richer
+   harness yet, which is every loader today (the harness doesn't exist anywhere on this branch yet). Otherwise:
+   starts `gradlew runClient` with a generated Gradle init script
+   (`<ReportDir>/quickplay-init.gradle`) that appends `--quickPlaySingleplayer <world>` to the `runClient`
+   task's program arguments (see "Quickplay init script" below), pointed at a throwaway copy of the server
+   stage's freshly-generated world (`<loader>/run/world` copied to
+   `<loader>/run/saves/test-all-versions-<random>`, deleted again at the end of the stage - never touches a
+   tracked file or a save that was already there). If there's no server-stage world to copy from (e.g. `client`
+   run without `server` first), it launches without quickplay and only checks that the client reaches the title
+   screen. Waits for `logged in with entity id` (quickplay case) or `Loaded \d+ advancements` (title-screen
+   fallback) in `run/logs/latest.log`, then 30s more; fails on a mod-related `ERROR`/`Exception` log line or a
+   new file under `run/crash-reports` created during the run. Kills the process tree it started (no clean
+   "stop" concept for a client).
+
+5. **smoke** - the contract described below for `runSmokeServer`/`runSmokeClient`.
+
+## SB availability
+
+Detected exactly the way `common/`'s own `Services.backpacks()` fallback works (see `docs/ARCHITECTURE.md`
+"Optional integration: Sophisticated Backpacks"): a loader ships Sophisticated Backpacks support iff it
+registers
+`<loader>/src/main/resources/META-INF/services/sophisticated.building.platform.services.IBackpackIntegration`.
+Every report shows an "SB" column/table per (version, loader) from this same check, independent of whether any
+stage actually ran.
+
+On `mc/1.21.1`: `fabric` and `neoforge` ship it (unofficial CurseForge Fabric port / official Modrinth NeoForge
+build respectively, see `upstream/README.md`); `forge` does not (no Sophisticated Backpacks build exists for
+Forge 1.21.1 yet).
+
+## Sophisticated Backpacks coverage, end to end
+
+SB availability alone only says a loader *could* have SB support - the script separately proves it actually
+*works*, at three layers:
+
+- **server stage** (always runs when `-Stages` includes `server`): SB mods loaded + upgrade containers
+  registered, as above - the *load-and-wire-up* check. A loader with SB available FAILS this stage if that
+  evidence is missing.
+- **Fabric GameTests named `*Backpack*`**: in-world proof at the block-placement level (e.g. a Building Upgrade
+  actually pulling blocks from a backpack). None exist yet on this branch - every current GameTest class
+  (`InventoryHelperGameTest`, `MergeGameTest`, `ProtectionGameTest`, `SkipFirstGameTest`, `StorageDataGameTest`,
+  `SurvivalReplaceGameTest`, `UndoGameTest`) is generic placement-mode coverage, not backpack-specific. Adding
+  Backpack-named GameTests is the natural way to close this gap (see "Open points" below) - the report's SB
+  gametest table is ready for them as soon as they exist.
+- **smoke stage `sb.*` checks** (functional, scenario-level - see the contract below).
+
+### `sb.*` check naming contract
+
+Once the scenario harness (`runSmokeServer`/`runSmokeClient`) exists, any check in its
+`smoketest-result.json` whose `name` starts with `sb.` is a **Sophisticated Backpacks functional check** -
+something that only makes sense to run where SB is actually available for that (version, loader). Suggested
+names for the harness to use (not enforced by the script beyond the `sb.` prefix - any name matching `sb.*`
+counts):
+
+| name | what it proves |
+|---|---|
+| `sb.upgrade_supplies_blocks` | a Building Upgrade in a backpack actually feeds blocks into a build |
+| `sb.disabled_upgrade_ignored` | a disabled/removed Building Upgrade is not used as a block source |
+| `sb.tier_cap` | the upgrade respects the backpack tier's supply-rate/slot cap |
+| `sb.hud_count_synced` | the in-game HUD block count stays in sync with what the backpack actually supplied |
+| `sb.tool_swapper_tools` | Tool Swapper tools stored in a backpack are usable/swappable as expected |
+| `sb.worn_backpack` | a backpack worn via Curios/Trinkets (not just held/placed) still supplies blocks |
+
+**Where SB is available for a (version, loader):**
+- once the harness task exists, its result **must contain at least one `sb.*` check, and every `sb.*` check
+  must pass** - "no `sb.*` check ran" is treated as `"SB not tested"` and **fails** the smoke stage, exactly
+  like any other failed check;
+- **while the harness task doesn't exist yet**, the stage is reported **`warn` ("missing harness")**, not
+  silently `n/a` - it's a visible gap in the report, not something that quietly disappears. `n/a` is reserved
+  for a (version, loader) that genuinely has no SB to test (e.g. `forge` on `mc/1.21.1`) and no harness task
+  either.
+
+## `runSmokeServer` / `runSmokeClient` contract
+
+This is a contract for a harness **another agent adds later** - the stages already understand it, so nothing
+here needs to change once it exists.
+
+- If `<loader>/build.gradle` (or wherever the harness wires it up) defines a Gradle task named
+  `runSmokeServer` and/or `runSmokeClient`, the smoke stage runs it as
+  `gradlew <task> -PsmoketestOut=<dir> --no-daemon --stacktrace`, where `<dir>` is a directory the script
+  creates under the report dir.
+- The harness must write `<dir>/smoketest-result.json` before the task's process exits, matching this schema:
+
+  ```json
+  {
+    "passed": true,
+    "checks": [
+      { "name": "sb.upgrade_supplies_blocks", "passed": true, "detail": "supplied 12 blocks in 3 ticks" },
+      { "name": "wall_mode_places_correctly", "passed": true, "detail": "" }
+    ],
+    "screenshots": ["C:/.../smoketest-out/wall_mode.png"]
+  }
+  ```
+  - `passed` (bool, required): overall pass/fail for the whole scenario run.
+  - `checks` (array, required, may be empty): one entry per named assertion; `name` (string), `passed` (bool),
+    `detail` (string, free-form, e.g. a reason on failure).
+  - `screenshots` (array of absolute paths, optional): copied into the report dir if present.
+- If the task doesn't exist, the stage tells that apart from "the task exists and failed" by grepping the
+  captured Gradle log for Gradle's own `Task '<name>' not found` / `Cannot locate tasks that match` messages -
+  it does **not** run a separate `gradlew tasks` probe first (one Gradle invocation per target, not two).
+- If `smoketest-result.json` is missing or unparsable after the task finishes (or times out), the stage FAILS
+  outright (this is different from "task doesn't exist" - the harness ran and didn't hold up its end of the
+  contract).
+- `-Headless` skips `runSmokeClient` (opens a window) but still runs `runSmokeServer`.
+
+## Quickplay init script
+
+The client stage needs `--quickPlaySingleplayer <world>` on the `runClient` task's program arguments, without
+editing any tracked `build.gradle`. The spec that led to this script named three loader-specific DSL paths -
+`loom.runs.client.programArgs` (Fabric/Loom), `neoForge.runs.client.programArguments` (NeoForge/MDG),
+`minecraft.runs.client.args` (Forge/FG7) - as the way to do that per loader. The generated init script
+(`<ReportDir>/quickplay-init.gradle`) instead hooks the **task by name** generically:
+
+```groovy
+allprojects {
+    def worldName = project.findProperty('quickPlayWorld')
+    if (worldName) {
+        tasks.matching { it.name == 'runClient' }.configureEach {
+            args '--quickPlaySingleplayer', worldName.toString()
+        }
+    }
+}
+```
+
+This works because every one of those three DSL paths ultimately configures the same kind of thing: a
+JavaExec-derived task named `runClient`, and `JavaExec#args(...)` *appends* to the existing argument list
+rather than replacing it - so one hook, keyed on the task name instead of the loader-specific extension, works
+unchanged across Loom, ModDevGradle and ForgeGradle 7. This was verified against all three build setups on the
+`mc/1.21.1` branch (fabric, neoforge, forge all pick up the init script and append the flag). It's simpler and
+more robust than three separate DSL paths that would each need to keep working as those plugins evolve; the
+tradeoff is that it depends on the run task being named exactly `runClient` and being JavaExec-based, which is
+true for Loom, MDG and FG7 today but would need revisiting if a future loader's plugin does it differently (see
+"Open points").
+
+## Muted, second-monitor game windows
+
+Every window a `client`/`runSmokeClient` launch opens is muted and moved off the main monitor, so running this
+script doesn't make noise or steal the screen. `scripts/lib/GameWindow.ps1` (dot-sourced by
+`test-all-versions.ps1`, alongside `scripts/lib/TestAllVersions.Common.ps1`):
+
+- `Set-MinecraftMuted -RunDir <dir>` - sets `soundCategory_master:0.0` and `pauseOnLostFocus:false` in
+  `<dir>/options.txt` (creating the file if it doesn't exist yet), preserving every other line.
+  `pauseOnLostFocus:false` matters as much as the mute: the window is moved without activating it
+  (`SWP_NOACTIVATE`, below), so it's never focused, and Minecraft pauses an unfocused window by default - which
+  would otherwise stall world tick and break every join/wait check that depends on it. Called synchronously,
+  **before** the game process starts (`options.txt` is read at boot).
+- `Move-MinecraftWindowToSecondary -ProcessId <pid> [-TimeoutSeconds 180]` - waits for a visible, top-level,
+  owner-less window belonging to a *descendant* of `<pid>` (walks `Win32_Process` parent/child links to find
+  the `java.exe` the tracked `cmd.exe`/`gradlew.bat` process eventually spawns), then moves it
+  (`SetWindowPos`, `SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE` - repositions only, keeps current size, never
+  steals focus) to the first non-primary monitor (`[System.Windows.Forms.Screen]::AllScreens`), top-left +
+  40px. Never touches any window outside that one process's own descendant tree - never matches by name/title,
+  so it can't reach another Minecraft instance or unrelated window on the same machine. Returns `$false` (with
+  a warning, never a throw) if there's only one monitor or the window never appears in time, so it can never
+  fail the stage it's called from.
+
+`test-all-versions.ps1` calls `Set-MinecraftMuted` synchronously right before starting a client/`runSmokeClient`
+process, then hands `Move-MinecraftWindowToSecondary` off to a background `Start-Job` (`Start-WindowMoveJob` /
+`Stop-WindowMoveJob`) so waiting for the window doesn't block the stage's own log-polling wait; the job's
+result is collected and logged when the stage cleans it up.
+
+`scripts/move-game-window.ps1` is a thin standalone CLI wrapper around the same two functions
+(`-RunDir`/`-GradlePid`/`-TimeoutSeconds`), for anything that starts a `gradlew runClient`-style process outside
+this script and wants the same treatment: call it in the background right after starting that process.
+
+Verified for real: `Set-MinecraftMuted` against a scratch directory, `Move-MinecraftWindowToSecondary` against
+a real window (moved Notepad to `(-2520, 44)` = the detected secondary monitor's bounds + 40px), and a full
+`server` + `client` run in a detached worktree, confirming `options.txt` ended up muted.
+
+## Process safety
+
+- Every `gradlew` invocation passes `--no-daemon` and the script never runs `gradlew --stop` - that kills every
+  Gradle daemon of that Gradle version on the machine, including any other agent's in-progress build, not just
+  this script's own.
+- Every process the script starts is tracked by its `System.Diagnostics.Process` handle and, on timeout, on a
+  failure with `-KeepGoing:$false`, or in the top-level `finally` block (which also runs on Ctrl+C - PowerShell
+  delivers that as a terminating exception through the same `try/finally`), is killed **by PID only**, via
+  `taskkill /PID <pid> /T /F` (kills exactly that process's own tree: `cmd.exe -> gradlew.bat -> java.exe`) -
+  never by process name or pattern, which could otherwise hit an unrelated Java process on the same machine
+  (another agent's build, or an unrelated project's own JVM).
+- The dedicated server stage always runs on a freshly-chosen free TCP port (see `Get-FreeTcpPort` /
+  `Set-ServerPort` in `scripts/lib/TestAllVersions.Common.ps1`), not the fixed default 25565, for the same
+  reason - a real collision was hit while developing this script (another agent's dev server was already
+  listening on 25565 on the same machine).
+- A missing `versions/<mc>` (or `-VersionsDir <root>/<mc>`) worktree fails with a clear message pointing at
+  `scripts/setup-worktrees.ps1`, rather than silently skipping it.
+
+### Testing without touching a worktree another agent is using
+
+`-VersionsDir` points the script at any directory laid out like `versions/` (one `<mc>` subfolder per version,
+each shaped like a version branch - see `docs/ARCHITECTURE.md`). To test in isolation from a `versions/<mc>`
+worktree someone else is actively building in, create a second, detached worktree of the same branch under
+`local/` (git-ignored) and point `-VersionsDir` at its parent:
+
+```powershell
+git worktree add --detach local/versions-test/1.21.1 mc/1.21.1
+pwsh scripts/test-all-versions.ps1 -Mc 1.21.1 -VersionsDir local/versions-test
+git worktree remove --force local/versions-test/1.21.1   # when done
+```
+
+This is exactly how this script's own real run (see the report below) was produced - `versions/1.21.1` was in
+use by another agent's build at the time.
+
+## Open points
+
+- No Backpack-named Fabric GameTests exist yet on `mc/1.21.1` - the SB gametest coverage table is implemented
+  and ready, but currently always empty. Worth adding once the in-world backpack-supply behavior has GameTest
+  coverage.
+- `runSmokeServer`/`runSmokeClient` don't exist yet anywhere on the branch, so the smoke stage's real behavior
+  (beyond the "missing harness" warn path) is exercised by the contract in this doc, not yet by a real harness
+  run end to end. Once the harness lands, re-verify the full contract (JSON schema, `sb.*` requirement, `n/a`
+  vs `warn` distinction) against its actual output.
+- The quickplay init script's task-name hook (`tasks.matching { it.name == 'runClient' }`) assumes the client
+  run task is named exactly `runClient` and is JavaExec-based; true for Loom/MDG/FG7 today, but would need a
+  loader-specific fallback if a future toolchain does it differently.
+- A single `-TimeoutMinutes` applies uniformly to every stage (build/gametest/server-ready-wait/client-join-wait
+  each get the full budget, plus their own small fixed grace periods after - 3s post-"Done (" for the server,
+  30s post-join for the client, 60s stop-grace for the server, 10s kill-grace elsewhere). Per-stage timeout
+  overrides would be a reasonable follow-up if one stage's needs diverge a lot from the others' in practice.
+- `Get-FreeTcpPort`'s freed-port handoff to the dedicated server has a small inherent TOCTOU race (something
+  else could grab the same port between the check and the server's own bind) - rare enough in practice not to
+  warrant a bind-retry loop yet, but worth watching if it ever flakes.
+- **Forge's client stage sometimes crashes** with
+  `java.lang.IllegalStateException: Can not retrieve LootModifierManager until resources have loaded once.`
+  (`net.minecraftforge.common.ForgeInternalHandler.getLootModifierManager`, triggered from a flowing-water
+  block-drop loot lookup during the very first world ticks after joining). The stack trace has **no**
+  `sophisticated.building`/`sophisticatedbuilding` frames anywhere - this is a Forge/vanilla-only race, not a
+  mod bug, and not a bug in this script: it looks like a timing race between Forge's resource-reload-completion
+  flag and the integrated server starting to tick fluids, made more likely to actually land by the client stage
+  joining a world immediately via quickplay (no time spent on menus first, unlike normal manual play). It does
+  not always reproduce (seen fail, fail, pass, fail across four runs). `Get-CrashReportClassification`
+  (`scripts/lib/TestAllVersions.Common.ps1`) recognizes this exact signature - and *only* this exact
+  signature, and only when there is no `sophisticated.building`/`sophisticatedbuilding` frame anywhere in the
+  crash report's actual trace section (never its "-- System Details --" mod-list footer, which mentions every
+  loaded mod regardless of relevance - see the function's own comment for why that distinction matters) - and
+  reports it as `warn` ("known-upstream crash report(s)..."), not `fail`. Any other crash, or this same
+  exception text WITH a mod frame in the trace, still fails the stage normally; nothing is ever silently
+  downgraded.
+  - **Quick-playing into a fresh, never-before-seen world name was tried as a fix** (the theory being that the
+    crash is specific to joining an *existing* save) and reverted: `--quickPlaySingleplayer <name>` does **not**
+    create a new world for an unrecognized name - it shows "Failed to Quick Play - Could not find world with
+    the provided identifier" and sits there doing nothing (confirmed the hard way, watching the actual window).
+    The client stage went back to copying the server stage's world, as before. `Invoke-ClientStage` now also
+    watches for that exact failure text (`Failed to Quick Play` / `Could not find world`) in the same wait as
+    the join line, and fails the stage immediately with that message instead of waiting out the full
+    `-TimeoutMinutes` with a window stuck on that screen - covered by an offline test against a synthetic log
+    (no client launch) alongside `Get-CrashReportClassification`'s own tests against the real saved crash
+    report above. A harness that genuinely wants a from-scratch world (unlike this stage's fixed-purpose smoke
+    boot) should create it in-game itself, the way a real player would, rather than relying on this flag.
+- The "stop" on stdin reliably stops Fabric's and Forge's `runServer` (confirmed against the real run below),
+  but NeoForge's ModDevGradle `runServer` task did not consume it in testing (`stoppedCleanly: false` in
+  `report.json`) - the stage still passes, just ~60s slower per NeoForge server run while it waits out the
+  stdin grace period before falling back to killing the process tree. Worth a follow-up look at whether MDG's
+  run config needs `standardInput = System.in` (or equivalent) wired up explicitly to forward it.
