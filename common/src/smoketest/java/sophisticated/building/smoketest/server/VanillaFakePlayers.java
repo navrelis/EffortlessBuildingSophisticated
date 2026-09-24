@@ -3,6 +3,7 @@ package sophisticated.building.smoketest.server;
 import com.mojang.authlib.GameProfile;
 import io.netty.channel.embedded.EmbeddedChannel;
 import net.minecraft.network.Connection;
+import net.minecraft.network.PacketListener;
 import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
@@ -17,7 +18,7 @@ import javax.annotation.Nullable;
 import java.util.UUID;
 
 /**
- * A fake server player from vanilla classes only, for loaders without a fake player API (Forge 52): not in the player
+ * A fake server player from vanilla classes only, for loaders without a fake player API (Forge): not in the player
  * list, and its connection drops every packet (like the loaders' fake players), so the packets the mod sends to it go
  * nowhere instead of needing a negotiated client.
  */
@@ -31,7 +32,12 @@ public final class VanillaFakePlayers {
         GameProfile profile = new GameProfile(UUID.randomUUID(), "sb-smoketest");
         CommonListenerCookie cookie = CommonListenerCookie.createInitial(profile);
         ServerPlayer player = new ServerPlayer(server, level, profile, cookie.clientInformation());
-        Connection connection = new Connection(PacketFlow.SERVERBOUND);
+        // 1.20.4 checks the channel's protocol when a listener is set; this connection never gets a real channel
+        Connection connection = new Connection(PacketFlow.SERVERBOUND) {
+            @Override
+            public void setListener(PacketListener listener) {
+            }
+        };
         new EmbeddedChannel(connection);
         player.connection = new ServerGamePacketListenerImpl(server, connection, player, cookie) {
             @Override

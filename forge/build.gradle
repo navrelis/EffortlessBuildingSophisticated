@@ -4,6 +4,8 @@ plugins {
     id 'net.minecraftforge.gradle' version '6.0.54'
 }
 
+apply from: '../gradle/smoketest.gradle'
+
 version = mod_version
 group = mod_group
 
@@ -28,6 +30,21 @@ sourceSets {
     test {
         java.srcDir "${commonDir}/src/test/java"
     }
+    // In-game smoke test harness (runSmokeClient / runSmokeServer, see TESTING.md): loader-neutral scenarios from
+    // ../common/src/smoketest and the Forge glue from src/smoketest. No Sophisticated Backpacks on Forge 1.20.4, so no
+    // backpack fixture. Its own mod ("sophisticatedbuilding_smoketest", META-INF/mods.toml), loaded only by the smoke
+    // runs (the only runs that list it in their mods); never packaged.
+    smoketest {
+        java.srcDir "${commonDir}/src/smoketest/java"
+        resources.srcDir "${commonDir}/src/smoketest/resources"
+        compileClasspath += main.output
+        runtimeClasspath += main.output
+    }
+}
+
+// The smoke harness compiles and runs against everything main does.
+configurations {
+    smoketestImplementation.extendsFrom implementation
 }
 
 minecraft {
@@ -64,8 +81,40 @@ minecraft {
         // Launches the GameTestServer, runs all registered gametests, then exits.
         gameTestServer {
         }
+
+        // runSmokeClient: a real client creates a fresh superflat world, runs the client scenarios, writes
+        // <smoketestOut>/smoketest-result.json and exits. gradlew runSmokeClient -PsmoketestOut=<dir>
+        smokeClient {
+            parent runs.client
+            workingDirectory project.file('build/smoketest/client-run')
+            property 'sophisticatedbuilding.smoketest.mode', 'client'
+            property 'sophisticatedbuilding.smoketest.out', smoketestOutDir('client').absolutePath
+            mods {
+                sophisticatedbuilding_smoketest {
+                    source sourceSets.smoketest
+                }
+            }
+        }
+
+        // runSmokeServer: headless, Forge's game test server runs the server scenarios and writes the same JSON.
+        // gradlew runSmokeServer -PsmoketestOut=<dir>
+        smokeServer {
+            parent runs.gameTestServer
+            workingDirectory project.file('build/smoketest/server-run')
+            property 'sophisticatedbuilding.smoketest.mode', 'server'
+            property 'sophisticatedbuilding.smoketest.out', smoketestOutDir('server').absolutePath
+            mods {
+                sophisticatedbuilding_smoketest {
+                    source sourceSets.smoketest
+                }
+            }
+        }
     }
 }
+
+// The smoke runs pass or fail on the result file they write (shared logic in ../gradle/smoketest.gradle)
+tasks.matching { it.name == 'runSmokeClient' }.configureEach { verifySmokeRun(it, smoketestOutDir('client')) }
+tasks.matching { it.name == 'runSmokeServer' }.configureEach { verifySmokeRun(it, smoketestOutDir('server')) }
 
 dependencies {
     // The unit tests exercise vanilla types (BlockPos, ...): testImplementation extends implementation, so Minecraft
@@ -123,8 +172,9 @@ tasks.register('checkCommonIsLoaderNeutral') {
     }
 }
 
+// build compiles the smoke harness (so it cannot rot) but never runs it; that is runSmokeClient / runSmokeServer's job.
 tasks.named('check') {
-    dependsOn tasks.named('checkCommonIsLoaderNeutral')
+    dependsOn tasks.named('checkCommonIsLoaderNeutral'), tasks.named('smoketestClasses')
 }
 
 def licenseFileName = "LICENSE_${mod_id}.txt"

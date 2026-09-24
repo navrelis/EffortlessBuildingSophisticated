@@ -103,8 +103,9 @@ jar in `build/libs` (and in `forge/release`) is the one Forge 1.20.4 can load.
 ## In-game smoke tests
 
 `gradlew runSmokeClient -PsmoketestOut=<dir>` (real client, fresh world) and `gradlew runSmokeServer -PsmoketestOut=<dir>`
-(headless game test server) in either loader folder run the in-game smoke scenarios, including the Sophisticated
-Backpacks integration on both loaders, and write `<dir>/smoketest-result.json`; the game exits by itself. The
+(headless game test server) in any loader folder run the in-game smoke scenarios, including the Sophisticated
+Backpacks integration on Fabric and NeoForge (Forge 1.20.4 has no SB, so no `sb.*` checks there), and write
+`<dir>/smoketest-result.json`; the game exits by itself. The
 harness (`common/src/smoketest`, `common/src/smoketestBackpacks`, `<loader>/src/smoketest`, `gradle/smoketest.gradle`)
 is dev-only and never packaged. See [TESTING.md](TESTING.md) for the scenarios, the result contract and how a port
 adopts it.
