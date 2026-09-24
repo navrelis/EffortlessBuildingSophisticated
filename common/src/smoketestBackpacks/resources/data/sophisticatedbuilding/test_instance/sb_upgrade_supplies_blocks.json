@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "function": "sophisticatedbuilding_smoketest:sb_upgrade_supplies_blocks",
+  "environment": "sophisticatedbuilding:smoke_3",
+  "structure": "sophisticatedbuilding:smoketest_empty",
+  "max_ticks": 400,
+  "required": true
+}

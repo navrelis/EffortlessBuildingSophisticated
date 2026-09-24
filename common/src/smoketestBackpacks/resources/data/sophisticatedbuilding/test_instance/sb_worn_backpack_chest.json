@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "function": "sophisticatedbuilding_smoketest:sb_worn_backpack_chest",
+  "environment": "sophisticatedbuilding:smoke_7",
+  "structure": "sophisticatedbuilding:smoketest_empty",
+  "max_ticks": 400,
+  "required": true
+}
