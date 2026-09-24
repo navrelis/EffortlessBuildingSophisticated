@@ -10,6 +10,8 @@ import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -46,11 +48,12 @@ public final class GameTestSupport {
         MinecraftServer server = level.getServer();
         GameProfile profile = new GameProfile(UUID.randomUUID(), "sb-gametest");
         ServerPlayer player = new ServerPlayer(server, level, profile, null);
-        // As vanilla's makeMockServerPlayerInLevel: the embedded channel activates the connection and swallows what
-        // the server sends
+        // The embedded channel activates the connection and swallows what the server sends. Not placed through the
+        // player list as on 1.20+: the 1.19.2 game test server has no profile cache, which placeNewPlayer needs.
         Connection connection = new Connection(PacketFlow.SERVERBOUND);
         new EmbeddedChannel(connection);
-        server.getPlayerList().placeNewPlayer(connection, player);
+        new ServerGamePacketListenerImpl(server, connection, player);
+        level.addNewPlayer(player);
         player.setGameMode(gameType);
         player.getInventory().clearContent();
         player.getInventory().selected = 0;
@@ -64,10 +67,7 @@ public final class GameTestSupport {
         ServerBuildState.setIsUsingBuildMode(player, false);
         ServerBuildState.setIsQuickReplacing(player, false);
         SophisticatedBuilding.UNDO_REDO.clear(player);
-        MinecraftServer server = player.getServer();
-        if (server != null && server.getPlayerList().getPlayer(player.getUUID()) != null) {
-            server.getPlayerList().remove(player);
-        }
+        player.getLevel().removePlayerImmediately(player, Entity.RemovalReason.DISCARDED);
     }
 
     //endregion

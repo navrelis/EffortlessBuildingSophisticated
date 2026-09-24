@@ -176,6 +176,8 @@ loom {
     mixin {
         defaultRefmapName.set("${mod_id}.refmap.json")
     }
+    // RenderType.create and RenderType.CompositeState for the render types, see the file
+    accessWidenerPath = file("src/main/resources/${mod_id}.accesswidener")
     runs {
         client {
             client()
@@ -237,6 +239,16 @@ tasks.named('runSmokeClient', JavaExec) {
     classpath = classpath.filter { file -> !file.name.startsWith('trinkets') && !file.name.startsWith('cardinal-components') }
 }
 
+// fabric.mod.json takes a version predicate, not the Maven range of shared.properties:
+// [1.19,1.19.2] -> ">=1.19 <=1.19.2", [1.19.2] -> "1.19.2"
+def fabricVersionPredicate = { String range ->
+    def single = range =~ /^\[([^,\]]+)\]$/
+    if (single.matches()) return single.group(1)
+    def closed = range =~ /^\[([^,\]]+),([^,\]]+)\]$/
+    if (closed.matches()) return ">=${closed.group(1)} <=${closed.group(2)}"
+    throw new GradleException("minecraft_version_range ${range} has no fabric.mod.json equivalent here")
+}
+
 processResources {
     var expandProps = [
             version                  : project.version,
@@ -245,8 +257,9 @@ processResources {
             mod_description          : mod_description,
             mod_authors              : mod_authors,
             mod_license              : mod_license,
-            minecraft_version        : minecraft_version,
+            minecraft_dependency     : fabricVersionPredicate(minecraft_version_range),
             fabric_loader_version_min: fabric_loader_version_min,
+            fabric_api_version_min   : fabric_api_version_min,
             java_version             : java_version
     ]
     inputs.properties expandProps
