@@ -4,6 +4,9 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.ChatFormatting;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.ServerConfig;
 import sophisticated.building.network.message.BreakCountdownPacket;
@@ -13,6 +16,7 @@ import sophisticated.building.utilities.BlockSet;
 import sophisticated.building.utilities.BlockUtilities;
 import sophisticated.building.utilities.BreakToolHelper;
 import sophisticated.building.utilities.InventoryHelper;
+import sophisticated.building.utilities.PlacementTemplates;
 import sophisticated.building.utilities.ToolSelector;
 
 import javax.annotation.Nullable;
@@ -109,6 +113,7 @@ public class ServerBlockPlacer {
 
         SophisticatedBuilding.ITEM_USAGE_TRACKER.initialize();
         List<BreakToolHelper.ToolSlot> candidates = player.isCreative() ? null : BreakToolHelper.collectCandidates(player);
+        var templates = new PlacementTemplates(player);
         var undoSet = new BlockSet();
         int survivalBreaksAttempted = 0;
         int survivalBreaksSucceeded = 0;
@@ -118,17 +123,17 @@ public class ServerBlockPlacer {
             boolean breaking = BlockUtilities.isNullOrAir(block.newBlockState);
             if (breaking && candidates != null) survivalBreaksAttempted++;
 
-            if (applyBlockEntry(player, block, candidates)) {
+            if (applyBlockEntry(player, block, candidates, templates)) {
                 undoSet.add(block);
                 if (breaking && candidates != null) survivalBreaksSucceeded++;
             }
         }
 
-        //Remove items from inventory
+        //Remove items from inventory, except those already consumed individually during placement
         //(Adding items is done during BlockPlacerHelper.breakBlock)
         SophisticatedBuilding.ITEM_USAGE_TRACKER.calculateMissingItems(player);
         if (!player.isCreative()) {
-            InventoryHelper.removeFromInventory(player, SophisticatedBuilding.ITEM_USAGE_TRACKER.placed);
+            InventoryHelper.removeFromInventory(player, SophisticatedBuilding.ITEM_USAGE_TRACKER.getBulkRemovalCounts());
         }
 
         if (survivalBreaksAttempted > 0 && survivalBreaksSucceeded == 0) {
@@ -144,11 +149,12 @@ public class ServerBlockPlacer {
 
         SophisticatedBuilding.ITEM_USAGE_TRACKER.initialize();
         List<BreakToolHelper.ToolSlot> candidates = player.isCreative() ? null : BreakToolHelper.collectCandidates(player);
+        var templates = new PlacementTemplates(player);
         var redoSet = new BlockSet();
         for (BlockEntry block : blocks) {
             if (blocks.skipFirst && block.blockPos == blocks.firstPos) continue;
 
-            if (undoBlockEntry(player, block, candidates)) {
+            if (undoBlockEntry(player, block, candidates, templates)) {
                 redoSet.add(block);
             }
         }
@@ -157,13 +163,14 @@ public class ServerBlockPlacer {
         //(Adding items is done during BlockPlacerHelper.breakBlock)
         SophisticatedBuilding.ITEM_USAGE_TRACKER.calculateMissingItems(player);
         if (!player.isCreative()) {
-            InventoryHelper.removeFromInventory(player, SophisticatedBuilding.ITEM_USAGE_TRACKER.placed);
+            InventoryHelper.removeFromInventory(player, SophisticatedBuilding.ITEM_USAGE_TRACKER.getBulkRemovalCounts());
         }
 
         SophisticatedBuilding.UNDO_REDO.addRedo(player, redoSet);
     }
 
-    private boolean applyBlockEntry(Player player, BlockEntry block, @Nullable List<BreakToolHelper.ToolSlot> candidates) {
+    private boolean applyBlockEntry(Player player, BlockEntry block, @Nullable List<BreakToolHelper.ToolSlot> candidates,
+                                    PlacementTemplates templates) {
 
         block.existingBlockState = player.level().getBlockState(block.blockPos);
         boolean breaking = BlockUtilities.isNullOrAir(block.newBlockState);
@@ -176,7 +183,7 @@ public class ServerBlockPlacer {
         } else {
             //If we have the item in our inventory, place it
             if (SophisticatedBuilding.ITEM_USAGE_TRACKER.increaseUsageCount(block.item, 1, player)) {
-                success = BlockPlacerHelper.placeBlock(player, block);
+                success = placeWithTemplate(player, block, templates);
             } else {
                 success = false;
                 //Not having the item at this point would be a bit weird
@@ -188,7 +195,20 @@ public class ServerBlockPlacer {
         return success;
     }
 
-    private boolean undoBlockEntry(Player player, BlockEntry block, @Nullable List<BreakToolHelper.ToolSlot> candidates) {
+    //Places the entry with the data of a real inventory stack; a stack with data is consumed right here in survival
+    private boolean placeWithTemplate(Player player, BlockEntry block, PlacementTemplates templates) {
+        var template = block.item == null ? null : templates.find(block.item);
+        boolean success = BlockPlacerHelper.placeBlock(player, block, template == null ? ItemStack.EMPTY : template.stack());
+        if (template != null && template.individual()) {
+            //Taken from the exact stack (only if placed); either way it is left out of the bulk removal
+            SophisticatedBuilding.ITEM_USAGE_TRACKER.addConsumedIndividually(block.item, 1);
+            if (success) template.stack().shrink(1);
+        }
+        return success;
+    }
+
+    private boolean undoBlockEntry(Player player, BlockEntry block, @Nullable List<BreakToolHelper.ToolSlot> candidates,
+                                   PlacementTemplates templates) {
 
         boolean breaking = BlockUtilities.isNullOrAir(block.existingBlockState);
 
@@ -196,6 +216,11 @@ public class ServerBlockPlacer {
         var temp = block.existingBlockState;
         tempBlockEntry.existingBlockState = block.newBlockState;
         tempBlockEntry.newBlockState = temp;
+        if (!breaking) {
+            //Re-placing a broken block costs its item like any placement; blocks without an item stay free
+            Item item = temp.getBlock().asItem();
+            tempBlockEntry.item = item == Items.AIR ? null : item;
+        }
 
         if (!validateBlockEntry(player, tempBlockEntry, breaking)) return false;
 
@@ -209,7 +234,7 @@ public class ServerBlockPlacer {
         } else {
             //If we have the item in our inventory, place it
             if (SophisticatedBuilding.ITEM_USAGE_TRACKER.increaseUsageCount(tempBlockEntry.item, 1, player)) {
-                success = BlockPlacerHelper.placeBlock(player, tempBlockEntry);
+                success = placeWithTemplate(player, tempBlockEntry, templates);
             } else {
                 success = false;
                 //Not having the item at this point would be a bit weird

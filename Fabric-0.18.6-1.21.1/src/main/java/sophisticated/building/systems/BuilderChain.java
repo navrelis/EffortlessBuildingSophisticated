@@ -405,6 +405,12 @@ public class BuilderChain {
                 continue;
             }
 
+            //No placeable state (e.g. getStateForPlacement failed): keep it invalid and uncounted
+            if (blockEntry.newBlockState == null) {
+                blockEntry.invalid = true;
+                continue;
+            }
+
             //Increase itemstack usage if not filtered out
             //Mark invalid if the player does not have enough of that item
             blockEntry.invalid = !SophisticatedBuildingClient.ITEM_USAGE_TRACKER.increaseUsageCount(itemStack.getItem(), 1, player);

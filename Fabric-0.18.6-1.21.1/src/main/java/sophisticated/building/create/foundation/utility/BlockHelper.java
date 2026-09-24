@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.SectionPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -15,9 +16,11 @@ import net.minecraft.stats.Stats;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.BlockItemStateProperties;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
@@ -37,6 +40,7 @@ import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.material.FluidState;
+import sophisticated.building.SophisticatedBuilding;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -194,6 +198,16 @@ public class BlockHelper {
 
 	public static void placeSchematicBlock(Level world, BlockState state, BlockPos target, ItemStack stack,
 	                                       @Nullable CompoundTag data) {
+		placeSchematicBlock(world, state, target, stack, data, null);
+	}
+
+	/**
+	 * With a non-null {@code placer}, the stack's data components are applied to the placed block in the
+	 * same order as vanilla {@code BlockItem.place} (BLOCK_STATE, BLOCK_ENTITY_DATA, block entity components)
+	 * and {@code setPlacedBy} receives the placer. Without one, no item data is applied.
+	 */
+	public static void placeSchematicBlock(Level world, BlockState state, BlockPos target, ItemStack stack,
+	                                       @Nullable CompoundTag data, @Nullable Player placer) {
 		BlockEntity existingBlockEntity = world.getBlockEntity(target);
 
 		if (state.hasProperty(BlockStateProperties.EXTENDED))
@@ -237,10 +251,42 @@ public class BlockHelper {
 			}
 		}
 
+		if (placer != null) {
+			BlockState placed = world.getBlockState(target);
+			if (!placed.is(state.getBlock()))
+				return;
+			state = applyItemData(world, target, placed, stack, placer);
+		}
+
 		try {
-			state.getBlock().setPlacedBy(world, target, state, null, stack);
+			state.getBlock().setPlacedBy(world, target, state, placer, stack);
 		} catch (Exception e) {
 		}
+	}
+
+	// Data part of vanilla BlockItem.place (1.21.1); returns the resulting block state
+	private static BlockState applyItemData(Level world, BlockPos target, BlockState placed, ItemStack stack, Player placer) {
+		try {
+			BlockItemStateProperties stateProperties = stack.getOrDefault(DataComponents.BLOCK_STATE, BlockItemStateProperties.EMPTY);
+			if (!stateProperties.isEmpty()) {
+				BlockState updated = stateProperties.apply(placed);
+				if (updated != placed) {
+					world.setBlock(target, updated, 2);
+					placed = updated;
+				}
+			}
+
+			BlockItem.updateCustomBlockEntityTag(world, placer, target, stack);
+
+			BlockEntity blockEntity = world.getBlockEntity(target);
+			if (blockEntity != null) {
+				blockEntity.applyComponentsFromItemStack(stack);
+				blockEntity.setChanged();
+			}
+		} catch (Exception e) {
+			SophisticatedBuilding.logger.warn("Failed to apply item data to the block placed at {}", target, e);
+		}
+		return placed;
 	}
 
 	public static double getBounceMultiplier(Block block) {

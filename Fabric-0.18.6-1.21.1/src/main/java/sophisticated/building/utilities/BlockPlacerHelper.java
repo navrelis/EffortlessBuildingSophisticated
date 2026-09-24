@@ -2,6 +2,7 @@ package sophisticated.building.utilities;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -58,14 +59,26 @@ public class BlockPlacerHelper {
         return brokeBlock;
     }
 
-    //ForgeHooks::onPlaceItemIntoWorld, removed itemstack usage
     public static boolean placeBlock(Player player, BlockEntry blockEntry) {
+        return placeBlock(player, blockEntry, ItemStack.EMPTY);
+    }
+
+    //ForgeHooks::onPlaceItemIntoWorld, removed itemstack usage (consumption is up to the caller)
+    //The template's data components are applied to the placed block; an empty template means a plain stack.
+    public static boolean placeBlock(Player player, BlockEntry blockEntry, ItemStack template) {
 
         Level level = player.level();
-        var itemStack = new ItemStack(blockEntry.item);
+        ItemStack itemStack;
+        if (!template.isEmpty()) {
+            itemStack = template.copyWithCount(1);
+        } else {
+            //Undo re-placements have no item
+            Item item = blockEntry.item != null ? blockEntry.item : blockEntry.newBlockState.getBlock().asItem();
+            itemStack = new ItemStack(item);
+        }
 
         BlockState previous = level.getBlockState(blockEntry.blockPos);
-        BlockHelper.placeSchematicBlock(level, blockEntry.newBlockState, blockEntry.blockPos, itemStack, null);
+        BlockHelper.placeSchematicBlock(level, blockEntry.newBlockState, blockEntry.blockPos, itemStack, null, player);
         return level.getBlockState(blockEntry.blockPos) != previous;
     }
 }

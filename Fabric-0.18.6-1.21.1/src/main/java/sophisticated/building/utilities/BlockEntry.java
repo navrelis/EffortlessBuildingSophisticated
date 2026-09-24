@@ -13,9 +13,16 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import sophisticated.building.SophisticatedBuilding;
+
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 //Common
 public class BlockEntry {
+    //Blocks whose getStateForPlacement exception was already logged
+    private static final Set<Block> BLOCKS_WITH_PLACEMENT_ERRORS = ConcurrentHashMap.newKeySet();
+
     public final BlockPos blockPos;
     public boolean mirrorX;
     public boolean mirrorY;
@@ -56,7 +63,18 @@ public class BlockEntry {
         direction = applyMirror(direction);
         //TODO mirror and rotate relativeHitVec?
         var blockPlaceContext = new MyPlaceContext(world, player, blockPos, direction, itemStack, clickedFace, relativeHitVec);
-        newBlockState = block.getStateForPlacement(blockPlaceContext);
+        try {
+            newBlockState = block.getStateForPlacement(blockPlaceContext);
+        } catch (RuntimeException e) {
+            //Third-party blocks may not expect our placement context; skip this entry instead of crashing
+            newBlockState = null;
+            invalid = true;
+            if (BLOCKS_WITH_PLACEMENT_ERRORS.add(block)) {
+                SophisticatedBuilding.logger.warn("getStateForPlacement of {} threw an exception, marking the entry invalid",
+                        BuiltInRegistries.BLOCK.getKey(block), e);
+            }
+            return;
+        }
         applyMirrorToBlockState();
     }
 
@@ -68,7 +86,7 @@ public class BlockEntry {
     }
     
     private void applyMirrorToBlockState() {
-        if (mirrorY) newBlockState = BlockUtilities.getVerticalMirror(newBlockState);
+        if (mirrorY && newBlockState != null) newBlockState = BlockUtilities.getVerticalMirror(newBlockState);
     }
 
     public static void encode(FriendlyByteBuf buf, BlockEntry block) {
