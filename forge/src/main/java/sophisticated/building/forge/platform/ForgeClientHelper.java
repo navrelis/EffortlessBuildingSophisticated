@@ -9,7 +9,7 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.data.ModelData;
@@ -22,9 +22,9 @@ import java.util.Locale;
 
 public final class ForgeClientHelper implements IClientHelper {
 
-    /** Forge 60 registers no key mapping categories itself: registered with vanilla at once (as on Fabric). */
+    /** Forge 61 registers no key mapping categories itself: registered with vanilla at once (as on Fabric). */
     @Override
-    public KeyMapping.Category createKeyCategory(ResourceLocation id) {
+    public KeyMapping.Category createKeyCategory(Identifier id) {
         return KeyMapping.Category.register(id);
     }
 
@@ -32,9 +32,9 @@ public final class ForgeClientHelper implements IClientHelper {
     public KeyMapping createKeyMapping(String name, int keyCode, boolean controlModifier, KeyMapping.Category category) {
         InputConstants.Key key = keyCode == InputConstants.UNKNOWN.getValue() ? InputConstants.UNKNOWN : InputConstants.Type.KEYSYM.getOrCreate(keyCode);
         if (controlModifier) {
-            return new KeyMapping(name, KeyConflictContext.IN_GAME, KeyModifier.CONTROL, key, category);
+            return new KeyMapping(name, KeyConflictContext.IN_GAME, KeyModifier.CONTROL, key, category, 0);
         }
-        return new KeyMapping(name, KeyConflictContext.IN_GAME, key, category);
+        return new KeyMapping(name, KeyConflictContext.IN_GAME, key, category, 0);
     }
 
     @Override
@@ -69,6 +69,6 @@ public final class ForgeClientHelper implements IClientHelper {
 
     @Override
     public void putQuad(VertexConsumer consumer, PoseStack.Pose pose, BakedQuad quad, float red, float green, float blue, float alpha, int packedLight, int packedOverlay) {
-        consumer.putBulkData(pose, quad, red, green, blue, alpha, packedLight, packedOverlay, true);
+        consumer.putBulkData(pose, quad, red, green, blue, alpha, packedLight, packedOverlay);
     }
 }

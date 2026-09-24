@@ -1,11 +1,12 @@
-# Sophisticated Building - Minecraft 1.21.10
+# Sophisticated Building - Minecraft 1.21.11
 
-This branch (`mc/1.21.10`) holds Sophisticated Building for Minecraft 1.21.10 on Fabric, NeoForge and Forge. It was
-ported from `mc/1.21.8` and keeps its layout: loader-neutral code lives once in `common/`, and every loader folder is
+This branch (`mc/1.21.11`) holds Sophisticated Building for Minecraft 1.21.11 on Fabric, NeoForge and Forge. It was
+ported from `mc/1.21.10` and keeps its layout: loader-neutral code lives once in `common/`, and every loader folder is
 a standalone Gradle build that compiles `common/` together with its own sources into one mod jar.
 
-The jars declare exactly Minecraft 1.21.10: 1.21.9 was not run, so it is not claimed (Sophisticated Backpacks for
-NeoForge 1.21.10 itself requires Minecraft 1.21.10).
+The jars declare exactly Minecraft 1.21.11, the only version they were run on (1.21.11 renamed `ResourceLocation` to
+`Identifier` and rewrote the render types, so 1.21.10 is not binary compatible; Sophisticated Backpacks for NeoForge
+1.21.11 itself requires Minecraft 1.21.11).
 
 ## Layout
 
@@ -19,11 +20,11 @@ common/                    loader-neutral code and assets, no build of its own
   src/smoketest              in-game smoke test harness (dev only, see TESTING.md)
   src/smoketestBackpacks     Sophisticated Backpacks fixture of the harness (NeoForge only)
 fabric/                    Fabric build (Loom): entry points, platform services, JSON config backend, GameTests
-                           (src/gametest); no backpack integration (no Sophisticated Backpacks for Fabric 1.21.10)
+                           (src/gametest); no backpack integration (no Sophisticated Backpacks for Fabric 1.21.11)
 neoforge/                  NeoForge build (ModDevGradle): entry points, platform services, ModConfigSpec configs,
                            power level attachment, Sophisticated Backpacks integration (official build) with Curios fallback
 forge/                     Forge build (ForgeGradle 7): entry points, platform services, ForgeConfigSpec configs,
-                           power level capability; no backpack integration (no Sophisticated Backpacks for Forge 1.21.10)
+                           power level capability; no backpack integration (no Sophisticated Backpacks for Forge 1.21.11)
 changelog/                 patch notes
 build-all.ps1              builds every loader folder in turn
 ```
@@ -41,12 +42,12 @@ The ghost block previews and outlines use the Catnip outliner and GUI widgets ve
 
 | | Fabric | NeoForge | Forge |
 |---|---|---|---|
-| Loader (built against) | Loader 0.19.5, Fabric API 0.138.4+1.21.10 | 21.10.64 | 60.1.15 |
-| Minimum declared | Loader 0.19.5 | 21.10.64 | 60.1.15 |
-| Build plugin, Gradle | Loom 1.17.21, Gradle 9.5.1 | ModDevGradle 2.0.147, Gradle 9.2.1 | ForgeGradle 7.0.40, Gradle 9.3.1 |
-| Sophisticated Backpacks | none | Backpacks 1.21.10-3.26.2.2151, Core 1.21.10-1.5.0.2339 (Modrinth maven) | none |
+| Loader (built against) | Loader 0.19.5, Fabric API 0.141.6+1.21.11 | 21.11.45 | 61.2.1 |
+| Minimum declared | Loader 0.19.5, Fabric API 0.141.6 | 21.11.45; Backpacks 3.26.2, Core 1.5.0 (optional) | 61.2.1 |
+| Build plugin, Gradle | Loom 1.17.21 (`fabric-loom-remap`), Gradle 9.5.1 | ModDevGradle 2.0.147, Gradle 9.2.1 | ForgeGradle 7.0.40, Gradle 9.5.0 |
+| Sophisticated Backpacks | none | Backpacks 1.21.11-3.26.2.2155, Core 1.21.11-1.5.0.2340 (Modrinth maven) | none |
 
-Mappings: Mojang (Fabric, Forge), Mojang + Parchment 2025.10.12 (NeoForge). Java 21. Curios 13.0.0+1.21.10
+Mappings: Mojang (Fabric, Forge), Mojang + Parchment 2025.12.20 (NeoForge). Java 21. Curios 14.0.0+1.21.11
 (NeoForge, compile only and in the smoke runtime).
 
 ## Differences to mc/1.21.1
@@ -82,8 +83,30 @@ Mappings: Mojang (Fabric, Forge), Mojang + Parchment 2025.10.12 (NeoForge). Java
   - `LayeredDraw` is gone: `MaterialCostOverlay` is a plain class; each loader registers its `render` as a HUD layer.
 * **Minecraft 1.21.6 other:** block entity data is loaded through `ValueInput`
   (`TagValueInput.create(ProblemReporter.DISCARDING, ...)`); chunk layers are `ChunkSectionLayer`s, so the ghost blocks
-  draw translucent models with `RenderType.translucentMovingBlock()` (1.21.5: `translucent()`), and
+  draw translucent models with `RenderTypes.translucentMovingBlock()` (1.21.5: `translucent()`), and
   `IClientHelper#collectModelParts` no longer takes a render type.
+* **Minecraft 1.21.9/1.21.10:** key mappings belong to a registered `KeyMapping.Category`
+  (`IClientHelper#createKeyCategory`); widgets and screens receive `MouseButtonEvent`/`KeyEvent` objects and
+  `Button#onPress` an `InputWithModifiers`; the modifier-key checks moved from `Screen` to `Minecraft`
+  (`hasControlDown`/`hasShiftDown`).
+* **Minecraft 1.21.11:**
+  - `ResourceLocation` is `Identifier` (payload ids, key mapping categories, pipelines, textures, packets).
+  - `RenderType` moved to `client.renderer.rendertype` and is a pipeline plus a `RenderSetup` (no `CompositeState`,
+    no static factories; the vanilla ones are in `RenderTypes`). `OutlineRenderTypes` and `BuildRenderTypes` are plain
+    holders of `RenderType.create(name, RenderSetup)`; the line width of the mirror/array lines is a vertex attribute
+    (`setLineWidth(2)` on every vertex, it was `LineStateShard(2)`). The standard ghost block renderer draws with
+    `RenderTypes.solidMovingBlock()` (`RenderType.solid()` is gone; the chunk layers have their own pipelines).
+  - `AbstractButton#renderWidget` is final (it also sets the cursor): the mod's buttons override `renderContents`.
+    `Screen#init`/`resize` no longer take the `Minecraft`.
+  - `GuiGraphics#renderOutline` is back (1.21.10 called it `submitOutline`); `TextureSetup.singleTexture` takes the
+    texture's `GpuSampler`.
+  - Game rules are typed (`GameRules.BLOCK_DROPS`, `level.gamerules` package); the "water evaporates" check of the
+    block placement/break helpers is the `EnvironmentAttributes.WATER_EVAPORATES` attribute at the position (was
+    `DimensionType#ultraWarm`); `/powerlevel` requires `Commands.LEVEL_GAMEMASTERS` (permission level 2 as before);
+    `Camera#position()`; `net.minecraft.util.Util`; `MethodsReturnNonnullByDefault` is gone (annotation dropped).
+  - NeoForge and Forge: `VertexConsumer#putBulkData` has no `readExistingColor` flag any more (quads have no
+    per-vertex colour array; NeoForge multiplies the quad's baked colours in itself). Forge 61: `KeyMapping`
+    constructors take a sort order (0, as vanilla's default).
 * Fabric: no Sophisticated Backpacks integration (the Building Upgrades are placeholder items, their recipes are not
   loaded). The HUD is registered with `HudElementRegistry.addLast` (Fabric API for 1.21.6+ deprecates
   `HudRenderCallback`).
@@ -95,11 +118,12 @@ Mappings: Mojang (Fabric, Forge), Mojang + Parchment 2025.10.12 (NeoForge). Java
   reached through `<Event>.getBus(BusGroup)`, cancelling listeners return `true`; a block break is denied with
   `Result.DENY` (Forge 58 checks the break event's result). The previews, mirror/array lines and outlines are drawn in
   a frame pass added through `AddFramePassEvent` (back in Forge 58), after all vanilla passes (so after the weather
-  too, as on 1.21.4/1.21.5); 1.21.5's `LevelRendererMixin` is gone.
+  too, as on 1.21.4/1.21.5); 1.21.5's `LevelRendererMixin` is gone. As in the Forge 60/61 MDKs, the build runs the
+  `eventbus-validator` annotation processor (7.0.5) on the listeners.
 
 ## Build and test
 
-Each loader folder has its own Gradle wrapper (Fabric: Gradle 9.5.1, NeoForge: Gradle 9.2.1, Forge: Gradle 9.3.1).
+Each loader folder has its own Gradle wrapper (Fabric: Gradle 9.5.1, NeoForge: Gradle 9.2.1, Forge: Gradle 9.5.0).
 Java 21.
 
 ```
