@@ -13,7 +13,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.bus.BusGroup;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.FMLEnvironment;
-import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.registries.DeferredRegister;
 import sophisticated.building.SophisticatedBuilding;
@@ -47,12 +46,8 @@ public final class ForgePlatformHelper implements IPlatformHelper {
     @Override
     public boolean isModLoaded(String modId) {
         try {
-            // ModList is available after mod discovery; fall back to the loading mod list before that
-            var modList = ModList.get();
-            if (modList != null) {
-                return modList.isLoaded(modId);
-            }
-            return FMLLoader.getLoadingModList().getModFileById(modId) != null;
+            // Forge 64: ModList is static; the mod files are known before the mod containers exist
+            return ModList.isLoaded(modId) || ModList.getModFileById(modId) != null;
         } catch (Exception e) {
             // If anything fails, assume not loaded
             return false;
