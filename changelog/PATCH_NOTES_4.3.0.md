@@ -23,9 +23,19 @@ Forge. It has the same features as 4.3.0 for 1.21.1, with these exceptions:
   lines and the preview outlines are drawn in one extra render pass after the rest of the world
   (after the translucent blocks, particles, clouds and weather), as on 1.21.4 to 1.21.10. On
   1.21.1 the outlines were drawn after the particles and before the weather.
+* **Fabric:** the block previews, lines and outlines are drawn at the end of the main world pass
+  (after the translucent blocks, before particles and weather); Fabric API for 1.21.10+ has no
+  "after translucent" hook any more.
+* **Key bindings:** the mod's keys are listed under their own "Sophisticated Building" category
+  as before; the category is registered the way Minecraft 1.21.9+ requires, so a custom language
+  pack has to translate `key.category.sophisticatedbuilding.main` (was
+  `key.sophisticatedbuilding.category`). Existing key bindings keep working.
+* **NeoForge:** the randomizer bags offer their contents to other mods through NeoForge's new
+  item transfer capability (NeoForge 21.10 replaced the old item handler capability).
 * Internally, the menus and HUD were moved to Minecraft 1.21.6's new GUI rendering (the radial
-  menu, the modifier screen widgets and icons, the HUD texts and item counts), and the world
-  previews to Minecraft 1.21.11's render types. They look and work as before.
+  menu, the modifier screen widgets and icons, the HUD texts and item counts) and 1.21.9's new
+  mouse and keyboard input handling, and the world previews to Minecraft 1.21.11's render types.
+  They look and work as before.
 
 The mod no longer bundles Flywheel/Ponder; the rendering helpers it needs for the ghost block
 previews and outlines are included directly (MIT-licensed, attribution included in the jar).
