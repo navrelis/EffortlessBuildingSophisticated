@@ -18,8 +18,8 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.BlockSnapshot;
+import net.minecraftforge.common.util.Result;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.event.level.BlockEvent;
 import sophisticated.building.platform.services.IBlockEventHelper;
@@ -81,11 +81,12 @@ public final class ForgeBlockEventHelper implements IBlockEventHelper {
 
     @Override
     public boolean fireBlockBreakEvent(Level level, BlockPos pos, BlockState state, Player player) {
-        BlockEvent.BreakEvent event = new BlockEvent.BreakEvent(level, pos, state, player);
-        MinecraftForge.EVENT_BUS.post(event);
-        pendingExperiencePos = event.isCanceled() ? null : pos.immutable();
+        // As ForgeHooks.onBlockBreakEvent: the break is denied by the event result (a cancelling listener also denies it)
+        BlockEvent.BreakEvent event = new BlockEvent.BreakEvent(level, pos, state, player, Result.DEFAULT);
+        boolean denied = BlockEvent.BreakEvent.BUS.post(event) || event.getResult().isDenied();
+        pendingExperiencePos = denied ? null : pos.immutable();
         pendingExperience = event.getExpToDrop();
-        return !event.isCanceled();
+        return !denied;
     }
 
     @Override

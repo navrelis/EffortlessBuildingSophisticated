@@ -1,7 +1,7 @@
 package sophisticated.building.forge;
 
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.bus.BusGroup;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -20,12 +20,12 @@ import sophisticated.building.forge.platform.ForgePlatformHelper;
 public class SophisticatedBuildingForge {
 
     public SophisticatedBuildingForge(FMLJavaModLoadingContext context) {
-        IEventBus modEventBus = context.getModEventBus();
+        BusGroup modBusGroup = context.getModBusGroup();
 
         // Fills the deferred registers, which must happen before they are registered to the mod bus.
         SophisticatedBuilding.init();
 
-        ForgePlatformHelper.registerDeferredRegisters(modEventBus);
+        ForgePlatformHelper.registerDeferredRegisters(modBusGroup);
         ForgeNetworking.setupPackets();
 
         // Register config (the SERVER config is per world; Forge syncs it to the clients)
@@ -33,7 +33,7 @@ public class SophisticatedBuildingForge {
         context.registerConfig(ModConfig.Type.SERVER, (ForgeConfigSpec) ServerConfig.spec);
         if (FMLEnvironment.dist.isClient()) {
             context.registerConfig(ModConfig.Type.CLIENT, (ForgeConfigSpec) ClientConfig.spec);
-            SophisticatedBuildingForgeClient.onConstructorClient(modEventBus);
+            SophisticatedBuildingForgeClient.onConstructorClient(modBusGroup);
         }
     }
 }

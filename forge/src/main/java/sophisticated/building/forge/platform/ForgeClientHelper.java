@@ -5,7 +5,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
@@ -56,8 +55,8 @@ public final class ForgeClientHelper implements IClientHelper {
     }
 
     @Override
-    public List<BlockModelPart> collectModelParts(BlockStateModel model, BlockState state, RandomSource random, RenderType renderType) {
-        return model.collectParts(random, ModelData.EMPTY, renderType);
+    public List<BlockModelPart> collectModelParts(BlockStateModel model, BlockState state, RandomSource random) {
+        return model.collectParts(random, ModelData.EMPTY, null);
     }
 
     @Override

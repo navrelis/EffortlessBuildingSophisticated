@@ -1,6 +1,5 @@
 package sophisticated.building.smoketest.forge;
 
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import sophisticated.building.smoketest.client.SmokeClient;
 
@@ -10,7 +9,7 @@ final class ForgeSmokeTestClient {
     }
 
     static void init() {
-        MinecraftForge.EVENT_BUS.addListener(ForgeSmokeTestClient::onClientTickEnd);
+        TickEvent.ClientTickEvent.Post.BUS.addListener(ForgeSmokeTestClient::onClientTickEnd);
         SmokeClient.init();
     }
 

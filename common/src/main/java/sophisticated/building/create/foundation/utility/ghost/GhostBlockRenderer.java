@@ -77,8 +77,8 @@ public abstract class GhostBlockRenderer {
 			Color color = params.rgbSupplier.get();
 
 			BlockStateModel model = dispatcher.getBlockModel(state);
-			RenderType layer = RenderType.translucentMovingBlock();
-			VertexConsumer vb = buffer.getEarlyBuffer(layer);
+			// Translucent block models outside the chunk renderer (1.21.6+: the chunk layers are no render types)
+			VertexConsumer vb = buffer.getEarlyBuffer(RenderType.translucentMovingBlock());
 
 			ms.pushPose();
 			ms.translate(pos.getX(), pos.getY(), pos.getZ());
@@ -88,7 +88,7 @@ public abstract class GhostBlockRenderer {
 			ms.translate(-.5, -.5, -.5);
 
 			renderModel(ms.last(), vb, state, model, color.getRedAsFloat(), color.getGreenAsFloat(), color.getBlueAsFloat(), alpha,
-				LevelRenderer.getLightColor(mc.level, pos), OverlayTexture.NO_OVERLAY, layer);
+				LevelRenderer.getLightColor(mc.level, pos), OverlayTexture.NO_OVERLAY);
 
 			ms.popPose();
 		}
@@ -96,8 +96,8 @@ public abstract class GhostBlockRenderer {
 		// ModelBlockRenderer
 		public void renderModel(PoseStack.Pose pose, VertexConsumer consumer,
 			@Nullable BlockState state, BlockStateModel model, float red, float green, float blue,
-			float alpha, int packedLight, int packedOverlay, RenderType renderType) {
-			for (BlockModelPart part : ClientServices.CLIENT.collectModelParts(model, state, RandomSource.create(42L), renderType)) {
+			float alpha, int packedLight, int packedOverlay) {
+			for (BlockModelPart part : ClientServices.CLIENT.collectModelParts(model, state, RandomSource.create(42L))) {
 				for (Direction direction : Direction.values()) {
 					renderQuadList(pose, consumer, red, green, blue, alpha, part.getQuads(direction), packedLight, packedOverlay);
 				}

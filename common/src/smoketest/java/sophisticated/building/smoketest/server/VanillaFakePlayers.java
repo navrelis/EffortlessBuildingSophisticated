@@ -1,9 +1,9 @@
 package sophisticated.building.smoketest.server;
 
 import com.mojang.authlib.GameProfile;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.embedded.EmbeddedChannel;
 import net.minecraft.network.Connection;
-import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.server.MinecraftServer;
@@ -39,7 +39,7 @@ public final class VanillaFakePlayers {
             }
 
             @Override
-            public void send(Packet<?> packet, @Nullable PacketSendListener listener) {
+            public void send(Packet<?> packet, @Nullable ChannelFutureListener listener) {
             }
         };
         player.setGameMode(gameType);

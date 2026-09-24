@@ -10,7 +10,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.bus.BusGroup;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.loading.FMLLoader;
@@ -33,10 +33,10 @@ public final class ForgePlatformHelper implements IPlatformHelper {
     private static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, SophisticatedBuilding.MODID);
 
     /** Registers the deferred registers filled by {@code SophisticatedBuilding}'s initialisation. */
-    public static void registerDeferredRegisters(IEventBus modEventBus) {
-        ITEMS.register(modEventBus);
-        CONTAINERS.register(modEventBus);
-        CREATIVE_MODE_TABS.register(modEventBus);
+    public static void registerDeferredRegisters(BusGroup modBusGroup) {
+        ITEMS.register(modBusGroup);
+        CONTAINERS.register(modBusGroup);
+        CREATIVE_MODE_TABS.register(modBusGroup);
     }
 
     @Override
