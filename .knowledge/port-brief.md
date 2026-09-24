@@ -36,3 +36,30 @@
 2. Every behaviour difference to mc/1.21.1 and why.
 3. Commands run with results (counts, exact lines).
 4. Notes for the next port in the chain (what was hardest, what to watch).
+
+## One game window at a time (all agents, session 2026-09-25)
+Several agents work in parallel, but the user wants as few game windows as possible. Before you start ANY Minecraft
+client (runClient, runSmokeClient, runGametest does not count), take the window lock
+`C:\Users\nikol\Desktop\Coding\EffortlessBuildingSophisticated\local\game-window.lock`:
+- If the file exists and its LastWriteTime is less than 20 minutes old, wait (poll every 30 s; do other work meanwhile).
+  Older than 20 minutes = stale: delete it.
+- Create it atomically: `New-Item -ItemType File -Path <lock> -Value "<your task id> <ISO time>" -ErrorAction Stop`
+  (if that throws, someone else was faster: wait again).
+- Delete it as soon as your client process has exited or you killed it (also on failure). Never hold it while you
+  edit code. Dedicated servers and runSmokeServer need no lock (no window).
+
+## Smoke harness adoption (H* tasks)
+Reference = mc/1.21.1 commit 4354629 (worktree `versions\1.21.1`, read-only): `common/src/smoketest`,
+`common/src/smoketestBackpacks`, `<loader>/src/smoketest`, `gradle/smoketest.gradle`, the smoke wiring in each
+`<loader>/build.gradle` (+ `fabric/gradle.properties`), branch `TESTING.md`, README testing section. `git show 4354629`
+shows every file. Port it to your branch with the smallest possible API adaptations:
+- `runSmokeClient` and `runSmokeServer` on every loader folder of the branch, same result contract, same check names.
+- `sb.*` checks only on loaders that register `META-INF/services/...IBackpackIntegration`; the other loaders must not
+  compile against SB (drop the smoketestBackpacks source set there, exactly like forge on 1.21.1).
+- Keep the harness dev-only (never in the release jar: check the jar listing).
+- Also port the two T1 production fixes from 4354629 if missing on your branch: Fabric `FabricCommonEvents` held-slot
+  resend when a build click cancels vanilla placement; Forge `src/main/templates/pack.mcmeta` supported_formats
+  (use this version's resource/data pack formats). Plus anything else 4354629 changed in `src/main`.
+- Done = on every loader: `gradlew build` green (report test counts), `runSmokeServer` passes, `runSmokeClient` passes
+  (report every check line; SB loaders must show passing `sb.*` checks), screenshots look right (open 2-3 PNGs and
+  say what you see), release jar contains no smoketest classes. Every client under the window lock above.
