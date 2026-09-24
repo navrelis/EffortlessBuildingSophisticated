@@ -62,7 +62,7 @@ This release reorganizes the mod internally; there is no change to how it plays.
 
 * Minecraft 1.20.1, Java 17.
 * Fabric Loader 0.19.5 or newer (built and tested against 0.19.5).
-* Fabric API 0.92.12+1.20.1.
+* Fabric API 0.92.12+1.20.1 or newer.
 * Optional: Sophisticated Core/Backpacks, unofficial Fabric port for 1.20.1 (tested with Core
   1.20.1-1.2.7.15.166, CurseForge file 7341057, and Backpacks 1.20.1-3.23.4.5.110, file 7147929,
   with Forge Config API Port v8.0.3-1.20.1-Fabric, which they need). Trinkets 3.7.2 (worn
