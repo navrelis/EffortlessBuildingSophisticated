@@ -29,3 +29,12 @@ for the version. Backpacks integration only where SB exists for that loader+vers
 - No secrets, no third-party jars in git. Never force-push.
 - Commit trailer: `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 - Never stage graphify-out/ in feature commits; refresh the graph at the end (incremental recipe, never plain `graphify update .`).
+
+## User addition (2026-09-24, during the ports)
+- "When finished, run a test script for all versions that checks everything works." -> automated all-versions test
+  script on main (build, unit tests, GameTests, server + client in-game smoke scenarios per loader), run at the end
+  over every branch; results in the final report. User observed a "very buggy" Forge window during the work
+  (details not given; our agents' smoke-test clients run automated check hooks and unfinished ports).
+- User addition: the tests must also prove the mod works WITH Sophisticated Backpacks (not only build/start):
+  in-world checks where SB exists - Building Upgrade supplies blocks, disabled upgrade ignored, tier cap, HUD count
+  sync, Tool Swapper tools for survival breaking, worn backpack (Curios/Trinkets/Accessories where present).

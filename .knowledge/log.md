@@ -12,3 +12,11 @@
 - 2026-09-24 F4 review #2: accepted (floors 0.18.6 / 21.1.217 in jars, Fabric 77 + NeoForge 65 tests green). Commit f78e720 on mc/1.21.1.
 - 2026-09-24 P-B1 1.20.4 port (fabric+neoforge) -> Opus (worktree versions/1.20.4); F6a hub restructure -> Sonnet (main root): started.
 - 2026-09-24 F6a review: accepted (hub tree, scripts tested, 2 script bugs self-fixed). Follow-up for F6b: README quick start runs fetch-upstream from a version worktree (wrong path).
+- 2026-09-24 F2 review #1: 1 correction (ForgeNetworking swallows handler exceptions without failure key -> log). Forge compiles vs 52.1.2 (first with AddGuiOverlayLayersEvent); recipes got forge:condition; no clientExported/mixin config on Forge (accepted).
+- 2026-09-24 F2 review #2: accepted (logging fix; lead build-all: fabric 77, neoforge 65, forge 65 green). Commit 56a1cee pushed to mc/1.21.1.
+- 2026-09-24 P-F1 1.21.4 port -> Opus (worktree versions/1.21.4), F5 CI + release script -> Sonnet (versions/1.21.1): started. Shared port brief written (scratchpad PORT_BRIEF.md).
+- 2026-09-24 F5 review: accepted (generic loader discovery, ci_gradle_jdk, release.ps1 idempotent). Commit 1d1b220 pushed; first CI run 36035996991 watched.
+- 2026-09-24 CI run 36035996991 on mc/1.21.1: success (fabric build+gametest, neoforge, forge in 4.5 min). Follow-up: bump actions to v5 (Node 20 deprecation warnings) in the workflow before copying it to other branches.
+- 2026-09-24 P-B1 review: accepted (lead verified: fabric 77, neoforge 65, GameTests 18/18 = 17 ours + Porting Lib self-test). Commit be595ac pushed to mc/1.20.4. Found bug B1 (Omega bag screen leaks a native BufferBuilder per badge per frame, also on 1.21.1).
+- 2026-09-24 Rule: agents always --no-daemon, never `gradlew --stop` (it killed another agent's daemons). Brief updated.
+- 2026-09-24 T1 smoke harness incl. SB checks -> Opus (versions/1.21.1); F7 infra templates -> Sonnet (main + versions/1.20.4); T2 moved to a detached test worktree local/t2-test.

@@ -22,18 +22,28 @@ version needs, the API breaks to expect, and what "done" means for a port. Read
    Sophisticated Backpacks/Core dependency coordinates for this Minecraft version (see
    `upstream/README.md`'s file matrix and `upstream/manifest.json` for exact file names/CurseMaven
    coordinates). Add a `forge/` folder alongside `fabric/`/`neoforge/` if the branch targets Forge.
-5. **Port `common/`** against the new Minecraft version, fixing the API breaks listed below for
+5. **Run `scripts/sync-branch-infra.ps1` for the new branch** (from `main`, e.g.
+   `pwsh scripts/sync-branch-infra.ps1 -Mc <version>` once the worktree exists — see the last
+   paragraph of this step-by-step list for registering it): copies the canonical
+   `.github/workflows/build.yml`, `release.ps1` and `build-all.ps1` from `templates/branch/` onto
+   the new branch's worktree, and appends `ci_gradle_jdk=<value>` to each loader's
+   `gradle.properties` if it's missing (`-GradleJdk` to override the default of 21 when this
+   branch's toolchain needs a different Gradle JVM — see the toolchain matrix's Gradle JVM
+   constraints, e.g. ForgeGradle 6 needs JDK 17). Commit the result in the branch's own worktree;
+   the script itself never commits. See `docs/RELEASING.md`'s CI section for the full
+   templates + sync workflow.
+6. **Port `common/`** against the new Minecraft version, fixing the API breaks listed below for
    every version between the source branch and the target. `checkCommonIsLoaderNeutral` (part of
    `check`) will fail the build if a fix accidentally reaches for a loader or optional-mod API
    directly instead of going through `platform.services`.
-6. **Port each loader's service implementations** (`platform/services/*` implementations,
+7. **Port each loader's service implementations** (`platform/services/*` implementations,
    registered in `META-INF/services`) and entry points. Wire up `IBackpackIntegration` against the
    Sophisticated Backpacks/Core version for this (loader, Minecraft version) pair if one exists
    (see `upstream/README.md`); otherwise ship no `IBackpackIntegration` registration at all, so
    `Services.backpacks()` falls back to `IBackpackIntegration.NONE` (see `docs/ARCHITECTURE.md`).
-7. **Update the branch's own `README.md`** (mirror `mc/1.21.1`'s) and `changelog/` with anything
+8. **Update the branch's own `README.md`** (mirror `mc/1.21.1`'s) and `changelog/` with anything
    version-specific.
-8. **Work through the definition of done** below before calling the port finished, and update
+9. **Work through the definition of done** below before calling the port finished, and update
    `README.md`'s support matrix status on `main` once it's released.
 
 Locally, register the new branch as a worktree with `scripts/setup-worktrees.ps1` (run from `main`)

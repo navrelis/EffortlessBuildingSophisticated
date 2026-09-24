@@ -37,10 +37,11 @@ tracks itself on its own branch.
 ```powershell
 # from the main checkout, PowerShell 7 (pwsh)
 git fetch origin
-pwsh scripts/setup-worktrees.ps1          # creates versions/<mc> for every origin/mc/* branch
+pwsh scripts/setup-worktrees.ps1              # creates versions/<mc> for every origin/mc/* branch
+pwsh upstream/fetch-upstream.ps1 -Mc 1.21.1   # run from the main checkout root — upstream/ exists only on main,
+                                               # not inside a versions/<mc> worktree
 cd versions/1.21.1
-pwsh upstream/fetch-upstream.ps1 -Mc 1.21.1   # or: cd back to repo root first
-./build-all.ps1                            # builds every loader folder of that branch
+./build-all.ps1                                # builds every loader folder of that branch
 ```
 
 See `docs/PORTING.md` for how to create a new version branch, `docs/RELEASING.md` for cutting a
@@ -87,9 +88,15 @@ docs/
   PORTING.md               how to create/port a new mc/<version> branch, toolchain matrix, API-break list
   RELEASING.md             how to cut a release: version bump, build, jars, changelog, tagging
   history/                 superseded analysis notes and per-version patch notes, unchanged
+templates/
+  branch/                  canonical per-branch CI/build/release infra (.github/workflows/build.yml,
+                           release.ps1, build-all.ps1), synced onto every mc/<version> branch — see
+                           docs/RELEASING.md's CI section
 scripts/
   setup-worktrees.ps1      creates/prunes the versions/<mc> git worktrees from origin/mc/* branches
   build-all-versions.ps1   runs build-all.ps1 inside every versions/<mc> worktree
+  sync-branch-infra.ps1    copies templates/branch/ into one or more versions/<mc> worktrees, reports
+                           a diff summary, never commits; -Check exits non-zero on drift
 upstream/
   manifest.json            reproducible list of Sophisticated Backpacks/Core CurseForge files used for reference
   fetch-upstream.ps1        downloads the jars manifest.json describes
