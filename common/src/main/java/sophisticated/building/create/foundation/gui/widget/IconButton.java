@@ -27,7 +27,7 @@ public class IconButton extends AbstractSimiWidget {
 			AllGuiTextures button = !active ? AllGuiTextures.BUTTON_DOWN
 				: isMouseOver(mouseX, mouseY) ? AllGuiTextures.BUTTON_HOVER : AllGuiTextures.BUTTON;
 
-			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+			RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 			drawBg(graphics, button);
 			icon.render(graphics, getX() + 1, getY() + 1);
 		}

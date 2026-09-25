@@ -49,7 +49,7 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
 
         for (int i = 0; i < slots && totalExtracted < amount; i++) {
             ItemStack slotStack = inventoryHandler.getStackInSlot(i);
-            if (!slotStack.isEmpty() && ItemStack.isSameItemSameTags(slotStack, item)) {
+            if (!slotStack.isEmpty() && (ItemStack.isSame(slotStack, item) && ItemStack.tagMatches(slotStack, item))) {
                 int wantFromSlot = Math.min(amount - totalExtracted, slotStack.getCount());
 
                 int extractedFromSlot = 0;
@@ -92,7 +92,7 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
 
         for (int i = 0; i < slots; i++) {
             ItemStack slotStack = inventoryHandler.getStackInSlot(i);
-            if (!slotStack.isEmpty() && ItemStack.isSameItemSameTags(slotStack, item)) {
+            if (!slotStack.isEmpty() && (ItemStack.isSame(slotStack, item) && ItemStack.tagMatches(slotStack, item))) {
                 count += slotStack.getCount();
             }
         }

@@ -39,7 +39,7 @@ public class BuilderFilter {
             BlockState blockState = blockEntry.existingBlockState;
             boolean remove = false;
 
-            if (buildSettings.shouldProtectTileEntities() && blockState.hasBlockEntity()) remove = true;
+            if (buildSettings.shouldProtectTileEntities() && blockState.getBlock().isEntityBlock()) remove = true;
 
             if (placing && !buildSettings.shouldReplaceFiltered()) {
                 if (!buildSettings.shouldReplaceAir() && blockState.isAir()) remove = true;

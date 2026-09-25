@@ -39,7 +39,7 @@ public class ItemHelper {
 
 	public static void addToList(ItemStack stack, List<ItemStack> stacks) {
 		for (ItemStack s : stacks) {
-			if (!ItemStack.isSameItemSameTags(stack, s))
+			if (!(ItemStack.isSame(stack, s) && ItemStack.tagMatches(stack, s)))
 				continue;
 			int transferred = Math.min(s.getMaxStackSize() - s.getCount(), stack.getCount());
 			s.grow(transferred);
@@ -121,7 +121,7 @@ public class ItemHelper {
 			return true;
 		if (stacks1.length == stacks2.length) {
 			for (int i = 0; i < stacks1.length; i++)
-				if (!stacks1[i].is(stacks2[i].getItem()))
+				if (!(stacks1[i].getItem() == stacks2[i].getItem()))
 					return false;
 			return true;
 		}
@@ -198,7 +198,7 @@ public class ItemHelper {
 
 			if (!extracting.isEmpty() && !hasEnoughItems && potentialOtherMatch) {
 				ItemStack blackListed = extracting.copy();
-				test = test.and(i -> !ItemStack.isSameItemSameTags(i, blackListed));
+				test = test.and(i -> !(ItemStack.isSame(i, blackListed) && ItemStack.tagMatches(i, blackListed)));
 				continue;
 			}
 
@@ -253,7 +253,7 @@ public class ItemHelper {
 	}
 
 	public static boolean canItemStackAmountsStack(ItemStack a, ItemStack b) {
-		return ItemStack.isSameItemSameTags(a, b) && a.getCount() + b.getCount() <= a.getMaxStackSize();
+		return (ItemStack.isSame(a, b) && ItemStack.tagMatches(a, b)) && a.getCount() + b.getCount() <= a.getMaxStackSize();
 	}
 
 	public static ItemStack findFirstMatch(IItemHandler inv, Predicate<ItemStack> test) {

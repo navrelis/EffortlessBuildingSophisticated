@@ -88,7 +88,7 @@ public class ServerBlockPlacer {
         for (Iterator<DelayedEntry> iterator = delayedEntries.iterator(); iterator.hasNext(); ) {
             DelayedEntry entry = iterator.next();
             // Check if player is still valid/online to avoid crashes
-            if (entry.player.isRemoved()) {
+            if (entry.player.removed) {
                 iterator.remove();
                 continue;
             }
@@ -412,7 +412,7 @@ public class ServerBlockPlacer {
 
     private boolean checkAndNotifyAllowedToUseMod(Player player) {
 
-        if (!player.getAbilities().mayBuild) {
+        if (!player.abilities.mayBuild) {
             SophisticatedBuilding.log(player, ChatFormatting.RED + "You are not allowed to build.");
             return false;
         }

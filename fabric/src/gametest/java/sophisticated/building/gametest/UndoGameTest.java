@@ -31,7 +31,7 @@ public class UndoGameTest implements FabricGameTest {
     public void doubleSlabUndoChargesTwoSlabs(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
         GameTestSupport.ConfigScope config = ConfigScope.baseline();
-        player.getInventory().setItem(AXE_SLOT, new ItemStack(Items.IRON_AXE));
+        player.inventory.setItem(AXE_SLOT, new ItemStack(Items.IRON_AXE));
         BlockState dbl = Blocks.OAK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
         helper.setBlock(REL, dbl);
         UndoRedo undo = SophisticatedBuilding.UNDO_REDO;
@@ -42,7 +42,7 @@ public class UndoGameTest implements FabricGameTest {
                 .thenWaitUntil(() -> helper.assertBlockPresent(Blocks.AIR, REL))
                 .thenExecute(() -> {
                     expectEquals(helper, "oak slabs from breaking the double slab", 2, count(player, Items.OAK_SLAB));
-                    expectEquals(helper, "axe damage", 1, player.getInventory().getItem(AXE_SLOT).getDamageValue());
+                    expectEquals(helper, "axe damage", 1, player.inventory.getItem(AXE_SLOT).getDamageValue());
                     FixedStack<BlockSet> stack = undo.undoStacks.get(player.getUUID());
                     assertTrue(stack != null && !stack.isEmpty(), "The break should be on the undo stack");
 
@@ -56,7 +56,7 @@ public class UndoGameTest implements FabricGameTest {
                     assertTrue(!stack.isEmpty(), "The failed undo should stay on the undo stack");
 
                     //Two slabs: restored as a double slab, both charged
-                    player.getInventory().add(new ItemStack(Items.OAK_SLAB, 1));
+                    player.inventory.add(new ItemStack(Items.OAK_SLAB, 1));
                     expectEquals(helper, "oak slabs before the second undo", 2, count(player, Items.OAK_SLAB));
                     assertTrue(undo.undo(player), "undo() should find the retried set");
                     expectState(helper, REL, dbl);
@@ -71,10 +71,10 @@ public class UndoGameTest implements FabricGameTest {
     }
 
     private static void removeOneSlab(ServerPlayer player) {
-        Inventory inventory = player.getInventory();
+        Inventory inventory = player.inventory;
         for (int i = 0; i < inventory.getContainerSize(); i++) {
             ItemStack stack = inventory.getItem(i);
-            if (stack.is(Items.OAK_SLAB)) {
+            if ((stack.getItem() == Items.OAK_SLAB)) {
                 stack.shrink(1);
                 return;
             }

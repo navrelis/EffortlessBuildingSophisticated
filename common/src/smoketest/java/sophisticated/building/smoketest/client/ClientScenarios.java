@@ -304,12 +304,12 @@ final class ClientScenarios {
             firstClick(start, new Vec3(start.getX() + 2.5, groundY, start.getZ() + 3.5), groundTop(start));
             aimSecond(groundTop(start.east(LINE_LENGTH - 1)), LINE_LENGTH);
         }
-        int stoneBefore = d.server(server -> ClientDriver.count(ClientDriver.serverPlayer(server).getInventory(), Items.STONE));
+        int stoneBefore = d.server(server -> ClientDriver.count(ClientDriver.serverPlayer(server).inventory, Items.STONE));
         d.rightClick();
         waitForBlocks(expected, Blocks.STONE, "the line");
         d.waitTicks(10);
         expectOnly(expected, Blocks.STONE, start.west(), start.east(LINE_LENGTH), start.above(), start.north(), start.south());
-        int stoneAfter = d.server(server -> ClientDriver.count(ClientDriver.serverPlayer(server).getInventory(), Items.STONE));
+        int stoneAfter = d.server(server -> ClientDriver.count(ClientDriver.serverPlayer(server).inventory, Items.STONE));
         expectEquals("stone in the creative inventory (nothing consumed)", stoneBefore, stoneAfter);
         d.screenshot("line_placed");
         return "Second click placed " + expected.size() + " stone " + expected.get(0).toShortString() + ".." + expected.get(expected.size() - 1).toShortString()
@@ -477,7 +477,7 @@ final class ClientScenarios {
         String accessoryReason = d.server(server -> {
             // Probe the accessory slot with an empty backpack; the scenario equips its own one
             ServerPlayer player = ClientDriver.serverPlayer(server);
-            player.getInventory().clearContent();
+            player.inventory.clearContent();
             String reason = backpacks.equipInAccessorySlot(player, backpacks.createBackpack(0, false, false, Collections.emptyList()));
             clearAccessory(backpacks, player);
             return reason;
@@ -494,7 +494,7 @@ final class ClientScenarios {
     }
 
     private ItemStack backpackInSlot(ServerPlayer player, int slot) {
-        ItemStack stack = player.getInventory().getItem(slot);
+        ItemStack stack = player.inventory.getItem(slot);
         if (stack.isEmpty()) throw new AssertionError("The backpack is no longer in inventory slot " + slot);
         return stack;
     }
@@ -502,9 +502,9 @@ final class ClientScenarios {
     private String hudCountSynced(SmokeBackpacks backpacks, BackpackHolder holder) {
         d.server(server -> {
             ServerPlayer player = ClientDriver.serverPlayer(server);
-            player.getInventory().clearContent();
-            player.getInventory().setItem(0, new ItemStack(Items.STONE, 1));
-            player.getInventory().setItem(holder.slot, backpacks.createBackpack(1, true, false, Collections.singletonList(new ItemStack(Items.STONE, 64))));
+            player.inventory.clearContent();
+            player.inventory.setItem(0, new ItemStack(Items.STONE, 1));
+            player.inventory.setItem(holder.slot, backpacks.createBackpack(1, true, false, Collections.singletonList(new ItemStack(Items.STONE, 64))));
             return null;
         });
         d.selectHotbarSlot(0);
@@ -578,7 +578,7 @@ final class ClientScenarios {
             ServerPlayer player = ClientDriver.serverPlayer(server);
             ItemStack backpack = backpackInSlot(player, holder.slot);
             backpacks.setBuildingUpgradeEnabled(backpack, false);
-            player.getInventory().setItem(0, new ItemStack(Items.STONE, held));
+            player.inventory.setItem(0, new ItemStack(Items.STONE, held));
             return backpacks.count(backpack, Items.STONE);
         });
         d.waitUntil("the client to see no active Building Upgrade", 100, () -> !ClientBuildingUpgradeState.hasUpgrade());
@@ -608,15 +608,15 @@ final class ClientScenarios {
         List<BlockPos> line = row(start, LINE_LENGTH);
         d.server(server -> {
             ServerPlayer player = ClientDriver.serverPlayer(server);
-            player.getInventory().clearContent();
-            player.getInventory().setItem(0, new ItemStack(Items.STICK));
-            player.getInventory().setItem(1, backpacks.createBackpack(0, false, true, Collections.singletonList(new ItemStack(Items.DIAMOND_PICKAXE))));
+            player.inventory.clearContent();
+            player.inventory.setItem(0, new ItemStack(Items.STICK));
+            player.inventory.setItem(1, backpacks.createBackpack(0, false, true, Collections.singletonList(new ItemStack(Items.DIAMOND_PICKAXE))));
             return null;
         });
         placeDirectly(line, Blocks.STONE);
         d.selectHotbarSlot(0);
         d.waitUntil("the client to learn the pickaxe in the backpack's Tool Swapper", 100,
-                () -> ClientBackpackToolCache.snapshot().stream().anyMatch(stack -> stack.is(Items.DIAMOND_PICKAXE)));
+                () -> ClientBackpackToolCache.snapshot().stream().anyMatch(stack -> (stack.getItem() == Items.DIAMOND_PICKAXE)));
 
         firstBreakClick(start);
         Preview preview = aimSecond(groundTop(start.east(LINE_LENGTH - 1)), LINE_LENGTH);
@@ -625,7 +625,7 @@ final class ClientScenarios {
         waitForBlocks(line, Blocks.AIR, "the survival break with the backpack's pickaxe", 300);
         d.waitTicks(5);
 
-        int damage = d.server(server -> backpacks.find(ClientDriver.serverPlayer(server).getInventory().getItem(1), Items.DIAMOND_PICKAXE).getDamageValue());
+        int damage = d.server(server -> backpacks.find(ClientDriver.serverPlayer(server).inventory.getItem(1), Items.DIAMOND_PICKAXE).getDamageValue());
         int cobblestone = serverCount(Items.COBBLESTONE);
         expectEquals("damage of the pickaxe in the backpack", LINE_LENGTH, damage);
         expectEquals("cobblestone dropped into the inventory", LINE_LENGTH, cobblestone);
@@ -636,9 +636,9 @@ final class ClientScenarios {
     private String wornBackpack(SmokeBackpacks backpacks, String accessory, BlockPos start) {
         String slotName = d.server(server -> {
             ServerPlayer player = ClientDriver.serverPlayer(server);
-            player.getInventory().clearContent();
+            player.inventory.clearContent();
             clearAccessory(backpacks, player);
-            player.getInventory().setItem(0, new ItemStack(Items.STONE, 1));
+            player.inventory.setItem(0, new ItemStack(Items.STONE, 1));
             ItemStack backpack = backpacks.createBackpack(1, true, false, Collections.singletonList(new ItemStack(Items.STONE, 64)));
             if (accessory == null) {
                 player.setItemSlot(EquipmentSlot.CHEST, backpack);
@@ -721,7 +721,7 @@ final class ClientScenarios {
         return "BuilderChain start " + (start == null ? "none" : start.blockPos.toShortString()) + ", state " + chain.getBuildingState()
                 + ", abilities " + chain.getAbilitiesState() + ", mode " + SophisticatedBuildingClient.BUILD_MODES.getBuildMode()
                 + ", game mode " + d.mc.gameMode.getPlayerMode() + ", power level " + AttachmentHandler.getPowerLevel(d.mc.player)
-                + ", player at " + d.mc.player.position() + " yaw " + d.mc.player.getYRot() + " pitch " + d.mc.player.getXRot()
+                + ", player at " + d.mc.player.position() + " yaw " + d.mc.player.yRot + " pitch " + d.mc.player.xRot
                 + ", crosshair " + (d.mc.hitResult == null ? "none" : d.mc.hitResult.getType() + " " + d.mc.hitResult.getLocation())
                 + ", screen " + (d.mc.screen == null ? "none" : d.mc.screen.getClass().getSimpleName());
     }
@@ -817,9 +817,9 @@ final class ClientScenarios {
     private void giveHotbar(ItemStack... stacks) {
         d.server(server -> {
             ServerPlayer player = ClientDriver.serverPlayer(server);
-            player.getInventory().clearContent();
+            player.inventory.clearContent();
             for (int i = 0; i < stacks.length; i++) {
-                player.getInventory().setItem(i, stacks[i].copy());
+                player.inventory.setItem(i, stacks[i].copy());
             }
             return null;
         });
@@ -829,7 +829,7 @@ final class ClientScenarios {
     }
 
     private int serverCount(Item item) {
-        return d.server(server -> ClientDriver.count(ClientDriver.serverPlayer(server).getInventory(), item));
+        return d.server(server -> ClientDriver.count(ClientDriver.serverPlayer(server).inventory, item));
     }
 
     private void placeDirectly(List<BlockPos> positions, Block block) {

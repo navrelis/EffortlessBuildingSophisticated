@@ -10,10 +10,10 @@ import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingEquipmentChangeEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.fmlserverevents.FMLServerStoppedEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
 import sophisticated.building.CommonEvents;
 import sophisticated.building.SophisticatedBuilding;
 
@@ -53,12 +53,11 @@ public class ForgeCommonEvents {
 			//Notify client to not decrease itemstack
 			if (player instanceof ServerPlayer) {
 				ServerPlayer serverPlayer = (ServerPlayer) player;
-				int slotIndex = 36 + serverPlayer.getInventory().selected;
+				int slotIndex = 36 + serverPlayer.inventory.selected;
 				serverPlayer.connection.send(new ClientboundContainerSetSlotPacket(
 						serverPlayer.inventoryMenu.containerId,
-						serverPlayer.inventoryMenu.incrementStateId(),
 						slotIndex,
-						serverPlayer.getInventory().getSelected()
+						serverPlayer.inventory.getSelected()
 				));
 			}
 		}
@@ -90,13 +89,11 @@ public class ForgeCommonEvents {
 		Player original = event.getOriginal();
 		Player clone = event.getPlayer();
 
-		// Copy the power level from the original player to the clone, on both death (whose capabilities
-		// Forge has invalidated already) and return from the End
-		original.reviveCaps();
+		// Copy the power level from the original player to the clone, on both death and return from the End (Forge 1.16.5
+		// keeps the original's capabilities valid during the event, no revive needed)
 		if (PowerLevelCapability.has(original)) {
 			PowerLevelCapability.set(clone, PowerLevelCapability.get(original));
 		}
-		original.invalidateCaps();
 	}
 
 	@SubscribeEvent

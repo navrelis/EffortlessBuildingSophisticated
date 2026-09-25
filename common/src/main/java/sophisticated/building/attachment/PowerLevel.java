@@ -104,13 +104,13 @@ public class PowerLevel {
 	// True when the player may use build-mode breaking (creative always; survival when the
 	// survival-breaking config switch is enabled - see ServerConfig.survivalBreaking).
 	public boolean canBreakFar(Player player) {
-		return player.getAbilities().instabuild || ServerConfig.survivalBreaking.enabled.get();
+		return player.abilities.instabuild || ServerConfig.survivalBreaking.enabled.get();
 	}
 
 	// True when the player may use the replace modes and Quick Replace (creative always; survival when the
 	// survival-replace config switch is enabled - replaced blocks are then mined, see ServerBlockPlacer).
 	public boolean canReplaceBlocks(Player player) {
-		return player.getAbilities().instabuild || ServerConfig.survivalReplace.enabled.get();
+		return player.abilities.instabuild || ServerConfig.survivalReplace.enabled.get();
 	}
 
 	public CompoundTag serializeNBT() {

@@ -4,7 +4,6 @@ import sophisticated.building.create.catnip.gui.TickableGuiEventListener;
 import sophisticated.building.client.gui.GuiGraphics;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 import sophisticated.building.create.foundation.utility.Components;
 
@@ -97,11 +96,6 @@ public abstract class AbstractSimiWidget extends AbstractWidget implements Ticka
 	@Override
 	public void onClick(double mouseX, double mouseY) {
 		runCallback(mouseX, mouseY);
-	}
-
-	@Override
-	public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
-		defaultButtonNarrationText(pNarrationElementOutput);
 	}
 
 	// Minecraft 1.19.2 widgets have public x/y fields and no accessors: the accessors of 1.19.3+ for the shared code

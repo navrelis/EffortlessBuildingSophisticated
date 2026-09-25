@@ -7,12 +7,11 @@ import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Vector3f;
 import sophisticated.building.create.catnip.data.Couple;
 import sophisticated.building.create.catnip.theme.Color;
 import sophisticated.building.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.GameRenderer;
+import org.lwjgl.opengl.GL11;
 
 /**
  * Adapted from Catnip ({@code sophisticated.building.create.catnip.gui.UIRenderHelper}, MIT License, Copyright (c)
@@ -65,17 +64,18 @@ public class UIRenderHelper {
 		RenderSystem.enableDepthTest();
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
+		GuiGraphics.beginPositionColor();
 
 		Tesselator tesselator = Tesselator.getInstance();
 		BufferBuilder buffer = tesselator.getBuilder();
-		buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+		buffer.begin(GL11.GL_QUADS, DefaultVertexFormat.POSITION_COLOR);
 		buffer.vertex(mat, right, top, zLevel).color(startColor.getRed(), startColor.getGreen(), startColor.getBlue(), startColor.getAlpha()).endVertex();
 		buffer.vertex(mat, left, top, zLevel).color(startColor.getRed(), startColor.getGreen(), startColor.getBlue(), startColor.getAlpha()).endVertex();
 		buffer.vertex(mat, left, bottom, zLevel).color(endColor.getRed(), endColor.getGreen(), endColor.getBlue(), endColor.getAlpha()).endVertex();
 		buffer.vertex(mat, right, bottom, zLevel).color(endColor.getRed(), endColor.getGreen(), endColor.getBlue(), endColor.getAlpha()).endVertex();
 		buffer.end();
 		BufferUploader.end(buffer);
+		GuiGraphics.endPositionColor();
 
 		RenderSystem.disableBlend();
 	}

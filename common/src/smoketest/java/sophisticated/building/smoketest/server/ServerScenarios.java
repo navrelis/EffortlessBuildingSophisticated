@@ -58,7 +58,7 @@ public final class ServerScenarios {
 
     public static void server_place_line_survival(GameTestHelper helper) {
         ServerPlayer player = player(helper);
-        player.getInventory().setItem(0, new ItemStack(Items.OAK_PLANKS, 64));
+        player.inventory.setItem(0, new ItemStack(Items.OAK_PLANKS, 64));
         List<BlockPos> line = row(helper, LINE);
         sendPlace(player, placeSet(line, Blocks.OAK_PLANKS.defaultBlockState()));
 
@@ -66,7 +66,7 @@ public final class ServerScenarios {
                 .thenWaitUntil(() -> expectAll(helper, line, Blocks.OAK_PLANKS))
                 .thenIdle(5)
                 .thenExecute(() -> {
-                    expectEquals(helper, "oak planks left", 64 - LINE, count(player.getInventory(), Items.OAK_PLANKS));
+                    expectEquals(helper, "oak planks left", 64 - LINE, count(player.inventory, Items.OAK_PLANKS));
                     DETAILS.put("server.place_line_survival", "Survival player placed a " + LINE + " block line through ServerPlaceBlocksPacket, "
                             + LINE + " planks consumed");
                 })
@@ -76,8 +76,8 @@ public final class ServerScenarios {
 
     public static void server_undo_redo(GameTestHelper helper) {
         ServerPlayer player = player(helper);
-        player.getInventory().setItem(0, new ItemStack(Items.OAK_PLANKS, 64));
-        player.getInventory().setItem(8, new ItemStack(Items.IRON_AXE));
+        player.inventory.setItem(0, new ItemStack(Items.OAK_PLANKS, 64));
+        player.inventory.setItem(8, new ItemStack(Items.IRON_AXE));
         List<BlockPos> line = row(helper, LINE);
         sendPlace(player, placeSet(line, Blocks.OAK_PLANKS.defaultBlockState()));
 
@@ -85,11 +85,11 @@ public final class ServerScenarios {
                 .thenWaitUntil(() -> expectAll(helper, line, Blocks.OAK_PLANKS))
                 .thenExecute(() -> PerformUndoPacket.Handler.handle(roundTrip(new PerformUndoPacket(), PerformUndoPacket::new), player))
                 .thenWaitUntil(() -> expectAll(helper, line, Blocks.AIR))
-                .thenExecute(() -> expectEquals(helper, "oak planks after undo", 64, count(player.getInventory(), Items.OAK_PLANKS)))
+                .thenExecute(() -> expectEquals(helper, "oak planks after undo", 64, count(player.inventory, Items.OAK_PLANKS)))
                 .thenExecute(() -> PerformRedoPacket.Handler.handle(roundTrip(new PerformRedoPacket(), PerformRedoPacket::new), player))
                 .thenWaitUntil(() -> expectAll(helper, line, Blocks.OAK_PLANKS))
                 .thenExecute(() -> {
-                    expectEquals(helper, "oak planks after redo", 64 - LINE, count(player.getInventory(), Items.OAK_PLANKS));
+                    expectEquals(helper, "oak planks after redo", 64 - LINE, count(player.inventory, Items.OAK_PLANKS));
                     DETAILS.put("server.undo_redo", "Undo mined the line back into the inventory (64 planks), redo placed it again (" + (64 - LINE) + ")");
                 })
                 .thenExecute(() -> cleanup(player))
@@ -103,9 +103,9 @@ public final class ServerScenarios {
     public static void sb_upgrade_supplies_blocks(GameTestHelper helper) {
         SmokeBackpacks backpacks = backpacks(helper);
         ServerPlayer player = player(helper);
-        player.getInventory().setItem(0, new ItemStack(Items.STONE, 1));
+        player.inventory.setItem(0, new ItemStack(Items.STONE, 1));
         ItemStack backpack = backpacks.createBackpack(1, true, false, Collections.singletonList(new ItemStack(Items.STONE, 64)));
-        player.getInventory().setItem(1, backpack);
+        player.inventory.setItem(1, backpack);
         List<BlockPos> line = row(helper, LINE);
         sendPlace(player, placeSet(line, Blocks.STONE.defaultBlockState()));
 
@@ -113,7 +113,7 @@ public final class ServerScenarios {
                 .thenWaitUntil(() -> expectAll(helper, line, Blocks.STONE))
                 .thenIdle(5)
                 .thenExecute(() -> {
-                    expectEquals(helper, "stone held", 1, count(player.getInventory(), Items.STONE));
+                    expectEquals(helper, "stone held", 1, count(player.inventory, Items.STONE));
                     expectEquals(helper, "stone in the backpack", 64 - LINE, backpacks.count(backpack, Items.STONE));
                     DETAILS.put("sb.upgrade_supplies_blocks", "Holding 1 stone, the Building Upgrade supplied a " + LINE
                             + " block line from the backpack (64 -> " + (64 - LINE) + "), held stone kept");
@@ -126,9 +126,9 @@ public final class ServerScenarios {
         SmokeBackpacks backpacks = backpacks(helper);
         ServerPlayer player = player(helper);
         int held = 3;
-        player.getInventory().setItem(0, new ItemStack(Items.STONE, held));
+        player.inventory.setItem(0, new ItemStack(Items.STONE, held));
         ItemStack backpack = backpacks.createBackpack(1, false, false, Collections.singletonList(new ItemStack(Items.STONE, 64)));
-        player.getInventory().setItem(1, backpack);
+        player.inventory.setItem(1, backpack);
         List<BlockPos> line = row(helper, LINE);
         sendPlace(player, placeSet(line, Blocks.STONE.defaultBlockState()));
 
@@ -137,7 +137,7 @@ public final class ServerScenarios {
                 .thenIdle(10)
                 .thenExecute(() -> {
                     expectEquals(helper, "blocks placed", held, countBlocks(helper, line, Blocks.STONE));
-                    expectEquals(helper, "stone held", 0, count(player.getInventory(), Items.STONE));
+                    expectEquals(helper, "stone held", 0, count(player.inventory, Items.STONE));
                     expectEquals(helper, "stone in the disabled upgrade's backpack", 64, backpacks.count(backpack, Items.STONE));
                     DETAILS.put("sb.disabled_upgrade_ignored", "Disabled upgrade: only the " + held + " held stone of a " + LINE
                             + " block line were placed, the backpack kept its 64");
@@ -149,9 +149,9 @@ public final class ServerScenarios {
     public static void sb_tier_cap(GameTestHelper helper) {
         SmokeBackpacks backpacks = backpacks(helper);
         ServerPlayer player = player(helper);
-        player.getInventory().setItem(0, new ItemStack(Items.STONE, 1));
+        player.inventory.setItem(0, new ItemStack(Items.STONE, 1));
         ItemStack backpack = backpacks.createBackpack(1, true, false, Collections.singletonList(new ItemStack(Items.STONE, 64)));
-        player.getInventory().setItem(1, backpack);
+        player.inventory.setItem(1, backpack);
         List<BlockPos> floor = new ArrayList<>();
         for (int x = 0; x < 6; x++) {
             for (int z = 0; z < 6; z++) {
@@ -166,7 +166,7 @@ public final class ServerScenarios {
                 .thenExecute(() -> {
                     expectEquals(helper, "blocks placed of a 36 block floor (tier 1 cap)", TIER1_CAP, countBlocks(helper, floor, Blocks.STONE));
                     expectEquals(helper, "stone in the backpack", 64 - TIER1_CAP, backpacks.count(backpack, Items.STONE));
-                    expectEquals(helper, "stone held", 1, count(player.getInventory(), Items.STONE));
+                    expectEquals(helper, "stone held", 1, count(player.inventory, Items.STONE));
                     DETAILS.put("sb.tier_cap", "Tier 1 upgrade (max " + TIER1_CAP + ") capped a 36 block floor at " + TIER1_CAP
                             + " blocks from a backpack with 64 stone");
                 })
@@ -177,9 +177,9 @@ public final class ServerScenarios {
     public static void sb_tool_swapper_tools(GameTestHelper helper) {
         SmokeBackpacks backpacks = backpacks(helper);
         ServerPlayer player = player(helper);
-        player.getInventory().setItem(0, new ItemStack(Items.STICK));
+        player.inventory.setItem(0, new ItemStack(Items.STICK));
         ItemStack backpack = backpacks.createBackpack(0, false, true, Collections.singletonList(new ItemStack(Items.DIAMOND_PICKAXE)));
-        player.getInventory().setItem(1, backpack);
+        player.inventory.setItem(1, backpack);
         List<BlockPos> line = row(helper, LINE);
         line.forEach(pos -> helper.getLevel().setBlock(pos, Blocks.STONE.defaultBlockState(), Block.UPDATE_ALL));
         sendBreak(player, breakSet(line));
@@ -189,7 +189,7 @@ public final class ServerScenarios {
                 .thenIdle(5)
                 .thenExecute(() -> {
                     expectEquals(helper, "damage of the pickaxe in the backpack", LINE, backpacks.find(backpack, Items.DIAMOND_PICKAXE).getDamageValue());
-                    expectEquals(helper, "cobblestone in the inventory", LINE, count(player.getInventory(), Items.COBBLESTONE));
+                    expectEquals(helper, "cobblestone in the inventory", LINE, count(player.inventory, Items.COBBLESTONE));
                     DETAILS.put("sb.tool_swapper_tools", "Survival break of " + LINE + " stone (stick in hand) used the Tool Swapper backpack's diamond pickaxe (damage "
                             + LINE + "), drops in the inventory");
                 })
@@ -208,7 +208,7 @@ public final class ServerScenarios {
     private static void wornBackpack(GameTestHelper helper, String check, boolean accessory) {
         SmokeBackpacks backpacks = backpacks(helper);
         ServerPlayer player = player(helper);
-        player.getInventory().setItem(0, new ItemStack(Items.STONE, 1));
+        player.inventory.setItem(0, new ItemStack(Items.STONE, 1));
         ItemStack backpack = backpacks.createBackpack(1, true, false, Collections.singletonList(new ItemStack(Items.STONE, 64)));
         String slot;
         if (accessory) {
@@ -235,7 +235,7 @@ public final class ServerScenarios {
                 .thenExecute(() -> {
                     ItemStack worn = accessory ? backpacks.getFromAccessorySlot(player) : player.getItemBySlot(EquipmentSlot.CHEST);
                     expectEquals(helper, "stone in the worn backpack", 64 - LINE, backpacks.count(worn, Items.STONE));
-                    expectEquals(helper, "stone held", 1, count(player.getInventory(), Items.STONE));
+                    expectEquals(helper, "stone held", 1, count(player.inventory, Items.STONE));
                     DETAILS.put(check, "Backpack worn in the " + slot + " supplied a " + LINE + " block line (64 -> " + (64 - LINE) + ")");
                 })
                 .thenExecute(() -> {
@@ -263,7 +263,7 @@ public final class ServerScenarios {
     private static void cleanup(ServerPlayer player) {
         SophisticatedBuilding.UNDO_REDO.clear(player);
         ServerBuildState.setIsUsingBuildMode(player, false);
-        player.getInventory().clearContent();
+        player.inventory.clearContent();
     }
 
     /** Positions (1..count, 1, 1) of the test structure, absolute. */
@@ -327,7 +327,7 @@ public final class ServerScenarios {
         int total = 0;
         for (int i = 0; i < inventory.getContainerSize(); i++) {
             ItemStack stack = inventory.getItem(i);
-            if (stack.is(item)) total += stack.getCount();
+            if ((stack.getItem() == item)) total += stack.getCount();
         }
         return total;
     }

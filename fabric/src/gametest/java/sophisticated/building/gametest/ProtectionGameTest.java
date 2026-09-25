@@ -33,7 +33,7 @@ public class ProtectionGameTest implements FabricGameTest {
         double centerZ = border.getCenterZ();
         double size = border.getSize();
         try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
-            player.getInventory().setItem(0, new ItemStack(Items.STONE, 2));
+            player.inventory.setItem(0, new ItemStack(Items.STONE, 2));
             BlockPos inside = helper.absolutePos(INSIDE);
             BlockPos outside = helper.absolutePos(OUTSIDE);
             //A 3x3 border around INSIDE; OUTSIDE is 5 blocks away on both axes
@@ -61,7 +61,7 @@ public class ProtectionGameTest implements FabricGameTest {
     public void adventureModeRejected(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.ADVENTURE);
         try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
-            player.getInventory().setItem(0, new ItemStack(Items.STONE, 2));
+            player.inventory.setItem(0, new ItemStack(Items.STONE, 2));
 
             SophisticatedBuilding.SERVER_BLOCK_PLACER.applyBlockSet(player, set(
                     place(helper.absolutePos(INSIDE), Blocks.STONE.defaultBlockState()),

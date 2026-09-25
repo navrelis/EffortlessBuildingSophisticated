@@ -3,6 +3,7 @@ package sophisticated.building.integration;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModList;
+import net.p3pp3rf1y.sophisticatedbackpacks.SophisticatedBackpacks;
 import net.p3pp3rf1y.sophisticatedbackpacks.util.PlayerInventoryProvider;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.utilities.ReturnTypeAgnosticInvoker;
@@ -65,7 +66,7 @@ public final class BackpackScanCompat {
             // Statement form: the call-site return type is void, so a boolean-returning handle has
             // its result dropped by asType (JLS 15.12.3). Checked exceptions cannot come out of
             // runOnBackpacks, so any unexpected checked exception is wrapped rather than declared.
-            methodHandle.get().invoke(PlayerInventoryProvider.get(), player, consumer);
+            methodHandle.get().invoke(SophisticatedBackpacks.PROXY.getPlayerInventoryProvider(), player, consumer);
             return true;
         } catch (LinkageError e) {
             reportUnavailable(e);

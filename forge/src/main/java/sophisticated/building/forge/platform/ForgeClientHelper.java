@@ -58,7 +58,7 @@ public final class ForgeClientHelper implements IClientHelper {
 
     @Override
     public List<BakedQuad> getModelQuads(BakedModel model, BlockState state, Direction side, Random random, RenderType renderType) {
-        // Forge 1.17.1 tells multi-layer models the layer being drawn through this thread's render type
+        // Forge 1.16.5 tells multi-layer models the layer being drawn through this thread's render type
         ForgeHooksClient.setRenderLayer(renderType);
         try {
             return model.getQuads(state, side, random, EmptyModelData.INSTANCE);
@@ -69,6 +69,6 @@ public final class ForgeClientHelper implements IClientHelper {
 
     @Override
     public void putQuad(VertexConsumer consumer, PoseStack.Pose pose, BakedQuad quad, float red, float green, float blue, float alpha, int packedLight, int packedOverlay) {
-        consumer.putBulkData(pose, quad, red, green, blue, alpha, packedLight, packedOverlay, true);
+        consumer.addVertexData(pose, quad, red, green, blue, alpha, packedLight, packedOverlay, true);
     }
 }

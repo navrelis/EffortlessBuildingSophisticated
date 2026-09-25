@@ -6,22 +6,19 @@ import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.util.Mth;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Collections;
 import java.util.List;
+import org.lwjgl.opengl.GL11;
 
 @ParametersAreNonnullByDefault
-@MethodsReturnNonnullByDefault
 public abstract class SlotGui extends AbstractContainerEventHandler implements Widget {
 	protected final Minecraft minecraft;
 	protected final int itemHeight;
@@ -234,27 +231,27 @@ public abstract class SlotGui extends AbstractContainerEventHandler implements W
 			if (this.renderSelection && this.isSelectedItem(j)) {
 				int i1 = this.x0 + this.width / 2 - this.getRowWidth() / 2;
 				int j1 = this.x0 + this.width / 2 + this.getRowWidth() / 2;
-				RenderSystem.setShader(GameRenderer::getPositionShader);
+				RenderSystem.disableTexture();
 				float f = this.isFocused() ? 1.0F : 0.5F;
-				RenderSystem.setShaderColor(f, f, f, 1.0F);
+				RenderSystem.color4f(f, f, f, 1.0F);
 				bufferbuilder = tessellator.getBuilder();
-				bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+				bufferbuilder.begin(GL11.GL_QUADS, DefaultVertexFormat.POSITION);
 				bufferbuilder.vertex(i1, k + l + 2, 0.0F).endVertex();
 				bufferbuilder.vertex(j1, k + l + 2, 0.0F).endVertex();
 				bufferbuilder.vertex(j1, k - 2, 0.0F).endVertex();
 				bufferbuilder.vertex(i1, k - 2, 0.0F).endVertex();
 				bufferbuilder.end();
 				BufferUploader.end(bufferbuilder);
-				RenderSystem.setShaderColor(0.0F, 0.0F, 0.0F, 1.0F);
+				RenderSystem.color4f(0.0F, 0.0F, 0.0F, 1.0F);
 				bufferbuilder = tessellator.getBuilder();
-				bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+				bufferbuilder.begin(GL11.GL_QUADS, DefaultVertexFormat.POSITION);
 				bufferbuilder.vertex(i1 + 1, k + l + 1, 0.0F).endVertex();
 				bufferbuilder.vertex(j1 - 1, k + l + 1, 0.0F).endVertex();
 				bufferbuilder.vertex(j1 - 1, k - 1, 0.0F).endVertex();
 				bufferbuilder.vertex(i1 + 1, k - 1, 0.0F).endVertex();
 				bufferbuilder.end();
 				BufferUploader.end(bufferbuilder);
-				RenderSystem.setShader(GameRenderer::getPositionTexShader);
+				RenderSystem.enableTexture();
 			}
 
 			this.renderItem(guiGraphics, j, p_renderList_1_, k, l, p_renderList_3_, p_renderList_4_, p_renderList_5_);

@@ -63,7 +63,7 @@ public class PartialItemModelRenderer {
 			VertexConsumer vc = ItemRenderer.getFoilBufferDirect(buffer, type, true, stack.hasFoil());
 			renderBakedItemModel(model, light, ms, vc);
 		} else {
-			Minecraft.getInstance().getItemRenderer().renderStatic(stack, transformType, light, overlay, ms, buffer, 0);
+			Minecraft.getInstance().getItemRenderer().renderStatic(stack, transformType, light, overlay, ms, buffer);
 		}
 
 		ms.popPose();

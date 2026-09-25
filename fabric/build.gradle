@@ -14,7 +14,7 @@ base {
 }
 
 java {
-    // Minecraft 1.17.1 runs on Java 16 (Mojang ships Java 16 with it), so mods target Java 16.
+    // Minecraft 1.16.5 runs on Java 8 (Mojang ships Java 8 with it), so mods target Java 8.
     toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
     withSourcesJar()
 }
@@ -159,7 +159,7 @@ processResources {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
-    options.release = java_version as int
+    // No options.release: the Java 8 toolchain compiles with JDK 8's javac, which has no --release flag (JDK 9+).
 }
 
 tasks.named('test', Test) {

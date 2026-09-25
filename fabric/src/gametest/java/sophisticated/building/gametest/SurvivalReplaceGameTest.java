@@ -27,8 +27,8 @@ public class SurvivalReplaceGameTest implements FabricGameTest {
     //Survival player with 4 dirt in hand and, optionally, an iron pickaxe in another hotbar slot
     private static ServerPlayer builder(GameTestHelper helper, boolean withPickaxe) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
-        player.getInventory().setItem(0, new ItemStack(Items.DIRT, 4));
-        if (withPickaxe) player.getInventory().setItem(PICKAXE_SLOT, new ItemStack(Items.IRON_PICKAXE));
+        player.inventory.setItem(0, new ItemStack(Items.DIRT, 4));
+        if (withPickaxe) player.inventory.setItem(PICKAXE_SLOT, new ItemStack(Items.IRON_PICKAXE));
         return player;
     }
 
@@ -41,7 +41,7 @@ public class SurvivalReplaceGameTest implements FabricGameTest {
         expectEquals(helper, "dirt left", 4, count(player, Items.DIRT));
         expectEquals(helper, "cobblestone received", 0, count(player, Items.COBBLESTONE));
         if (withPickaxe) {
-            expectEquals(helper, "pickaxe damage", 0, player.getInventory().getItem(PICKAXE_SLOT).getDamageValue());
+            expectEquals(helper, "pickaxe damage", 0, player.inventory.getItem(PICKAXE_SLOT).getDamageValue());
         }
     }
 
@@ -74,8 +74,8 @@ public class SurvivalReplaceGameTest implements FabricGameTest {
             helper.assertBlockPresent(Blocks.DIRT, REL);
             expectEquals(helper, "dirt left", 3, count(player, Items.DIRT));
             expectEquals(helper, "cobblestone received", 1, count(player, Items.COBBLESTONE));
-            ItemStack pickaxe = player.getInventory().getItem(PICKAXE_SLOT);
-            assertTrue(pickaxe.is(Items.IRON_PICKAXE), "Pickaxe should still be in its slot, found " + pickaxe);
+            ItemStack pickaxe = player.inventory.getItem(PICKAXE_SLOT);
+            assertTrue((pickaxe.getItem() == Items.IRON_PICKAXE), "Pickaxe should still be in its slot, found " + pickaxe);
             expectEquals(helper, "pickaxe damage", 1, pickaxe.getDamageValue());
         } finally {
             removePlayer(player);
@@ -138,7 +138,7 @@ public class SurvivalReplaceGameTest implements FabricGameTest {
                         assertTrue(elapsed >= 8, "Replace should wait for the 8 mining ticks, placed after " + elapsed);
                         expectEquals(helper, "dirt left", 3, count(player, Items.DIRT));
                         expectEquals(helper, "cobblestone received", 1, count(player, Items.COBBLESTONE));
-                        expectEquals(helper, "pickaxe damage", 1, player.getInventory().getItem(PICKAXE_SLOT).getDamageValue());
+                        expectEquals(helper, "pickaxe damage", 1, player.inventory.getItem(PICKAXE_SLOT).getDamageValue());
                     } finally {
                         config.close();
                         removePlayer(player);

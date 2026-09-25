@@ -2,13 +2,13 @@ package sophisticated.building.forge;
 
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.common.capabilities.CapabilityToken;
+import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -27,15 +27,28 @@ import sophisticated.building.attachment.PowerLevel;
 @Mod.EventBusSubscriber(modid = SophisticatedBuilding.MODID)
 public final class PowerLevelCapability {
 
-    private static final Capability<Data> POWER_LEVEL = CapabilityManager.get(new CapabilityToken<Data>() {
-    });
+    @CapabilityInject(Data.class)
+    private static Capability<Data> POWER_LEVEL = null;
 
     private PowerLevelCapability() {
     }
 
-    /** Mod bus listener (Forge 1.17.1 has no {@code @AutoRegisterCapability}). */
-    public static void register(RegisterCapabilitiesEvent event) {
-        event.register(Data.class);
+    /**
+     * Registers the capability type, from common setup (Forge 1.16.5 has no {@code RegisterCapabilitiesEvent}). The
+     * storage is unused: the provider serializes the power level itself.
+     */
+    public static void register() {
+        CapabilityManager.INSTANCE.register(Data.class, new Capability.IStorage<Data>() {
+            @Nullable
+            @Override
+            public Tag writeNBT(Capability<Data> capability, Data instance, Direction side) {
+                return null;
+            }
+
+            @Override
+            public void readNBT(Capability<Data> capability, Data instance, Direction side, Tag nbt) {
+            }
+        }, Data::new);
     }
 
     @SubscribeEvent

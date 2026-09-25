@@ -125,14 +125,14 @@ public class RandomizerBagContainer extends AbstractContainerMenu {
 	 * be able to save properly
 	 */
 	@Override
-	public void clicked(int slot, int dragType, ClickType clickTypeIn, Player player) {
+	public ItemStack clicked(int slot, int dragType, ClickType clickTypeIn, Player player) {
 		// this will prevent the player from interacting with the item that opened the inventory:
 		Slot clickedSlot = slot >= 0 && slot < slots.size() ? getSlot(slot) : null;
 		if (clickedSlot != null && clickedSlot.getItem().equals(player.getMainHandItem())) {
 			//Do nothing;
-			return;
+			return ItemStack.EMPTY;
 		}
-		super.clicked(slot, dragType, clickTypeIn, player);
+		return super.clicked(slot, dragType, clickTypeIn, player);
 	}
 
 	/**

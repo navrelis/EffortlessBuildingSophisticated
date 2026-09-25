@@ -11,7 +11,6 @@ import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.network.chat.Component;
 import sophisticated.building.create.foundation.gui.widget.AbstractSimiWidget;
-import sophisticated.building.create.foundation.utility.Components;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +62,7 @@ public class ModifiersScreenList extends ObjectSelectionList<ModifiersScreenList
     
     protected void renderItemForeground(GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick, int pIndex, int pLeft, int pTop, int pWidth, int pHeight) {
         Entry e = this.getEntry(pIndex);
-        e.renderForeground(guiGraphics, pIndex, pTop, pLeft, pWidth, pHeight, pMouseX, pMouseY, Objects.equals(this.getHovered(), e), pPartialTick);
+        e.renderForeground(guiGraphics, pIndex, pTop, pLeft, pWidth, pHeight, pMouseX, pMouseY, Objects.equals(this.isMouseOver(pMouseX, pMouseY) ? this.getEntryAtPosition(pMouseX, pMouseY) : null, e), pPartialTick);
     }
 
     @Override
@@ -171,11 +170,6 @@ public class ModifiersScreenList extends ObjectSelectionList<ModifiersScreenList
 
         public List<GuiEventListener> getGuiListeners() {
             return listeners;
-        }
-
-        @Override
-        public Component getNarration() {
-            return Components.immutableEmpty();
         }
         
         public Font getFont() {

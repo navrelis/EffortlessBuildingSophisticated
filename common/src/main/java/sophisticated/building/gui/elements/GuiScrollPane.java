@@ -7,8 +7,6 @@ import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import sophisticated.building.client.gui.GuiGraphics;
@@ -20,8 +18,8 @@ import net.minecraft.util.Mth;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
+import org.lwjgl.opengl.GL11;
 
-@MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class GuiScrollPane extends SlotGui {
 
@@ -107,7 +105,7 @@ public class GuiScrollPane extends SlotGui {
 				}
 
 				BufferBuilder bufferbuilder = tessellator.getBuilder();
-				bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+				bufferbuilder.begin(GL11.GL_QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
 				bufferbuilder.vertex(scrollbarLeft, this.y1, 0.0F).uv(0.0F, 1.0F).color(0, 0, 0, 255).endVertex();
 				bufferbuilder.vertex(scrollbarRight, this.y1, 0.0F).uv(1.0F, 1.0F).color(0, 0, 0, 255).endVertex();
 				bufferbuilder.vertex(scrollbarRight, this.y0, 0.0F).uv(1.0F, 0.0F).color(0, 0, 0, 255).endVertex();
@@ -116,7 +114,7 @@ public class GuiScrollPane extends SlotGui {
 				BufferUploader.end(bufferbuilder);
 
 				bufferbuilder = tessellator.getBuilder();
-				bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+				bufferbuilder.begin(GL11.GL_QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
 				bufferbuilder.vertex(scrollbarLeft, l1 + k1, 0.0F).uv(0.0F, 1.0F).color(128, 128, 128, 255).endVertex();
 				bufferbuilder.vertex(scrollbarRight, l1 + k1, 0.0F).uv(1.0F, 1.0F).color(128, 128, 128, 255).endVertex();
 				bufferbuilder.vertex(scrollbarRight, l1, 0.0F).uv(1.0F, 0.0F).color(128, 128, 128, 255).endVertex();
@@ -125,7 +123,7 @@ public class GuiScrollPane extends SlotGui {
 				BufferUploader.end(bufferbuilder);
 
 				bufferbuilder = tessellator.getBuilder();
-				bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+				bufferbuilder.begin(GL11.GL_QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
 				bufferbuilder.vertex(scrollbarLeft, l1 + k1 - 1, 0.0F).uv(0.0F, 1.0F).color(192, 192, 192, 255).endVertex();
 				bufferbuilder.vertex(scrollbarRight - 1, l1 + k1 - 1, 0.0F).uv(1.0F, 1.0F).color(192, 192, 192, 255).endVertex();
 				bufferbuilder.vertex(scrollbarRight - 1, l1, 0.0F).uv(1.0F, 0.0F).color(192, 192, 192, 255).endVertex();
@@ -311,9 +309,9 @@ public class GuiScrollPane extends SlotGui {
 				int i1 = this.x0 + this.width / 2 - this.getRowWidth() / 2;
 				int j1 = this.x0 + this.width / 2 + this.getRowWidth() / 2;
 				float f = this.isFocused() ? 1.0F : 0.5F;
-				RenderSystem.setShaderColor(f, f, f, 1.0F);
+				RenderSystem.color4f(f, f, f, 1.0F);
 				BufferBuilder bufferbuilder = tessellator.getBuilder();
-				bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+				bufferbuilder.begin(GL11.GL_QUADS, DefaultVertexFormat.POSITION);
 				bufferbuilder.vertex(i1, y + entryHeight2 + 2, 0.0f).endVertex();
 				bufferbuilder.vertex(j1, y + entryHeight2 + 2, 0.0f).endVertex();
 				bufferbuilder.vertex(j1, y - 2, 0.0f).endVertex();
@@ -321,9 +319,9 @@ public class GuiScrollPane extends SlotGui {
 				bufferbuilder.end();
 				BufferUploader.end(bufferbuilder);
 
-				RenderSystem.setShaderColor(0.0F, 0.0F, 0.0F, 1.0F);
+				RenderSystem.color4f(0.0F, 0.0F, 0.0F, 1.0F);
 				bufferbuilder = tessellator.getBuilder();
-				bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+				bufferbuilder.begin(GL11.GL_QUADS, DefaultVertexFormat.POSITION);
 				bufferbuilder.vertex(i1 + 1, y + entryHeight2 + 1, 0.0f).endVertex();
 				bufferbuilder.vertex(j1 - 1, y + entryHeight2 + 1, 0.0f).endVertex();
 				bufferbuilder.vertex(j1 - 1, y - 1, 0.0f).endVertex();

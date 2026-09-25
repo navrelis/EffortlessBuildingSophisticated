@@ -3,6 +3,7 @@ package sophisticated.building.create.foundation.gui.widget;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextColor;
 import sophisticated.building.create.foundation.utility.Components;
 import sophisticated.building.create.foundation.utility.Lang;
 
@@ -34,7 +35,7 @@ public class SelectionScrollInput extends ScrollInput {
 		if (title == null)
 			return;
 		toolTip.add(title.plainCopy()
-			.withStyle(s -> s.withColor(HEADER_RGB)));
+			.withStyle(s -> s.withColor(TextColor.fromRgb(HEADER_RGB))));
 		int min = Math.min(this.max - 16, state - 7);
 		int max = Math.max(this.min + 16, state + 8);
 		min = Math.max(min, this.min);
@@ -64,7 +65,7 @@ public class SelectionScrollInput extends ScrollInput {
 
 		if (hint != null)
 			toolTip.add(hint.plainCopy()
-				.withStyle(s -> s.withColor(HINT_RGB)));
+				.withStyle(s -> s.withColor(TextColor.fromRgb(HINT_RGB))));
 		toolTip.add(scrollToSelect.plainCopy()
 			.withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
 	}

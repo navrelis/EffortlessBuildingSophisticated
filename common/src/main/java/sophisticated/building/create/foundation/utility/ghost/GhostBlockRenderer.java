@@ -56,7 +56,7 @@ public abstract class GhostBlockRenderer {
 			ms.translate(pos.getX(), pos.getY(), pos.getZ());
 
 			VertexConsumer vb = buffer.getEarlyBuffer(RenderType.solid());
-			renderer.renderModel(ms.last(), vb, state, model, 1f, 1f, 1f, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
+			renderer.renderModel(ms.last(), vb, state, model, 1f, 1f, 1f, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY);
 
 			ms.popPose();
 		}

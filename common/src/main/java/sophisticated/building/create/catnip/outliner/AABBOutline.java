@@ -206,7 +206,7 @@ public class AABBOutline extends Outline {
 		float lineLengthY = maxPos.y() - minPos.y();
 		float lineLengthZ = maxPos.z() - minPos.z();
 
-		origin.load(minPos);
+		origin.set(minPos.x(), minPos.y(), minPos.z());
 		bufferCuboidLine(pose, consumer, origin, Direction.EAST, lineLengthX, lineWidth, color, lightmap, disableNormals);
 		bufferCuboidLine(pose, consumer, origin, Direction.UP, lineLengthY, lineWidth, color, lightmap, disableNormals);
 		bufferCuboidLine(pose, consumer, origin, Direction.SOUTH, lineLengthZ, lineWidth, color, lightmap, disableNormals);

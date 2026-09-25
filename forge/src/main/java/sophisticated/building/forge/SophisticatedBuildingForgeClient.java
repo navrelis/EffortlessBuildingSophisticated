@@ -4,9 +4,9 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fmlclient.registry.ClientRegistry;
-import net.minecraftforge.client.gui.ForgeIngameGui;
-import net.minecraftforge.client.gui.OverlayRegistry;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import sophisticated.building.ClientEvents;
@@ -29,11 +29,17 @@ public class SophisticatedBuildingForgeClient {
         modEventBus.addListener(SophisticatedBuildingForgeClient::onClientSetup);
     }
 
-    /** Forge 1.17.1 registers HUD overlays and key mappings in client setup (no registration events yet). */
+    /**
+     * Forge 1.16.5 has no HUD overlay registry: the material cost overlay is drawn right after the crosshair, where the
+     * newer Forge versions register it (above the crosshair element).
+     */
     private static void registerGuiOverlays() {
         MaterialCostOverlay overlay = new MaterialCostOverlay();
-        OverlayRegistry.registerOverlayAbove(ForgeIngameGui.CROSSHAIR_ELEMENT, "Sophisticated Building material cost",
-                (gui, poseStack, partialTick, screenWidth, screenHeight) -> overlay.render(new GuiGraphics(poseStack), partialTick));
+        MinecraftForge.EVENT_BUS.addListener((RenderGameOverlayEvent.Post event) -> {
+            if (event.getType() == RenderGameOverlayEvent.ElementType.CROSSHAIRS) {
+                overlay.render(new GuiGraphics(event.getMatrixStack()), event.getPartialTicks());
+            }
+        });
     }
 
     public static void onClientSetup(final FMLClientSetupEvent event) {

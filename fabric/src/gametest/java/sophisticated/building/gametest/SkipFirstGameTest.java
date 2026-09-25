@@ -41,7 +41,7 @@ public class SkipFirstGameTest implements FabricGameTest {
     public void likeVanillaSkipsFirst(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
         GameTestSupport.ConfigScope config = ConfigScope.baseline();
-        player.getInventory().setItem(0, new ItemStack(Items.STONE, 3));
+        player.inventory.setItem(0, new ItemStack(Items.STONE, 3));
         assertTrue(ServerBuildState.isLikeVanilla(player), "Player should start like vanilla");
 
         placeNow(helper, player);
@@ -89,7 +89,7 @@ public class SkipFirstGameTest implements FabricGameTest {
     public void buildModePlacesFirst(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
         GameTestSupport.ConfigScope config = ConfigScope.baseline();
-        player.getInventory().setItem(0, new ItemStack(Items.STONE, 3));
+        player.inventory.setItem(0, new ItemStack(Items.STONE, 3));
         ServerBuildState.setIsUsingBuildMode(player, true);
 
         placeNow(helper, player);

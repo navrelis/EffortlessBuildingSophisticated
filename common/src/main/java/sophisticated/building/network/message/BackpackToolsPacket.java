@@ -8,6 +8,7 @@ import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.client.ClientBackpackToolCache;
 import sophisticated.building.network.ModPayload;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -31,12 +32,25 @@ public final class BackpackToolsPacket implements ModPayload {
 	}
 
 	public BackpackToolsPacket(FriendlyByteBuf buf) {
-		this(buf.readList(FriendlyByteBuf::readItem));
+		this(readTools(buf));
+	}
+
+	private static List<ItemStack> readTools(FriendlyByteBuf buf) {
+		int count = buf.readVarInt();
+		List<ItemStack> tools = new ArrayList<>(count);
+		for (int i = 0; i < count; i++) {
+			tools.add(buf.readItem());
+		}
+		return tools;
 	}
 
 	@Override
 	public void write(FriendlyByteBuf buf) {
-		buf.writeCollection(tools, FriendlyByteBuf::writeItem);
+		// FriendlyByteBuf.writeCollection / readList of Minecraft 1.17+: a var-int count, then the stacks
+		buf.writeVarInt(tools.size());
+		for (ItemStack tool : tools) {
+			buf.writeItem(tool);
+		}
 	}
 
 	@Override

@@ -48,13 +48,12 @@ import java.util.function.Consumer;
 public class BlockHelper {
 	private static final List<IntegerProperty> COUNT_STATES = Collections.unmodifiableList(Arrays.asList(
 			BlockStateProperties.EGGS,
-			BlockStateProperties.PICKLES,
-			BlockStateProperties.CANDLES
+			BlockStateProperties.PICKLES
 	));
 
-	private static final List<Block> VINELIKE_BLOCKS = Collections.unmodifiableList(Arrays.asList(
-			Blocks.VINE, Blocks.GLOW_LICHEN
-	));
+	private static final List<Block> VINELIKE_BLOCKS = Collections.singletonList(
+			Blocks.VINE
+	);
 
 	private static final List<BooleanProperty> VINELIKE_STATES = Collections.unmodifiableList(Arrays.asList(
 			BlockStateProperties.UP,
@@ -86,7 +85,7 @@ public class BlockHelper {
 			return blockState.setValue(BlockStateProperties.HATCH, 0);
 		if (blockState.hasProperty(BlockStateProperties.STAGE))
 			return blockState.setValue(BlockStateProperties.STAGE, 0);
-		if (blockState.is(BlockTags.CAULDRONS))
+		if (blockState.is(Blocks.CAULDRON))
 			return Blocks.CAULDRON.defaultBlockState();
 		if (blockState.hasProperty(BlockStateProperties.LEVEL_COMPOSTER))
 			return blockState.setValue(BlockStateProperties.LEVEL_COMPOSTER, 0);
@@ -98,7 +97,7 @@ public class BlockHelper {
 	public static ItemStack getRequiredItem(BlockState state) {
 		ItemStack itemStack = new ItemStack(state.getBlock());
 		Item item = itemStack.getItem();
-		if (item == Items.FARMLAND || item == Items.DIRT_PATH)
+		if (item == Items.FARMLAND || item == Items.GRASS_PATH)
 			itemStack = new ItemStack(Items.DIRT);
 		return itemStack;
 	}
@@ -122,7 +121,7 @@ public class BlockHelper {
 
 		if (world.random.nextFloat() < effectChance)
 			world.levelEvent(2001, pos, Block.getId(state));
-		BlockEntity blockEntity = state.hasBlockEntity() ? world.getBlockEntity(pos) : null;
+		BlockEntity blockEntity = state.getBlock().isEntityBlock() ? world.getBlockEntity(pos) : null;
 
 		if (player != null) {
 			if (!Services.BLOCK_EVENTS.fireBlockBreakEvent(world, pos, state, player))
@@ -172,10 +171,10 @@ public class BlockHelper {
 
 	private static void placeRailWithoutUpdate(Level world, BlockState state, BlockPos target) {
 		LevelChunk chunk = world.getChunkAt(target);
-		int idx = chunk.getSectionIndex(target.getY());
+		int idx = target.getY() >> 4;
 		LevelChunkSection chunksection = chunk.getSections()[idx];
 		if (chunksection == null) {
-			chunksection = new LevelChunkSection(chunk.getSectionYFromSectionIndex(idx));
+			chunksection = new LevelChunkSection(idx << 4);
 			chunk.getSections()[idx] = chunksection;
 		}
 		BlockState old = chunksection.setBlockState(SectionPos.sectionRelative(target.getX()),
@@ -226,7 +225,7 @@ public class BlockHelper {
 			state = Blocks.COMPOSTER.defaultBlockState();
 		else if (state.getBlock() != Blocks.SEA_PICKLE && Services.BLOCK_EVENTS.placeSpecialPlantable(world, state, target, stack))
 			alreadyPlaced = true;
-		else if (state.is(BlockTags.CAULDRONS))
+		else if (state.is(Blocks.CAULDRON))
 			state = Blocks.CAULDRON.defaultBlockState();
 
 		if (world.dimensionType().ultraWarm() && state.getFluidState().is(FluidTags.WATER)) {
@@ -258,7 +257,7 @@ public class BlockHelper {
 				data.putInt("x", target.getX());
 				data.putInt("y", target.getY());
 				data.putInt("z", target.getZ());
-				blockEntity.load(data);
+				blockEntity.load(world.getBlockState(target), data);
 			}
 		}
 
@@ -281,7 +280,7 @@ public class BlockHelper {
 		try {
 			CompoundTag tag = stack.getTag();
 			if (tag != null) {
-				CompoundTag stateTag = tag.getCompound(BlockItem.BLOCK_STATE_TAG);
+				CompoundTag stateTag = tag.getCompound("BlockStateTag");
 				StateDefinition<Block, BlockState> stateDefinition = placed.getBlock().getStateDefinition();
 				BlockState updated = placed;
 				for (String key : stateTag.getAllKeys()) {

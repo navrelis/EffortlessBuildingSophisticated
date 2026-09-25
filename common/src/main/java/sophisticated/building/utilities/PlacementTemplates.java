@@ -64,7 +64,7 @@ public class PlacementTemplates {
 
     // Search order: main hand, offhand, rest of the main inventory
     public Template find(Item item) {
-        Inventory inventory = player.getInventory();
+        Inventory inventory = player.inventory;
         ItemStack mainHand = inventory.getSelected();
         List<ItemStack> candidates = new ArrayList<>();
         addIfMatching(candidates, mainHand, item);

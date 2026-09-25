@@ -20,10 +20,10 @@ public class CameraAngleAnimationService {
 
 		if (Minecraft.getInstance().player != null) {
 			if (!yRotation.settled())
-				Minecraft.getInstance().player.setYRot(yRotation.getValue(1));
+				Minecraft.getInstance().player.yRot = yRotation.getValue(1);
 
 			if (!xRotation.settled())
-				Minecraft.getInstance().player.setXRot(xRotation.getValue(1));
+				Minecraft.getInstance().player.xRot = xRotation.getValue(1);
 		}
 	}
 
@@ -66,14 +66,14 @@ public class CameraAngleAnimationService {
 	private static float getCurrentYaw() {
 		if (Minecraft.getInstance().player == null)
 			return 0;
-		return Mth.wrapDegrees(Minecraft.getInstance().player.getYRot());
+		return Mth.wrapDegrees(Minecraft.getInstance().player.yRot);
 	}
 
 	private static float getCurrentPitch() {
 		if (Minecraft.getInstance().player == null)
 			return 0;
 
-		return Mth.wrapDegrees(Minecraft.getInstance().player.getXRot());
+		return Mth.wrapDegrees(Minecraft.getInstance().player.xRot);
 	}
 
 	private static void setupChaser(LerpedFloat rotation, float target) {

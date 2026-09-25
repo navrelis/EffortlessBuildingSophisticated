@@ -44,7 +44,7 @@ public class RandomizerBagScreen extends AbstractContainerScreen<RandomizerBagCo
 	protected void renderLabels(PoseStack poseStack, int mouseX, int mouseY) {
 		GuiGraphics guiGraphics = new GuiGraphics(poseStack);
 		guiGraphics.drawString(this.font, this.title, 8, 6, 0x404040, false);
-		guiGraphics.drawString(this.font, this.playerInventoryTitle, 8, imageHeight - 96 + 2, 0x404040, false);
+		guiGraphics.drawString(this.font, this.inventory.getDisplayName(), 8, imageHeight - 96 + 2, 0x404040, false);
 	}
 
 	@Override

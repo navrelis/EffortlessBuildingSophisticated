@@ -48,8 +48,8 @@ public class InventoryHelper {
 			}
 		}
 
-		int selectedSlot = player.getInventory().selected;
-		ItemStack selectedStack = player.getInventory().getItem(selectedSlot);
+		int selectedSlot = player.inventory.selected;
+		ItemStack selectedStack = player.inventory.getItem(selectedSlot);
 		boolean holdsItem = !selectedStack.isEmpty() && selectedStack.getItem() == item && selectedStack.getCount() > 0;
 
 		return reservedHeld(hasUpgrade, backpackCount, holdsItem);
@@ -83,12 +83,12 @@ public class InventoryHelper {
 		}
 		ServerPlayer serverPlayer = (ServerPlayer) player;
 
-		ItemStack selectedStack = player.getInventory().getItem(selectedSlot);
+		ItemStack selectedStack = player.inventory.getItem(selectedSlot);
 		if (!selectedStack.isEmpty() && selectedStack.getItem() == item) {
-			player.getInventory().setItem(selectedSlot, selectedStack.copy());
+			player.inventory.setItem(selectedSlot, selectedStack.copy());
 		}
 
-		player.getInventory().setChanged();
+		player.inventory.setChanged();
 		serverPlayer.containerMenu.broadcastChanges();
 		if (serverPlayer.containerMenu != serverPlayer.inventoryMenu) {
 			serverPlayer.inventoryMenu.broadcastChanges();
@@ -97,7 +97,7 @@ public class InventoryHelper {
 
 	@Deprecated //Use BlockHelper.findAndRemoveInInventory instead
 	public static ItemStack findItemStackInInventory(Player player, Block block) {
-		for (ItemStack invStack : player.getInventory().items) {
+		for (ItemStack invStack : player.inventory.items) {
 			if (!invStack.isEmpty() && invStack.getItem() instanceof BlockItem &&
 				((BlockItem) invStack.getItem()).getBlock().equals(block)) {
 				return invStack;
@@ -108,7 +108,7 @@ public class InventoryHelper {
 
 	public static int findTotalBlocksInInventory(Player player, Block block) {
 		int total = 0;
-		for (ItemStack invStack : player.getInventory().items) {
+		for (ItemStack invStack : player.inventory.items) {
 			if (!invStack.isEmpty() && invStack.getItem() instanceof BlockItem &&
 				((BlockItem) invStack.getItem()).getBlock().equals(block)) {
 				total += invStack.getCount();
@@ -126,7 +126,7 @@ public class InventoryHelper {
 	 */
 	public static int findTotalItemsForDisplay(Player player, Item item) {
 		int total = 0;
-		for (ItemStack invStack : player.getInventory().items) {
+		for (ItemStack invStack : player.inventory.items) {
 			if (!invStack.isEmpty() && invStack.getItem().equals(item)) {
 				total += invStack.getCount();
 			}
@@ -145,7 +145,7 @@ public class InventoryHelper {
 	 */
 	public static int findTotalItemsInInventory(Player player, Item item) {
 		int total = 0;
-		for (ItemStack invStack : player.getInventory().items) {
+		for (ItemStack invStack : player.inventory.items) {
 			if (!invStack.isEmpty() && invStack.getItem().equals(item)) {
 				total += invStack.getCount();
 			}
@@ -243,7 +243,7 @@ public class InventoryHelper {
 		if (player.isCreative()) return;
 
 		int amountFound = 0;
-		int preferredSlot = player.getInventory().selected;
+		int preferredSlot = player.inventory.selected;
 		int reservedHeld = getReservedHeldCount(player, item);
 
 		// Prefer backpacks first so building upgrades are consumed before player inventory
@@ -253,7 +253,7 @@ public class InventoryHelper {
 
 		// Then held Item
 		if (amountFound < amount) {
-			ItemStack itemstack = player.getInventory().getItem(preferredSlot);
+			ItemStack itemstack = player.inventory.getItem(preferredSlot);
 			int count = itemstack.getCount();
 			if (itemstack.getItem() == item && count > reservedHeld && !(skipStacksWithData && PlacementTemplates.hasData(itemstack))) {
 				int availableFromHeld = count - reservedHeld;
@@ -264,12 +264,12 @@ public class InventoryHelper {
 		}
 
 		// Finally the rest of the inventory
-		for (int i = 0; i < player.getInventory().getContainerSize() && amountFound < amount; ++i) {
+		for (int i = 0; i < player.inventory.getContainerSize() && amountFound < amount; ++i) {
 			if (i == preferredSlot) {
 				continue;
 			}
 
-			ItemStack itemstack = player.getInventory().getItem(i);
+			ItemStack itemstack = player.inventory.getItem(i);
 			int count = itemstack.getCount();
 			if (itemstack.getItem() == item && count > 0 && !(skipStacksWithData && PlacementTemplates.hasData(itemstack))) {
 				int taken = Math.min(count, amount - amountFound);
@@ -279,7 +279,7 @@ public class InventoryHelper {
 		}
 
 		if (amountFound > 0) {
-			player.getInventory().setChanged();
+			player.inventory.setChanged();
 		}
 
 		// Always resync selected slot when reserving one held block to eliminate ghost hotbar states.

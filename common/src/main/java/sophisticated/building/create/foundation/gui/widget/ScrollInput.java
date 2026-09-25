@@ -3,6 +3,7 @@ package sophisticated.building.create.foundation.gui.widget;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextColor;
 import sophisticated.building.create.AllKeys;
 import sophisticated.building.create.foundation.utility.Components;
 import sophisticated.building.create.foundation.utility.Lang;
@@ -181,10 +182,10 @@ public class ScrollInput extends AbstractSimiWidget {
 		if (title == null)
 			return;
 		toolTip.add(title.plainCopy()
-			.withStyle(s -> s.withColor(HEADER_RGB)));
+			.withStyle(s -> s.withColor(TextColor.fromRgb(HEADER_RGB))));
 		if (hint != null)
 			toolTip.add(hint.plainCopy()
-				.withStyle(s -> s.withColor(HINT_RGB)));
+				.withStyle(s -> s.withColor(TextColor.fromRgb(HINT_RGB))));
 		toolTip.add(scrollToModify.plainCopy()
 			.withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY));
 		toolTip.add(shiftScrollsFaster.plainCopy()

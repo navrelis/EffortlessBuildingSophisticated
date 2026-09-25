@@ -90,6 +90,6 @@ public final class FabricPlatformHelper implements IPlatformHelper {
         if (stack.isEmpty()) {
             return;
         }
-        player.getInventory().placeItemBackInInventory(stack);
+        player.inventory.placeItemBackInInventory(player.level, stack);
     }
 }

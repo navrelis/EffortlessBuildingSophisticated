@@ -8,11 +8,10 @@ import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import sophisticated.building.create.catnip.data.Couple;
 import sophisticated.building.create.catnip.theme.Color;
 import sophisticated.building.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.GameRenderer;
+import org.lwjgl.opengl.GL11;
 
 /**
  * Adapted from Catnip ({@code sophisticated.building.create.catnip.gui.element.BoxElement}, MIT License, Copyright (c) 2022
@@ -105,7 +104,7 @@ public class BoxElement extends AbstractRenderElement {
 		//RenderSystem.disableTexture();
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
+		GuiGraphics.beginPositionColor();
 
 		PoseStack ms = graphics.pose();
 		Matrix4f model = ms.last().pose();
@@ -115,7 +114,7 @@ public class BoxElement extends AbstractRenderElement {
 		Color c3 = borderBot.copy().scaleAlpha(alpha);
 		Tesselator tesselator = Tesselator.getInstance();
 		BufferBuilder b = tesselator.getBuilder();
-		b.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+		b.begin(GL11.GL_QUADS, DefaultVertexFormat.POSITION_COLOR);
 
 		//outer top
 		b.vertex(model, x - f - 1, y - f - 2, z).color(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha()).endVertex();
@@ -145,7 +144,7 @@ public class BoxElement extends AbstractRenderElement {
 		b.end();
 		BufferUploader.end(b);
 		b = tesselator.getBuilder();
-		b.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+		b.begin(GL11.GL_QUADS, DefaultVertexFormat.POSITION_COLOR);
 		//inner top - includes corners
 		b.vertex(model, x - f - 1, y - f - 1, z).color(c2.getRed(), c2.getGreen(), c2.getBlue(), c2.getAlpha()).endVertex();
 		b.vertex(model, x - f - 1, y - f, z).color(c2.getRed(), c2.getGreen(), c2.getBlue(), c2.getAlpha()).endVertex();
@@ -169,6 +168,7 @@ public class BoxElement extends AbstractRenderElement {
 
 		b.end();
 		BufferUploader.end(b);
+		GuiGraphics.endPositionColor();
 
 		RenderSystem.disableBlend();
 		//RenderSystem.enableTexture();

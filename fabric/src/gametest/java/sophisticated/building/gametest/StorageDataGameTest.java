@@ -36,7 +36,7 @@ public class StorageDataGameTest implements FabricGameTest {
 
     private static boolean hasLoot(ShulkerBoxBlockEntity box) {
         ItemStack first = box.getItem(0);
-        return first.is(Items.DIAMOND) && first.getCount() == 7
+        return (first.getItem() == Items.DIAMOND) && first.getCount() == 7
                 && box.getCustomName() != null && NAME.equals(box.getCustomName().getString());
     }
 
@@ -51,7 +51,7 @@ public class StorageDataGameTest implements FabricGameTest {
     public void survivalKeepsContentsAndName(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
         try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
-            player.getInventory().setItem(0, namedShulker());
+            player.inventory.setItem(0, namedShulker());
             BlockPos rel = new BlockPos(2, 1, 2);
 
             SophisticatedBuilding.SERVER_BLOCK_PLACER.applyBlockSet(player,
@@ -71,8 +71,8 @@ public class StorageDataGameTest implements FabricGameTest {
     public void survivalPlainAndNamedStacksBothConsumedOnce(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
         try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
-            player.getInventory().setItem(0, new ItemStack(Items.SHULKER_BOX));
-            player.getInventory().setItem(5, namedShulker());
+            player.inventory.setItem(0, new ItemStack(Items.SHULKER_BOX));
+            player.inventory.setItem(5, namedShulker());
             BlockPos relA = new BlockPos(1, 1, 2);
             BlockPos relB = new BlockPos(4, 1, 2);
 
@@ -99,7 +99,7 @@ public class StorageDataGameTest implements FabricGameTest {
     public void creativeCopiesDataAndKeepsStack(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.CREATIVE);
         try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
-            player.getInventory().setItem(0, namedShulker());
+            player.inventory.setItem(0, namedShulker());
             BlockPos rel = new BlockPos(2, 1, 2);
 
             SophisticatedBuilding.SERVER_BLOCK_PLACER.applyBlockSet(player,
@@ -107,7 +107,7 @@ public class StorageDataGameTest implements FabricGameTest {
 
             expectLoot(helper, rel);
             ItemStack held = player.getMainHandItem();
-            assertTrue(held.is(Items.SHULKER_BOX) && held.getCount() == 1 && ItemStack.isSameItemSameTags(held, namedShulker()),
+            assertTrue((held.getItem() == Items.SHULKER_BOX) && held.getCount() == 1 && ItemStack.isSameItemSameTags(held, namedShulker()),
                     "The creative player's stack should be kept unchanged, main hand has " + held);
         } finally {
             removePlayer(player);

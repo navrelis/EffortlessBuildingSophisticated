@@ -34,7 +34,7 @@ public class ItemStackHandler implements IItemHandler {
         int limit = Math.min(getSlotLimit(slot), stack.getMaxStackSize());
 
         if (!existing.isEmpty()) {
-            if (!ItemStack.isSameItemSameTags(existing, stack)) {
+            if (!(ItemStack.isSame(existing, stack) && ItemStack.tagMatches(existing, stack))) {
                 return stack.copy();
             }
             limit -= existing.getCount();

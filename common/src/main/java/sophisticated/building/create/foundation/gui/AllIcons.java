@@ -1,11 +1,11 @@
 package sophisticated.building.create.foundation.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import sophisticated.building.gui.ScreenElement;
 import sophisticated.building.utilities.Color;
 import sophisticated.building.client.gui.GuiGraphics;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -164,7 +164,7 @@ public class AllIcons implements ScreenElement {
 	}
 
 	public void bind() {
-		RenderSystem.setShaderTexture(0, ICON_ATLAS);
+		Minecraft.getInstance().getTextureManager().bind(ICON_ATLAS);
 	}
 
 	@Override
@@ -176,7 +176,7 @@ public class AllIcons implements ScreenElement {
 		VertexConsumer builder = buffer.getBuffer(RenderType.text(ICON_ATLAS));
 		Matrix4f matrix = ms.last().pose();
 		Color rgb = new Color(color);
-		int light = LightTexture.FULL_BRIGHT;
+		int light = LightTexture.pack(15, 15);
 
 		Vec3 vec1 = new Vec3(0, 0, 0);
 		Vec3 vec2 = new Vec3(0, 1, 0);

@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import sophisticated.building.utilities.Color;
 import sophisticated.building.gui.ScreenElement;
 import sophisticated.building.client.gui.GuiGraphics;
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 
 /**
@@ -43,7 +44,7 @@ public enum AllGuiTextures implements ScreenElement {
     }
     
     public void bind() {
-        RenderSystem.setShaderTexture(0, location);
+        Minecraft.getInstance().getTextureManager().bind(location);
     }
     
     public void render(GuiGraphics ms, int x, int y) {
@@ -53,9 +54,9 @@ public enum AllGuiTextures implements ScreenElement {
     public void render(GuiGraphics ms, int x, int y, Color c) {
         // Simple colored render - just render normally since we don't have Catnip's UIRenderHelper
         bind();
-        RenderSystem.setShaderColor(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
+        RenderSystem.color4f(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
         ms.blit(location, x, y, 0, startX, startY, width, height, 256, 256);
-        RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+        RenderSystem.color4f(1f, 1f, 1f, 1f);
     }
 }
 

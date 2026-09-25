@@ -36,7 +36,7 @@ public class BlockUtilities {
     }
 
     //Properties that count the items a block is made of (one more item placed onto the block adds one)
-    public static final List<IntegerProperty> COUNT_PROPERTIES = Collections.unmodifiableList(Arrays.asList(BlockStateProperties.CANDLES,
+    public static final List<IntegerProperty> COUNT_PROPERTIES = Collections.unmodifiableList(Arrays.asList(
             BlockStateProperties.PICKLES, BlockStateProperties.EGGS, BlockStateProperties.LAYERS));
 
     //True if next adds one item to existing like a vanilla merge: a single slab becomes double, or exactly one count

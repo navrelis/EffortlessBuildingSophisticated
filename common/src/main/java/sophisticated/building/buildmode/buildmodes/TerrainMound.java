@@ -67,7 +67,7 @@ public class TerrainMound extends ThreeClicksBuildMode {
 		ModeOptions.ActionEnum terrainType = ModeOptions.getTerrainType();
 
 		// Get player facing direction for directional shapes (Slope, Wall)
-		float yaw = player.getYRot();
+		float yaw = player.yRot;
 		float dirX = -Mth.sin(yaw * ((float) Math.PI / 180f));
 		float dirZ = Mth.cos(yaw * ((float) Math.PI / 180f));
 

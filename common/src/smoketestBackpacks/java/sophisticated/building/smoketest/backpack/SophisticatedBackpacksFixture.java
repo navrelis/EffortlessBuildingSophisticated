@@ -68,7 +68,7 @@ public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
         int total = 0;
         for (int slot = 0; slot < slotCount(inventory); slot++) {
             ItemStack stack = inventory.getStackInSlot(slot);
-            if (stack.is(item)) total += stack.getCount();
+            if ((stack.getItem() == item)) total += stack.getCount();
         }
         return total;
     }
@@ -78,7 +78,7 @@ public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
         BackpackInventoryHandler inventory = wrapper(backpack).getInventoryHandler();
         for (int slot = 0; slot < slotCount(inventory); slot++) {
             ItemStack stack = inventory.getStackInSlot(slot);
-            if (stack.is(item)) return stack;
+            if ((stack.getItem() == item)) return stack;
         }
         return ItemStack.EMPTY;
     }

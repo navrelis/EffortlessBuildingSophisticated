@@ -2,8 +2,10 @@ package sophisticated.building.integration;
 
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.common.ToolType;
 import net.p3pp3rf1y.sophisticatedbackpacks.api.CapabilityBackpackWrapper;
 import net.p3pp3rf1y.sophisticatedbackpacks.upgrades.toolswapper.ToolSwapMode;
+import net.p3pp3rf1y.sophisticatedbackpacks.upgrades.toolswapper.ToolSwapperFilterLogic;
 import net.p3pp3rf1y.sophisticatedbackpacks.upgrades.toolswapper.ToolSwapperUpgradeWrapper;
 import net.p3pp3rf1y.sophisticatedbackpacks.api.IBackpackWrapper;
 import net.p3pp3rf1y.sophisticatedbackpacks.backpack.wrapper.BackpackInventoryHandler;
@@ -13,6 +15,7 @@ import sophisticated.building.utilities.BreakToolHelper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Enumerates tools carried inside Sophisticated Backpacks that have an enabled Tool Swapper /
@@ -32,7 +35,7 @@ public class ToolSwapperIntegration {
 	public static List<BreakToolHelper.ToolSlot> collectBackpackTools(Player player) {
 		List<BreakToolHelper.ToolSlot> tools = new ArrayList<>();
 
-		BackpackScanCompat.forEachBackpack(player, (backpack, invName, slot) -> {
+		BackpackScanCompat.forEachBackpack(player, (backpack, invName, identifier, slot) -> {
 			collectFromBackpack(backpack, tools);
 			return false;
 		});
@@ -103,9 +106,23 @@ public class ToolSwapperIntegration {
 		}
 	}
 
+	/**
+	 * Sophisticated Backpacks 1.16.5's tool swapper has one tool filter per tool type (no single allow/deny list): a
+	 * tool passes if the filter of one of its tool types lets it through; tools without a tool type (shears) always pass.
+	 */
 	private static boolean matches(ToolSwapperUpgradeWrapper toolSwapper, ItemStack stack) {
 		try {
-			return toolSwapper.getFilterLogic().matchesFilter(stack);
+			Set<ToolType> toolTypes = stack.getToolTypes();
+			if (toolTypes.isEmpty()) {
+				return true;
+			}
+			ToolSwapperFilterLogic filter = toolSwapper.getFilterLogic();
+			for (ToolType toolType : toolTypes) {
+				if (filter.matchesToolFilter(stack, toolType)) {
+					return true;
+				}
+			}
+			return false;
 		} catch (Exception e) {
 			return true;
 		}

@@ -11,16 +11,17 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.ItemStack;
+import org.lwjgl.opengl.GL11;
 
 import java.util.Collections;
 import java.util.List;
 
 /**
  * The subset of Minecraft 1.20's {@code GuiGraphics} the mod's screens, widgets and HUD use, implemented with the
- * Minecraft 1.18.2 GUI API ({@link GuiComponent}'s static helpers on a {@link PoseStack}, the model-view stack for
- * items). Same method names, parameters and results as the 1.20 class, so the GUI code stays the same as on the newer
- * branches; vanilla render callbacks (which still take a {@link PoseStack} in 1.19.2) wrap their stack with
- * {@link #GuiGraphics(PoseStack)}.
+ * Minecraft 1.16.5 GUI API ({@link GuiComponent}'s static helpers on a {@link PoseStack}, the fixed-function
+ * model-view matrix for items). Same method names, parameters and results as the 1.20 class, so the GUI code stays the
+ * same as on the newer branches; vanilla render callbacks (which still take a {@link PoseStack} in 1.16.5) wrap their
+ * stack with {@link #GuiGraphics(PoseStack)}.
  */
 public final class GuiGraphics {
 
@@ -34,6 +35,23 @@ public final class GuiGraphics {
 
     public PoseStack pose() {
         return pose;
+    }
+
+    /**
+     * The fixed-function state of Minecraft 1.16.5 that stands in for the position-color shader of 1.17+ (as
+     * {@link GuiComponent}'s gradient fill sets it): untextured, smooth-shaded vertex colors, no alpha test. Undo with
+     * {@link #endPositionColor()} after the buffer was drawn.
+     */
+    public static void beginPositionColor() {
+        RenderSystem.disableTexture();
+        RenderSystem.disableAlphaTest();
+        RenderSystem.shadeModel(GL11.GL_SMOOTH);
+    }
+
+    public static void endPositionColor() {
+        RenderSystem.shadeModel(GL11.GL_FLAT);
+        RenderSystem.enableAlphaTest();
+        RenderSystem.enableTexture();
     }
 
     public int guiWidth() {
@@ -56,7 +74,7 @@ public final class GuiGraphics {
     }
 
     public void fillGradient(int minX, int minY, int maxX, int maxY, int colorFrom, int colorTo) {
-        Gradient.fill(pose, minX, minY, maxX, maxY, colorFrom, colorTo);
+        Gradient.INSTANCE.fill(pose, minX, minY, maxX, maxY, colorFrom, colorTo);
     }
 
     public void renderOutline(int x, int y, int width, int height, int color) {
@@ -84,7 +102,7 @@ public final class GuiGraphics {
 
     public void blit(ResourceLocation atlas, int x, int y, int blitOffset, float uOffset, float vOffset, int width,
                      int height, int textureWidth, int textureHeight) {
-        RenderSystem.setShaderTexture(0, atlas);
+        minecraft.getTextureManager().bind(atlas);
         GuiComponent.blit(pose, x, y, blitOffset, uOffset, vOffset, width, height, textureWidth, textureHeight);
     }
 
@@ -172,7 +190,7 @@ public final class GuiGraphics {
         drawString(font, sequence, x - font.width(sequence) / 2, y, color);
     }
 
-    /** The item at the pose's position (1.19.2's item renderer draws with the model-view stack). */
+    /** The item at the pose's position (1.16.5's item renderer draws with the fixed-function model-view matrix). */
     public void renderItem(ItemStack stack, int x, int y) {
         withPoseAsModelView(() -> minecraft.getItemRenderer().renderAndDecorateFakeItem(stack, x, y));
     }
@@ -194,22 +212,21 @@ public final class GuiGraphics {
     }
 
     private void withPoseAsModelView(Runnable draw) {
-        PoseStack modelView = RenderSystem.getModelViewStack();
-        modelView.pushPose();
-        modelView.mulPoseMatrix(pose.last().pose());
-        RenderSystem.applyModelViewMatrix();
+        RenderSystem.pushMatrix();
+        RenderSystem.multMatrix(pose.last().pose());
         try {
             draw.run();
         } finally {
-            modelView.popPose();
-            RenderSystem.applyModelViewMatrix();
+            RenderSystem.popMatrix();
         }
     }
 
     /** Reaches {@link GuiComponent}'s protected gradient fill. */
     private static final class Gradient extends GuiComponent {
-        private static void fill(PoseStack pose, int minX, int minY, int maxX, int maxY, int colorFrom, int colorTo) {
-            fillGradient(pose, minX, minY, maxX, maxY, colorFrom, colorTo, 0);
+        private static final Gradient INSTANCE = new Gradient();
+
+        private void fill(PoseStack pose, int minX, int minY, int maxX, int maxY, int colorFrom, int colorTo) {
+            fillGradient(pose, minX, minY, maxX, maxY, colorFrom, colorTo);
         }
     }
 }

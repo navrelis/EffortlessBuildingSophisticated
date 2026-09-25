@@ -1,6 +1,6 @@
 package sophisticated.building.create.catnip.render;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 
 /**
@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 public interface BindableTexture {
 
 	default void bind() {
-		RenderSystem.setShaderTexture(0, getLocation());
+		Minecraft.getInstance().getTextureManager().bind(getLocation());
 	}
 
 	ResourceLocation getLocation();

@@ -55,9 +55,8 @@ public final class FabricCommonEvents {
                 ServerPlayer serverPlayer = (ServerPlayer) player;
                 serverPlayer.connection.send(new ClientboundContainerSetSlotPacket(
                         serverPlayer.inventoryMenu.containerId,
-                        serverPlayer.inventoryMenu.incrementStateId(),
-                        36 + serverPlayer.getInventory().selected,
-                        serverPlayer.getInventory().getSelected()));
+                        36 + serverPlayer.inventory.selected,
+                        serverPlayer.inventory.getSelected()));
             }
             return InteractionResult.FAIL;
         });
@@ -66,13 +65,13 @@ public final class FabricCommonEvents {
                 !CommonEvents.shouldCancelBlockBreak(player));
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            ServerPlayer player = handler.getPlayer();
+            ServerPlayer player = handler.player;
             Services.NETWORK.sendToPlayer(player, ServerConfigSyncPacket.fromCurrent());
             CommonEvents.onPlayerLoggedIn(player);
         });
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
-            ServerPlayer player = handler.getPlayer();
+            ServerPlayer player = handler.player;
             LAST_MAIN_HAND.remove(player.getUUID());
             CommonEvents.onPlayerLoggedOut(player);
         });
@@ -103,7 +102,7 @@ public final class FabricCommonEvents {
 
         ItemStack held = player.getMainHandItem();
         ItemStack previous = LAST_MAIN_HAND.get(player.getUUID());
-        if (previous != null && ItemStack.isSameItemSameTags(previous, held)) {
+        if (previous != null && (ItemStack.isSame(previous, held) && ItemStack.tagMatches(previous, held))) {
             return;
         }
 

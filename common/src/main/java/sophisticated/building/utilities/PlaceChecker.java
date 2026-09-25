@@ -45,7 +45,7 @@ public class PlaceChecker {
         if (toReplace.getDestroySpeed(world, pos) == -1
             || (toReplaceOther != null && toReplaceOther.getDestroySpeed(world, pos) == -1))
             return false;
-        if (SophisticatedBuildingClient.BUILD_SETTINGS.shouldProtectTileEntities() && toReplaceOther != null && toReplaceOther.hasBlockEntity())
+        if (SophisticatedBuildingClient.BUILD_SETTINGS.shouldProtectTileEntities() && toReplaceOther != null && toReplaceOther.getBlock().isEntityBlock())
             return false;
 
         boolean isNormalCube = state.isRedstoneConductor(world, pos);
@@ -56,7 +56,7 @@ public class PlaceChecker {
     private static boolean shouldPlace(Level level, BlockPos pos, BlockState state, BlockEntity tileEntity, BlockState toReplace,
                                   BlockState toReplaceOther, boolean isNormalCube) {
 //        if (!replaceTileEntities
-//            && (toReplace.hasBlockEntity() || (toReplaceOther != null && toReplaceOther.hasBlockEntity())))
+//            && (toReplace.getBlock().isEntityBlock() || (toReplaceOther != null && toReplaceOther.getBlock().isEntityBlock())))
 //            return false;
 
         if (shouldIgnoreBlockState(state))

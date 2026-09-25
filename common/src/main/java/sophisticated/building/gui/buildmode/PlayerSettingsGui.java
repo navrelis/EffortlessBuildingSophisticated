@@ -1,7 +1,6 @@
 package sophisticated.building.gui.buildmode;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
@@ -18,7 +17,6 @@ import sophisticated.building.SophisticatedBuilding;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
-@MethodsReturnNonnullByDefault
 public class PlayerSettingsGui extends Screen {
 
 	protected int left, right, top, bottom;
@@ -44,14 +42,14 @@ public class PlayerSettingsGui extends Screen {
 		//TODO set selected name
 		Component currentShaderName = ShaderType.DISSOLVE_BLUE.name;
 		shaderTypeButton = new Button(right - 180, yy, 180, 20, currentShaderName, (button) -> showShaderList = !showShaderList);
-		addRenderableOnly(shaderTypeButton);
+		buttons.add(shaderTypeButton);
 
 		yy += 50;
 		AbstractSliderButton slider = new SpeedSlider(right - 200, yy, 200, 20, 0.5, 2.0, 1.0);
-		addRenderableOnly(slider);
+		buttons.add(slider);
 
 		closeButton = new Button(left + 50, bottom - 20, 180, 20, new TextComponent("Done"), (button) -> this.minecraft.player.closeContainer());
-		addRenderableOnly(closeButton);
+		buttons.add(closeButton);
 	}
 
 	@Override
@@ -227,11 +225,6 @@ public class PlayerSettingsGui extends Screen {
 				} else {
 					return false;
 				}
-			}
-
-			@Override
-			public Component getNarration() {
-				return null;
 			}
 		}
 	}

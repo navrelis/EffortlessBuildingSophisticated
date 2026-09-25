@@ -1,7 +1,6 @@
 package sophisticated.building.item;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -43,7 +42,6 @@ import java.util.Set;
 import java.util.SplittableRandom;
 import java.util.concurrent.ThreadLocalRandom;
 
-@MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public abstract class AbstractRandomizerBagItem extends Item {
 

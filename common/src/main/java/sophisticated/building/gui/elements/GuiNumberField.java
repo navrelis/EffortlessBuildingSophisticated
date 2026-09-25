@@ -1,7 +1,6 @@
 package sophisticated.building.gui.elements;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import sophisticated.building.client.gui.GuiGraphics;
@@ -20,7 +19,6 @@ import java.util.Collections;
 import java.util.List;
 
 @ParametersAreNonnullByDefault
-@MethodsReturnNonnullByDefault
 public class GuiNumberField {
 
 	public int x, y, width, height;

@@ -203,9 +203,9 @@ public final class ClientDriver {
     public void teleport(Vec3 feet) {
         serverRun(server -> {
             ServerPlayer player = serverPlayer(server);
-            player.getAbilities().flying = false;
+            player.abilities.flying = false;
             player.onUpdateAbilities();
-            player.connection.teleport(feet.x, feet.y, feet.z, player.getYRot(), player.getXRot());
+            player.connection.teleport(feet.x, feet.y, feet.z, player.yRot, player.xRot);
         });
         waitUntil("the client to arrive at " + feet, 100, () -> mc.player != null && mc.player.position().distanceToSqr(feet) < 0.01);
         waitTicks(2);
@@ -226,8 +226,8 @@ public final class ClientDriver {
         double horizontal = Math.sqrt(dx * dx + dz * dz);
         float yaw = Mth.wrapDegrees((float) (Mth.atan2(dz, dx) * Mth.RAD_TO_DEG) - 90.0F);
         float pitch = Mth.wrapDegrees((float) (-(Mth.atan2(dy, horizontal) * Mth.RAD_TO_DEG)));
-        player.setYRot(yaw);
-        player.setXRot(pitch);
+        player.yRot = yaw;
+        player.xRot = pitch;
         player.yRotO = yaw;
         player.xRotO = pitch;
         player.setYHeadRot(yaw);
@@ -237,8 +237,8 @@ public final class ClientDriver {
 
     /** Selects the hotbar slot on the client (the server learns it from the client, as for a scroll or number key). */
     public void selectHotbarSlot(int slot) {
-        clientRun(() -> mc.player.getInventory().selected = slot);
-        waitUntilServer("the server to see hotbar slot " + slot, 40, server -> serverPlayer(server).getInventory().selected == slot);
+        clientRun(() -> mc.player.inventory.selected = slot);
+        waitUntilServer("the server to see hotbar slot " + slot, 40, server -> serverPlayer(server).inventory.selected == slot);
     }
 
     /** A mouse button press and release of the key mapping, as MouseHandler does for a real click (held one tick). */
@@ -275,7 +275,7 @@ public final class ClientDriver {
         int total = 0;
         for (int i = 0; i < inventory.getContainerSize(); i++) {
             ItemStack stack = inventory.getItem(i);
-            if (stack.is(item)) total += stack.getCount();
+            if ((stack.getItem() == item)) total += stack.getCount();
         }
         return total;
     }

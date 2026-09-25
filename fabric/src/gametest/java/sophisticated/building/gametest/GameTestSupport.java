@@ -57,8 +57,8 @@ public final class GameTestSupport {
         player.connection = new ServerGamePacketListenerImpl(server, connection, player);
         level.addNewPlayer(player);
         player.setGameMode(gameType);
-        player.getInventory().clearContent();
-        player.getInventory().selected = 0;
+        player.inventory.clearContent();
+        player.inventory.selected = 0;
         ServerBuildState.setIsUsingBuildMode(player, false);
         ServerBuildState.setIsQuickReplacing(player, false);
         return player;
@@ -154,11 +154,11 @@ public final class GameTestSupport {
 
     /** Items of this type in the whole inventory (main, armor, offhand). */
     public static int count(Player player, Item item) {
-        Inventory inventory = player.getInventory();
+        Inventory inventory = player.inventory;
         int total = 0;
         for (int i = 0; i < inventory.getContainerSize(); i++) {
             ItemStack stack = inventory.getItem(i);
-            if (stack.is(item)) total += stack.getCount();
+            if ((stack.getItem() == item)) total += stack.getCount();
         }
         return total;
     }

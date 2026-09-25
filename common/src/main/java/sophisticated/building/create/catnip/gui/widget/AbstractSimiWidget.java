@@ -12,7 +12,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
@@ -154,11 +153,6 @@ public abstract class AbstractSimiWidget extends AbstractWidget implements Ticka
 	@Override
 	public void onClick(double mouseX, double mouseY) {
 		runCallback(mouseX, mouseY);
-	}
-
-	@Override
-	public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
-		defaultButtonNarrationText(pNarrationElementOutput);
 	}
 
 	public void setHeight(int value) {

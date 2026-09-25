@@ -16,8 +16,8 @@ public final class ForgeSmokeServerPlatform implements SmokeServerPlatform {
     public ServerPlayer createPlayer(ServerLevel level, GameType gameType) {
         FakePlayer player = FakePlayerFactory.get(level, new GameProfile(UUID.randomUUID(), "sb-smoketest"));
         player.setGameMode(gameType);
-        player.getInventory().clearContent();
-        player.getInventory().selected = 0;
+        player.inventory.clearContent();
+        player.inventory.selected = 0;
         return player;
     }
 }

@@ -475,7 +475,7 @@ public abstract class Outline {
 		float b = color.z();
 		float a = color.w();
 
-		normalTransformTemp.load(normal);
+		normalTransformTemp.set(normal.x(), normal.y(), normal.z());
 		normalTransformTemp.transform(pose.normal());
 		float nx = normalTransformTemp.x();
 		float ny = normalTransformTemp.y();
@@ -535,7 +535,7 @@ public abstract class Outline {
 			lineWidth = 1 / 32f;
 			fadeLineWidth = true;
 			rgb = Color.WHITE;
-			lightmap = LightTexture.FULL_BRIGHT;
+			lightmap = LightTexture.pack(15, 15);
 		}
 
 		// builder

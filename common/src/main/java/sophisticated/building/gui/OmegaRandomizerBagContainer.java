@@ -120,26 +120,26 @@ public class OmegaRandomizerBagContainer extends AbstractContainerMenu {
 	}
 
 	@Override
-	public void clicked(int slotId, int dragType, ClickType clickTypeIn, Player player) {
+	public ItemStack clicked(int slotId, int dragType, ClickType clickTypeIn, Player player) {
 		if (clickTypeIn == ClickType.SWAP) {
-			ItemStack stack = player.getInventory().getItem(dragType);
+			ItemStack stack = player.inventory.getItem(dragType);
 			if (!stack.isEmpty() && stack.getItem() instanceof OmegaRandomizerBagItem) {
-				return;
+				return ItemStack.EMPTY;
 			}
 		}
 
 		if (slotId >= 0 && slotId < slots.size()) {
 			Slot slot = slots.get(slotId);
-			ItemStack heldStack = player.containerMenu.getCarried();
+			ItemStack heldStack = player.inventory.getCarried();
 
 			// Prevent placing randomizer bags inside themselves
 			if (!heldStack.isEmpty() && heldStack.getItem() instanceof OmegaRandomizerBagItem) {
-				if (slot.container != player.getInventory()) {
-					return;
+				if (slot.container != player.inventory) {
+					return ItemStack.EMPTY;
 				}
 			}
 		}
 
-		super.clicked(slotId, dragType, clickTypeIn, player);
+		return super.clicked(slotId, dragType, clickTypeIn, player);
 	}
 }

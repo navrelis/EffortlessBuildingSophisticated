@@ -10,6 +10,7 @@ import com.google.common.hash.Hashing;
 
 import sophisticated.building.create.catnip.data.Couple;
 import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
@@ -161,7 +162,7 @@ public class Color {
 	}
 
 	public Style asStyle() {
-		return Style.EMPTY.withColor(this.value);
+		return Style.EMPTY.withColor(TextColor.fromRgb(this.value));
 	}
 
 	public Color setRed(int r) {

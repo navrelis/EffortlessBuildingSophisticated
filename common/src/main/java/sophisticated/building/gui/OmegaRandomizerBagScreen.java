@@ -60,7 +60,7 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 		int buttonX = leftPos + imageWidth + 4;
 		int buttonY = topPos + 4;
 		resetWeightsButton = new Button(buttonX, buttonY, 40, 16, new TextComponent("Reset"), this::onResetWeightsPressed);
-		this.addRenderableWidget(resetWeightsButton);
+		this.addButton(resetWeightsButton);
 	}
 	
 	private void onResetWeightsPressed(Button button) {
@@ -149,7 +149,7 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 	protected void renderLabels(PoseStack poseStack, int mouseX, int mouseY) {
 		GuiGraphics guiGraphics = new GuiGraphics(poseStack);
 		guiGraphics.drawString(this.font, this.title, 8, 6, 0x404040, false);
-		guiGraphics.drawString(this.font, this.playerInventoryTitle, 8, imageHeight - 94, 0x404040, false);
+		guiGraphics.drawString(this.font, this.inventory.getDisplayName(), 8, imageHeight - 94, 0x404040, false);
 	}
 
 	@Override

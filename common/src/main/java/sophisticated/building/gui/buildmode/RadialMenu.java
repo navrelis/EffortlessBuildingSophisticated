@@ -6,14 +6,12 @@ import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import sophisticated.building.utilities.Color;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.Direction;
@@ -136,10 +134,10 @@ public class RadialMenu extends Screen {
 
 		RenderSystem.enableBlend();
 		RenderSystem.blendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
+		GuiGraphics.beginPositionColor();
 		final Tesselator tesselator = Tesselator.getInstance();
 		final BufferBuilder buffer = tesselator.getBuilder();
-		buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+		buffer.begin(GL11.GL_QUADS, DefaultVertexFormat.POSITION_COLOR);
 
 		final double middleX = width / 2.0;
 		final double middleY = height / 2.0;
@@ -217,6 +215,7 @@ public class RadialMenu extends Screen {
 
 		buffer.end();
 		BufferUploader.end(buffer);
+		GuiGraphics.endPositionColor();
 		RenderSystem.disableBlend();
 
 		ms.translate(0, 0, 200);
