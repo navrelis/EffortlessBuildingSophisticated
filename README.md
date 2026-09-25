@@ -47,7 +47,7 @@ Forge is compiled against and run on Forge 47.1.3, the oldest Forge 47 build tha
 (`[47.1,)`): NeoForge 1.20.1 forked Forge at 47.1, so a jar built against 47.1.x also runs there. The Forge build was
 also run on NeoForge 1.20.1-47.1.106 (the latest NeoForge 1.20.1) with the same Sophisticated Backpacks and Curios
 jars: its game test server starts and `runSmokeServer` passes (9/9 incl. every `sb.*` check). The release jar
-`forge/release/sophisticatedbuilding-forge-1.20.1-4.3.0.jar` itself was then run in a NeoForge 1.20.1-47.1.106 client
+`forge/release/sophisticatedbuilding-forge-1.20.1-5.0.0.jar` itself was then run in a NeoForge 1.20.1-47.1.106 client
 and game test server with the smoke harness (the jar remapped from SRG for the dev runtime, Sophisticated
 Backpacks/Core for Forge 1.20.1 and Curios): client 21/21 incl. 8 `sb.*` checks and the settings tab, server 9/9
 (see `TESTING.md`, "Findings").
