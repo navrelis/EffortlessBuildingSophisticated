@@ -174,6 +174,15 @@ public final class SophisticatedBuilding {
         player.displayClientMessage(Component.literal(msg), actionBar);
     }
 
+    /** A (translatable) message to the player; a translatable one sent from the server is translated on the client. */
+    public static void log(Player player, Component msg) {
+        log(player, msg, false);
+    }
+
+    public static void log(Player player, Component msg, boolean actionBar) {
+        player.displayClientMessage(msg, actionBar);
+    }
+
     // Log with translation supported, call either on client or server (which then sends a message)
     public static void logTranslate(Player player, String prefix, String translationKey, String suffix, boolean actionBar) {
         if (Services.PLATFORM.isPhysicalClient()) {

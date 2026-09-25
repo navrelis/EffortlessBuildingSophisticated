@@ -5,6 +5,7 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.attachment.AttachmentHandler;
 import sophisticated.building.buildmode.BuildModeEnum;
@@ -121,7 +122,7 @@ public class ClientEvents {
                     Minecraft.getInstance().setScreen(RadialMenu.instance);
                 }
             } else {
-                SophisticatedBuilding.log(player, "Build modes are disabled until your reach has increased. Increase your reach with craftable reach upgrades.");
+                SophisticatedBuilding.log(player, Component.translatable("sophisticatedbuilding.message.build_modes_disabled"));
             }
         }
 
@@ -163,7 +164,7 @@ public class ClientEvents {
 
         //Disabled if max reach is 0, might be set in the config that way.
         if (AttachmentHandler.isDisabled(player)) {
-            SophisticatedBuilding.log(player, "Build modifiers are disabled until your power level has increased. Increase your power level by consuming certain items.");
+            SophisticatedBuilding.log(player, Component.translatable("sophisticatedbuilding.message.build_modifiers_disabled"));
         } else {
             mc.setScreen(new ModifiersScreen());
         }
