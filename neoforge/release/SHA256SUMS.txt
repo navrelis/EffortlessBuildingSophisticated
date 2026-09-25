@@ -1,1 +1,1 @@
-ac0e7347c872d0a3d8ccca473b792cdd6ec42c084bff0535246ff40a35d355d8  sophisticatedbuilding-neoforge-1.21.8-4.3.0.jar
+204005029dfc3ed2941482aa0da32af50501be6dd696693769dfb0f6d4b39147  sophisticatedbuilding-neoforge-1.21.8-4.3.0.jar
