@@ -46,7 +46,10 @@ The ghost block previews and outlines use the Catnip outliner and GUI widgets ve
 | Curios / Trinkets | - | Curios `1.16.4-4.0.3.0` (file 3122651, tagged 1.16.3 + 1.16.4; there is no 1.16.3 build on Modrinth), compile only (and smoke runtime) |
 
 The Forge jar was also started on a real Forge 1.16.3 server (installer 34.1.42, only this jar plus Sophisticated
-Backpacks and Curios in `mods/`, Java 8u202): "Registered Sophisticated Backpacks upgrade containers", `Done`.
+Backpacks and Curios in `mods/`, Java 8u202): "Registered Sophisticated Backpacks upgrade containers", `Done`; again
+with only this jar and Sophisticated Backpacks, and with this jar alone (no SB: `Done`, no upgrade containers). The
+Fabric jar was started on a real Fabric 1.16.3 server (Fabric Loader 0.19.5, the Fabric API 0.25.0 modules, Java 8):
+`Done`, no errors from the mod.
 
 **Java for Forge 1.16.3:** Forge 34 ships modlauncher 8.0.6, which cannot load a single class on Java 8u321 or newer
 (`NoSuchMethodError: sun.security.util.ManifestEntryVerifier.<init>(Ljava/util/jar/Manifest;)V`, with or without this
