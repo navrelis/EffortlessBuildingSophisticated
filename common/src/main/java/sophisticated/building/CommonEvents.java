@@ -18,6 +18,7 @@ import sophisticated.building.item.AbstractRandomizerBagItem;
 import sophisticated.building.network.message.BackpackItemCountPacket;
 import sophisticated.building.network.message.BackpackToolsPacket;
 import sophisticated.building.network.message.BuildingUpgradeStatePacket;
+import sophisticated.building.network.message.CommonConfigSyncPacket;
 import sophisticated.building.network.message.ModifierSettingsPacket;
 import sophisticated.building.network.message.PowerLevelPacket;
 import sophisticated.building.platform.Services;
@@ -101,6 +102,7 @@ public final class CommonEvents {
 
     public static void onPlayerLoggedIn(ServerPlayer player) {
         ServerBuildState.handleNewPlayer(player);
+        Services.NETWORK.sendToPlayer(player, CommonConfigSyncPacket.fromCurrent());
         Services.NETWORK.sendToPlayer(player, new ModifierSettingsPacket(player));
 
         PowerLevel powerLevel = AttachmentHandler.getOrCreatePowerLevel(player);

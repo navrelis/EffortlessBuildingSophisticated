@@ -1,5 +1,6 @@
 package sophisticated.building.fabric.platform;
 
+import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -13,6 +14,7 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
+import javax.annotation.Nullable;
 import sophisticated.building.platform.services.IBlockEventHelper;
 
 /**
@@ -22,14 +24,28 @@ public final class FabricBlockEventHelper implements IBlockEventHelper {
 
     @Override
     public boolean placeBlock(Player player, Level level, BlockPos pos, Runnable placement) {
-        //No place event on Fabric: nothing can refuse the placement (whether a block was set is up to the caller)
+        //No place event on Fabric: claim mods are asked through the Common Protection API when one ships it
+        //(whether a block was set is up to the caller)
+        if (!FabricProtection.canPlace(player, level, pos)) return false;
         placement.run();
         return true;
     }
 
     @Override
     public boolean fireBlockBreakEvent(Level level, BlockPos pos, BlockState state, Player player) {
-        return true;
+        //Fabric API's player break events, as for a vanilla break (claim mods listen to them), and the Common Protection API
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        boolean allowed = PlayerBlockBreakEvents.BEFORE.invoker().beforeBlockBreak(level, player, pos, state, blockEntity)
+                && FabricProtection.canBreak(player, level, pos);
+        if (!allowed) {
+            PlayerBlockBreakEvents.CANCELED.invoker().onBlockBreakCanceled(level, player, pos, state, blockEntity);
+        }
+        return allowed;
+    }
+
+    @Override
+    public void afterBlockBroken(Level level, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, Player player) {
+        PlayerBlockBreakEvents.AFTER.invoker().afterBlockBreak(level, player, pos, state, blockEntity);
     }
 
     @Override
