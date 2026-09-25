@@ -36,3 +36,11 @@
 - The 6 unused widget classes in gui/elements are deleted on every branch. Reason: dead code, no screen uses them.
 - The three bugs 4.2.1 left unchanged are fixed: snow-layer merge undo refunds the layer; a failed normal placement is not charged; Disable mode + Quick Replace on a single block shows its preview outline. Reason: user asked to fix all bugs.
 - Order: reference on mc/1.21.1 (GUI + gameplay in parallel worktrees, lead merges), then ports per branch by the agents that did H5, then a full test-all-versions run.
+
+## Round 3 (2026-09-25, after the 5.0.0 upload): bugs found while writing the description -> 5.0.1
+- Fix: Fabric per-player data (power level, modifier settings) persisted; server-side validation of reach/build limits
+  with the common config synced; Fabric claim/protection mods consulted (Fabric API break event, optional protection
+  API); Array per-axis limit enforced; offhand-bag filter accepts only the bag's blocks; previous build mode tracks radial
+  choices; dead lang/tooltips for unregistered items removed; hard-coded English -> translation keys; double-slab cost.
+- Keep (earlier balance decisions): Protect Tile Entities also protects during survival mass breaking; survival mass
+  breaking needs an effective tool. User may override.
