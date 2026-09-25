@@ -219,13 +219,13 @@ public final class ClientDriver {
     /** lookAt on the client thread. */
     void aimNow(Vec3 target) {
         LocalPlayer player = mc.player;
-        Vec3 eye = player.getEyePosition();
+        Vec3 eye = player.getEyePosition(1.0F);
         double dx = target.x - eye.x;
         double dy = target.y - eye.y;
         double dz = target.z - eye.z;
         double horizontal = Math.sqrt(dx * dx + dz * dz);
-        float yaw = Mth.wrapDegrees((float) (Mth.atan2(dz, dx) * Mth.RAD_TO_DEG) - 90.0F);
-        float pitch = Mth.wrapDegrees((float) (-(Mth.atan2(dy, horizontal) * Mth.RAD_TO_DEG)));
+        float yaw = Mth.wrapDegrees((float) Math.toDegrees(Mth.atan2(dz, dx)) - 90.0F);
+        float pitch = Mth.wrapDegrees((float) -Math.toDegrees(Mth.atan2(dy, horizontal)));
         player.yRot = yaw;
         player.xRot = pitch;
         player.yRotO = yaw;
@@ -296,7 +296,7 @@ public final class ClientDriver {
         clientRun(() -> {
             try {
                 Files.createDirectories(file.getParent());
-                try (NativeImage image = Screenshot.takeScreenshot(mc.getMainRenderTarget())) {
+                try (NativeImage image = Screenshot.takeScreenshot(mc.getWindow().getWidth(), mc.getWindow().getHeight(), mc.getMainRenderTarget())) {
                     image.writeToFile(file);
                 }
             } catch (Exception e) {

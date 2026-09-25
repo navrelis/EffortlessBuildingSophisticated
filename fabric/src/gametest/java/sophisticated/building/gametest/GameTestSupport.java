@@ -3,15 +3,13 @@ package sophisticated.building.gametest;
 import com.mojang.authlib.GameProfile;
 import io.netty.channel.embedded.EmbeddedChannel;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTestAssertException;
-import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerPlayerGameMode;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -22,6 +20,8 @@ import sophisticated.building.ServerConfig;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.config.ConfigValue;
 import sophisticated.building.config.SimpleConfigValue;
+import sophisticated.building.smoketest.servertest.ServerTestAssertException;
+import sophisticated.building.smoketest.servertest.ServerTestHelper;
 import sophisticated.building.systems.ServerBuildState;
 import sophisticated.building.utilities.BlockEntry;
 import sophisticated.building.utilities.BlockSet;
@@ -45,11 +45,11 @@ public final class GameTestSupport {
      * Minecraft 1.17.1 has no {@code makeMockServerPlayerInLevel}. The player is not put into the player list: 1.17.1's
      * {@code PlayerList#placeNewPlayer} needs the profile cache, which the game test server does not have.
      */
-    public static ServerPlayer spawnPlayer(GameTestHelper helper, GameType gameType) {
+    public static ServerPlayer spawnPlayer(ServerTestHelper helper, GameType gameType) {
         ServerLevel level = helper.getLevel();
         MinecraftServer server = level.getServer();
         GameProfile profile = new GameProfile(UUID.randomUUID(), "sb-gametest");
-        ServerPlayer player = new ServerPlayer(server, level, profile);
+        ServerPlayer player = new ServerPlayer(server, level, profile, new ServerPlayerGameMode(level));
         // As vanilla's makeMockServerPlayerInLevel (1.19+): the embedded channel activates the connection and swallows
         // what the server sends
         Connection connection = new Connection(PacketFlow.SERVERBOUND);
@@ -73,7 +73,7 @@ public final class GameTestSupport {
         if (server != null && server.getPlayerList().getPlayer(player.getUUID()) != null) {
             server.getPlayerList().remove(player);
         } else {
-            player.getLevel().removePlayerImmediately(player, Entity.RemovalReason.DISCARDED);
+            player.getLevel().removePlayerImmediately(player);
         }
     }
 
@@ -167,19 +167,19 @@ public final class GameTestSupport {
 
     //region Assertions
 
-    /** GameTestHelper#assertTrue of 1.20+: Minecraft 1.19.2's helper has none. */
+    /** ServerTestHelper#assertTrue of 1.20+: Minecraft 1.19.2's helper has none. */
     public static void assertTrue(boolean condition, String message) {
         if (!condition) {
-            throw new GameTestAssertException(message);
+            throw new ServerTestAssertException(message);
         }
     }
 
-    public static void expectEquals(GameTestHelper helper, String what, Object expected, Object actual) {
+    public static void expectEquals(ServerTestHelper helper, String what, Object expected, Object actual) {
         assertTrue(expected == null ? actual == null : expected.equals(actual),
                 what + ": expected " + expected + " but was " + actual);
     }
 
-    public static void expectState(GameTestHelper helper, BlockPos relativePos, BlockState expected) {
+    public static void expectState(ServerTestHelper helper, BlockPos relativePos, BlockState expected) {
         BlockState actual = helper.getBlockState(relativePos);
         assertTrue(actual == expected, "Block at " + relativePos + ": expected " + expected + " but was " + actual);
     }

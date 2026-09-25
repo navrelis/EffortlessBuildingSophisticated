@@ -1,9 +1,6 @@
 package sophisticated.building.gametest;
 
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -14,6 +11,8 @@ import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.SlabType;
 import sophisticated.building.SophisticatedBuilding;
+import sophisticated.building.smoketest.servertest.ServerTest;
+import sophisticated.building.smoketest.servertest.ServerTestHelper;
 import sophisticated.building.systems.UndoRedo;
 import sophisticated.building.utilities.BlockSet;
 import sophisticated.building.utilities.FixedStack;
@@ -21,14 +20,14 @@ import sophisticated.building.utilities.FixedStack;
 import static sophisticated.building.gametest.GameTestSupport.*;
 
 /** Survival undo restores whole states and charges all their items, all or nothing (double slab = 2 slabs). */
-public class UndoGameTest implements FabricGameTest {
+public class UndoGameTest {
 
     private static final BlockPos REL = new BlockPos(3, 1, 3);
     private static final int AXE_SLOT = 4;
 
     //Survival breaking needs a tool for anything with hardness > 0 (no empty-hand fallback), so the player gets an axe
-    @GameTest(template = EMPTY_STRUCTURE, batch = "undo_item_counts", timeoutTicks = 200)
-    public void doubleSlabUndoChargesTwoSlabs(GameTestHelper helper) {
+    @ServerTest(batch = "undo_item_counts", timeoutTicks = 200)
+    public void doubleSlabUndoChargesTwoSlabs(ServerTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
         GameTestSupport.ConfigScope config = ConfigScope.baseline();
         player.inventory.setItem(AXE_SLOT, new ItemStack(Items.IRON_AXE));

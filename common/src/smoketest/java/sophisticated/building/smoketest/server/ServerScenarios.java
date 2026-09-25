@@ -2,8 +2,6 @@ package sophisticated.building.smoketest.server;
 
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTestAssertException;
-import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -23,6 +21,8 @@ import sophisticated.building.network.message.ServerBreakBlocksPacket;
 import sophisticated.building.network.message.ServerPlaceBlocksPacket;
 import sophisticated.building.smoketest.backpack.SmokeAccessorySlots;
 import sophisticated.building.smoketest.backpack.SmokeBackpacks;
+import sophisticated.building.smoketest.servertest.ServerTestAssertException;
+import sophisticated.building.smoketest.servertest.ServerTestHelper;
 import sophisticated.building.systems.ServerBuildState;
 import sophisticated.building.utilities.BlockEntry;
 import sophisticated.building.utilities.BlockSet;
@@ -35,11 +35,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 /**
- * Server smoke scenarios as game test bodies (vanilla {@link GameTestHelper}, loader-neutral). A survival server
- * player without a client sends exactly what the client sends: the block sets are written with the packets' write
- * methods, read back with their FriendlyByteBuf constructors (encoded and decoded like on the wire) and handed to the
- * packets' server handlers. The loader glue registers one game test per method, named like the method, so
- * {@link SmokeServer} reports e.g. {@code sb_tier_cap} as {@code sb.tier_cap}.
+ * Server smoke scenarios as server test bodies ({@link ServerTestHelper}, the Minecraft 1.16.5 stand-in for vanilla's
+ * game test helper, loader-neutral). A survival server player without a client sends exactly what the client sends: the
+ * block sets are written with the packets' write methods, read back with their FriendlyByteBuf constructors (encoded and
+ * decoded like on the wire) and handed to the packets' server handlers. {@link SmokeServer} runs one test per method,
+ * named like the method, and reports e.g. {@code sb_tier_cap} as {@code sb.tier_cap}.
  */
 public final class ServerScenarios {
 
@@ -56,7 +56,7 @@ public final class ServerScenarios {
 
     //region Building without backpacks
 
-    public static void server_place_line_survival(GameTestHelper helper) {
+    public static void server_place_line_survival(ServerTestHelper helper) {
         ServerPlayer player = player(helper);
         player.inventory.setItem(0, new ItemStack(Items.OAK_PLANKS, 64));
         List<BlockPos> line = row(helper, LINE);
@@ -74,7 +74,7 @@ public final class ServerScenarios {
                 .thenSucceed();
     }
 
-    public static void server_undo_redo(GameTestHelper helper) {
+    public static void server_undo_redo(ServerTestHelper helper) {
         ServerPlayer player = player(helper);
         player.inventory.setItem(0, new ItemStack(Items.OAK_PLANKS, 64));
         player.inventory.setItem(8, new ItemStack(Items.IRON_AXE));
@@ -100,7 +100,7 @@ public final class ServerScenarios {
 
     //region Sophisticated Backpacks
 
-    public static void sb_upgrade_supplies_blocks(GameTestHelper helper) {
+    public static void sb_upgrade_supplies_blocks(ServerTestHelper helper) {
         SmokeBackpacks backpacks = backpacks(helper);
         ServerPlayer player = player(helper);
         player.inventory.setItem(0, new ItemStack(Items.STONE, 1));
@@ -122,7 +122,7 @@ public final class ServerScenarios {
                 .thenSucceed();
     }
 
-    public static void sb_disabled_upgrade_ignored(GameTestHelper helper) {
+    public static void sb_disabled_upgrade_ignored(ServerTestHelper helper) {
         SmokeBackpacks backpacks = backpacks(helper);
         ServerPlayer player = player(helper);
         int held = 3;
@@ -146,7 +146,7 @@ public final class ServerScenarios {
                 .thenSucceed();
     }
 
-    public static void sb_tier_cap(GameTestHelper helper) {
+    public static void sb_tier_cap(ServerTestHelper helper) {
         SmokeBackpacks backpacks = backpacks(helper);
         ServerPlayer player = player(helper);
         player.inventory.setItem(0, new ItemStack(Items.STONE, 1));
@@ -174,14 +174,14 @@ public final class ServerScenarios {
                 .thenSucceed();
     }
 
-    public static void sb_tool_swapper_tools(GameTestHelper helper) {
+    public static void sb_tool_swapper_tools(ServerTestHelper helper) {
         SmokeBackpacks backpacks = backpacks(helper);
         ServerPlayer player = player(helper);
         player.inventory.setItem(0, new ItemStack(Items.STICK));
         ItemStack backpack = backpacks.createBackpack(0, false, true, Collections.singletonList(new ItemStack(Items.DIAMOND_PICKAXE)));
         player.inventory.setItem(1, backpack);
         List<BlockPos> line = row(helper, LINE);
-        line.forEach(pos -> helper.getLevel().setBlock(pos, Blocks.STONE.defaultBlockState(), Block.UPDATE_ALL));
+        line.forEach(pos -> helper.getLevel().setBlock(pos, Blocks.STONE.defaultBlockState(), 3 /* Block.UPDATE_ALL */));
         sendBreak(player, breakSet(line));
 
         helper.startSequence()
@@ -197,15 +197,15 @@ public final class ServerScenarios {
                 .thenSucceed();
     }
 
-    public static void sb_worn_backpack_chest(GameTestHelper helper) {
+    public static void sb_worn_backpack_chest(ServerTestHelper helper) {
         wornBackpack(helper, "sb.worn_backpack_chest", false);
     }
 
-    public static void sb_worn_backpack(GameTestHelper helper) {
+    public static void sb_worn_backpack(ServerTestHelper helper) {
         wornBackpack(helper, "sb.worn_backpack", true);
     }
 
-    private static void wornBackpack(GameTestHelper helper, String check, boolean accessory) {
+    private static void wornBackpack(ServerTestHelper helper, String check, boolean accessory) {
         SmokeBackpacks backpacks = backpacks(helper);
         ServerPlayer player = player(helper);
         player.inventory.setItem(0, new ItemStack(Items.STONE, 1));
@@ -249,11 +249,11 @@ public final class ServerScenarios {
 
     //region Helpers
 
-    private static SmokeBackpacks backpacks(GameTestHelper helper) {
+    private static SmokeBackpacks backpacks(ServerTestHelper helper) {
         return SmokeBackpacks.find().orElseThrow(() -> new IllegalStateException("No SmokeBackpacks fixture registered"));
     }
 
-    private static ServerPlayer player(GameTestHelper helper) {
+    private static ServerPlayer player(ServerTestHelper helper) {
         ServerPlayer player = SmokeServerPlatform.get().createPlayer(helper.getLevel(), GameType.SURVIVAL);
         ServerBuildState.setIsUsingBuildMode(player, true);
         ServerBuildState.setIsQuickReplacing(player, false);
@@ -267,7 +267,7 @@ public final class ServerScenarios {
     }
 
     /** Positions (1..count, 1, 1) of the test structure, absolute. */
-    private static List<BlockPos> row(GameTestHelper helper, int count) {
+    private static List<BlockPos> row(ServerTestHelper helper, int count) {
         List<BlockPos> list = new ArrayList<>();
         for (int i = 0; i < count; i++) list.add(helper.absolutePos(new BlockPos(1 + i, 1, 1)));
         return list;
@@ -306,7 +306,7 @@ public final class ServerScenarios {
         }
     }
 
-    private static void expectAll(GameTestHelper helper, List<BlockPos> positions, Block block) {
+    private static void expectAll(ServerTestHelper helper, List<BlockPos> positions, Block block) {
         for (BlockPos pos : positions) {
             BlockState state = helper.getLevel().getBlockState(pos);
             if (!state.is(block)) {
@@ -315,7 +315,7 @@ public final class ServerScenarios {
         }
     }
 
-    private static int countBlocks(GameTestHelper helper, List<BlockPos> positions, Block block) {
+    private static int countBlocks(ServerTestHelper helper, List<BlockPos> positions, Block block) {
         int count = 0;
         for (BlockPos pos : positions) {
             if (helper.getLevel().getBlockState(pos).is(block)) count++;
@@ -332,14 +332,14 @@ public final class ServerScenarios {
         return total;
     }
 
-    private static void expectEquals(GameTestHelper helper, String what, Object expected, Object actual) {
+    private static void expectEquals(ServerTestHelper helper, String what, Object expected, Object actual) {
         assertTrue(expected.equals(actual), what + ": expected " + expected + " but was " + actual);
     }
 
-    /** GameTestHelper#assertTrue of 1.20+: Minecraft 1.19.2's helper has none. */
+    /** GameTestHelper#assertTrue of 1.20+. */
     private static void assertTrue(boolean condition, String message) {
         if (!condition) {
-            throw new GameTestAssertException(message);
+            throw new ServerTestAssertException(message);
         }
     }
 

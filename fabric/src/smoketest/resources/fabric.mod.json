@@ -12,9 +12,6 @@
     ],
     "client": [
       "sophisticated.building.smoketest.fabric.FabricSmokeTestClient"
-    ],
-    "fabric-gametest": [
-      "sophisticated.building.smoketest.fabric.FabricSmokeServerTests"
     ]
   },
   "depends": {

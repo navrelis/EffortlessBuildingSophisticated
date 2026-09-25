@@ -29,7 +29,7 @@ public final class CuriosAccessorySlots implements SmokeAccessorySlots {
     @Override
     public String equip(ServerPlayer player, ItemStack backpack) {
         Optional<ICurioStacksHandler> handler = backSlot(player);
-        if (handler.isEmpty()) return "the player has no Curios '" + SLOT + "' slot";
+        if (!handler.isPresent()) return "the player has no Curios '" + SLOT + "' slot";
         if (handler.get().getSlots() < 1) return "the Curios '" + SLOT + "' slot has no room";
         handler.get().getStacks().setStackInSlot(0, backpack);
         return null;
@@ -40,7 +40,7 @@ public final class CuriosAccessorySlots implements SmokeAccessorySlots {
         return backSlot(player).map(handler -> handler.getStacks().getStackInSlot(0)).orElse(ItemStack.EMPTY);
     }
 
-    // Curios 5 (Forge) hands the inventory out as a capability LazyOptional
+    // Curios 4 (Forge 1.16.5) hands the inventory out as a capability LazyOptional
     private static Optional<ICurioStacksHandler> backSlot(ServerPlayer player) {
         return CuriosApi.getCuriosHelper().getCuriosHandler(player).resolve().flatMap(inventory -> inventory.getStacksHandler(SLOT));
     }

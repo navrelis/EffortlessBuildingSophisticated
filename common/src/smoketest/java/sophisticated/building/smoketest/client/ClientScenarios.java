@@ -162,7 +162,7 @@ final class ClientScenarios {
             rules.getRule(GameRules.RULE_DAYLIGHT).set(false, null);
             rules.getRule(GameRules.RULE_WEATHER_CYCLE).set(false, null);
             rules.getRule(GameRules.RULE_DOMOBSPAWNING).set(false, null);
-            rules.getRule(GameRules.RULE_RANDOMTICKING).set(0, null);
+            rules.getRule(GameRules.RULE_RANDOMTICKING).tryDeserialize("0");
             LevelSettings settings = new LevelSettings(WORLD_NAME, GameType.CREATIVE, false, Difficulty.PEACEFUL, true,
                     rules, DataPackConfig.DEFAULT);
             // The built-in registries and the generator of 1.17.1's (private) flat world preset
@@ -193,7 +193,7 @@ final class ClientScenarios {
             for (int x = base.getX() - 14; x <= base.getX() + 16; x++) {
                 for (int z = base.getZ() - 6; z <= lane(8).getZ() + 12; z++) {
                     for (int y = groundY; y <= groundY + 10; y++) {
-                        level.setBlock(new BlockPos(x, y, z), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+                        level.setBlock(new BlockPos(x, y, z), Blocks.AIR.defaultBlockState(), 2 /* Block.UPDATE_CLIENTS */);
                     }
                 }
             }
@@ -825,7 +825,7 @@ final class ClientScenarios {
         });
         d.selectHotbarSlot(0);
         Item first = stacks[0].getItem();
-        d.waitUntil("the client to hold " + first, 40, () -> d.mc.player.getMainHandItem().is(first));
+        d.waitUntil("the client to hold " + first, 40, () -> d.mc.player.getMainHandItem().getItem() == first);
     }
 
     private int serverCount(Item item) {
@@ -833,7 +833,7 @@ final class ClientScenarios {
     }
 
     private void placeDirectly(List<BlockPos> positions, Block block) {
-        d.serverRun(server -> positions.forEach(pos -> server.overworld().setBlock(pos, block.defaultBlockState(), Block.UPDATE_ALL)));
+        d.serverRun(server -> positions.forEach(pos -> server.overworld().setBlock(pos, block.defaultBlockState(), 3 /* Block.UPDATE_ALL */)));
         d.waitUntil("the client to see the prepared blocks", 40, () -> positions.stream().allMatch(pos -> d.mc.level.getBlockState(pos).is(block)));
     }
 
