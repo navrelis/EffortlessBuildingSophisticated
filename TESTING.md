@@ -4,8 +4,8 @@ Three layers, from fast to real:
 
 | Layer | Command (in a loader folder) | What it proves |
 |---|---|---|
-| Unit tests | `gradlew build` | Pure logic in `common/src/test` (104 tests on Fabric incl. its config tests, 90 on each Forge folder) |
-| Fabric GameTests | `gradlew runGametest` | 24 server-side building rules (`fabric/src/gametest`) |
+| Unit tests | `gradlew build` | Pure logic in `common/src/test` (117 tests on Fabric incl. its config tests, 103 on each Forge folder) |
+| Fabric GameTests | `gradlew runGametest` | 38 server-side building rules (`fabric/src/gametest`) |
 | **In-game smoke tests** | `gradlew runSmokeClient` / `gradlew runSmokeServer` | The mod works in a real game on this loader, including the Sophisticated Backpacks (SB) integration |
 
 `gradlew build` compiles the smoke harness (so it cannot rot) but never runs it. The harness is dev-only: it lives in
@@ -118,6 +118,7 @@ arrives from a client, and handed to the packets' server handlers.
 | `server.undo_redo` | Undo/redo packets restore the inventory counts |
 | `server.merge_undo_refund` | Survival merges (+1 snow layer, +1 candle) cost one item each; undo puts both blocks back without mining and gives the items back, redo charges them again |
 | `server.refused_place_not_charged` | The loader's block place event refuses 2 of a 5 block line (as a protection mod would): only the 3 placed planks are charged and undo gives back exactly those. Skipped on Fabric (no place event; `ChargeGameTest` covers refused placements) |
+| `server.request_limits` | A survival player's build requests are checked against the power level limits (ServerBlockPlacer#validateRequest): a line starting 60 blocks away and a 20 block extent (survival: 8 per axis) are refused, nothing placed or charged; a normal 5 block line afterwards is placed |
 | `sb.upgrade_supplies_blocks`, `sb.disabled_upgrade_ignored`, `sb.tier_cap`, `sb.tool_swapper_tools`, `sb.worn_backpack_chest`, `sb.worn_backpack` | As on the client, server side |
 | `server.no_mod_errors` | As on the client |
 
@@ -307,6 +308,26 @@ Since R2 (player settings editor, bag title fit) the two checks also use:
   with `CI=true`, tests rerun without cache); Fabric `runGametest` "All 24 required tests passed"; `runSmokeServer`
   Fabric 11 (1 skip: `server.refused_place_not_charged`, no place event), `forge` 11/11, `forge-1.19` 11/11 (Forge
   41.1.0). `runSmokeClient` pending (no game clients until the lead allows them).
+
+- R3 (5.0.1, ported from mc/1.21.1 d8ab383..48261e8): server checks of build requests (`BuildLimits`,
+  `ServerBlockPlacer#validateRequest`, new smoke check `server.request_limits`), common config sync
+  (`CommonConfigSyncPacket`), array and modifier caps, offhand bag filter, material cost count, previous build mode
+  (`BuildModeHistory`), translation keys (`LangKeysTest`), Fabric per-player data in the player save
+  (`PlayerDataMixin`), Fabric break events + optional Common Protection API 1.0.0. Differences to 1.21.1: the start
+  reach uses the vanilla interaction range (4.5 survival, 5 creative; `Player#blockInteractionRange` is 1.20.5+);
+  `CommonConfigSyncPacket` is a `ModPayload` with a `FriendlyByteBuf` constructor and `write` (`writeVarIntArray`);
+  `PowerLevel#serializeNBT()` without registries; `Player#level` is a field; item tooltips keep the 1.19.2
+  `appendHoverText(ItemStack, Level, ...)` signature; the Omega bag's Reset button keeps the `Button` constructor; the
+  Fabric mixin config uses `JAVA_17`; the new GameTests use `GameTestSupport.assertTrue` (no `GameTestHelper#assertTrue`
+  / `assertFalse` before 1.19.3) and the 4-arg `ServerPlayer` constructor, `GameTestSupport` moves the player before
+  `addNewPlayer`; the smoke players are moved with the 5-arg `moveTo`; the Forge smoke test uses the template name
+  `smoketest_empty`; `new ResourceLocation` and `get(0)` in the tests. Harness fix: Forge 41's `FakePlayer` (forge-1.19)
+  reports every fake player at 0, 0, 0 (`position()`/`blockPosition()`), so the new reach check refused every scenario
+  (11 of 12 checks failed); the harness player now reports its real position (Forge 43 does not override them). Real
+  players are not affected: only their build requests are checked. Verified: `gradlew build` Fabric 117 tests, `forge`
+  and `forge-1.19` 103; Fabric `runGametest` "All 38 required tests passed"; `runSmokeServer` Fabric 12 (1 skip),
+  `forge` 12/12, `forge-1.19` 12/12, and with `-PsmokeNoSb=true` Fabric 12 (7 skips), both Forge folders 12 (6 skips);
+  `scripts/check-fabric-no-sb-bytecode.ps1 -Mc 1.19.2` on main: 352 classes, 0 differ.
 
 ## Minecraft 1.19 and 1.19.1
 

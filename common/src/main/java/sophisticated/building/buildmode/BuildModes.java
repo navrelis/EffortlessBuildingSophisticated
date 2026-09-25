@@ -15,8 +15,8 @@ import sophisticated.building.platform.Services;
 
 public class BuildModes {
 	private BuildModeEnum buildMode = BuildModeEnum.DISABLED;
-	private BuildModeEnum previousBuildMode = BuildModeEnum.DISABLED;
-	private BuildModeEnum beforeDisabledBuildMode = BuildModeEnum.SINGLE;
+	// Every mode change (radial menu, keys) is recorded, so "previous build mode" is the one actually used before
+	private final BuildModeHistory<BuildModeEnum> history = new BuildModeHistory<>(BuildModeEnum.DISABLED, BuildModeEnum.DISABLED, BuildModeEnum.SINGLE);
 
 	public void findCoordinates(BlockSet blocks, Player player) {
 		buildMode.instance.findCoordinates(blocks);
@@ -36,6 +36,7 @@ public class BuildModes {
 		}
 
 		this.buildMode = buildMode;
+		history.changeTo(buildMode);
 
 		Services.NETWORK.sendToServer(new IsUsingBuildModePacket(this.buildMode != BuildModeEnum.DISABLED));
 
@@ -43,18 +44,11 @@ public class BuildModes {
 	}
 
 	public void activatePreviousBuildMode() {
-		var temp = buildMode;
-		setBuildMode(previousBuildMode);
-		previousBuildMode = temp;
+		setBuildMode(history.previous());
 	}
 
-	public void activateDisableBuildModeToggle(){
-		if (buildMode == BuildModeEnum.DISABLED) {
-			setBuildMode(beforeDisabledBuildMode);
-		} else {
-			beforeDisabledBuildMode = buildMode;
-			setBuildMode(BuildModeEnum.DISABLED);
-		}
+	public void activateDisableBuildModeToggle() {
+		setBuildMode(history.disableToggleTarget());
 	}
 
 	public void onCancel() {

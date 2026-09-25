@@ -36,6 +36,10 @@ public interface IBlockEventHelper {
     /** Fires the loader's block break event for a build-mode break; false if a listener cancelled it. */
     boolean fireBlockBreakEvent(Level level, BlockPos pos, BlockState state, Player player);
 
+    /** After a build-mode break removed the block: Fabric fires its player break AFTER event; nothing on NeoForge/Forge. */
+    default void afterBlockBroken(Level level, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, Player player) {
+    }
+
     /** True while the loader is restoring captured block snapshots (no drops may be produced). */
     boolean isRestoringBlockSnapshots(Level level);
 

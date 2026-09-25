@@ -31,6 +31,11 @@ public final class FabricSmokeServerTests implements FabricGameTest {
         ServerScenarios.server_refused_place_not_charged(helper);
     }
 
+    @GameTest(template = EMPTY_STRUCTURE, batch = "smoke_limits", timeoutTicks = ServerScenarios.TIMEOUT_TICKS)
+    public void server_request_limits(GameTestHelper helper) {
+        ServerScenarios.server_request_limits(helper);
+    }
+
     @GameTest(template = EMPTY_STRUCTURE, batch = "smoke_3", timeoutTicks = ServerScenarios.TIMEOUT_TICKS)
     public void sb_upgrade_supplies_blocks(GameTestHelper helper) {
         ServerScenarios.sb_upgrade_supplies_blocks(helper);

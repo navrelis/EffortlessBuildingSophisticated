@@ -452,7 +452,8 @@ public class BuilderChain {
         //Mark invalid if the player does not have enough of that item
         for (BlockEntry blockEntry : blocks) {
             if (blockEntry.invalid) continue;
-            blockEntry.invalid = !SophisticatedBuildingClient.ITEM_USAGE_TRACKER.increaseUsageCount(blockEntry.item, 1, player);
+            blockEntry.invalid = !SophisticatedBuildingClient.ITEM_USAGE_TRACKER.increaseUsageCount(blockEntry.item,
+                    BlockUtilities.placementCost(blockEntry.existingBlockState, blockEntry.newBlockState), player);
         }
 
         SophisticatedBuildingClient.ITEM_USAGE_TRACKER.calculateMissingItems(player);
