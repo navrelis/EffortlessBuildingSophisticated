@@ -5,7 +5,7 @@
     { "item": "sophisticatedbuilding:compressed_cobbled_deepslate" }
   ],
   "result": {
-    "item": "minecraft:cobbled_deepslate",
+    "item": "minecraft:blackstone",
     "count": 9
   }
 }

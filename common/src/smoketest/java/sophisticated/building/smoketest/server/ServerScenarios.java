@@ -310,7 +310,7 @@ public final class ServerScenarios {
         for (BlockPos pos : positions) {
             BlockState state = helper.getLevel().getBlockState(pos);
             if (!state.is(block)) {
-                helper.fail("Expected " + block + " at " + pos.toShortString() + " but was " + state);
+                helper.fail("Expected " + block + " at " + ServerTestHelper.shortString(pos) + " but was " + state);
             }
         }
     }

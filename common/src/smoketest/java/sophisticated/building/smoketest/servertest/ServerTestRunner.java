@@ -107,7 +107,7 @@ public final class ServerTestRunner {
         level.getChunkAt(new BlockPos(x, 0, z));
         level.getChunkAt(new BlockPos(x + AREA, 0, z + AREA));
         origin = new BlockPos(x, level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z), z);
-        LOGGER.info("Running {} server tests at {}", pending.size(), origin.toShortString());
+        LOGGER.info("Running {} server tests at {}", pending.size(), ServerTestHelper.shortString(origin));
         startNext();
     }
 

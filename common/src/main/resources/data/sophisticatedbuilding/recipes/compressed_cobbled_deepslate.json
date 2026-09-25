@@ -7,7 +7,7 @@
     "DDD"
   ],
   "key": {
-    "D": { "item": "minecraft:cobbled_deepslate" }
+    "D": { "item": "minecraft:blackstone" }
   },
   "result": {
     "item": "sophisticatedbuilding:compressed_cobbled_deepslate",
