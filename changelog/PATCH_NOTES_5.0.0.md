@@ -1,20 +1,18 @@
-# Sophisticated Building Update – 4.3.0 (Minecraft 26.2)
-
-*Draft — lead to confirm before release.*
+# Sophisticated Building Update – 5.0.0 (Minecraft 26.2)
 
 ## Artifacts
 
-* `sophisticatedbuilding-fabric-26.2-4.3.0.jar` — Fabric
-* `sophisticatedbuilding-neoforge-26.2-4.3.0.jar` — NeoForge
-* `sophisticatedbuilding-forge-26.2-4.3.0.jar` — Forge
+* `sophisticatedbuilding-fabric-26.2-5.0.0.jar` — Fabric
+* `sophisticatedbuilding-neoforge-26.2-5.0.0.jar` — NeoForge
+* `sophisticatedbuilding-forge-26.2-5.0.0.jar` — Forge
 
 ## New
 
 ### Minecraft 26.2
 
-Sophisticated Building 4.3.0 is the first release for Minecraft 26.2, on Fabric, NeoForge and
+Sophisticated Building 5.0.0 is the first release for Minecraft 26.2, on Fabric, NeoForge and
 Forge (26.2 only: its rendering changes mean the 26.1.x jars do not work on it and these do not
-work on 26.1.x). It has the same features as 4.3.0 for 1.21.1, with these exceptions:
+work on 26.1.x). It has the same features as 5.0.0 for 1.21.1, with these exceptions:
 
 * **Sophisticated Backpacks integration on NeoForge only.** Sophisticated Backpacks has no Fabric
   or Forge release for 26.2, so on those loaders the Building Upgrade items are plain
