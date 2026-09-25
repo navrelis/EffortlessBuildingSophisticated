@@ -128,7 +128,7 @@ public class CommonConfig {
 
             level0 = builder
                 .comment("Maximum reach in survival without upgrades",
-                        "Consume Power Level upgrades upgrades to permanently increase this.")
+                        "Consume Reach Upgrades to permanently increase this.")
                 .defineInRange("maxMirrorRadiusLevel0", 16, 0, 1000);
 
             level1 = builder

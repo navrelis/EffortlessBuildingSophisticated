@@ -1,5 +1,6 @@
 package sophisticated.building;
 
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
@@ -141,6 +142,15 @@ public final class SophisticatedBuilding {
 
     public static void log(Player player, String msg, boolean actionBar) {
         player.displayClientMessage(new TextComponent(msg), actionBar);
+    }
+
+    /** A (translatable) message to the player; a translatable one sent from the server is translated on the client. */
+    public static void log(Player player, Component msg) {
+        log(player, msg, false);
+    }
+
+    public static void log(Player player, Component msg, boolean actionBar) {
+        player.displayClientMessage(msg, actionBar);
     }
 
     // Log with translation supported, call either on client or server (which then sends a message)

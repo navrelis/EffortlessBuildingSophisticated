@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.phys.Vec3;
 import sophisticated.building.AllGuiTextures;
 import sophisticated.building.AllIcons;
@@ -32,7 +33,7 @@ public class RadialMirrorEntry extends BaseModifierEntry<RadialMirror> {
 	protected DecimalFormat df = new DecimalFormat("#.#");
 
 	public RadialMirrorEntry(ModifiersScreen screen, BaseModifier radialMirror) {
-		super(screen, (RadialMirror) radialMirror, new TextComponent("Radial Mirror"), AllGuiTextures.RADIAL_MIRROR_ENTRY);
+		super(screen, (RadialMirror) radialMirror, new TranslatableComponent("sophisticatedbuilding.gui.modifier.radial_mirror"), AllGuiTextures.RADIAL_MIRROR_ENTRY);
 
 		positionInputs = new Vector<>();
 
@@ -42,7 +43,7 @@ public class RadialMirrorEntry extends BaseModifierEntry<RadialMirror> {
 			final int index = i;
 			ScrollInput scrollInput = new LabeledScrollInput(0, 0, 36, 18)
 				.showControlScrollsSlowerTooltip()
-				.titled(new TextComponent(i == 0 ? "X Position" : i == 1 ? "Y Position" : "Z Position"))
+				.titled(new TranslatableComponent(i == 0 ? "sophisticatedbuilding.gui.modifier.x_position" : i == 1 ? "sophisticatedbuilding.gui.modifier.y_position" : "sophisticatedbuilding.gui.modifier.z_position"))
 				.format(integer -> new TextComponent(df.format(integer / 2.0)))
 				.withStepFunction(stepContext -> stepContext.shift ? 20 : stepContext.control ? 1 : 2)
 				.calling(value -> {
@@ -60,7 +61,7 @@ public class RadialMirrorEntry extends BaseModifierEntry<RadialMirror> {
 				modifier.position = Vec3.atLowerCornerOf(Minecraft.getInstance().player.blockPosition());
 				onValueChanged();
 			});
-		playerPositionButton.setToolTip(Components.literal("Set to player position"));
+		playerPositionButton.setToolTip(Components.translatable("sophisticatedbuilding.gui.modifier.player_position"));
 		listeners.add(playerPositionButton);
 
 		//Toggle offset button
@@ -87,7 +88,7 @@ public class RadialMirrorEntry extends BaseModifierEntry<RadialMirror> {
 		//Slices
 		slicesInput = new LabeledScrollInput(0, 0, 27, 18)
 			.withRange(3, 1000)
-			.titled(new TextComponent("Slices"))
+			.titled(new TranslatableComponent("sophisticatedbuilding.gui.modifier.slices"))
 			.calling(value -> {
 				modifier.slices = value;
 				onValueChanged();
@@ -107,8 +108,8 @@ public class RadialMirrorEntry extends BaseModifierEntry<RadialMirror> {
 		radiusInput = new LabeledScrollInput(0, 0, 27, 18)
 			.withRange(0, AttachmentHandler.getMaxMirrorRadius(Minecraft.getInstance().player, false))
 			.titled(Minecraft.getInstance().player.isCreative() ?
-					new TextComponent("Radius") :
-					new TextComponent("Radius. Use Reach Upgrade items to increase maximum."))
+					new TranslatableComponent("sophisticatedbuilding.gui.modifier.radius") :
+					new TranslatableComponent("sophisticatedbuilding.gui.modifier.radius_upgrade"))
 			.calling(value -> {
 				modifier.radius = value;
 				onValueChanged();
@@ -200,41 +201,41 @@ public class RadialMirrorEntry extends BaseModifierEntry<RadialMirror> {
 		//Toggle offset button
 		if (modifier.position.x == Math.floor(modifier.position.x)) {
 			toggleOffsetButton.setIcon(AllIcons.I_BLOCK_CENTER);
-			toggleOffsetButton.setToolTip(Components.literal("Set position to center of block, for uneven numbered builds."));
+			toggleOffsetButton.setToolTip(Components.translatable("sophisticatedbuilding.gui.modifier.block_center"));
 		}
 		else {
 			toggleOffsetButton.setIcon(AllIcons.I_BLOCK_CORNER);
-			toggleOffsetButton.setToolTip(Components.literal("Set position to corner of block, for even numbered builds."));
+			toggleOffsetButton.setToolTip(Components.translatable("sophisticatedbuilding.gui.modifier.block_corner"));
 		}
 
 		//Toggle alternate button
 		if (modifier.alternate) {
 			alternateButton.setIcon(AllIcons.I_ALTERNATE_ON);
-			alternateButton.setToolTip(Components.literal("Alternating the direction of every other slice."));
+			alternateButton.setToolTip(Components.translatable("sophisticatedbuilding.gui.modifier.alternate_on"));
 		}
 		else {
 			alternateButton.setIcon(AllIcons.I_ALTERNATE_OFF);
-			alternateButton.setToolTip(Components.literal("Alternate the direction of every other slice. Currently off."));
+			alternateButton.setToolTip(Components.translatable("sophisticatedbuilding.gui.modifier.alternate_off"));
 		}
 
 		//Show lines button
 		if (modifier.drawLines) {
 			showLinesButton.setIcon(AllIcons.I_SHOW_LINES);
-			showLinesButton.setToolTip(Components.literal("Show mirror lines"));
+			showLinesButton.setToolTip(Components.translatable("sophisticatedbuilding.gui.modifier.show_lines"));
 		}
 		else {
 			showLinesButton.setIcon(AllIcons.I_HIDE_LINES);
-			showLinesButton.setToolTip(Components.literal("Show mirror lines"));
+			showLinesButton.setToolTip(Components.translatable("sophisticatedbuilding.gui.modifier.show_lines"));
 		}
 
 		//Show areas button
 		if (modifier.drawPlanes) {
 			showAreasButton.setIcon(AllIcons.I_SHOW_AREAS);
-			showAreasButton.setToolTip(Components.literal("Show mirror areas"));
+			showAreasButton.setToolTip(Components.translatable("sophisticatedbuilding.gui.modifier.show_areas"));
 		}
 		else {
 			showAreasButton.setIcon(AllIcons.I_HIDE_AREAS);
-			showAreasButton.setToolTip(Components.literal("Show mirror areas"));
+			showAreasButton.setToolTip(Components.translatable("sophisticatedbuilding.gui.modifier.show_areas"));
 		}
 	}
 }

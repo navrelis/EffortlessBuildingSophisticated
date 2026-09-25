@@ -51,7 +51,7 @@ public abstract class BaseModifierEntry<T extends BaseModifier> extends Modifier
                 screen.moveModifierUp(this);
                 onValueChanged();
             });
-        moveUpButton.setToolTip(Components.literal("Move up"));
+        moveUpButton.setToolTip(Components.translatable("sophisticatedbuilding.gui.modifier.move_up"));
         listeners.add(moveUpButton);
         
         moveDownButton = new MiniButton(0, 0, 9, 9)
@@ -60,7 +60,7 @@ public abstract class BaseModifierEntry<T extends BaseModifier> extends Modifier
                 screen.moveModifierDown(this);
                 onValueChanged();
             });
-        moveDownButton.setToolTip(Components.literal("Move down"));
+        moveDownButton.setToolTip(Components.translatable("sophisticatedbuilding.gui.modifier.move_down"));
         listeners.add(moveDownButton);
         
         removeButton = new MiniButton(0, 0, 9, 9)
@@ -68,7 +68,7 @@ public abstract class BaseModifierEntry<T extends BaseModifier> extends Modifier
             .withCallback(() -> {
                 screen.removeModifier(this);
             });
-        removeButton.setToolTip(Components.literal("Remove"));
+        removeButton.setToolTip(Components.translatable("sophisticatedbuilding.gui.modifier.remove"));
         listeners.add(removeButton);
         
         reachLabel = new Label(0, 0, Components.immutableEmpty()).withShadow();
@@ -119,8 +119,8 @@ public abstract class BaseModifierEntry<T extends BaseModifier> extends Modifier
 
     public void onValueChanged() {
         if (modifier.enabled)
-            enableButton.setToolTip(Components.literal("Disable this modifier"));
+            enableButton.setToolTip(Components.translatable("sophisticatedbuilding.gui.modifier.disable"));
         else
-            enableButton.setToolTip(Components.literal("Enable this modifier"));
+            enableButton.setToolTip(Components.translatable("sophisticatedbuilding.gui.modifier.enable"));
     }
 }
