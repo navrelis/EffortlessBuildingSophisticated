@@ -230,9 +230,28 @@ jar.
 | Loader | Runtime | Result |
 |---|---|---|
 | Fabric | Minecraft 1.18, Fabric Loader 0.19.5, Fabric API 0.44.0+1.18 (the release jar as is: `minecraft` `>=1.18 <=1.18.1`, `fabric` `>=0.44.0`) | `runSmokeServer` 3 checks passed, `runSmokeClient` 10 checks passed |
-| Forge | Real Forge 1.18 server (installer 38.0.17), Sophisticated Backpacks 1.18-3.12.1.433 (the last SB for 1.18), Curios 1.18-5.0.2.5 | The release jar does not load ("needs language provider javafml:39 or above"). With its `mods.toml` widened for the test (javafml `[38,)`, Forge `[38.0.17,)`, Minecraft `[1.18,1.18.1]`, SB `[1.18-3.12.1,)`) the server reaches "Done", but the backpack integration cannot link: SB 3.12.1 still keeps the shared classes under `net.p3pp3rf1y.sophisticatedbackpacks` (no `net.p3pp3rf1y.sophisticatedcore` package), so `BuildingUpgradeItem` fails with `ClassNotFoundException: net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase` (6 ERRORs) and no upgrade containers are registered. `runSmokeServer` cannot run on Forge 38 at all: it has no game test integration (`net.minecraftforge.gametest` is Forge 39+) |
+| Forge | Real Forge 1.18 server (installer 38.0.17), Sophisticated Backpacks 1.18-3.12.1.433 (the last SB for 1.18), Curios 1.18-5.0.2.5 | The release jar does not load ("needs language provider javafml:39 or above"). With its `mods.toml` widened for the test (javafml `[38,)`, Forge `[38.0.17,)`, Minecraft `[1.18,1.18.1]`, SB `[1.18-3.12.1,)`) the server reaches "Done", but the backpack integration cannot link: SB 3.12.1 still keeps the shared classes under `net.p3pp3rf1y.sophisticatedbackpacks` (no `net.p3pp3rf1y.sophisticatedcore` package), so `BuildingUpgradeItem` fails with `ClassNotFoundException: net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase` (6 ERRORs) and no upgrade containers are registered. Forge 38 has no game test integration either (`net.minecraftforge.gametest` and the game test server are Forge 39+), so `forge/`'s `runSmokeServer` cannot run there |
 
 Hence `minecraft_version_range=[1.18,1.18.1]` (Fabric `>=1.18 <=1.18.1`) with the Fabric API floor 0.44.0 (the Fabric API
 builds up to 0.46.3+1.18 accept 1.18, from 0.46.4+1.18 on they require exactly 1.18.1), and Forge
 `forge_minecraft_version_range=[1.18.1]` with Forge floor 39.1.2 and the optional Sophisticated Backpacks/Core range
-`[1.18.1-3.15.15,)`.
+`[1.18.1-3.15.15,)`. Minecraft 1.18 gets its own Forge jar from `forge-1.18/` (below).
+
+### Forge 1.18 (`forge-1.18/`)
+
+`forge-1.18/` builds `sophisticatedbuilding-forge-1.18-4.3.0.jar` (Minecraft `[1.18]`, Forge `[38.0.17,)`, optional
+Sophisticated Backpacks `[1.18-3.12.1,)`) from `../forge` with the classes Sophisticated Backpacks 1.18 and Forge 38
+need replaced (README.md, "Forge 1.18"). Its smoke runs use the same scenarios and check names as `forge/`, including
+every `sb.*` check (Forge 38.0.17, Sophisticated Backpacks 1.18-3.12.1.433, Curios 1.18-5.0.2.5):
+
+- `runSmokeServer`: 9 checks passed (6 `sb.*`). Forge 38 has no game test server, so the task starts a dedicated
+  server (`server.properties`: `level-type=flat`, `spawn-protection=0`; `eula.txt` accepted) and `SmokeServerRunner`
+  (`forge-1.18/src/smoketest`) runs the scenarios as vanilla test functions at the world spawn, with its own
+  `GameTestTicker` (the vanilla ticker only runs in a server started from an IDE), then stops the server. Spawn
+  protection must be off: the fake players are no operators and the dedicated server would refuse their builds near the
+  spawn.
+- `runSmokeClient`: 17 checks passed (7 `sb.*`), screenshots as on 1.18.1.
+- `runServer`: "Registered Sophisticated Backpacks upgrade containers", "Done". A real Forge 1.18 server (installer
+  38.0.17, mods: this jar, Sophisticated Backpacks 1.18-3.12.1.433, Curios 1.18-5.0.2.5) the same, and it stops cleanly.
+- The `ERROR` "No loader defined for tool_types" at server start comes from Sophisticated Backpacks 1.18's own data
+  (`data/sophisticatedbackpacks/registry/tool_types.json`), not from this mod.

@@ -1,0 +1,277 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev.legacyforge' version '2.0.147'
+    id 'idea'
+}
+
+apply from: '../gradle/smoketest.gradle'
+
+version = mod_version
+group = mod_group
+
+base {
+    archivesName = "${mod_id}-forge-${forge_minecraft_version}"
+}
+
+java {
+    // Mojang ships Java 17 to end users since 1.18, so mods should target Java 17.
+    toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
+    withSourcesJar()
+}
+
+// The loader-neutral code and assets in ../common are compiled and packaged into this jar.
+def commonDir = file('../common')
+
+// The Forge jar for Minecraft 1.18 (Forge 38, Sophisticated Backpacks 1.18-3.12.1). It is the Forge 1.18.1 build
+// (../forge) with the classes Forge 38 and that Backpacks build cannot run replaced: every file of ../forge/src/<set> (and
+// of ../common/src/smoketestBackpacks, the backpack fixture of the smoke harness) is compiled from a copy, except those
+// that src/<set> of this folder overrides under the same path (see README.md). A Sync task makes the copy, so the shared
+// sources are compiled exactly once per source set and an override can never be shadowed by its original.
+def forgeDir = file('../forge')
+// Leaves out every file that src/<set>/<kind> of this folder has under the same path. Decided when the copy runs (the
+// overrides are inputs of the copy), so adding or removing an override needs no reconfiguration.
+def excludeOverrides = { CopySpec spec, String set, String kind ->
+    def own = file("src/${set}/${kind}")
+    spec.exclude { FileTreeElement element -> !element.directory && new File(own, element.relativePath.pathString).exists() }
+}
+def sharedSources = { File baseDir, String set, String kind ->
+    return tasks.register("shared${baseDir.name.capitalize()}${set.capitalize()}${kind.capitalize()}", Sync) {
+        from("${baseDir}/src/${set}/${kind}") { excludeOverrides(it, set, kind) }
+        inputs.files(fileTree("src/${set}/${kind}")).withPropertyName('overrides')
+        into layout.buildDirectory.dir("generated/shared/${baseDir.name}/${set}/${kind}")
+    }
+}
+
+sourceSets {
+    main {
+        java.srcDir "${commonDir}/src/main/java"
+        java.srcDir sharedSources(forgeDir, 'main', 'java')
+        resources.srcDir "${commonDir}/src/main/resources"
+        resources.srcDir sharedSources(forgeDir, 'main', 'resources')
+    }
+    test {
+        java.srcDir "${commonDir}/src/test/java"
+    }
+    // Empty source set of the clientExported run: Forge only, so every mod (this one included) comes from
+    // run-exported/mods.
+    exportedStub {
+    }
+    // In-game smoke test harness (runSmokeClient / runSmokeServer, see TESTING.md): loader-neutral scenarios from
+    // ../common/src/smoketest, the Sophisticated Backpacks fixture from ../common/src/smoketestBackpacks and the
+    // Forge glue from ../forge/src/smoketest, each with this folder's overrides. Its own mod
+    // ("sophisticatedbuilding_smoketest", META-INF/mods.toml), loaded only by the smoke runs, never packaged.
+    smoketest {
+        java.srcDir "${commonDir}/src/smoketest/java"
+        java.srcDir sharedSources(commonDir, 'smoketestBackpacks', 'java')
+        java.srcDir sharedSources(forgeDir, 'smoketest', 'java')
+        resources.srcDir "${commonDir}/src/smoketest/resources"
+        resources.srcDir sharedSources(commonDir, 'smoketestBackpacks', 'resources')
+        resources.srcDir sharedSources(forgeDir, 'smoketest', 'resources')
+        compileClasspath += main.output
+        runtimeClasspath += main.output
+    }
+}
+// The overrides themselves: src/main and src/smoketest are the source sets' default folders; the fixture overrides too
+sourceSets.smoketest.java.srcDir 'src/smoketestBackpacks/java'
+sourceSets.smoketest.resources.srcDir 'src/smoketestBackpacks/resources'
+
+repositories {
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'CurseMaven'
+                url = 'https://www.cursemaven.com'
+            }
+        }
+        filter { includeGroup('curse.maven') }
+    }
+}
+
+legacyForge {
+    enable {
+        forgeVersion = "${forge_minecraft_version}-${forge_version}"
+        // Always decompile and recompile Minecraft+Forge, also on CI (see ../forge/build.gradle).
+        disableRecompilation = false
+    }
+
+    // The unit tests exercise vanilla types (BlockPos, ...), so they need Minecraft on their classpath too.
+    addModdingDependenciesTo sourceSets.test
+    addModdingDependenciesTo sourceSets.exportedStub
+    addModdingDependenciesTo sourceSets.smoketest
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+        // The smoke test harness (smoketest source set), loaded only by runSmokeClient / runSmokeServer
+        sophisticatedbuilding_smoketest {
+            sourceSet(sourceSets.smoketest)
+        }
+    }
+
+    runs {
+        client {
+            client()
+            loadedMods = [mods."${mod_id}"]
+        }
+        server {
+            server()
+            programArgument '--nogui'
+            loadedMods = [mods."${mod_id}"]
+        }
+        // Smoke test harness (see TESTING.md): a real client creates a fresh superflat world, runs the client
+        // scenarios, writes <smoketestOut>/smoketest-result.json and exits. gradlew runSmokeClient -PsmoketestOut=<dir>
+        smokeClient {
+            client()
+            sourceSet = sourceSets.smoketest
+            loadedMods = [mods."${mod_id}", mods.sophisticatedbuilding_smoketest]
+            gameDirectory = file('build/smoketest/client-run')
+            systemProperty 'sophisticatedbuilding.smoketest.mode', 'client'
+            systemProperty 'sophisticatedbuilding.smoketest.out', smoketestOutDir('client').absolutePath
+        }
+        // Headless. Forge 38 has no game test server: a dedicated server runs the server scenarios as game tests
+        // (SmokeServerRunner, fake survival players, real backpacks) and writes the same JSON.
+        // gradlew runSmokeServer -PsmoketestOut=<dir>
+        smokeServer {
+            server()
+            programArgument '--nogui'
+            sourceSet = sourceSets.smoketest
+            loadedMods = [mods."${mod_id}", mods.sophisticatedbuilding_smoketest]
+            gameDirectory = file('build/smoketest/server-run')
+            systemProperty 'sophisticatedbuilding.smoketest.mode', 'server'
+            systemProperty 'sophisticatedbuilding.smoketest.out', smoketestOutDir('server').absolutePath
+        }
+        // Client that loads only the jars in run-exported/mods (production jars); nothing from this project.
+        clientExported {
+            client()
+            sourceSet = sourceSets.exportedStub
+            loadedMods = []
+            gameDirectory = file('run-exported')
+        }
+        // applies to all the run configs above
+        configureEach {
+            // "REGISTRIES": log the firing of registry events.
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+    }
+}
+
+// The smoke runs pass or fail on the result file they write (shared logic in ../gradle/smoketest.gradle)
+tasks.named('runSmokeClient') { verifySmokeRun(it, smoketestOutDir('client')) }
+tasks.named('runSmokeServer') { verifySmokeRun(it, smoketestOutDir('server')) }
+// The smoke server is a dedicated server: a fresh superflat world each run (level-type without namespace in 1.18,
+// default superflat layers), the EULA accepted, and no spawn protection (the fake players are no operators).
+def smokeServerDir = file('build/smoketest/server-run')
+tasks.named('runSmokeServer') {
+    doFirst {
+        new File(smokeServerDir, 'world').deleteDir()
+        smokeServerDir.mkdirs()
+        new File(smokeServerDir, 'server.properties').text = 'level-type=flat\nspawn-protection=0\nonline-mode=false\n'
+        new File(smokeServerDir, 'eula.txt').text = 'eula=true\n'
+    }
+}
+
+// Dependencies present in the dev runs only (not pulled by dependents of this mod).
+configurations {
+    localRuntime
+    runtimeClasspath.extendsFrom localRuntime
+    // The smoke harness compiles and runs against everything main does, plus Curios in its runtime (worn backpack
+    // in a Curios slot, sb.worn_backpack)
+    smoketestCompileOnly.extendsFrom compileOnly
+    smoketestImplementation.extendsFrom implementation
+    smoketestLocalRuntime
+    smoketestRuntimeClasspath.extendsFrom localRuntime, smoketestLocalRuntime
+}
+// Forge 38's loader asks for forgespi 4.0.+ and coremods 5.0.+, which now resolve to newer builds that pull in a newer
+// securejarhandler, which the dev runs of Forge 38 cannot start with. Keep the library versions of Forge 38.0.17's own
+// launcher profile.
+configurations.configureEach {
+    resolutionStrategy.force 'cpw.mods:securejarhandler:0.9.54', 'net.minecraftforge:forgespi:4.0.10',
+            'net.minecraftforge:coremods:5.0.1'
+}
+// Forge 1.18 mods are published with SRG names: the mod* configurations remap them to the dev names
+// (modLocalRuntime and modSmoketestLocalRuntime like the built-in modCompileOnly)
+obfuscation.createRemappingConfiguration(configurations.localRuntime)
+obfuscation.createRemappingConfiguration(configurations.smoketestLocalRuntime)
+
+dependencies {
+    // Sophisticated Backpacks 1.18: compiled against, and present in the dev runs (same version, see
+    // gradle.properties) so runClient/runServer start with the backpack integration active. Optional for players.
+    modCompileOnly "curse.maven:${sophisticatedbackpacks_cf}"
+    modLocalRuntime "curse.maven:${sophisticatedbackpacks_cf}"
+    modCompileOnly "curse.maven:${curios_cf}"
+    modSmoketestLocalRuntime "curse.maven:${curios_cf}"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// Expands the mod metadata templates (META-INF/mods.toml and pack.mcmeta): ../forge/src/main/templates, except those
+// this folder's src/main/templates overrides. A missing property will result in an error.
+var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    var replaceProperties = [
+            minecraft_version_range   : forge_minecraft_version_range,
+            forge_version_range       : forge_version_range,
+            forge_loader_version_range: forge_loader_version_range,
+            mod_id                    : mod_id,
+            mod_name                  : mod_name,
+            mod_license               : mod_license,
+            mod_version               : mod_version,
+            mod_authors               : mod_authors,
+            mod_description           : mod_description
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from('src/main/templates')
+    from("${forgeDir}/src/main/templates") { excludeOverrides(it, 'main', 'templates') }
+    inputs.files(fileTree('src/main/templates')).withPropertyName('overrides')
+    into 'build/generated/sources/modMetadata'
+}
+// Include the output of "generateModMetadata" as an input directory for the build
+sourceSets.main.resources.srcDir generateModMetadata
+legacyForge.ideSyncTask generateModMetadata
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = java_version as int
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+}
+
+// ../common must stay loader-neutral: loader APIs are only reached through the platform services.
+tasks.register('checkCommonIsLoaderNeutral') {
+    def sources = fileTree("${commonDir}/src/main/java") { include '**/*.java' }
+    inputs.files sources
+    doLast {
+        def forbidden = ~/^\s*import\s+(static\s+)?(net\.fabricmc|net\.neoforged|net\.minecraftforge|net\.p3pp3rf1y|net\.createmod|dev\.engine_room)\./
+        def offenders = sources.files.collectMany { file ->
+            file.readLines('UTF-8').findAll { it =~ forbidden }.collect { "${file.path}: ${it.trim()}" }
+        }
+        if (!offenders.isEmpty()) {
+            throw new GradleException("common/ must not import loader or optional-mod APIs:\n" + offenders.join('\n'))
+        }
+    }
+}
+
+// build compiles the smoke harness (so it cannot rot) but never runs it; that is runSmokeClient / runSmokeServer's job.
+tasks.named('check') {
+    dependsOn tasks.named('checkCommonIsLoaderNeutral'), tasks.named('smoketestClasses')
+}
+
+// Resolved while configuring: the configuration cache cannot read project properties at execution time.
+def licenseFileName = "LICENSE_${mod_id}.txt"
+tasks.named('jar', Jar) {
+    from(file('../LICENSE.txt')) {
+        rename { licenseFileName }
+    }
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}

@@ -1,10 +1,11 @@
-# Sophisticated Building - Minecraft 1.18.1 (Fabric also 1.18)
+# Sophisticated Building - Minecraft 1.18.1 and 1.18
 
-This branch (`mc/1.18.1`) holds Sophisticated Building for Minecraft 1.18.1 on Fabric and Forge; the Fabric jar also
-covers Minecraft 1.18. It is a port of the `mc/1.18.2` / `mc/1.19.2` / `mc/1.21.1` branches with the same layout:
-loader-neutral code lives once in `common/`, and every loader folder is a standalone Gradle build that compiles `common/`
-together with its own sources into one mod jar. Sophisticated Backpacks exists for Forge 1.18.1 only (the unofficial
-Fabric port starts at 1.19.2), so the Forge jar has the backpack integration and the Fabric jar has none.
+This branch (`mc/1.18.1`) holds Sophisticated Building for Minecraft 1.18.1 and 1.18 on Fabric and Forge: one Fabric
+jar covers both, Forge has a jar per version (`forge/` for 1.18.1, `forge-1.18/` for 1.18). It is a port of the
+`mc/1.18.2` / `mc/1.19.2` / `mc/1.21.1` branches with the same layout: loader-neutral code lives once in `common/`, and
+every loader folder is a standalone Gradle build that compiles `common/` together with its own sources into one mod
+jar. Sophisticated Backpacks exists for Forge only (the unofficial Fabric port starts at 1.19.2), so the Forge jars have
+the backpack integration and the Fabric jar has none.
 
 ## Layout
 
@@ -18,6 +19,8 @@ common/                    loader-neutral code and assets, no build of its own
 fabric/                    Fabric build (Loom): entry points, platform services, JSON config backend, access widener, GameTests (src/gametest)
 forge/                     Forge build (ModDevGradle Legacy): entry points, platform services, ForgeConfigSpec configs,
                            power level capability, Sophisticated Backpacks integration (official build) with Curios fallback
+forge-1.18/                Forge build for Minecraft 1.18 (Forge 38): compiles ../forge with the classes Forge 38 and
+                           Sophisticated Backpacks 1.18 need replaced (see "Forge 1.18" below)
 changelog/                 patch notes
 build-all.ps1              builds every loader folder in turn
 ```
@@ -47,7 +50,46 @@ server (installer 39.1.2, only this jar plus Sophisticated Backpacks and Curios 
 the last Fabric API for 1.18.1; the Fabric jar was also run on Minecraft 1.18 with Fabric API 0.44.0+1.18 (smoke
 server and client, see TESTING.md), hence the Fabric API floor 0.44.0. The Forge jar is 1.18.1 only: Forge 38 (1.18)
 refuses it (it needs Forge 39), and with the last Sophisticated Backpacks build for 1.18 (1.18-3.12.1, whose shared
-classes are still under `net.p3pp3rf1y.sophisticatedbackpacks`) the backpack integration could not link.
+classes are still under `net.p3pp3rf1y.sophisticatedbackpacks`) the backpack integration could not link. Minecraft 1.18
+therefore gets its own Forge jar from `forge-1.18/`.
+
+### Forge 1.18
+
+`forge-1.18/` builds `sophisticatedbuilding-forge-1.18-4.3.0.jar` (Minecraft `[1.18]`, Forge `[38.0.17,)`,
+`loaderVersion` `[38,)`, optional Sophisticated Backpacks `[1.18-3.12.1,)`) with ModDevGradle Legacy 2.0.147 and Gradle
+8.14.5, without Parchment (none exists for 1.18), reobfuscated to SRG names. Dev runtime: Forge 38.0.17 (the latest Forge
+for 1.18), Sophisticated Backpacks 1.18-3.12.1.433 (CurseForge file 3555237, its latest 1.18 release) and Curios
+1.18-5.0.2.5 (file 3567289, the last Curios built for 1.18). It was also started on a real Forge 1.18 server
+(installer 38.0.17, only this jar plus Sophisticated Backpacks and Curios in `mods/`).
+
+It compiles `../forge/src` (main and smoketest), `../forge/src/main/templates`, `../common` and
+`../common/src/smoketestBackpacks` as they are, except the files its own `src/` has under the same path: a `Sync` task
+copies the shared folders without those into `build/generated/shared`, so every shared file is compiled once and an
+override replaces its original (the exclusion is decided when the copy runs, so an added override needs no
+reconfiguration). The overrides:
+
+* Sophisticated Backpacks 1.18 keeps everything later split off into Sophisticated Core under
+  `net.p3pp3rf1y.sophisticatedbackpacks` (no `sophisticatedcore` package or mod): `IBackpackWrapper`, `IUpgradeWrapper`,
+  `UpgradeType`, `UpgradeSlotChangeResult` in `api`, `BackpackInventoryHandler` / `BackpackUpgradeHandler` instead of
+  `InventoryHandler` / `UpgradeHandler`, `BackpackScreen` instead of `StorageScreenBase`, the GUI and container classes in
+  `client.gui` / `common.gui`. Same code, other imports: `BuildingUpgradeItem`, `BuildingUpgradeWrapper`,
+  `BuildingUpgradeContainer`, `BuildingUpgradeHelper`, `BuildingUpgradeSettingsTab`, `SophisticatedBackpacksIntegration`,
+  `SophisticatedBackpacksClientIntegration`, `ToolSwapperIntegration` and the smoke fixture
+  `SophisticatedBackpacksFixture`.
+* `BuildingUpgradeItem`: SB 1.18's `UpgradeItemBase` takes no creative tab and puts its items into the backpacks tab;
+  `fillItemCategory` / `getCreativeTabs` show the Building Upgrades in this mod's tab, as on 1.18.1.
+* `META-INF/mods.toml` template: the ranges above, and no `sophisticatedcore` dependency.
+* Smoke harness: Forge 38 has no game test integration (`net.minecraftforge.gametest`, the game test server launch
+  target and `RegisterGameTestsEvent` are Forge 39+). `runSmokeServer` starts a dedicated server (fresh superflat world,
+  EULA accepted, no spawn protection) on which `SmokeServerRunner` turns the `@GameTest` methods of
+  `ForgeSmokeServerTests` into vanilla test functions (named and batched as vanilla's `GameTestRegistry` does, template
+  `sophisticatedbuilding:smoketest_empty`), runs them with its own `GameTestTicker` and stops the server when all are
+  done; the checks and the result file are the same. `ForgeSmokeTest` hooks it to `ServerStartedEvent` /
+  `ServerTickEvent`; the harness mod's `mods.toml` asks for `loaderVersion` `[38,)`.
+
+As on `forge/`, the dev runs pin the launcher libraries of Forge 38.0.17's profile (securejarhandler 0.9.54, forgespi
+4.0.10, coremods 5.0.1). Everything else of `../forge` (Forge 39 code: `RenderLevelLastEvent`, `ForgeRegistries`
+deferred registers, networking, configs, capabilities, Curios compatibility) compiles and runs on Forge 38 unchanged.
 
 ## Differences from the 1.21.1 branch
 
@@ -124,22 +166,24 @@ the mod is compiled for and run on Java 17 (toolchain, downloaded by the Foojay 
 cd fabric && ./gradlew build          # jar in fabric/build/libs, runs common + Fabric unit tests (77)
 cd fabric && ./gradlew runGametest    # 17 in-world GameTests (not part of build)
 cd forge  && ./gradlew build          # reobfuscated jar in forge/build/libs, runs the common unit tests (65)
-./build-all.ps1                       # both, stops at the first failure
+cd forge-1.18 && ./gradlew build      # the Forge 1.18 jar in forge-1.18/build/libs, same unit tests (65)
+./build-all.ps1                       # all three, stops at the first failure
 ```
 
 ## In-game smoke tests
 
 `gradlew runSmokeClient -PsmoketestOut=<dir>` (real client, fresh world) and `gradlew runSmokeServer -PsmoketestOut=<dir>`
-(headless game test server) in either loader folder run the in-game smoke scenarios and write
-`<dir>/smoketest-result.json`; the game exits by itself. Forge also runs the Sophisticated Backpacks checks (`sb.*`);
+(headless game test server; on `forge-1.18` a dedicated server, see "Forge 1.18") in any loader folder run the in-game
+smoke scenarios and write `<dir>/smoketest-result.json`; the game exits by itself. Both Forge folders also run the
+Sophisticated Backpacks checks (`sb.*`);
 Fabric has no backpack integration on 1.18.1 and runs none. The harness (`common/src/smoketest`,
 `common/src/smoketestBackpacks` (Forge only), `<loader>/src/smoketest`, `gradle/smoketest.gradle`) is dev-only and never
 packaged. See [TESTING.md](TESTING.md) for the scenarios, the result contract and how a port adopts it.
 
 ## Run
 
-`runClient`, `runServer` in either folder (plus `runGametest` on Fabric, `runGameTestServer` on Forge); the Forge runs
-have Sophisticated Backpacks (with Core inside) in the dev runtime. Accept the EULA in `<loader>/run/eula.txt` for `runServer`.
+`runClient`, `runServer` in any folder (plus `runGametest` on Fabric, `runGameTestServer` on `forge/`); the Forge runs
+have Sophisticated Backpacks (with Core inside on 1.18.1) in the dev runtime. Accept the EULA in `<loader>/run/eula.txt` for `runServer`.
 
 `runClientExported` starts a client that loads only the jars in `<loader>/run-exported/mods` (for testing
 exported jars; on Fabric put Fabric API there too).
@@ -147,13 +191,13 @@ exported jars; on Fabric put Fabric API there too).
 ## Build, CI and release
 
 `build-all.ps1` and `.github/workflows/build.yml` discover loader folders the same way: any top-level folder
-containing both `settings.gradle` and `gradlew` (today fabric, forge). Neither hard-codes the loader list, so
+containing both `settings.gradle` and `gradlew` (today fabric, forge, forge-1.18). Neither hard-codes the loader list, so
 both files are copied unchanged from `templates/branch` on `main` and stay in sync via `scripts/sync-branch-infra.ps1`
 (see `docs/RELEASING.md`).
 
 Each loader's `gradle.properties` sets `ci_gradle_jdk` (21 on this branch): the JDK **CI uses to run Gradle
 itself**, independent of the compile toolchain (which `settings.gradle`'s foojay resolver auto-provisions).
-Gradle JVM 21 works for both loaders here (Loom 1.17 needs it; Gradle 8.14.5 with ModDevGradle Legacy runs on it)
+Gradle JVM 21 works for every loader folder here (Loom 1.17 needs it; Gradle 8.14.5 with ModDevGradle Legacy runs on it)
 even though the mod itself compiles for and runs on Java 17. CI reads `ci_gradle_jdk` per loader and defaults to 21
 if the key is absent. The Forge build always recompiles Minecraft (`disableRecompilation = false`), also when
 `CI=true`, so the unit tests never load the signed Forge classes.
