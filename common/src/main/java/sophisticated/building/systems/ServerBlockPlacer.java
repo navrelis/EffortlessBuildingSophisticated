@@ -10,6 +10,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.ServerConfig;
+import sophisticated.building.inventory.ItemHandlerHelper;
 import sophisticated.building.network.message.BreakCountdownPacket;
 import sophisticated.building.utilities.BlockEntry;
 import sophisticated.building.utilities.BlockPlacerHelper;
@@ -243,11 +244,13 @@ public class ServerBlockPlacer {
         return notUndoneSet;
     }
 
-    //restoring: redo, which charges the whole state (see restoreCost); a normal build charges one item per entry
+    //Build and redo charge the whole state (see restoreCost): a merge one item, three candles onto air three candles
+    //restoring: redo, where a state that is already there counts as redone (nothing to place or charge)
     private boolean applyBlockEntry(Player player, BlockEntry block, @Nullable List<BreakToolHelper.ToolSlot> candidates,
                                     PlacementTemplates templates, boolean restoring) {
 
         block.existingBlockState = player.level.getBlockState(block.blockPos);
+        if (restoring && isAlreadyThere(block.existingBlockState, block.newBlockState)) return true;
         boolean breaking = BlockUtilities.isNullOrAir(block.newBlockState);
         //Survival may only overwrite a real block by mining it, and only with survival replace enabled (merges excepted)
         ReplaceRules.Action action = breaking ? ReplaceRules.Action.BREAK : ReplaceRules.forPlacement(candidates != null,
@@ -257,7 +260,7 @@ public class ServerBlockPlacer {
         if (action == ReplaceRules.Action.SKIP) return false;
         if (!validateBlockEntry(player, block, action != ReplaceRules.Action.PLACE)) return false;
 
-        int count = restoring && !breaking ? restoreCost(action, block.existingBlockState, block.newBlockState) : 1;
+        int count = breaking ? 1 : restoreCost(action, block.existingBlockState, block.newBlockState);
 
         isPlacingOrBreakingBlocks = true;
         try {
@@ -271,7 +274,7 @@ public class ServerBlockPlacer {
         }
     }
 
-    //Undo/redo restore a whole state: a double slab costs two slabs, three candles three candles. The same block placed
+    //A placed state costs all its items: a double slab two slabs, three candles three candles. The same block placed
     //over without mining (a merge, snow layers) keeps its items, so only the difference is charged.
     private static int restoreCost(ReplaceRules.Action action, BlockState current, BlockState target) {
         boolean kept = action == ReplaceRules.Action.PLACE && current.is(target.getBlock());
@@ -282,7 +285,7 @@ public class ServerBlockPlacer {
     private boolean placeIfAvailable(Player player, BlockEntry block, PlacementTemplates templates, int count) {
         //If we have the items in our inventory, place it
         if (SophisticatedBuilding.ITEM_USAGE_TRACKER.tryIncreaseUsageCount(block.item, count, player)) {
-            return placeWithTemplate(player, block, templates, false, count);
+            return placeWithTemplate(player, block, templates, count);
         }
         //Not having the item at this point would be a bit weird
         //It could mean the client/server are out of sync, or the inventory changed during the short delay period
@@ -300,17 +303,16 @@ public class ServerBlockPlacer {
             tracker.decreaseUsageCount(block.item, count);
             return false;
         }
-        return placeWithTemplate(player, block, templates, true, count);
+        return placeWithTemplate(player, block, templates, count);
     }
 
-    //Places the entry with the data of a real inventory stack; a stack with data is consumed right here in survival
-    //uncountOnFailure: a failed placement is taken back from the usage count instead of being charged
-    private boolean placeWithTemplate(Player player, BlockEntry block, PlacementTemplates templates, boolean uncountOnFailure,
-                                      int count) {
+    //Places the entry with the data of a real inventory stack; a stack with data is consumed right here in survival.
+    //Only a block that was really placed is charged: a placement the server refused (a cancelled place event, water in
+    //the nether, nothing changed) is taken back from the usage count.
+    private boolean placeWithTemplate(Player player, BlockEntry block, PlacementTemplates templates, int count) {
         var tracker = SophisticatedBuilding.ITEM_USAGE_TRACKER;
         var template = block.item == null ? null : templates.find(block.item);
-        boolean success = BlockPlacerHelper.placeBlock(player, block, template == null ? ItemStack.EMPTY : template.stack());
-        if (!success && uncountOnFailure) {
+        if (!BlockPlacerHelper.placeBlock(player, block, template == null ? ItemStack.EMPTY : template.stack())) {
             tracker.decreaseUsageCount(block.item, count);
             return false;
         }
@@ -318,12 +320,26 @@ public class ServerBlockPlacer {
         for (int i = 0; i < count && template != null; i++) {
             if (i > 0) template = templates.find(block.item);
             if (template.individual()) {
-                //Taken from the exact stack (only if placed); either way it is left out of the bulk removal
+                //Taken from the exact stack and left out of the bulk removal
                 tracker.addConsumedIndividually(block.item, 1);
-                if (success) template.stack().shrink(1);
+                template.stack().shrink(1);
             }
         }
-        return success;
+        return true;
+    }
+
+    //Undo of a merge: the block gets its old state back without mining, and survival gets back exactly the item the
+    //merge charged (a turtle egg mined would drop nothing, and mining needs survival replace and a tool)
+    private boolean unmerge(Player player, BlockEntry block, BlockState merged, boolean survival) {
+        if (!BlockPlacerHelper.placeBlock(player, block)) return false;
+        if (survival) {
+            int refund = ReplaceRules.unmergeRefund(BlockUtilities.itemCountForState(merged), BlockUtilities.itemCountForState(block.newBlockState));
+            Item item = merged.getBlock().asItem();
+            if (refund > 0 && item != Items.AIR) {
+                ItemHandlerHelper.giveItemToPlayer(player, new ItemStack(item, refund));
+            }
+        }
+        return true;
     }
 
     private boolean undoBlockEntry(Player player, BlockEntry block, @Nullable List<BreakToolHelper.ToolSlot> candidates,
@@ -343,10 +359,17 @@ public class ServerBlockPlacer {
 
         //Survival: a real block in the way is mined (replace), never overwritten
         BlockState current = player.level.getBlockState(block.blockPos);
+        //Already back in the old state (e.g. someone mined the placed block): done, instead of failing on every undo
+        if (isAlreadyThere(current, temp)) {
+            block.newBlockState = current;
+            return true;
+        }
         ReplaceRules.Action action = ReplaceRules.forUndo(candidates != null, breaking, tempBlockEntry.item != null,
-                BlockUtilities.needsMining(current), current == temp, ServerConfig.survivalReplace.enabled.get());
+                BlockUtilities.needsMining(current), current == temp, ServerConfig.survivalReplace.enabled.get(),
+                !breaking && BlockUtilities.isOneStepMerge(temp, current));
         if (action == ReplaceRules.Action.SKIP) return false;
-        if (!validateBlockEntry(player, tempBlockEntry, action != ReplaceRules.Action.PLACE)) return false;
+        boolean mining = action == ReplaceRules.Action.BREAK || action == ReplaceRules.Action.REPLACE;
+        if (!validateBlockEntry(player, tempBlockEntry, mining)) return false;
 
         //Update newBlockState for future redo's
         block.newBlockState = current;
@@ -357,12 +380,18 @@ public class ServerBlockPlacer {
         try {
             return switch (action) {
                 case BREAK -> BlockPlacerHelper.breakBlock(player, tempBlockEntry, candidates);
+                case UNMERGE -> unmerge(player, tempBlockEntry, current, candidates != null);
                 case REPLACE -> mineAndPlace(player, tempBlockEntry, candidates, templates, count);
                 default -> placeIfAvailable(player, tempBlockEntry, templates, count);
             };
         } finally {
             isPlacingOrBreakingBlocks = false;
         }
+    }
+
+    //The block already has the state an undo or redo would restore (a break restores air)
+    private static boolean isAlreadyThere(BlockState current, @Nullable BlockState target) {
+        return BlockUtilities.isNullOrAir(target) ? current.isAir() : current == target;
     }
 
     private boolean checkAndNotifyAllowedToUseMod(Player player) {

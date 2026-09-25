@@ -25,9 +25,9 @@ public interface IConfigBuilder {
 
     ConfigValue<List<String>> defineList(String key, List<String> defaultValue);
 
-    ConfigValue<Integer> defineInRange(String key, int defaultValue, int min, int max);
+    NumberConfigValue<Integer> defineInRange(String key, int defaultValue, int min, int max);
 
-    ConfigValue<Double> defineInRange(String key, double defaultValue, double min, double max);
+    NumberConfigValue<Double> defineInRange(String key, double defaultValue, double min, double max);
 
     /** Finishes the file and returns the loader's spec object (Fabric {@code ConfigSpec}, NeoForge {@code ModConfigSpec}). */
     Object build();

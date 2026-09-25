@@ -5,6 +5,7 @@ import net.minecraft.client.KeyMapping;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuildingClient;
 import sophisticated.building.buildmode.BuildModeEnum;
+import sophisticated.building.buildmode.ModeOptions;
 import sophisticated.building.gui.buildmode.RadialMenu;
 import sophisticated.building.platform.ClientServices;
 
@@ -56,6 +57,45 @@ final class RadialMenuDriver {
             set("accumulatedMouseY", Math.sin(angle) * radius);
         });
         d.waitUntil("the radial menu to highlight " + mode, 40, () -> RadialMenu.instance.switchTo == mode);
+    }
+
+    /**
+     * Moves the mouse onto a side button (action or build mode option) where the menu last drew it
+     * ({@link RadialMenu#sideButtons()}), and waits until the menu's render pass highlights it.
+     */
+    void hoverButton(ModeOptions.ActionEnum action) {
+        d.waitUntil("the radial menu to draw the " + action + " button", 40, () -> button(action) != null);
+        d.clientRun(() -> {
+            RadialMenu.SideButton button = button(action);
+            set("accumulatedMouseX", (button.left() + button.right()) / 2 - RadialMenu.instance.width / 2.0);
+            set("accumulatedMouseY", (button.top() + button.bottom()) / 2 - RadialMenu.instance.height / 2.0);
+        });
+        pointerToMenuMouse();
+        d.waitUntil("the radial menu to highlight the " + action + " button", 40, () -> RadialMenu.instance.doAction == action);
+    }
+
+    private static RadialMenu.SideButton button(ModeOptions.ActionEnum action) {
+        for (RadialMenu.SideButton button : RadialMenu.instance.sideButtons()) {
+            if (button.action() == action) return button;
+        }
+        return null;
+    }
+
+    /** Moves the mouse to the ring's centre, where nothing is highlighted and no tooltip is drawn. */
+    void hoverNothing() {
+        d.clientRun(() -> {
+            set("accumulatedMouseX", 0);
+            set("accumulatedMouseY", 0);
+        });
+        pointerToMenuMouse();
+        d.waitUntil("the radial menu to highlight nothing", 40, () -> RadialMenu.instance.doAction == null && RadialMenu.instance.switchTo == null);
+    }
+
+    /** Puts the real pointer where the menu's tracked mouse is, so the menu draws its tooltip next to the button. */
+    private void pointerToMenuMouse() {
+        double[] at = d.client(() -> new double[]{RadialMenu.instance.width / 2.0 + getDouble("accumulatedMouseX"),
+                RadialMenu.instance.height / 2.0 + getDouble("accumulatedMouseY")});
+        d.pointAt(at[0], at[1]);
     }
 
     /** Left-clicks (selects the highlighted mode) and releases the radial key, which closes the menu. */

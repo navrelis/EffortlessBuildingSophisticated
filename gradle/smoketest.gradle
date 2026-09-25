@@ -56,3 +56,17 @@ ext.verifySmokeRun = { Task task, File outDir ->
         }
     }
 }
+
+// NeoForge / Forge smoke client: FML's early loading window is created before any mod code and takes the focus from
+// the user. With earlyWindowControl = false in <game dir>/config/fml.toml the game creates its window itself, through
+// the Window constructor, where the harness mixin (SmokeWindowMixin) sets GLFW's no-focus hints. Written before every
+// smoke client launch; other settings in the file are kept.
+ext.disableEarlyWindow = { Task task, File gameDir ->
+    task.doFirst {
+        File fmlToml = new File(gameDir, 'config/fml.toml')
+        fmlToml.parentFile.mkdirs()
+        List<String> lines = fmlToml.file ? fmlToml.readLines('UTF-8').findAll { !(it.trim() ==~ /earlyWindowControl\s*=.*/) } : []
+        lines.add('earlyWindowControl = false')
+        fmlToml.setText(lines.join('\n') + '\n', 'UTF-8')
+    }
+}
