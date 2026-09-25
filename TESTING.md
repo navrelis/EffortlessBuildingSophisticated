@@ -371,7 +371,7 @@ What the port from 1.21.1 changed:
 - Results of the 26.2 runs: `runSmokeServer` 3 / 9 (1 skipped: `sb.worn_backpack`, see above) / 3 checks,
   `runSmokeClient` 10 / 17 (7 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing; Fabric `runGametest`
   "All 18 required tests passed" (17 + `minecraft:always_pass`).
-- GUI checks (H5, ported from mc/1.21.1): `runSmokeClient` 13 / 21 (9 `sb.*`, `sb.upgrade_settings_tab` included) / 13
+- GUI checks (H5, ported from mc/1.21.1): `runSmokeClient` 13 / 21 (8 `sb.*`, `sb.upgrade_settings_tab` included) / 13
   checks on Fabric / NeoForge / Forge, all passing (`runSmokeServer` unchanged: 3 / 9 / 3; unit tests 77 / 65 / 65;
   Gradle on JDK 25); the mod's screens render through the 26.2 pipeline as on 1.21.11 (screenshots `modifier_widgets`:
   the array entry switched off with Count 6 and the Count tooltip, `player_settings`: shader type button, speed slider
@@ -426,7 +426,7 @@ Sophisticated Backpacks/Core API).
 ## Findings (26.1.2)
 
 - Results of the 26.1.2 runs: `runSmokeServer` 3 / 9 (1 skipped: `sb.worn_backpack`, see above) / 3 checks,
-  `runSmokeClient` 10 / 17 (8 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing; Fabric `runGametest`
+  `runSmokeClient` 10 / 17 (7 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing; Fabric `runGametest`
   "All 18 required tests passed" (17 + `minecraft:always_pass`).
 - As on 1.21.11, NeoForge lists the Sophisticated Backpacks, Core and Curios data packs as `TOO_OLD`; the mod's own data
   pack is compatible (`client.mod_data_pack_compatible`).
@@ -434,7 +434,7 @@ Sophisticated Backpacks/Core API).
 ## Findings (1.21.11)
 
 - Results of the 1.21.11 runs: `runSmokeServer` 3 / 9 (1 skipped: `sb.worn_backpack`, see above) / 3 checks,
-  `runSmokeClient` 10 / 17 (8 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing; Fabric `runGametest`
+  `runSmokeClient` 10 / 17 (7 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing; Fabric `runGametest`
   "All 18 required tests passed" (17 + `minecraft:always_pass`).
 - As on 1.21.8, NeoForge lists the Sophisticated Backpacks, Core and Curios data packs as `TOO_OLD`; the mod's own data
   pack is compatible (`client.mod_data_pack_compatible`).
@@ -442,7 +442,7 @@ Sophisticated Backpacks/Core API).
 ## Findings (1.21.10)
 
 - Results of the 1.21.10 runs: `runSmokeServer` 3 / 9 (1 skipped: `sb.worn_backpack`, see above) / 3 checks,
-  `runSmokeClient` 10 / 17 (8 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing; Fabric `runGametest`
+  `runSmokeClient` 10 / 17 (7 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing; Fabric `runGametest`
   "All 18 required tests passed".
 - Forge 60.1.15 flags mod data packs against the resource pack version, see above; the mod's `pack.mcmeta` works around
   it.
@@ -452,7 +452,7 @@ Sophisticated Backpacks/Core API).
 ## Findings (1.21.8)
 
 - Results of the 1.21.8 runs: `runSmokeServer` 3 / 9 (1 skipped: `sb.worn_backpack`, see above) / 3 checks,
-  `runSmokeClient` 10 / 17 (8 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing.
+  `runSmokeClient` 10 / 17 (7 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing.
 - The Sophisticated Backpacks and Core data packs of their 1.21.8 builds are listed as `TOO_OLD` by NeoForge (their
   pack format); the mod's own data pack is compatible (`client.mod_data_pack_compatible`).
 
