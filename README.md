@@ -55,7 +55,7 @@ therefore gets its own Forge jar from `forge-1.18/`.
 
 ### Forge 1.18
 
-`forge-1.18/` builds `sophisticatedbuilding-forge-1.18-4.3.0.jar` (Minecraft `[1.18]`, Forge `[38.0.17,)`,
+`forge-1.18/` builds `sophisticatedbuilding-forge-1.18-5.0.0.jar` (Minecraft `[1.18]`, Forge `[38.0.17,)`,
 `loaderVersion` `[38,)`, optional Sophisticated Backpacks `[1.18-3.12.1,)`) with ModDevGradle Legacy 2.0.147 and Gradle
 8.14.5, without Parchment (none exists for 1.18), reobfuscated to SRG names. Dev runtime: Forge 38.0.17 (the latest Forge
 for 1.18), Sophisticated Backpacks 1.18-3.12.1.433 (CurseForge file 3555237, its latest 1.18 release) and Curios
