@@ -82,6 +82,9 @@ server world.
 | `client.mirror_modifier` | "Add Mirror" in the modifier screen adds a mirror; a 3 block line places 6 blocks (line + mirror image). Screenshots `modifiers_screen`, `mirror_placed` |
 | `client.place_line_survival` | Survival (power level 3 via `/powerlevel`): a 5 block line consumes exactly 5 planks |
 | `client.undo_redo` | Undo removes the 5 blocks and gives the planks back (mined with the axe), redo restores them and charges them again |
+| `client.randomizer_bag_screens` | For each of the 4 bags (randomizer, golden, diamond, omega): sneak + use (looking at the sky) opens its screen class; mouse clicks pick up the stone, drop one into bag slot 0 and put the rest back; Escape closes it (the server closes the menu too); the server's bag holds 1 stone and the player 63; reopening shows the stone in slot 0. Omega: the mouse wheel over slot 0 raises its weight 1 -> 2 and the Reset button sets it back to 1, both checked in the server's bag data. Screenshots `randomizer_bag`, `golden_randomizer_bag`, `diamond_randomizer_bag`, `omega_randomizer_bag`, `omega_randomizer_bag_weights` |
+| `client.player_settings_gui` | `PlayerSettingsGui` opens through the mod's only entry point (`ModeOptions` action `OPEN_PLAYER_SETTINGS`; no key or radial button opens it), renders and closes on Escape. It is a stub: its button and slider are render-only and nothing is stored, so there is no setting to check. Screenshot `player_settings` |
+| `client.modifier_entry_widgets` | The mod's checkbox and number widgets where a player uses them: in the modifier screen "Add Array" adds an array, a click on the entry's enable checkbox switches it off, the mouse wheel on its Count input raises 5 -> 6, the close button closes the screen, and the server stores the array with these values (`ModifierSettingsPacket`, player data `sophisticatedbuilding:buildModifiers`). Screenshot `modifier_widgets` |
 | `sb.hud_count_synced` | The client caches (`ClientBuildingUpgradeState`, `ClientBackpackItemCache` via `BuildingUpgradeStatePacket` / `BackpackItemCountPacket`) show tier 1 / 32 blocks and the backpack's 64 stone |
 | `sb.upgrade_supplies_blocks` | Holding 1 stone with a tier 1 Building Upgrade backpack: a 5 block line is placed from the backpack (64 -> 59), the held stone stays, the HUD count follows |
 | `sb.tier_cap` | A 6x6 floor (36) in survival: the preview shows 32 valid / 4 invalid and exactly 32 are placed, all from the backpack (tier 1 cap = 32) |
@@ -89,6 +92,7 @@ server world.
 | `sb.tool_swapper_tools` | Survival mass break of 5 stone with a stick in hand uses the diamond pickaxe from a Tool Swapper backpack (damage 5, cobblestone in the inventory); the client first learns the tool through `BackpackToolsPacket` |
 | `sb.worn_backpack_chest` | The backpack worn in the chest armor slot supplies a line |
 | `sb.worn_backpack` | The backpack worn in the Curios `back` slot supplies a line. Skipped with the reason if no accessory mod is in the runtime |
+| `sb.upgrade_settings_tab` | Using a backpack with an enabled tier 1 Building Upgrade (looking at the sky) opens the SB backpack screen; a click on the upgrade's tab icon opens `BuildingUpgradeSettingsTab`, a click on its toggle disables the upgrade on the server (stored on the upgrade), and after Escape the client's `ClientBuildingUpgradeState` follows. Screenshot `sb_upgrade_settings_tab` |
 | `client.no_mod_errors` | No ERROR line from the mod's loggers and no WARN/ERROR carrying an exception thrown from the mod's code during the whole run |
 
 The `sb.*` rows run on NeoForge only.
@@ -125,12 +129,13 @@ gradle/smoketest.gradle                shared by every loader build: output dir,
 common/src/smoketest/java              loader-neutral harness (vanilla + mod API only)
   sophisticated/building/smoketest/
     SmokeTest, SmokeReport, SmokeWatchdog, ModErrorLogCapture     switches, JSON result, watchdog, log capture
-    client/SmokeClient, ClientDriver, ClientScenarios, RadialMenuDriver, ClientWindow, SmokeClientPlatform
+    client/SmokeClient, ClientDriver, ClientScenarios, GuiScenarios, RadialMenuDriver, ClientWindow, SmokeClientPlatform
     server/SmokeServer, ServerScenarios, SmokeServerTests, SmokeServerPlatform, VanillaFakePlayers
-    backpack/SmokeBackpacks, SmokeAccessorySlots                   service interfaces for the SB fixture
+    backpack/SmokeBackpacks, SmokeBackpackScreens, SmokeAccessorySlots   service interfaces for the SB fixture
 common/src/smoketest/resources         data/sophisticatedbuilding/structure/smoketest_empty.nbt (empty 8x8x8 game test template),
                                        test_instance/server_*.json, test_environment/smoke_1..2.json
-common/src/smoketestBackpacks          SB fixture (SophisticatedBackpacksFixture, net.p3pp3rf1y API) and the sb_* test
+common/src/smoketestBackpacks          SB fixture (SophisticatedBackpacksFixture; SophisticatedBackpacksScreens, client only;
+                                       net.p3pp3rf1y API) and the sb_* test
                                        instances (smoke_3..8), only for loaders with SB (NeoForge)
 <loader>/src/smoketest                 loader glue: mod metadata, entry points, test function registration, fake players, accessory slots
 ```
@@ -144,7 +149,12 @@ How it drives the client: `SmokeClient.init()` starts a harness thread, which fi
 `SmokeClient.onClientTickEnd()`, so scenarios read as linear scripts. Key presses use `KeyMapping.set/click` like
 `MouseHandler`; aiming sets the player's rotation. The radial menu is steered by writing its accumulated mouse offset
 (it tracks the mouse as a delta from the screen centre), the hit-testing, highlighting and selection are the menu's
-own.
+own. In every other screen (`GuiScenarios`) the harness moves the pointer by writing `MouseHandler`'s `xpos`/`ypos`
+(what the detached cursor callback would do) and clicks, turns the wheel and presses keys by calling `MouseHandler`'s
+`onButton`/`onScroll` and `KeyboardHandler#keyPress` (private since the 1.21.9 input records; reflection) with the
+window handle, the code GLFW's callbacks call, so the screens receive `mouseClicked`/`mouseReleased`/`mouseScrolled`/
+`keyPressed` (loader screen events included) at real GUI coordinates, and hover state and tooltips come from their
+own render pass.
 
 Loader glue per build:
 
@@ -191,6 +201,46 @@ GuiGraphicsAccessor from sophisticatedbuilding.mixins.json into net.minecraft.cl
    - Accessory mods: the Curios / Trinkets glue and their versions.
    - Forge: the `pack.mcmeta` formats of the harness mod (and of the mod itself) and the `loaderVersion` in its `mods.toml`.
 3. Run `runSmokeServer` first (headless), then `runSmokeClient`.
+
+### Porting the H5 checks (GUI screens)
+
+`client.randomizer_bag_screens`, `client.player_settings_gui`, `client.modifier_entry_widgets` and
+`sb.upgrade_settings_tab` live in `client/GuiScenarios` (plus the input helpers `pointAt`/`clickAt`/`scrollAt`/`pressKey`
+in `ClientDriver`, `SmokeBackpacks#isBuildingUpgradeEnabled`, and the client-only service `SmokeBackpackScreens` with
+its SB implementation `SophisticatedBackpacksScreens` + `META-INF/services` entry in `common/src/smoketestBackpacks`).
+They came from mc/1.21.1 (H5a). The calls that depend on the Minecraft, loader or SB version, as on this branch:
+
+- Input (`ClientDriver`): `MouseHandler` private fields `xpos`/`ypos` and private methods
+  `onButton(long, MouseButtonInfo, int action)` and `onScroll(long, double, double)`, private
+  `KeyboardHandler#keyPress(long, int action, KeyEvent)` (reflection, Mojang names; before 1.21.9 `onPress(long, int,
+  int, int)` and a public `keyPress(long, int, int, int, int)`), `Window#handle()`,
+  `Window#getScreenWidth/getScreenHeight/getGuiScaledWidth/getGuiScaledHeight`.
+- Screens (`GuiScenarios`): `Screen#children()`, `Screen#renderables` (reflection), `AbstractContainerScreen` fields
+  `leftPos`/`topPos` (reflection), `AbstractContainerScreen#getMenu`, `AbstractContainerMenu#slots/getSlot/getCarried/containerId`,
+  `Slot#x/y/index/container/getContainerSlot`, `AbstractWidget#getX/getY/getWidth/getHeight/isHovered`,
+  `Button#getMessage`, `Player#containerMenu/inventoryMenu/closeContainer`, `Entity#isShiftKeyDown` on the server.
+- NBT: `CompoundTag#getCompoundOrEmpty/getListOrEmpty/getStringOr/getBooleanOr/getIntOr` and
+  `ListTag#getCompoundOrEmpty` (1.21.5+; the getters return `Optional` without a default).
+- Mod internals read by the checks: `AbstractRandomizerBagItem#getBagInventory`, `OmegaRandomizerBagItem#getSlotWeight`,
+  the Omega screen's `Reset` button text, `ModeOptions.ActionEnum.OPEN_PLAYER_SETTINGS`, `ModifiersScreen` fields
+  `addArrayButton`/`closeButton`/`list`, `BaseModifierEntry#modifier` and field `enableButton`, `ArrayEntry` field
+  `countInput`, `Array#enabled/count`, the modifier NBT keys (`modifierSettingsList`, `type`, `enabled`, `count`) and the
+  player data key `sophisticatedbuilding:buildModifiers`.
+- SB (`SophisticatedBackpacksScreens`): `StorageScreenBase#getUpgradeSettingsControl()`, `SettingsTabControl#getOpenTab()`,
+  `CompositeWidgetBase#children()`, `WidgetBase#getX/getY/getWidth/getHeight`, `ButtonBase` (tab icon), `ToggleButton`,
+  the mod's `BuildingUpgradeSettingsTab`, and `IUpgradeWrapper#isEnabled` in the fixture.
+
+What the port from 1.21.1 changed:
+
+- `ClientDriver`: the 1.21.9 input records. A click calls `MouseHandler#onButton(handle, new MouseButtonInfo(button, 0),
+  action)` (was `onPress(handle, button, action, 0)`), a key press the now private
+  `KeyboardHandler#keyPress(handle, action, new KeyEvent(key, scancode, 0))` by reflection, and the GLFW handle is
+  `Window#handle()` (1.21.10, unchanged on 1.21.11).
+- `GuiScenarios#modifierEntryWidgets`: the stored modifier is read with the 1.21.5+ NBT getters with defaults
+  (`getCompoundOrEmpty`, `getListOrEmpty`, `getStringOr`, `getBooleanOr`, `getIntOr`).
+- Unchanged and working: the rest of `GuiScenarios` (the modifier list reworked on 1.21.10 still exposes its entries
+  through `ModifiersScreenList#children()` and lays them out while rendering) and `SophisticatedBackpacksScreens`
+  (Sophisticated Core 1.21.11 GUI API identical; NeoForge only).
 
 ### What the 1.21.1 -> 1.21.4 adoption changed
 
@@ -288,6 +338,11 @@ GuiGraphicsAccessor from sophisticatedbuilding.mixins.json into net.minecraft.cl
 - Results of the 1.21.11 runs: `runSmokeServer` 3 / 9 (1 skipped: `sb.worn_backpack`, see above) / 3 checks,
   `runSmokeClient` 10 / 17 (8 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing; Fabric `runGametest`
   "All 18 required tests passed" (17 + `minecraft:always_pass`).
+- GUI checks (H5, ported from mc/1.21.1): `runSmokeClient` 13 / 21 (9 `sb.*`, `sb.upgrade_settings_tab` included) / 13
+  checks on Fabric / NeoForge / Forge, all passing (`runSmokeServer` unchanged: 3 / 9 / 3; unit tests 77 / 65 / 65);
+  every screen behaves as on 1.21.1 (screenshots `modifier_widgets`: the array entry switched off with Count 6 and the
+  Count tooltip, `golden_randomizer_bag`: the stone template in slot 0, the title running past the texture as on
+  1.21.1, `sb_upgrade_settings_tab`: the open Building Upgrade tab with its toggle on "Disabled").
 - As on 1.21.8, NeoForge lists the Sophisticated Backpacks, Core and Curios data packs as `TOO_OLD`; the mod's own data
   pack is compatible (`client.mod_data_pack_compatible`).
 
