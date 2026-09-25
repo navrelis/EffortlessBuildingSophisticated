@@ -28,8 +28,6 @@ public class BlockPreviews {
 	// Limit max concurrent animations to prevent memory issues with rapid building
 	private static final int MAX_PLACED_BLOCKS_ENTRIES = 50;
 	private final List<PlacedBlocksEntry> placedBlocksList = new ArrayList<>();
-	private boolean miniBlockPreviewEnabled = true;
-	private boolean miniBlockPreviewInitialized;
 	
 	// Cache for coordinates to avoid recreating HashSet every frame
 	private HashSet<BlockPos> coordinatesCache;
@@ -37,15 +35,6 @@ public class BlockPreviews {
 
 	public void onTick() {
 		LocalPlayer player = Minecraft.getInstance().player;
-
-		if (!miniBlockPreviewInitialized) {
-			try {
-				miniBlockPreviewEnabled = ClientConfig.visuals.showMiniBlockPreview.get();
-				miniBlockPreviewInitialized = true;
-			} catch (IllegalStateException ignored) {
-				// Config not loaded yet; keep default and retry next tick
-			}
-		}
 
 		drawPlacedBlocks();
 		drawLookAtPreview(player);
@@ -88,13 +77,11 @@ public class BlockPreviews {
 
 	public void drawLookAtPreview(Player player) {
 		BlockSet blocks = SophisticatedBuildingClient.BUILDER_CHAIN.getBlocks();
-		if (blocks.size() == 0) return;
-		
-		if (SophisticatedBuildingClient.BUILD_MODES.getBuildMode() == BuildModeEnum.DISABLED &&
-			blocks.size() == 1) return;
-		if (SophisticatedBuildingClient.BUILDER_CHAIN.getBuildingState() == BuilderChain.BuildingState.IDLE &&
-			ClientConfig.visuals.onlyShowBlockPreviewsWhenBuilding.get() &&
-			blocks.size() == 1) return;
+		if (!PreviewRules.showsLookAtPreview(blocks.size(),
+				SophisticatedBuildingClient.BUILD_MODES.getBuildMode() == BuildModeEnum.DISABLED,
+				SophisticatedBuildingClient.BUILD_SETTINGS.isQuickReplacing(),
+				SophisticatedBuildingClient.BUILDER_CHAIN.getBuildingState() == BuilderChain.BuildingState.IDLE,
+				ClientConfig.visuals.onlyShowBlockPreviewsWhenBuilding.get())) return;
 
 		// Performance optimization: skip getCoordinates() call if we're over the limit
 		// getCoordinates() creates a new HashSet which is expensive for large block sets
@@ -112,7 +99,7 @@ public class BlockPreviews {
 			//Use fancy shader if config allows, otherwise outlines
 			if (ClientConfig.visuals.showBlockPreviews.get() && blockCount < maxPreviews) {
 				// Render block previews inside each ghost section to show rotation
-				if (miniBlockPreviewEnabled) {
+				if (isMiniBlockPreviewEnabled()) {
 					renderBlockPreviews(blocks, false, 0f);
 				}
 
@@ -198,40 +185,6 @@ public class BlockPreviews {
 		PreviewRenderHelper.showAABB("break", aabb, 1 / 64f, 0x222222);
 	}
 
-	/**
-	 * Render mini transparent block previews inside each ghost section.
-	 */
-	protected void renderMiniBlockPreviews(BlockSet blocks, boolean breaking) {
-		LocalPlayer player = Minecraft.getInstance().player;
-		if (player == null) return;
-		
-		// Early exit if too many blocks
-		int blockCount = blocks.size();
-		if (cachedMaxMiniPreviews > 0 && blockCount > cachedMaxMiniPreviews) return;
-		
-		// Update cached config
-		updateCachedConfig();
-		
-		Vec3 playerPos = player.position();
-		
-		float miniScale = 0.5f; // Half size to fit inside the outline
-		float miniAlpha = 0.7f;
-		
-		for (BlockEntry blockEntry : blocks) {
-			if (blockEntry.newBlockState == null || blockEntry.newBlockState.isAir()) continue;
-			
-			BlockPos pos = blockEntry.blockPos;
-			
-			// Skip blocks too far away for visual detail
-			double distSq = playerPos.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
-			if (distSq > cachedMaxRenderDistSq) continue;
-			
-			// Use same slot format as effortless-building: blockPos.toShortString()
-			PreviewRenderHelper.showGhostBlock(pos.toShortString(), blockEntry.newBlockState, 
-					pos, miniScale, miniAlpha, blockEntry.invalid || breaking);
-		}
-	}
-
 	// Cached config values to avoid repeated config lookups during rendering
 	private int cachedMaxRenderDist = 64;
 	private double cachedMaxRenderDistSq = 64 * 64;
@@ -253,17 +206,19 @@ public class BlockPreviews {
 		}
 	}
 
+	// The "mini block previews": a small ghost of the new state (previewScale) inside each outlined block, so its rotation
+	// is visible. The look-at preview draws them only with showMiniBlockPreview; maxMiniBlockPreviews caps the count.
 	protected void renderBlockPreviews(BlockSet blocks, boolean breaking, float dissolve) {
 		// Get player position for distance culling
 		LocalPlayer player = Minecraft.getInstance().player;
 		if (player == null) return;
 		
+		// Update cached config values periodically (before using them, so a changed setting applies)
+		updateCachedConfig();
+
 		// Early exit if too many blocks (performance protection)
 		int blockCount = blocks.size();
 		if (cachedMaxMiniPreviews > 0 && blockCount > cachedMaxMiniPreviews) return;
-		
-		// Update cached config values periodically
-		updateCachedConfig();
 		
 		Vec3 playerPos = player.position();
 		
@@ -386,13 +341,21 @@ public class BlockPreviews {
 		}
 	}
 
+	/** Radial menu action: flips the client config option showMiniBlockPreview and saves it (also shown in the player settings). */
 	public boolean toggleMiniBlockPreview() {
-		miniBlockPreviewEnabled = !miniBlockPreviewEnabled;
-		return miniBlockPreviewEnabled;
+		boolean enabled = !isMiniBlockPreviewEnabled();
+		ClientConfig.visuals.showMiniBlockPreview.set(enabled);
+		ClientConfig.save();
+		return enabled;
 	}
 
 	public boolean isMiniBlockPreviewEnabled() {
-		return miniBlockPreviewEnabled;
+		return ClientConfig.visuals.showMiniBlockPreview.get();
+	}
+
+	/** A client setting changed (player settings screen): re-read the cached values on the next frame. */
+	public void onConfigChanged() {
+		lastConfigCheck = 0;
 	}
 }
 
