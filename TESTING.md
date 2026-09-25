@@ -24,7 +24,10 @@ Same for `neoforge` and `forge`. Without `-PsmoketestOut` the result goes to `<l
 - **runSmokeClient** starts a real client: muted, moved to a secondary monitor if there is one, and deaf to real
   keyboard and mouse input (its GLFW input callbacks are removed; the harness does not need them), so clicking into the
   window cannot disturb a run. It never touches the OS mouse cursor or the focus: the window is created unfocused
-  (Fabric: harness mixin `SmokeWindowMixin`, GLFW hints FOCUSED/FOCUS_ON_SHOW off), is marked inactive for the whole
+  (harness mixin `SmokeWindowMixin` on every loader, GLFW hints FOCUSED/FOCUS_ON_SHOW off right before the window is
+  created; on NeoForge and Forge the smoke client task first writes `earlyWindowControl = false` into the run's
+  `config/fml.toml`, so FML's early loading window, which is created before any mod code and takes the focus, is not
+  used and the game creates its window itself), is marked inactive for the whole
   run so the game never grabs, hides or warps the cursor (`ClientWindow#keepOffTheCursor`: focus callback removed,
   `Minecraft#windowActive` false, Windows `WS_EX_NOACTIVATE`), and the harness moves only the game's own pointer
   (`MouseHandler#xpos/ypos`) and calls the input handlers directly. On the title screen the
