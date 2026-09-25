@@ -139,3 +139,10 @@
 - h5d3: 1.19.4 had the same Screen#font IllegalAccessError -> fixed 7095581 (pushed); 1.21.1 clean; scripts/check-fabric-no-sb-bytecode.ps1 a04eed1.
 - 5.0.0 released: all 17 branches bumped (10-parallel rebuild), 48 jars uploaded to CurseForge project 1414718 (file ids 8973074..8973121 range), tag v5.0.0 on main. Client runs still pending (need user go).
 - R3-GUI on mc/1.21.1 (local): 030ef2d BuildModeHistory, 1a0ca7c dead content/lang keys/typos (+LangKeysTest). Server chat messages left for b6.
+- R3-PORT 1.16.3 (b6) pushed df3df8d/17c8f68: fabric 117 / 37 server tests / smoke 6 (1 skip), forge 103 / smoke 12 (tool swapper skip); no Common Protection API on Java 8.
+- R3-PORT 1.19.4 (pb8) pushed 3e81ba3: fabric 117/38/smoke 12, forge 103/smoke 6; found: reference mixin json JAVA_21 breaks Java 17 branches; Forge FakePlayerFactory ignores 1-arg moveTo -> use 5-arg moveTo.
+- R3-PORT 1.21.4 790315e, 1.21.5 679ec60, 1.21.8 06d4d15 (h5b) pushed: 117/103/103, gametests 38-39, smoke all pass with/without SB.
+- R3-PORT 1.16.5 (pb7) pushed c505f07/b7542cf/4ff080c: 117/103/103, 37 server tests, smoke fabric 6, forge + forge-1.16.4 12/12; Forge 36 fake player reports origin -> smoke uses vanilla fake player. Fake players never send build packets, so the reach check can't affect other mods.
+- R3-PORT 1.21.10 2debd9b, 1.21.11 c0e650c, 26.1.2 88c2113 (+neoforge-26.1 on both betas), 26.2 eaefb29 (h5c) pushed: 117/103/103, 39 gametests, smoke all pass with/without SB.
+- R3-PORT 1.18.2 d47f3c1, 1.18.1 86b86de, 1.17.1 aa8f11f (h5e) pushed; 1.17.1 no Common Protection API (Java 16).
+- Session stopped by the user; agents h5d (1.19.2/1.20.1/1.20.4 round 3, committed) and h5c (R6 release material, nothing committed) stopped. Lead verified build + unit tests on the 3 branches and pushed. Handoff written.

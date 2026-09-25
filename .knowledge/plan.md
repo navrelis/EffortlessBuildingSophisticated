@@ -92,3 +92,8 @@ All 16 branches done, pushed, CI green; final all-versions run 196 pass / 0 fail
 | R2-PORT | port R2-GUI + R2-PLAY to the 15 other branches (h5b/h5c/h5d/h5e/pb7/pb8 groups) | resumed agents | open |
 | R2-Z | full test-all-versions run, report, push | lead | open |
 Agent budget: 9 of 10 spawned; round 2 uses resumed agents only.
+
+## Status 2026-09-25 evening (session stopped by the user) - see handoff.md
+5.0.0 released on CurseForge (48 jars). Round 3 (5.0.1 fixes) on all 17 branches, pushed; 1.19.2/1.20.1/1.20.4 only
+build + unit tests verified. Open: finish verification, 5.0.1 release material, bump, upload (user OK), client runs
+(user go), final run, report, graphify.
