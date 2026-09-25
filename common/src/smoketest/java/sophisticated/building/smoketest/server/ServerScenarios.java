@@ -16,6 +16,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import sophisticated.building.platform.services.IBackpackIntegration;
+import sophisticated.building.platform.Services;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.network.message.PerformRedoPacket;
 import sophisticated.building.network.message.PerformUndoPacket;
@@ -43,6 +45,8 @@ public final class ServerScenarios {
 
     /** Success details and skip reasons by check name, read by the reporter. */
     static final Map<String, String> DETAILS = new ConcurrentHashMap<>();
+    /** System property of the standalone smoke run (set by gradle/smoketest.gradle for -PsmokeNoSb=true). */
+    static final String NO_SB_PROPERTY = "sophisticatedbuilding.smoketest.noSb";
     static final Map<String, String> SKIPPED = new ConcurrentHashMap<>();
 
     private static final int LINE = 5;
@@ -176,6 +180,7 @@ public final class ServerScenarios {
     //region Sophisticated Backpacks
 
     public static void sb_upgrade_supplies_blocks(GameTestHelper helper) {
+        if (standalone(helper, "sb.upgrade_supplies_blocks")) return;
         SmokeBackpacks backpacks = backpacks(helper);
         ServerPlayer player = player(helper);
         player.getInventory().setItem(0, new ItemStack(Items.STONE, 1));
@@ -198,6 +203,7 @@ public final class ServerScenarios {
     }
 
     public static void sb_disabled_upgrade_ignored(GameTestHelper helper) {
+        if (standalone(helper, "sb.disabled_upgrade_ignored")) return;
         SmokeBackpacks backpacks = backpacks(helper);
         ServerPlayer player = player(helper);
         int held = 3;
@@ -222,6 +228,7 @@ public final class ServerScenarios {
     }
 
     public static void sb_tier_cap(GameTestHelper helper) {
+        if (standalone(helper, "sb.tier_cap")) return;
         SmokeBackpacks backpacks = backpacks(helper);
         ServerPlayer player = player(helper);
         player.getInventory().setItem(0, new ItemStack(Items.STONE, 1));
@@ -250,6 +257,7 @@ public final class ServerScenarios {
     }
 
     public static void sb_tool_swapper_tools(GameTestHelper helper) {
+        if (standalone(helper, "sb.tool_swapper_tools")) return;
         SmokeBackpacks backpacks = backpacks(helper);
         ServerPlayer player = player(helper);
         player.getInventory().setItem(0, new ItemStack(Items.STICK));
@@ -281,6 +289,7 @@ public final class ServerScenarios {
     }
 
     private static void wornBackpack(GameTestHelper helper, String check, boolean accessory) {
+        if (standalone(helper, check)) return;
         SmokeBackpacks backpacks = backpacks(helper);
         ServerPlayer player = player(helper);
         player.getInventory().setItem(0, new ItemStack(Items.STONE, 1));
@@ -324,6 +333,23 @@ public final class ServerScenarios {
 
     //region Helpers
 
+    /**
+     * Standalone smoke run ({@code gradlew runSmokeServer -PsmokeNoSb=true}: Sophisticated Backpacks, Sophisticated Core
+     * and the accessory mods are left out of the runtime and the backpack fixture is not compiled in): the sb.*
+     * scenarios are skipped, the building scenarios run as usual. Fails instead when the backpack integration is
+     * active anyway, so the switch cannot silently test the wrong setup.
+     */
+    private static boolean standalone(GameTestHelper helper, String check) {
+        if (!Boolean.getBoolean(NO_SB_PROPERTY)) {
+            return false;
+        }
+        if (Services.backpacks() != IBackpackIntegration.NONE) {
+            throw new IllegalStateException("Standalone run (" + NO_SB_PROPERTY + ") but the Sophisticated Backpacks integration is active");
+        }
+        SKIPPED.put(check, "Standalone run without Sophisticated Backpacks (-PsmokeNoSb=true): the mod runs with IBackpackIntegration.NONE");
+        helper.succeed();
+        return true;
+    }
     private static SmokeBackpacks backpacks(GameTestHelper helper) {
         return SmokeBackpacks.find().orElseThrow(() -> new IllegalStateException("No SmokeBackpacks fixture registered"));
     }
