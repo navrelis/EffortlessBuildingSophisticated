@@ -397,3 +397,17 @@ Since R2 (player settings editor, bag title fit, radial layout) the checks also 
   with `supported_formats: [55, 71]` (1.21.5 resource packs are 55, data packs 71; the port still had 46 from
   1.21.4), so the mod's data pack is not flagged incompatible; checked by `client.mod_data_pack_compatible`.
 - Forge 55 (55.0.24 and the latest 55.1.14) has no working game test server, see above.
+
+## Standalone run without Sophisticated Backpacks
+
+`gradlew runSmokeServer -PsmokeNoSb=true --no-daemon` (loader folders with the Sophisticated Backpacks integration)
+proves the mod works without Sophisticated Backpacks and Sophisticated Core: `gradle/smoketest.gradle` drops every
+dependency of the `localRuntime`, `modLocalRuntime`, `smoketestLocalRuntime`, `modSmoketestLocalRuntime` and
+`modSmoketestRuntimeOnly` configurations (Sophisticated Backpacks and Core, their Fabric port libraries, Curios,
+Trinkets), leaves the backpack fixture (every file under a `smoketestBackpacks` folder) out of the smoke source set
+and passes `-Dsophisticatedbuilding.smoketest.noSb=true` to the run.
+The `sb.*` scenarios do not run: their test instances are part of the fixture, so they are not registered (a registered one would report "skipped", or fail if the backpack integration were active anyway).
+`server.place_line_survival`, `server.undo_redo`, `server.merge_undo_refund`, `server.refused_place_not_charged`
+(skipped on Fabric: no place event there) and `server.no_mod_errors` must pass. The main code still compiles against
+Sophisticated Backpacks (compile-only), so only the runtime changes. On the hub,
+`scripts/test-all-versions.ps1 -SmokeTasks runSmokeServerNoSb` runs it for every loader folder with the integration.
