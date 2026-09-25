@@ -93,13 +93,6 @@ This release reorganizes the mod internally; there is no change to how it plays.
   jar), so there's no Flywheel/Ponder/Catnip dependency and no load-order dependency on Create
   any more.
 
-## Fixes
-
-* **Fabric:** a build-mode click that cancels the vanilla block placement now resends the held
-  slot to the client. Before, a player holding exactly the blocks a build needed (for example one
-  block plus a backpack with a Building Upgrade) lost the held block on the client side and the
-  build was cancelled.
-
 ## Behaviour notes
 
 * **Fabric:** the four decompress recipes (compressed cobblestone/dirt/sand/deepslate back to

@@ -1,14 +1,14 @@
 package sophisticated.building.smoketest.forge;
 
-import net.minecraft.core.BlockPos;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.level.BlockEvent;
 import com.mojang.authlib.GameProfile;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameType;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.FakePlayerFactory;
+import net.minecraftforge.event.level.BlockEvent;
 import sophisticated.building.smoketest.server.SmokeServerPlatform;
 
 import java.util.Set;
