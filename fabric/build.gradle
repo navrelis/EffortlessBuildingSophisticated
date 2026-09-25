@@ -55,7 +55,23 @@ sourceSets {
     }
 }
 
+// mod* configurations (remapped) for the GameTest source set, e.g. modGametestImplementation; before the dependencies
+loom {
+    createRemapConfigurations(sourceSets.gametest)
+}
+
 repositories {
+    // Common Protection API (Patbox): optional claim/protection check for placements, compiled against only (claim mods
+    // ship it); in the GameTest runtime so a test provider can refuse a placement
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'Nucleoid'
+                url = 'https://maven.nucleoid.xyz'
+            }
+        }
+        filter { includeGroup('eu.pb4') }
+    }
     mavenCentral()
 }
 
@@ -64,6 +80,11 @@ dependencies {
     mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+
+    // Optional: consulted for placements when a claim mod ships it (FabricProtection), never required
+    // Not transitive: its POM names an old Fabric Loader
+    modCompileOnly("eu.pb4:common-protection-api:${common_protection_api_version}") { transitive = false }
+    modGametestImplementation("eu.pb4:common-protection-api:${common_protection_api_version}") { transitive = false }
 
     compileOnly 'javax.annotation:javax.annotation-api:1.3.2'
     compileOnly 'com.google.code.findbugs:jsr305:3.0.2'

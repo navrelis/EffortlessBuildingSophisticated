@@ -179,6 +179,41 @@ public final class ServerScenarios {
                 .thenSucceed();
     }
 
+    /**
+     * A crafted request (as a modified client could send) the server must refuse with the player's power level limits:
+     * a start position 60 blocks above the player (survival power level 0), and a line whose clicks are 20 blocks apart
+     * (8 per axis). Nothing is placed or charged; a normal line right after is placed.
+     */
+    public static void server_request_limits(GameTestHelper helper) {
+        String check = "server.request_limits";
+        ServerPlayer player = player(helper);
+        player.getInventory().setItem(0, new ItemStack(Items.OAK_PLANKS, 64));
+        BlockPos far = player.blockPosition().above(60);
+        sendPlace(player, new BlockSet(List.of(new BlockEntry(far, Blocks.OAK_PLANKS.defaultBlockState(), Items.OAK_PLANKS)), far, far, false));
+        List<BlockPos> line = row(helper, LINE);
+        sendPlace(player, new BlockSet(new ArrayList<>(placeSet(line, Blocks.OAK_PLANKS.defaultBlockState()).values()), line.get(0),
+                line.get(0).east(19), false));
+
+        helper.startSequence()
+                .thenIdle(10)
+                .thenExecute(() -> {
+                    if (helper.getLevel().getBlockState(far).is(Blocks.OAK_PLANKS)) {
+                        helper.fail("The block 60 blocks away (out of reach) was placed");
+                    }
+                    expectAll(helper, line, Blocks.AIR);
+                    expectEquals(helper, "oak planks after two refused requests", 64, count(player.getInventory(), Items.OAK_PLANKS));
+                })
+                .thenExecute(() -> sendPlace(player, placeSet(line, Blocks.OAK_PLANKS.defaultBlockState())))
+                .thenWaitUntil(() -> expectAll(helper, line, Blocks.OAK_PLANKS))
+                .thenExecute(() -> {
+                    expectEquals(helper, "oak planks after the normal line", 64 - LINE, count(player.getInventory(), Items.OAK_PLANKS));
+                    DETAILS.put(check, "Refused a start 60 blocks away and a 20 block extent (survival limits: reach, 8 per axis), "
+                            + "nothing placed or charged; a normal " + LINE + " block line after them was placed");
+                })
+                .thenExecute(() -> cleanup(player))
+                .thenSucceed();
+    }
+
     //endregion
 
     //region Sophisticated Backpacks
@@ -360,6 +395,10 @@ public final class ServerScenarios {
 
     private static ServerPlayer player(GameTestHelper helper) {
         ServerPlayer player = SmokeServerPlatform.get().createPlayer(helper.getLevel(), GameType.SURVIVAL);
+        // At the test structure, like a player building there (the server checks the reach of build requests)
+        // The 5-argument moveTo: with moveTo(Vec3) Forge 1.18's FakePlayer stayed at the origin in the smoke server
+        net.minecraft.world.phys.Vec3 standAt = helper.absoluteVec(new net.minecraft.world.phys.Vec3(3.5, 1, 3.5));
+        player.moveTo(standAt.x, standAt.y, standAt.z, player.getYRot(), player.getXRot());
         ServerBuildState.setIsUsingBuildMode(player, true);
         ServerBuildState.setIsQuickReplacing(player, false);
         return player;

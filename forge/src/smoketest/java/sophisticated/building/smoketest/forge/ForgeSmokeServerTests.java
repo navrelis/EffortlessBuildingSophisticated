@@ -66,4 +66,9 @@ public final class ForgeSmokeServerTests {
     public static void server_refused_place_not_charged(GameTestHelper helper) {
         ServerScenarios.server_refused_place_not_charged(helper);
     }
+
+    @GameTest(template = "smoketest_empty", batch = "smoke_limits", timeoutTicks = ServerScenarios.TIMEOUT_TICKS)
+    public static void server_request_limits(GameTestHelper helper) {
+        ServerScenarios.server_request_limits(helper);
+    }
 }
