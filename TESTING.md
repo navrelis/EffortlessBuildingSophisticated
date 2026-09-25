@@ -394,8 +394,9 @@ Core 1.4.27 stopped at mod loading ("Mod sophisticatedbuilding requires minecraf
 1.5.0 or above").
 
 So `neoforge-26.1/` builds a second NeoForge jar, `sophisticatedbuilding-neoforge-26.1-4.3.0.jar` (Minecraft
-`[26.1,26.1.1]`, NeoForge `[26.1.0.19-beta,)`, Backpacks `[3.25.48,)`, Core `[1.4.26,)`), in the `forge-1.21` style of
-`mc/1.21.1`: `../neoforge/src/{main,smoketest}` are compiled from a copy made at build time, minus the files this
+`[26.1,26.1.1]`, NeoForge `[26.1.0.19-beta,)`, Backpacks `[3.25.48,)`, Core `[1.4.26,1.4.27)`; capped so that Core
+1.4.27 stops the game at loading with a message instead of crashing it when a backpack is opened), in the `forge-1.21`
+style of `mc/1.21.1`: `../neoforge/src/{main,smoketest}` are compiled from a copy made at build time, minus the files this
 folder overrides under the same path (`NeoForgeCommonEvents`, `platform/NeoForgeBlockEventHelper`:
 `BlockEvent.BreakEvent`; `src/main/templates/META-INF/neoforge.mods.toml`: the Backpacks/Core ranges). It compiles and
 runs against 26.1.0.19-beta; the 26.1.1 runs pass `-Pneo_version=26.1.1.15-beta`. The integration and the harness
@@ -407,9 +408,12 @@ runs against 26.1.0.19-beta; the 26.1.1 runs pass `-Pneo_version=26.1.1.15-beta`
 | NeoForge 26.1.1.15-beta (Minecraft 26.1.1) | 9 / 9 passed (6 `sb.*`, `sb.worn_backpack` skipped) | 21 / 21 passed (8 `sb.*`) |
 
 Real dedicated servers (`local/`, git-ignored; NeoForge installer `--installServer`, Java 25) with the release jar
-`sophisticatedbuilding-neoforge-26.1-4.3.0.jar` (SHA-256 `0cc64a3c...`), Backpacks 3.25.48 and Core 1.4.26 in `mods/`:
+`sophisticatedbuilding-neoforge-26.1-4.3.0.jar` (SHA-256 `b05f9eee...`), Backpacks 3.25.48 and Core 1.4.26 in `mods/`:
 NeoForge 26.1.0.19-beta (Minecraft 26.1) and 26.1.1.15-beta (Minecraft 26.1.1) both logged "Registered Sophisticated
-Backpacks upgrade containers" and "Done (", no ERROR or exception from the mod, and stopped cleanly.
+Backpacks upgrade containers" and "Done (", no ERROR or exception from the mod, and stopped cleanly. With Core 1.4.27
+instead, the 26.1 server stopped at mod loading: "Mod sophisticatedbuilding only supports sophisticatedcore 1.4.26 or
+above, and below 1.4.27". The client runs above used the jar before the Core cap (`0cc64a3c...`, the same code; only
+the Core range in `neoforge.mods.toml` differs).
 
 Screenshots of the 26.1 / 26.1.1 client runs: previews, radial menu and the mod's screens as on 26.1.2;
 `sb_upgrade_settings_tab` shows the open Building Upgrade tab with its toggle on "Disabled" (Backpacks 3.25 draws the

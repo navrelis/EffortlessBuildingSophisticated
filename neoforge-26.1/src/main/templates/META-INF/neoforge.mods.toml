@@ -103,7 +103,7 @@ config="${mod_id}.mixins.json"
     modId="sophisticatedcore"
     type="optional"
     reason="Core library required for SophisticatedBackpacks integration"
-    versionRange="[1.4.26,)"
+    versionRange="[1.4.26,1.4.27)"
     ordering="AFTER"
     side="BOTH"
 

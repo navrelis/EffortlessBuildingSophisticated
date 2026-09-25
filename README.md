@@ -58,7 +58,7 @@ The ghost block previews and outlines use the Catnip outliner and GUI widgets ve
 |---|---|---|---|---|
 | Minecraft declared | 26.1 - 26.1.2 | 26.1.2 | 26.1 - 26.1.1 | 26.1 - 26.1.2 |
 | Loader (built against) | Loader 0.19.5, Fabric API 0.155.3+26.1.2 | 26.1.2.109 | 26.1.0.19-beta | 64.1.3 |
-| Minimum declared | Loader 0.19.5, Fabric API 0.155.3 | 26.1.2.109; Backpacks 3.26.2, Core 1.5.0 (optional) | 26.1.0.19-beta (run on 26.1.0.19-beta, 26.1.1.15-beta); Backpacks 3.25.48, Core 1.4.26 (optional) | 62.0.9 (run on 62.0.9, 63.0.2, 64.1.3) |
+| Minimum declared | Loader 0.19.5, Fabric API 0.155.3 | 26.1.2.109; Backpacks 3.26.2, Core 1.5.0 (optional) | 26.1.0.19-beta (run on 26.1.0.19-beta, 26.1.1.15-beta); Backpacks 3.25.48, Core 1.4.26 up to (not incl.) 1.4.27 (optional) | 62.0.9 (run on 62.0.9, 63.0.2, 64.1.3) |
 | Build plugin, Gradle | Loom 1.18.2 (`fabric-loom`, no remapping), Gradle 9.8.0 | ModDevGradle 2.0.147, Gradle 9.2.1 | as NeoForge | ForgeGradle 7.0.40, Gradle 9.5.0 |
 | Sophisticated Backpacks | none | Backpacks 26.1.2-3.26.2.2156, Core 26.1.2-1.5.0.2334 (Modrinth maven) | Backpacks 26.1-3.25.48.1681, Core 26.1-1.4.26.1688 (Modrinth maven) | none |
 
@@ -174,7 +174,9 @@ Mappings: none (unobfuscated Minecraft). Java 25. Curios 15.0.0+26.1.2
   Sophisticated Backpacks 3.25.48 (the newest 26.1 build that loads: 3.25.49 to 3.25.51 require Core 1.4.28, which does
   not exist) with Core 1.4.26 (1.4.27, although tagged 26.1, calls a `StackCopySlot` constructor only NeoForge 26.1.2
   has and crashes the server when a backpack is opened, with or without this mod); the integration code compiles and
-  runs unchanged against them (its `runOnBackpacks` guard covers Core 1.4's `void` return).
+  runs unchanged against them (its `runOnBackpacks` guard covers Core 1.4's `void` return). The jar declares Core
+  `[1.4.26,1.4.27)`, so with Core 1.4.27 installed NeoForge stops at loading with a clear message instead of the
+  server crashing later when a backpack is opened.
 * Forge 64: `ModList` is static (`ModList.isLoaded`). The frame pass binds its target in the two-argument
   `PassDefinition#extracts(bundle, pass)`: Forge 62/63 have only that one (abstract), Forge 64 added a `DeltaTracker`
   overload that calls it; overriding the new overload failed on Forge 62 with an `AbstractMethodError` (found by the

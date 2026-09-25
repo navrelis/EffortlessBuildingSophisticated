@@ -73,7 +73,9 @@ previews and outlines are included directly (MIT-licensed, attribution included 
 * Optional: Sophisticated Backpacks for the Building Upgrades (tested with Backpacks
   26.1-3.25.48.1681 and Core 26.1-1.4.26.1688). Newer 26.1 Backpacks builds (3.25.49 to 3.25.51)
   require a Core 1.4.28 that was never released, and Core 1.4.27 needs NeoForge 26.1.2 (it
-  crashes the server on the beta builds when a backpack is opened, with or without this mod).
+  crashes the server on the beta builds when a backpack is opened, with or without this mod), so
+  this jar declares Core 1.4.26 up to (not including) 1.4.27: with 1.4.27 installed, the game stops at
+  loading with a message naming the Core version instead of crashing later.
 
 ### Forge
 
