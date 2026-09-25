@@ -1,6 +1,7 @@
 package sophisticated.building.smoketest.servertest;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -55,8 +56,8 @@ public final class ServerTestHelper {
     public void assertBlockPresent(Block block, BlockPos relativePos) {
         BlockState state = getBlockState(relativePos);
         if (!state.is(block)) {
-            throw new ServerTestAssertException("Expected " + block.getName().getString() + ", got "
-                    + state.getBlock().getName().getString() + " at " + relativePos.toShortString());
+            throw new ServerTestAssertException("Expected " + Registry.BLOCK.getKey(block) + ", got "
+                    + Registry.BLOCK.getKey(state.getBlock()) + " at " + shortString(relativePos));
         }
     }
 
@@ -72,6 +73,11 @@ public final class ServerTestHelper {
 
     public void fail(String message) {
         throw new ServerTestAssertException(message);
+    }
+
+    /** "x, y, z" like {@code BlockPos.toShortString()}, which is client only in Minecraft 1.16.5. */
+    public static String shortString(BlockPos pos) {
+        return pos.getX() + ", " + pos.getY() + ", " + pos.getZ();
     }
 
     boolean hasSucceeded() {

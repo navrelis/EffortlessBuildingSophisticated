@@ -151,7 +151,7 @@ def prepareTestServer = { File dir, int port ->
 }
 def smokeServerDir = file('build/smoketest/server-run')
 tasks.named('runSmokeServer') {
-    doFirst { prepareTestServer(smokeServerDir, 25732) }
+    doFirst { prepareTestServer(smokeServerDir, 25735) }
 }
 def gametestDir = file('build/gametest')
 tasks.named('runGametest') {
@@ -159,7 +159,7 @@ tasks.named('runGametest') {
     timeout = java.time.Duration.ofMinutes(15)
     doFirst {
         gametestReport.delete()
-        prepareTestServer(gametestDir, 25733)
+        prepareTestServer(gametestDir, 25736)
     }
     doLast {
         if (!gametestReport.file) {
@@ -194,6 +194,9 @@ processResources {
     filesMatching('fabric.mod.json') {
         expand expandProps
     }
+    // The Building Upgrade recipes need Sophisticated Backpacks, which Fabric 1.16.5 does not have; Fabric API 0.42 has no
+    // resource conditions to skip them (the other branches use fabric:load_conditions), so they are left out of the jar
+    exclude 'data/sophisticatedbuilding/recipes/building_upgrade_*.json'
 }
 
 tasks.withType(JavaCompile).configureEach {

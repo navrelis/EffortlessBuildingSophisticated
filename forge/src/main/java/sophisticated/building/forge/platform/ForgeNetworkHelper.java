@@ -15,6 +15,10 @@ public final class ForgeNetworkHelper implements INetworkHelper {
 
     @Override
     public void sendToPlayer(ServerPlayer player, ModPayload payload) {
+        // Fake players of Forge 34 (Minecraft 1.16.3) have no connection: nothing to send to them
+        if (player.connection == null) {
+            return;
+        }
         ForgeNetworking.channel().send(PacketDistributor.PLAYER.with(() -> player), new ForgeNetworking.Message(payload));
     }
 }

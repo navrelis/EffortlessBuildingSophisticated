@@ -1,23 +1,19 @@
 package sophisticated.building.smoketest.forge;
 
-import com.mojang.authlib.GameProfile;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameType;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.common.util.FakePlayerFactory;
 import sophisticated.building.smoketest.server.SmokeServerPlatform;
+import sophisticated.building.smoketest.server.VanillaFakePlayers;
 
-import java.util.UUID;
-
-/** Forge's fake player: its connection swallows every packet the mod sends. */
+/**
+ * Forge 34 (Minecraft 1.16.3) fake players have no connection at all (setGameMode and every packet to them throw), so
+ * the smoke server uses the vanilla fake player of the Fabric builds: a server player whose connection drops every
+ * packet.
+ */
 public final class ForgeSmokeServerPlatform implements SmokeServerPlatform {
     @Override
     public ServerPlayer createPlayer(ServerLevel level, GameType gameType) {
-        FakePlayer player = FakePlayerFactory.get(level, new GameProfile(UUID.randomUUID(), "sb-smoketest"));
-        player.setGameMode(gameType);
-        player.inventory.clearContent();
-        player.inventory.selected = 0;
-        return player;
+        return VanillaFakePlayers.create(level, gameType);
     }
 }

@@ -89,6 +89,15 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+// FML's MOD_CLASSES for a run: which resource and class directories form which mod (resources first: FML reads
+// META-INF/mods.toml from the first directory of a mod). The smoke runs list the harness mod next to the mod itself;
+// every other run gets Loom's value (only the mod, from loom.mods below).
+def modClasses = { Map<String, SourceSet> mods ->
+    mods.collectMany { name, sourceSet ->
+        ([sourceSet.output.resourcesDir] + sourceSet.output.classesDirs.files).collect { "${name}%%${it.absolutePath}" }
+    }.join(File.pathSeparator)
+}
+
 loom {
     mods {
         "${mod_id}" {
@@ -111,6 +120,7 @@ loom {
             runDir 'build/smoketest/client-run'
             source sourceSets.smoketest
             vmArg '-Dsophisticatedbuilding.smoketest.mode=client'
+            environmentVariable 'MOD_CLASSES', modClasses([(mod_id): sourceSets.main, sophisticatedbuilding_smoketest: sourceSets.smoketest])
             vmArg "-Dsophisticatedbuilding.smoketest.out=${smoketestOutDir('client')}"
         }
         // Headless: a dedicated server on a fresh superflat world runs the server scenarios (Minecraft 1.16.3 has no
@@ -122,6 +132,7 @@ loom {
             programArg '--nogui'
             source sourceSets.smoketest
             vmArg '-Dsophisticatedbuilding.smoketest.mode=server'
+            environmentVariable 'MOD_CLASSES', modClasses([(mod_id): sourceSets.main, sophisticatedbuilding_smoketest: sourceSets.smoketest])
             vmArg "-Dsophisticatedbuilding.smoketest.out=${smoketestOutDir('server')}"
         }
     }
@@ -141,7 +152,7 @@ tasks.named('runSmokeServer') {
         // generator-settings: the server then uses the default superflat layers (bedrock, 2 dirt, grass), which are the
         // ones the other branches write here.
         new File(smokeServerDir, 'server.properties').text = 'level-type=flat\n' +
-                'server-port=25731\n'
+                'server-port=25734\n'
         new File(smokeServerDir, 'eula.txt').text = 'eula=true\n'
     }
 }
