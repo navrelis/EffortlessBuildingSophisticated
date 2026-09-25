@@ -39,3 +39,10 @@ for the version. Backpacks integration only where SB exists for that loader+vers
   in-world checks where SB exists - Building Upgrade supplies blocks, disabled upgrade ignored, tier cap, HUD count
   sync, Tool Swapper tools for survival breaking, worn backpack (Curios/Trinkets/Accessories where present).
 - User (2026-09-24): every test client must start MUTED and on the SECOND monitor (secondary = DISPLAY1 left of the primary). -> scripts/lib/GameWindow.ps1 + move-game-window.ps1 (T2), built into the smoke harness (T1); add to PORT_BRIEF.
+
+## User addition (2026-09-25, round 2)
+- Scope widened: every MC version with ANY Sophisticated Backpacks file (release, beta or alpha) gets our mod on Fabric,
+  NeoForge and Forge wherever the loader exists - also on beta loader builds (NeoForge 26.1 / 26.1.1). CurseForge list
+  (2026-09-25): Forge 1.16.3-1.20.1, NeoForge 1.20.1-26.2 (incl. 26.1, 26.1.1), Fabric port 1.19.2, 1.19.4 (beta only),
+  1.20.1, 1.20.4, 1.21.1. New: mc/1.19.4 (Fabric with SB beta, Forge 45 without SB); NeoForge jar for 26.1/26.1.1.
+- Always test with Sophisticated Backpacks + Building Upgrade where SB exists; test fast; fix bugs when encountered.
