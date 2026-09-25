@@ -1,12 +1,12 @@
-# Sophisticated Building - Minecraft 1.21.11
+# Sophisticated Building - Minecraft 26.2
 
-This branch (`mc/1.21.11`) holds Sophisticated Building for Minecraft 1.21.11 on Fabric, NeoForge and Forge. It was
-ported from `mc/1.21.10` and keeps its layout: loader-neutral code lives once in `common/`, and every loader folder is
-a standalone Gradle build that compiles `common/` together with its own sources into one mod jar.
+This branch (`mc/26.2`) holds Sophisticated Building for Minecraft 26.2 on Fabric, NeoForge and Forge. It was ported
+from `mc/26.1.2` and keeps its layout: loader-neutral code lives once in `common/`, and every loader folder is a
+standalone Gradle build that compiles `common/` together with its own sources into one mod jar.
 
-The jars declare exactly Minecraft 1.21.11, the only version they were run on (1.21.11 renamed `ResourceLocation` to
-`Identifier` and rewrote the render types, so 1.21.10 is not binary compatible; Sophisticated Backpacks for NeoForge
-1.21.11 itself requires Minecraft 1.21.11).
+The jars declare exactly Minecraft 26.2, the only version they were run on (26.2 removed `MultiBufferSource` and
+`Tesselator` and reversed the depth buffer, so the 26.1.x jars cannot draw the previews on it; Sophisticated
+Backpacks for NeoForge 26.2 itself requires Minecraft 26.2).
 
 ## Layout
 
@@ -20,11 +20,12 @@ common/                    loader-neutral code and assets, no build of its own
   src/smoketest              in-game smoke test harness (dev only, see TESTING.md)
   src/smoketestBackpacks     Sophisticated Backpacks fixture of the harness (NeoForge only)
 fabric/                    Fabric build (Loom): entry points, platform services, JSON config backend, GameTests
-                           (src/gametest); no backpack integration (no Sophisticated Backpacks for Fabric 1.21.11)
+                           (src/gametest); no backpack integration (no Sophisticated Backpacks for Fabric 26.2)
 neoforge/                  NeoForge build (ModDevGradle): entry points, platform services, ModConfigSpec configs,
                            power level attachment, Sophisticated Backpacks integration (official build) with Curios fallback
 forge/                     Forge build (ForgeGradle 7): entry points, platform services, ForgeConfigSpec configs,
-                           power level capability; no backpack integration (no Sophisticated Backpacks for Forge 1.21.11)
+                           power level capability, level render mixin (Forge mixin config); no backpack integration
+                           (no Sophisticated Backpacks for Forge 26.2)
 changelog/                 patch notes
 build-all.ps1              builds every loader folder in turn
 ```
@@ -37,18 +38,21 @@ Backpacks is absent or a loader build ships no integration). `common/` must not 
 
 The ghost block previews and outlines use the Catnip outliner and GUI widgets vendored under
 `sophisticated.building.create.catnip` (MIT, see `LICENSE_Ponder.txt`); the mod has no Flywheel/Ponder/Catnip dependency.
+Since Minecraft 26.2 they record their vertices and submit them to the level's `SubmitNodeCollector` (see "Minecraft
+26.2" below).
 
 ## Versions
 
 | | Fabric | NeoForge | Forge |
 |---|---|---|---|
-| Loader (built against) | Loader 0.19.5, Fabric API 0.141.6+1.21.11 | 21.11.45 | 61.2.1 |
-| Minimum declared | Loader 0.19.5, Fabric API 0.141.6 | 21.11.45; Backpacks 3.26.2, Core 1.5.0 (optional) | 61.2.1 |
-| Build plugin, Gradle | Loom 1.17.21 (`fabric-loom-remap`), Gradle 9.5.1 | ModDevGradle 2.0.147, Gradle 9.2.1 | ForgeGradle 7.0.40, Gradle 9.5.0 |
-| Sophisticated Backpacks | none | Backpacks 1.21.11-3.26.2.2155, Core 1.21.11-1.5.0.2340 (Modrinth maven) | none |
+| Loader (built against) | Loader 0.19.5, Fabric API 0.161.0+26.2 | 26.2.0.88 | 65.1.3 |
+| Minimum declared | Loader 0.19.5, Fabric API 0.161.0 | 26.2.0.88; Backpacks 3.26.2, Core 1.5.0 (optional) | 65.1.3 |
+| Minecraft declared | 26.2 | [26.2] | [26.2] |
+| Build plugin, Gradle | Loom 1.18.2 (`fabric-loom`, no remapping), Gradle 9.8.0 | ModDevGradle 2.0.147, Gradle 9.2.1 | ForgeGradle 7.0.40, Gradle 9.5.0 |
+| Sophisticated Backpacks | none | Backpacks 26.2-3.26.2.2154, Core 26.2-1.5.0.2337 (Modrinth maven) | none |
 
-Mappings: Mojang (Fabric, Forge), Mojang + Parchment 2025.12.20 (NeoForge). Java 21. Curios 14.0.0+1.21.11
-(NeoForge, compile only and in the smoke runtime).
+No mappings: Minecraft ships unobfuscated since 26.1. Java 25 (also the Gradle JVM: `JAVA_HOME` must be a JDK 25).
+Curios 16.0.0+26.2 (NeoForge, compile only and in the smoke runtime).
 
 ## Differences to mc/1.21.1
 
@@ -121,11 +125,42 @@ Mappings: Mojang (Fabric, Forge), Mojang + Parchment 2025.12.20 (NeoForge). Java
   - NeoForge and Forge: `VertexConsumer#putBulkData` has no `readExistingColor` flag any more (quads have no
     per-vertex colour array; NeoForge multiplies the quad's baked colours in itself). Forge 61: `KeyMapping`
     constructors take a sort order (0, as vanilla's default).
+* **Minecraft 26.1 (from `mc/26.1.2`):** unobfuscated, Java 25 (Loom's non-remapping `fabric-loom` plugin, no
+  Parchment); `GuiGraphics` is `GuiGraphicsExtractor` and screens and widgets override the `extract*` methods;
+  block models are in `client.renderer.block.dispatch` (`BlockStateModelPart`) and the ghost blocks write their quads
+  with `VertexConsumer#putBakedQuad(pose, quad, QuadInstance)`; pipelines have a `ColorTargetState` and an optional
+  `DepthStencilState`; NeoForge's block break event is `BreakBlockEvent`.
+* **Minecraft 26.2:**
+  - `MultiBufferSource` and `Tesselator` are gone: nothing is drawn immediately during the level render any more,
+    geometry is submitted to the level's `SubmitNodeCollector` while the frame is collected and drawn by the game in
+    its feature phases. The mod's renderers (mirror/array lines and planes, ghost blocks, the Catnip outliner) keep
+    writing vertices, into `create.catnip.render.VertexRecorder`s (a `VertexConsumer` that stores the vertices);
+    `RecordingBufferSource` (one recorder per render type, replaces the immediate buffer source) and
+    `DefaultSuperRenderTypeBuffer` (its early/default/late layers) submit each render type's vertices as custom
+    geometry (`submitCustomGeometry`), whose callback replays them into the game's vertex builder.
+    `RenderHandler#onSubmitLevel(PoseStack, SubmitNodeCollector)` does it all in one place; the loaders call it while
+    the submits are collected: Fabric `LevelRenderEvents.COLLECT_SUBMITS`, NeoForge `SubmitCustomGeometryEvent`,
+    Forge a mixin at the end of `LevelRenderer#submitFeatures` (Forge 65 has no such event; its frame pass event runs
+    after the submits are prepared). All of it has blending, so the game draws it in its translucent custom geometry
+    phase (after the solid and translucent entities, before the translucent terrain, on all three loaders); the submit
+    orders keep the old sequence mirror lines/planes, ghost blocks, outline edges, outline faces. The outline edges
+    use the entity solid shader with a blend function that keeps the source colour (like no blending): without
+    blending the game would draw them with the solid features, before the ghost blocks.
+  - The mirror planes are quads drawn twice (a triangle strip of six vertices, which covered the plane twice, cannot
+    be batched: strips are connected primitives); the render types have no buffer size any more.
+  - The depth buffer is reversed (cleared to 0, nearer is greater): the outliner's translucent faces test
+    `GREATER_THAN_OR_EQUAL` (vanilla `DepthStencilState.DEFAULT`), they tested `LESS_THAN_OR_EQUAL`.
+  - Pipelines bind samplers through bind group layouts (`BindGroupLayouts.SAMPLER1`, was `withSampler("Sampler1")`).
+  - Screens and overlays belong to `Minecraft#gui` (`gui.screen()`, `gui.setScreen(...)`, `gui.overlay()`,
+    `gui.toastManager()`); `GameRenderer#mainCamera()` and `mainRenderTarget()`; `ChatFormatting` has no colour any
+    more (`TextColor.RED.getValue()` etc.); `I18n.exists` is `Language.getInstance().has`;
+    `LightCoordsUtil.getLightCoords(level, pos)` (was `LevelRenderer#getLightCoords`).
+  - Removed the unused world-space icon renderers `AllIcons#render(PoseStack, MultiBufferSource, int)` (both icon
+    sets).
 * Fabric: no Sophisticated Backpacks integration (the Building Upgrades are placeholder items, their recipes are not
   loaded). The HUD is registered with `HudElementRegistry.addLast` (Fabric API for 1.21.6+ deprecates
-  `HudRenderCallback`). Fabric API for 1.21.9+ has no `WorldRenderEvents.AFTER_TRANSLUCENT`: the previews, lines and
-  outlines are drawn at `WorldRenderEvents.END_MAIN` (end of the main pass, after the translucent terrain, before
-  particles and weather).
+  `HudRenderCallback`). Until 26.1.2 the previews, lines and outlines were drawn at `END_MAIN` (end of the main pass);
+  on 26.2 they are submitted at `LevelRenderEvents.COLLECT_SUBMITS` (see above).
 * NeoForge: Sophisticated Backpacks 3.26 (`UpgradeItemBase` takes the item properties). NeoForge 21.8: the power level
   attachment serializer writes a `ValueOutput` (same `powerLevel` key, existing player data keeps loading); one
   `RenderLevelStageEvent` subclass per stage (`AfterTranslucentBlocks`, `AfterParticles`); client packets go through
@@ -139,9 +174,10 @@ Mappings: Mojang (Fabric, Forge), Mojang + Parchment 2025.12.20 (NeoForge). Java
 * Forge 58+ (EventBus 7): listeners use `net.minecraftforge.eventbus.api.listener.SubscribeEvent`, mod-bus events are
   reached through `<Event>.getBus(BusGroup)` (Forge 60: `<Event>.BUS` for the key mapping and HUD layer events),
   cancelling listeners return `true`; a block break is denied with `Result.DENY` (Forge 58 checks the break event's
-  result). The previews, mirror/array lines and outlines are drawn in a frame pass added through `AddFramePassEvent`
-  (back in Forge 58), after all vanilla passes (so after the weather too, as on 1.21.4/1.21.5); 1.21.5's
-  `LevelRendererMixin` is gone. Forge 60: tick events are records (`level()`, `player()`), `AttachCapabilitiesEvent`
+  result). Until 26.1.2 the previews, mirror/array lines and outlines were drawn in a frame pass added through
+  `AddFramePassEvent` (back in Forge 58), after all vanilla passes; Forge 65 (26.2) submits them from
+  `forge.mixin.LevelRendererMixin` (`sophisticatedbuilding.forge.mixins.json`, declared in the jar manifest next to
+  the common config and passed to the dev runs with `--mixin.config`). Forge 60: tick events are records (`level()`, `player()`), `AttachCapabilitiesEvent`
   is split per type (`AttachCapabilitiesEvent.Entities`), the frame pass runs `executes(LevelRenderState)`, and the
   `eventbus-validator` annotation processor checks the listeners at compile time (7.0.5 on Forge 61). On 1.21.10
   `pack.mcmeta` declared `min_format` 64 .. `max_format` 88 (plus the legacy `pack_format`/`supported_formats`)
@@ -151,8 +187,8 @@ Mappings: Mojang (Fabric, Forge), Mojang + Parchment 2025.12.20 (NeoForge). Java
 
 ## Build and test
 
-Each loader folder has its own Gradle wrapper (Fabric: Gradle 9.5.1, NeoForge: Gradle 9.2.1, Forge: Gradle 9.5.0).
-Java 21.
+Each loader folder has its own Gradle wrapper (Fabric: Gradle 9.8.0, NeoForge: Gradle 9.2.1, Forge: Gradle 9.5.0).
+Java 25; run Gradle with a JDK 25 `JAVA_HOME` (Loom 1.18 and ModDevGradle refuse an older Gradle JVM for 26.x).
 
 ```
 cd fabric   && ./gradlew build          # jar in fabric/build/libs, runs common + Fabric unit tests
