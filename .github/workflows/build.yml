@@ -50,10 +50,18 @@ jobs:
             gametest=false
             [[ -d "$loader/src/gametest" ]] && gametest=true
 
-            # In-game smoke harness (see TESTING.md): a smoketest source set under <loader>/src/smoketest.
+            # In-game smoke harness (see TESTING.md): a smoketest source set under <loader>/src/smoketest, or a
+            # build.gradle that wires the smoke server run itself (a non-comment line naming runSmokeServer or the
+            # smokeServer run). The second case covers a <loader>-<mc> folder that compiles ../<loader>/src/smoketest
+            # without overriding any of it (e.g. neoforge-26.1 on mc/26.1.2), which has no src/smoketest of its own.
             # Only the headless runSmokeServer task runs in CI; runSmokeClient needs a display.
             smoke=false
             [[ -d "$loader/src/smoketest" ]] && smoke=true
+            if [[ -f "$loader/build.gradle" ]]; then
+              # grep -c reads everything (grep -q would end the pipe early: SIGPIPE + pipefail = false negative)
+              wired=$(grep -vE '^[[:space:]]*(//|\*|/\*)' "$loader/build.gradle" | grep -cE 'runSmokeServer|smokeServer' || true)
+              [[ "${wired:-0}" -gt 0 ]] && smoke=true
+            fi
 
             loaders=$(jq -c --arg loader "$loader" --arg jdk "$jdk" --argjson gametest "$gametest" --argjson smoke "$smoke" \
               '. + [{"loader": $loader, "gradle_jdk": $jdk, "has_gametest": $gametest, "has_smoke": $smoke}]' <<<"$loaders")
