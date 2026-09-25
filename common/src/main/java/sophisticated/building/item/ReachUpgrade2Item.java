@@ -1,6 +1,5 @@
 package sophisticated.building.item;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -39,7 +38,7 @@ public class ReachUpgrade2Item extends Item {
 				if (!world.isClientSide) {
 					powerLevel.increasePowerLevel();
 					AttachmentHandler.setPowerLevel(player, powerLevel);
-					SophisticatedBuilding.log(player, "Upgraded power level to " + powerLevel.getPowerLevel());
+					SophisticatedBuilding.log(player, Component.translatable("sophisticatedbuilding.message.power_level_upgraded", powerLevel.getPowerLevel()));
 
 					stack.shrink(1);
 
@@ -50,13 +49,13 @@ public class ReachUpgrade2Item extends Item {
 				return InteractionResult.SUCCESS;
 			} else if (currentLevel < 1) {
 				if (!world.isClientSide) {
-					SophisticatedBuilding.log(player, "Use Reach Upgrade 1 first.");
+					SophisticatedBuilding.log(player, Component.translatable("sophisticatedbuilding.message.reach_upgrade_needs_1"));
 
 					world.playSound((Player) null, player.blockPosition(), SoundEvents.ARMOR_EQUIP_LEATHER.value(), SoundSource.PLAYERS, 1f, 1f);
 				}
 			} else if (currentLevel > 1) {
 				if (!world.isClientSide) {
-					SophisticatedBuilding.log(player, "Already used this upgrade! Current power level is " + powerLevel.getPowerLevel() + ".");
+					SophisticatedBuilding.log(player, Component.translatable("sophisticatedbuilding.message.reach_upgrade_already_used", powerLevel.getPowerLevel()));
 
 					world.playSound((Player) null, player.blockPosition(), SoundEvents.ARMOR_EQUIP_LEATHER.value(), SoundSource.PLAYERS, 1f, 1f);
 				}
@@ -68,7 +67,7 @@ public class ReachUpgrade2Item extends Item {
 
 	@Override
 	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag tooltipFlag) {
-		tooltip.add(Component.literal(ChatFormatting.GRAY + "Consume to increase reach to " + ChatFormatting.BLUE + CommonConfig.reach.level2.get()));
-		tooltip.add(Component.literal(ChatFormatting.GRAY + "Previous upgrades need to be consumed first"));
+		tooltip.add(Component.translatable("item.sophisticatedbuilding.reach_upgrade.tooltip", CommonConfig.reach.level2.get()));
+		tooltip.add(Component.translatable("item.sophisticatedbuilding.reach_upgrade.tooltip.previous"));
 	}
 }

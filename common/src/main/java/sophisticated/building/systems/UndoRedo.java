@@ -1,6 +1,5 @@
 package sophisticated.building.systems;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
@@ -54,7 +53,7 @@ public class UndoRedo {
 
 	public boolean undo(Player player) {
 		if (!isAllowedToUndo(player)) {
-			SophisticatedBuilding.log(player, ChatFormatting.RED + "You are not allowed to undo.");
+			SophisticatedBuilding.message(player, false, "sophisticatedbuilding.message.not_allowed_to_undo");
 			return false;
 		}
 
@@ -76,7 +75,7 @@ public class UndoRedo {
 
 	public boolean redo(Player player) {
 		if (!isAllowedToUndo(player)) {
-			SophisticatedBuilding.log(player, ChatFormatting.RED + "You are not allowed to undo.");
+			SophisticatedBuilding.message(player, false, "sophisticatedbuilding.message.not_allowed_to_undo");
 			return false;
 		}
 

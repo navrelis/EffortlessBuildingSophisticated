@@ -59,7 +59,7 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 		// Add reset weights button to the right of the GUI
 		int buttonX = leftPos + imageWidth + 4;
 		int buttonY = topPos + 4;
-		resetWeightsButton = Button.builder(Component.literal("Reset"), this::onResetWeightsPressed)
+		resetWeightsButton = Button.builder(Component.translatable("sophisticatedbuilding.gui.omega_bag.reset"), this::onResetWeightsPressed)
 				.bounds(buttonX, buttonY, 40, 16)
 				.build();
 		this.addRenderableWidget(resetWeightsButton);
@@ -272,9 +272,9 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 			if (mouseX >= slotX && mouseX < slotX + 16 && mouseY >= slotY && mouseY < slotY + 16 && totalWeight > 0) {
 				float percentage = (weight * 100.0f) / totalWeight;
 				List<Component> tooltip = new ArrayList<>();
-				tooltip.add(Component.literal("Weight: " + weight).withStyle(ChatFormatting.GOLD));
-				tooltip.add(Component.literal(String.format("Chance: %.1f%%", percentage)).withStyle(ChatFormatting.YELLOW));
-				tooltip.add(Component.literal("Scroll to adjust").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC));
+				tooltip.add(Component.translatable("sophisticatedbuilding.gui.omega_bag.weight", weight).withStyle(ChatFormatting.GOLD));
+				tooltip.add(Component.translatable("sophisticatedbuilding.gui.omega_bag.chance", String.format("%.1f", percentage)).withStyle(ChatFormatting.YELLOW));
+				tooltip.add(Component.translatable("sophisticatedbuilding.gui.omega_bag.scroll").withStyle(ChatFormatting.GRAY).withStyle(ChatFormatting.ITALIC));
 				
 				// Offset tooltip to not overlap with item name tooltip (render below and to the right)
 				guiGraphics.renderComponentTooltip(font, tooltip, (int)mouseX + 12, (int)mouseY + 24);
