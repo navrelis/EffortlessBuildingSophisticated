@@ -34,6 +34,10 @@ import sophisticated.building.create.foundation.utility.Lang;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static sophisticated.building.buildmode.ModeOptions.getBuildSpeed;
 import static sophisticated.building.buildmode.ModeOptions.getCircleStart;
@@ -70,6 +74,46 @@ public class RadialMenu extends Screen {
 	private final float fadeSpeed = 0.3f;
 	private final int buildModeDescriptionHeight = 100;
 	private final int actionDescriptionWidth = 200;
+	// Space above an option row's first button for its label, and kept free at the bottom right for the power level text
+	private static final double OPTION_LABEL_HEADROOM = 14;
+	private static final double OPTION_BOTTOM_RESERVE = 24;
+
+	/** A side button as last drawn (screen GUI coordinates), for tests. */
+	public static final class SideButton {
+		private final ActionEnum action;
+		private final double left, top, right, bottom;
+
+		public SideButton(ActionEnum action, double left, double top, double right, double bottom) {
+			this.action = action;
+			this.left = left;
+			this.top = top;
+			this.right = right;
+			this.bottom = bottom;
+		}
+
+		public ActionEnum action() {
+			return action;
+		}
+
+		public double left() {
+			return left;
+		}
+
+		public double top() {
+			return top;
+		}
+
+		public double right() {
+			return right;
+		}
+
+		public double bottom() {
+			return bottom;
+		}
+	}
+
+	private RadialButtonLayout.Result optionLayout;
+	private List<SideButton> sideButtons = Collections.emptyList();
 
 	public BuildModeEnum switchTo = null;
 	public ActionEnum doAction = null;
@@ -91,6 +135,28 @@ public class RadialMenu extends Screen {
 
 	public RadialMenu() {
 		super(new TranslatableComponent("sophisticatedbuilding.screen.radial_menu"));
+	}
+
+	/** The side buttons (actions and build mode options) as last drawn. */
+	public List<SideButton> sideButtons() {
+		return sideButtons;
+	}
+
+	/** Side buttons stay this far from the centre: clear of the ring and of the mode name drawn around it. */
+	private double minSideButtonInner() {
+		return ringOuterEdge + 20;
+	}
+
+	private static int[] columns(int count) {
+		int[] columns = new int[count];
+		for (int i = 0; i < count; i++) columns[i] = i;
+		return columns;
+	}
+
+	private static List<int[]> optionColumns(OptionEnum[] options) {
+		List<int[]> rows = new ArrayList<>();
+		for (OptionEnum option : options) rows.add(columns(option.actions.length));
+		return rows;
 	}
 
 	public boolean isVisible() {
@@ -179,29 +245,43 @@ public class RadialMenu extends Screen {
 		//Add actions
 		boolean canReplace = AttachmentHandler.canReplaceBlocks(minecraft.player);
 
+		// Left side, rows from the top, columns counted from the ring outwards: player settings above modifier
+		// settings; protect/mini preview/modifier settings/undo/redo; the replace modes
+		List<List<ActionEnum>> leftRows = new ArrayList<>();
+		leftRows.add(Collections.singletonList(ActionEnum.OPEN_PLAYER_SETTINGS));
+		List<ActionEnum> actionRow = new ArrayList<>(Arrays.asList(ActionEnum.REDO, ActionEnum.UNDO, ActionEnum.OPEN_MODIFIER_SETTINGS, ActionEnum.TOGGLE_MINI_PREVIEW));
+		if (canReplace) actionRow.add(ActionEnum.TOGGLE_PROTECT_TILE_ENTITIES);
+		leftRows.add(actionRow);
 		if (canReplace) {
-			buttons.add(new MenuButton(ActionEnum.TOGGLE_PROTECT_TILE_ENTITIES, -buttonDistance - 104, -13, Direction.UP));
+			leftRows.add(Arrays.asList(ActionEnum.REPLACE_FILTERED_BY_OFFHAND, ActionEnum.REPLACE_ONLY_BLOCKS, ActionEnum.REPLACE_BLOCKS_AND_AIR, ActionEnum.REPLACE_ONLY_AIR));
 		}
-		buttons.add(new MenuButton(ActionEnum.TOGGLE_MINI_PREVIEW, -buttonDistance - 78, -13, Direction.UP));
-		buttons.add(new MenuButton(ActionEnum.OPEN_MODIFIER_SETTINGS, -buttonDistance - 52, -13, Direction.UP));
-		buttons.add(new MenuButton(ActionEnum.UNDO, -buttonDistance - 26, -13, Direction.UP));
-		buttons.add(new MenuButton(ActionEnum.REDO, -buttonDistance, -13, Direction.UP));
-
-		if (canReplace) {
-			buttons.add(new MenuButton(ActionEnum.REPLACE_ONLY_AIR, -buttonDistance - 78, 13, Direction.DOWN));
-			buttons.add(new MenuButton(ActionEnum.REPLACE_BLOCKS_AND_AIR, -buttonDistance - 52, 13, Direction.DOWN));
-			buttons.add(new MenuButton(ActionEnum.REPLACE_ONLY_BLOCKS, -buttonDistance - 26, 13, Direction.DOWN));
-			buttons.add(new MenuButton(ActionEnum.REPLACE_FILTERED_BY_OFFHAND, -buttonDistance, 13, Direction.DOWN));
-		}
-
-		//Add buildmode dependent options
-		OptionEnum[] options = currentBuildMode.options;
-		for (int i = 0; i < options.length; i++) {
-			for (int j = 0; j < options[i].actions.length; j++) {
-				ActionEnum action = options[i].actions[j];
-				buttons.add(new MenuButton(action, buttonDistance + j * 26, -13 + i * 39, Direction.DOWN));
+		List<int[]> leftColumns = new ArrayList<>();
+		leftColumns.add(new int[]{2});
+		for (int r = 1; r < leftRows.size(); r++) leftColumns.add(columns(leftRows.get(r).size()));
+		RadialButtonLayout.Result left = RadialButtonLayout.layout(false, leftColumns, width, height, buttonDistance, minSideButtonInner(),
+				-39, 26, 0, 0);
+		int leftIndex = 0;
+		for (List<ActionEnum> row : leftRows) {
+			for (ActionEnum action : row) {
+				RadialButtonLayout.Cell cell = left.cells().get(leftIndex++);
+				buttons.add(new MenuButton(action, cell.x(), cell.y(), Direction.UP));
 			}
 		}
+
+		//Add buildmode dependent options (right side, one labelled row per option; they move in and wrap on narrow screens)
+		OptionEnum[] options = currentBuildMode.options;
+		optionLayout = RadialButtonLayout.layout(true, optionColumns(options), width, height, buttonDistance, minSideButtonInner(),
+				-13, 39, OPTION_LABEL_HEADROOM, OPTION_BOTTOM_RESERVE);
+		int optionIndex = 0;
+		for (OptionEnum option : options) {
+			for (ActionEnum action : option.actions) {
+				RadialButtonLayout.Cell cell = optionLayout.cells().get(optionIndex++);
+				buttons.add(new MenuButton(action, cell.x(), cell.y(), Direction.DOWN));
+			}
+		}
+		sideButtons = buttons.stream()
+				.map(b -> new SideButton(b.action, middleX + b.x1, middleY + b.y1, middleX + b.x2, middleY + b.y2))
+				.collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
 
 		switchTo = null;
 		doAction = null;
@@ -304,6 +384,8 @@ public class RadialMenu extends Screen {
 							btn.action == getRaisedEdge() ||
 							btn.action == getLineThickness() ||
 							btn.action == getCircleStart() ||
+							btn.action == ModeOptions.getTerrainNoise() ||
+							btn.action == ModeOptions.getTerrainType() ||
 							btn.action == SophisticatedBuildingClient.BUILD_SETTINGS.getReplaceModeActionEnum() ||
 					btn.action == ActionEnum.TOGGLE_PROTECT_TILE_ENTITIES && SophisticatedBuildingClient.BUILD_SETTINGS.shouldProtectTileEntities() ||
 					btn.action == ActionEnum.TOGGLE_MINI_PREVIEW && SophisticatedBuildingClient.BLOCK_PREVIEWS.isMiniBlockPreviewEnabled();
@@ -355,7 +437,10 @@ public class RadialMenu extends Screen {
 		//Draw option strings
 		for (int i = 0; i < currentBuildMode.options.length; i++) {
 			OptionEnum option = options[i];
-			guiGraphics.drawString(font, I18n.get(option.name), (int) (middleX + buttonDistance - 9), (int) middleY - 37 + i * 39, optionTextColor);
+			String label = I18n.get(option.name);
+			// Above the row's first button; moved left if it would run past the screen edge
+			int labelX = (int) Math.min(middleX + optionLayout.inner() - 9, width - 2 - font.width(label));
+			guiGraphics.drawString(font, label, labelX, (int) (middleY + optionLayout.rowFirstY()[i] - 24), optionTextColor);
 		}
 
 		String credits = "Sophisticated Building";
@@ -366,8 +451,8 @@ public class RadialMenu extends Screen {
 		String powerLevelText = I18n.get("key.sophisticatedbuilding.power_level") + ": " + powerLevelValue;
 		guiGraphics.drawString(font, powerLevelText, width - font.width(powerLevelText) - 4, height - 22, minecraft.player.isCreative() ? watermarkTextColor : ChatFormatting.DARK_PURPLE.getColor());
 
-		//if hover over power level info, show tooltip
-		if (mouseX >= width - font.width(powerLevelText) - 14 && mouseX <= width && mouseY >= height - 24 && mouseY <= height) {
+		//if hover over power level info (and not over a button or mode, whose tooltip wins), show tooltip
+		if (doAction == null && switchTo == null && mouseX >= width - font.width(powerLevelText) - 14 && mouseX <= width && mouseY >= height - 24 && mouseY <= height) {
 			ArrayList<Component> tooltip = new ArrayList<Component>();
 			tooltip.add(Components.literal(powerLevelText).withStyle(ChatFormatting.DARK_PURPLE));
 			int placementReach = AttachmentHandler.getPlacementReach(minecraft.player, false);
@@ -445,9 +530,11 @@ public class RadialMenu extends Screen {
 		if (button.action == ActionEnum.OPEN_MODIFIER_SETTINGS) keybindingIndex = 1;
 		if (button.action == ActionEnum.UNDO) keybindingIndex = 2;
 		if (button.action == ActionEnum.REDO) keybindingIndex = 3;
+		if (button.action == ActionEnum.OPEN_PLAYER_SETTINGS) keybindingIndex = ClientEvents.PLAYER_SETTINGS_KEY;
 
 		if (keybindingIndex != -1) {
 			KeyMapping keyMap = ClientEvents.keyBindings[keybindingIndex];
+			if (keyMap.isUnbound()) return null;
 
 			return Components.keybind(keyMap.getName());
 		}

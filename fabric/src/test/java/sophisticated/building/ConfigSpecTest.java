@@ -10,6 +10,7 @@ import sophisticated.building.config.ConfigFile;
 import sophisticated.building.config.ConfigSpec;
 import sophisticated.building.config.ConfigValue;
 import sophisticated.building.config.ModConfigs;
+import sophisticated.building.config.NumberConfigValue;
 import sophisticated.building.config.SimpleConfigValue;
 
 import java.io.IOException;
@@ -301,5 +302,35 @@ class ConfigSpecTest {
         } finally {
             serverSpec().resetToDefaults();
         }
+    }
+
+    @Test
+    void setAndSaveWriteTheFileThatTheNextLoadReads(@TempDir Path dir) {
+        TestConfig config = new TestConfig();
+        ConfigFile.load(config.spec, dir, LOGGER);
+
+        // What the player settings screen does: set in memory, then save
+        config.enabled.set(false);
+        config.scale.set(0.5);
+        ConfigFile.save(config.spec, dir, LOGGER);
+
+        TestConfig reloaded = new TestConfig();
+        ConfigFile.load(reloaded.spec, dir, LOGGER);
+        assertFalse(reloaded.enabled.get());
+        assertEquals(0.5, reloaded.scale.get());
+        assertEquals(10, reloaded.count.get());
+    }
+
+    @Test
+    void numberValuesExposeTheirRangeAndDefault() {
+        TestConfig config = new TestConfig();
+        NumberConfigValue<Integer> count = (NumberConfigValue<Integer>) (ConfigValue<Integer>) config.count;
+        assertEquals(1, count.getMin());
+        assertEquals(100, count.getMax());
+        assertEquals(10, count.getDefault());
+        NumberConfigValue<Double> clientScale = ClientConfig.visuals.previewScale;
+        assertEquals(0.05, clientScale.getMin());
+        assertEquals(1.0, clientScale.getMax());
+        assertEquals(0.25, clientScale.getDefault());
     }
 }

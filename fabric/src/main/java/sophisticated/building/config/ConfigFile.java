@@ -83,6 +83,11 @@ public final class ConfigFile {
         }
     }
 
+    /** Writes the spec's current values to its file in {@code directory} (e.g. after the settings screen changed them). */
+    public static void save(ConfigSpec spec, Path directory, Logger logger) {
+        write(spec, directory.resolve(spec.getFileName()), logger);
+    }
+
     private static void write(ConfigSpec spec, Path file, Logger logger) {
         try {
             Files.createDirectories(file.getParent());
