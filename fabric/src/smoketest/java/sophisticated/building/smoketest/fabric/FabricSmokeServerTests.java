@@ -21,6 +21,16 @@ public final class FabricSmokeServerTests implements FabricGameTest {
         ServerScenarios.server_undo_redo(helper);
     }
 
+    @GameTest(template = EMPTY_STRUCTURE, batch = "smoke_merge", timeoutTicks = ServerScenarios.TIMEOUT_TICKS)
+    public void server_merge_undo_refund(GameTestHelper helper) {
+        ServerScenarios.server_merge_undo_refund(helper);
+    }
+
+    @GameTest(template = EMPTY_STRUCTURE, batch = "smoke_refused", timeoutTicks = ServerScenarios.TIMEOUT_TICKS)
+    public void server_refused_place_not_charged(GameTestHelper helper) {
+        ServerScenarios.server_refused_place_not_charged(helper);
+    }
+
     @GameTest(template = EMPTY_STRUCTURE, batch = "smoke_3", timeoutTicks = ServerScenarios.TIMEOUT_TICKS)
     public void sb_upgrade_supplies_blocks(GameTestHelper helper) {
         ServerScenarios.sb_upgrade_supplies_blocks(helper);
