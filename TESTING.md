@@ -334,7 +334,7 @@ builds up to 0.46.3+1.18 accept 1.18, from 0.46.4+1.18 on they require exactly 1
 
 ### Forge 1.18 (`forge-1.18/`)
 
-`forge-1.18/` builds `sophisticatedbuilding-forge-1.18-5.0.0.jar` (Minecraft `[1.18]`, Forge `[38.0.17,)`, optional
+`forge-1.18/` builds `sophisticatedbuilding-forge-1.18-5.0.1.jar` (Minecraft `[1.18]`, Forge `[38.0.17,)`, optional
 Sophisticated Backpacks `[1.18-3.12.1,)`) from `../forge` with the classes Sophisticated Backpacks 1.18 and Forge 38
 need replaced (README.md, "Forge 1.18"). Its smoke runs use the same scenarios and check names as `forge/`, including
 every `sb.*` check (Forge 38.0.17, Sophisticated Backpacks 1.18-3.12.1.433, Curios 1.18-5.0.2.5):
