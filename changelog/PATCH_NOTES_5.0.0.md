@@ -1,23 +1,21 @@
-# Sophisticated Building Update – 4.3.0 (Minecraft 26.1.2)
-
-*Draft — lead to confirm before release.*
+# Sophisticated Building Update – 5.0.0 (Minecraft 26.1.2)
 
 ## Artifacts
 
-* `sophisticatedbuilding-fabric-26.1.2-4.3.0.jar` — Fabric (also runs on 26.1 and 26.1.1)
-* `sophisticatedbuilding-neoforge-26.1.2-4.3.0.jar` — NeoForge for 26.1.2
-* `sophisticatedbuilding-neoforge-26.1-4.3.0.jar` — NeoForge for 26.1 and 26.1.1 (NeoForge beta builds)
-* `sophisticatedbuilding-forge-26.1.2-4.3.0.jar` — Forge (also runs on 26.1 and 26.1.1)
+* `sophisticatedbuilding-fabric-26.1.2-5.0.0.jar` — Fabric (also runs on 26.1 and 26.1.1)
+* `sophisticatedbuilding-neoforge-26.1.2-5.0.0.jar` — NeoForge for 26.1.2
+* `sophisticatedbuilding-neoforge-26.1-5.0.0.jar` — NeoForge for 26.1 and 26.1.1 (NeoForge beta builds)
+* `sophisticatedbuilding-forge-26.1.2-5.0.0.jar` — Forge (also runs on 26.1 and 26.1.1)
 
 ## New
 
 ### Minecraft 26.1.2
 
-Sophisticated Building 4.3.0 is the first release for Minecraft 26.1.2, on Fabric, NeoForge and
+Sophisticated Building 5.0.0 is the first release for Minecraft 26.1.2, on Fabric, NeoForge and
 Forge. The Fabric and Forge jars also run on Minecraft 26.1 and 26.1.1 (tested). On NeoForge, 26.1.2
 has its own jar, and a second jar covers 26.1 and 26.1.1, for which NeoForge only ever published
 beta builds (tested on the last ones, 26.1.0.19-beta and 26.1.1.15-beta). It has the same
-features as 4.3.0 for 1.21.1, with these exceptions:
+features as 5.0.0 for 1.21.1, with these exceptions:
 
 * **Sophisticated Backpacks integration on NeoForge only.** Sophisticated Backpacks has no Fabric
   or Forge release for 26.1.x, so on those loaders the Building Upgrade items are plain
@@ -115,7 +113,7 @@ NeoForge and Forge). Open it with the new button in the radial menu (above Modif
   accepted.
 * Curios API (compile-only, worn-backpack fallback scan): 15.0.0+26.1.2.
 
-### NeoForge for 26.1 and 26.1.1 (`sophisticatedbuilding-neoforge-26.1-4.3.0.jar`)
+### NeoForge for 26.1 and 26.1.1 (`sophisticatedbuilding-neoforge-26.1-5.0.0.jar`)
 
 * Minecraft 26.1 or 26.1.1.
 * NeoForge 26.1.0.19-beta or newer (built against it; tested on 26.1.0.19-beta for 26.1 and

@@ -422,7 +422,7 @@ Core 1.4.27 stopped at mod loading ("Mod sophisticatedbuilding requires minecraf
 26.1.2.109 or above", "... only supports sophisticatedbackpacks 3.26.2 or above", "... only supports sophisticatedcore
 1.5.0 or above").
 
-So `neoforge-26.1/` builds a second NeoForge jar, `sophisticatedbuilding-neoforge-26.1-4.3.0.jar` (Minecraft
+So `neoforge-26.1/` builds a second NeoForge jar, `sophisticatedbuilding-neoforge-26.1-5.0.0.jar` (Minecraft
 `[26.1,26.1.1]`, NeoForge `[26.1.0.19-beta,)`, Backpacks `[3.25.48,)`, Core `[1.4.26,1.4.27)`; capped so that Core
 1.4.27 stops the game at loading with a message instead of crashing it when a backpack is opened), in the `forge-1.21`
 style of `mc/1.21.1`: `../neoforge/src/{main,smoketest}` are compiled from a copy made at build time, minus the files this
