@@ -331,3 +331,17 @@ metadata differed only in the Minecraft and Fabric API lines); the server runs u
 1.19 real server (installer 41.1.0, only the `forge-1.19` jar and SB/Core 1.19 in `mods`) and the Forge 1.19.2 real
 server (installer 43.5.2, only the `forge` jar and SB/Core 1.19.2) reach "Done" with the backpack integration
 registered and no error from the mod.
+
+## Standalone run without Sophisticated Backpacks
+
+`gradlew runSmokeServer -PsmokeNoSb=true --no-daemon` (loader folders with the Sophisticated Backpacks integration)
+proves the mod works without Sophisticated Backpacks and Sophisticated Core: `gradle/smoketest.gradle` drops every
+dependency of the `localRuntime`, `modLocalRuntime`, `smoketestLocalRuntime`, `modSmoketestLocalRuntime` and
+`modSmoketestRuntimeOnly` configurations (Sophisticated Backpacks and Core, their Fabric port libraries, Curios,
+Trinkets), leaves the backpack fixture (every file under a `smoketestBackpacks` folder) out of the smoke source set
+and passes `-Dsophisticatedbuilding.smoketest.noSb=true` to the run.
+The `sb.*` scenarios report "skipped" (and fail instead if the backpack integration is active anyway).
+`server.place_line_survival`, `server.undo_redo`, `server.merge_undo_refund`, `server.refused_place_not_charged`
+(skipped on Fabric: no place event there) and `server.no_mod_errors` must pass. The main code still compiles against
+Sophisticated Backpacks (compile-only), so only the runtime changes. On the hub,
+`scripts/test-all-versions.ps1 -SmokeTasks runSmokeServerNoSb` runs it for every loader folder with the integration.
