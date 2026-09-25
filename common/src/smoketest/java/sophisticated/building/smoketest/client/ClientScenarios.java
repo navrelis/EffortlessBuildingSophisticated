@@ -80,7 +80,7 @@ final class ClientScenarios {
     ClientScenarios(ClientDriver driver) {
         this.d = driver;
         this.radial = new RadialMenuDriver(driver);
-        this.gui = new GuiScenarios(driver);
+        this.gui = new GuiScenarios(driver, radial);
     }
 
     void runAll() {

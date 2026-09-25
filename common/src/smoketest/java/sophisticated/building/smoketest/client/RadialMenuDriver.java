@@ -5,6 +5,7 @@ import net.minecraft.client.KeyMapping;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuildingClient;
 import sophisticated.building.buildmode.BuildModeEnum;
+import sophisticated.building.buildmode.ModeOptions;
 import sophisticated.building.gui.buildmode.RadialMenu;
 import sophisticated.building.platform.ClientServices;
 
@@ -56,6 +57,19 @@ final class RadialMenuDriver {
             set("accumulatedMouseY", Math.sin(angle) * radius);
         });
         d.waitUntil("the radial menu to highlight " + mode, 40, () -> RadialMenu.instance.switchTo == mode);
+    }
+
+    /**
+     * Moves the mouse onto the action button whose centre is {@code (dx, dy)} from the screen centre, in units of the
+     * menu's {@code buttonDistance} offset (the left button rows sit at {@code -buttonDistance + dx}), and waits until
+     * the menu's render pass highlights the action.
+     */
+    void hoverLeftButton(ModeOptions.ActionEnum action, double dx, double dy) {
+        d.clientRun(() -> {
+            set("accumulatedMouseX", -getDouble("buttonDistance") + dx);
+            set("accumulatedMouseY", dy);
+        });
+        d.waitUntil("the radial menu to highlight the " + action + " button", 40, () -> RadialMenu.instance.doAction == action);
     }
 
     /** Left-clicks (selects the highlighted mode) and releases the radial key, which closes the menu. */
