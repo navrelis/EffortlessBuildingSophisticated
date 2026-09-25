@@ -51,6 +51,11 @@ public final class ModConfigs {
         loadServer();
     }
 
+    /** Writes a spec's current values to its JSON file. */
+    public static void save(ConfigSpec spec) {
+        ConfigFile.save(spec, FabricLoader.getInstance().getConfigDir(), SophisticatedBuilding.logger);
+    }
+
     private static void load(ConfigSpec spec) {
         Path directory = FabricLoader.getInstance().getConfigDir();
         ConfigFile.load(spec, directory, SophisticatedBuilding.logger);
