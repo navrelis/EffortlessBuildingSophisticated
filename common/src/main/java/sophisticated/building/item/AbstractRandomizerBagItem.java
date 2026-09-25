@@ -272,7 +272,7 @@ public abstract class AbstractRandomizerBagItem extends Item {
 			// No available blocks - notify player
 			if (!player.level().isClientSide()) {
 				player.displayClientMessage(
-					Component.literal("Missing blocks in inventory for randomizer bag!").withStyle(ChatFormatting.RED),
+					Component.translatable("sophisticatedbuilding.message.randomizer_bag_missing_blocks").withStyle(ChatFormatting.RED),
 					true
 				);
 			}
@@ -403,16 +403,16 @@ public abstract class AbstractRandomizerBagItem extends Item {
 
 	@Override
 	public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay tooltipDisplay, Consumer<Component> tooltip, TooltipFlag tooltipFlag) {
-		tooltip.accept(Component.literal(ChatFormatting.GRAY + "Put blocks in bag as " + ChatFormatting.YELLOW + "templates"));
-		tooltip.accept(Component.literal(ChatFormatting.GRAY + "Blocks are consumed from " + ChatFormatting.GREEN + "inventory"));
+		tooltip.accept(Component.translatable("item.sophisticatedbuilding.randomizer_bag.tooltip.templates"));
+		tooltip.accept(Component.translatable("item.sophisticatedbuilding.randomizer_bag.tooltip.consumed"));
 		tooltip.accept(Component.empty());
-		tooltip.accept(Component.literal(ChatFormatting.BLUE + "Rightclick" + ChatFormatting.GRAY + " to place a random block"));
-		tooltip.accept(Component.literal(ChatFormatting.BLUE + "Sneak + rightclick" + ChatFormatting.GRAY + " to open inventory"));
+		tooltip.accept(Component.translatable("item.sophisticatedbuilding.randomizer_bag.tooltip.place"));
+		tooltip.accept(Component.translatable("item.sophisticatedbuilding.randomizer_bag.tooltip.open"));
 		
 		// Add special tooltip for Omega bag
 		if (this instanceof OmegaRandomizerBagItem) {
 			tooltip.accept(Component.empty());
-			tooltip.accept(Component.literal(ChatFormatting.GOLD + "Scroll wheel" + ChatFormatting.GRAY + " on slots to adjust weight"));
+			tooltip.accept(Component.translatable("item.sophisticatedbuilding.randomizer_bag.tooltip.weights"));
 		}
 	}
 	
