@@ -53,37 +53,37 @@ class ReplaceRulesTest {
 
 	@Test
 	void undoToAirAlwaysBreaks() {
-		assertEquals(Action.BREAK, ReplaceRules.forUndo(false, true, false, true, false, false));
-		assertEquals(Action.BREAK, ReplaceRules.forUndo(true, true, false, true, false, true));
+		assertEquals(Action.BREAK, ReplaceRules.forUndo(false, true, false, true, false, false, false));
+		assertEquals(Action.BREAK, ReplaceRules.forUndo(true, true, false, true, false, true, false));
 	}
 
 	@Test
 	void creativeUndoOverwrites() {
-		assertEquals(Action.PLACE, ReplaceRules.forUndo(false, false, true, true, false, false));
-		assertEquals(Action.PLACE, ReplaceRules.forUndo(false, false, false, true, false, false));
+		assertEquals(Action.PLACE, ReplaceRules.forUndo(false, false, true, true, false, false, false));
+		assertEquals(Action.PLACE, ReplaceRules.forUndo(false, false, false, true, false, false, false));
 	}
 
 	@Test
 	void survivalUndoOverAirOrReplaceableKeepsPlacing() {
-		assertEquals(Action.PLACE, ReplaceRules.forUndo(true, false, true, false, false, false));
-		assertEquals(Action.PLACE, ReplaceRules.forUndo(true, false, false, false, false, false));
+		assertEquals(Action.PLACE, ReplaceRules.forUndo(true, false, true, false, false, false, false));
+		assertEquals(Action.PLACE, ReplaceRules.forUndo(true, false, false, false, false, false, false));
 	}
 
 	@Test
 	void survivalUndoOfAReplacementMinesAndReplacesWhenEnabled() {
-		assertEquals(Action.REPLACE, ReplaceRules.forUndo(true, false, true, true, false, true));
+		assertEquals(Action.REPLACE, ReplaceRules.forUndo(true, false, true, true, false, true, false));
 	}
 
 	@Test
 	void survivalUndoOfAReplacementIsSkippedWhenDisabledOrUnchanged() {
-		assertEquals(Action.SKIP, ReplaceRules.forUndo(true, false, true, true, false, false));
-		assertEquals(Action.SKIP, ReplaceRules.forUndo(true, false, true, true, true, true));
+		assertEquals(Action.SKIP, ReplaceRules.forUndo(true, false, true, true, false, false, false));
+		assertEquals(Action.SKIP, ReplaceRules.forUndo(true, false, true, true, true, true, false));
 	}
 
 	@Test
 	void survivalUndoWithoutAnItemOnlyMinesTheCurrentBlock() {
-		assertEquals(Action.BREAK, ReplaceRules.forUndo(true, false, false, true, false, false));
-		assertEquals(Action.BREAK, ReplaceRules.forUndo(true, false, false, true, false, true));
+		assertEquals(Action.BREAK, ReplaceRules.forUndo(true, false, false, true, false, false, false));
+		assertEquals(Action.BREAK, ReplaceRules.forUndo(true, false, false, true, false, true, false));
 	}
 
 	@Test
@@ -129,6 +129,45 @@ class ReplaceRulesTest {
 	void restoringOverTheSameBlockCostsOnlyTheDifference() {
 		assertEquals(1, ReplaceRules.restoreCost(2, 1)); // redo of a slab merge
 		assertEquals(2, ReplaceRules.restoreCost(5, 3)); // snow layers placed over
+	}
+
+	@Test
+	void undoOfAMergeUnmergesWhateverTheModeAndConfig() {
+		// snow layers (replaceable, no mining) and candles/slabs (would need mining), replace on or off, survival or creative
+		for (boolean survival : new boolean[]{true, false}) {
+			for (boolean needsMining : new boolean[]{true, false}) {
+				for (boolean replaceEnabled : new boolean[]{true, false}) {
+					assertEquals(Action.UNMERGE, ReplaceRules.forUndo(survival, false, true, needsMining, false, replaceEnabled, true));
+				}
+			}
+		}
+	}
+
+	@Test
+	void undoToAirBreaksEvenAfterAMerge() {
+		assertEquals(Action.BREAK, ReplaceRules.forUndo(true, true, false, true, false, false, true));
+	}
+
+	@Test
+	void unmergeGivesBackExactlyWhatTheMergeCharged() {
+		// every merge adds one item: +1 snow layer, slab to double slab, +1 candle/pickle/egg/petal
+		assertEquals(1, ReplaceRules.unmergeRefund(2, 1));
+		assertEquals(1, ReplaceRules.unmergeRefund(8, 7));
+		// and redo of it charges the same one again
+		assertEquals(ReplaceRules.unmergeRefund(4, 3), ReplaceRules.restoreCost(4, 3));
+	}
+
+	@Test
+	void unmergeNeverTakesItems() {
+		assertEquals(0, ReplaceRules.unmergeRefund(1, 2));
+		assertEquals(0, ReplaceRules.unmergeRefund(2, 2));
+	}
+
+	@Test
+	void placingAMultiItemStateOntoAirCostsAllItsItems() {
+		// a build onto air or another block keeps nothing: three candles cost three
+		assertEquals(3, ReplaceRules.restoreCost(ReplaceRules.itemCount(false, 3), 0));
+		assertEquals(2, ReplaceRules.restoreCost(ReplaceRules.itemCount(true, 0), 0));
 	}
 
 	@Test

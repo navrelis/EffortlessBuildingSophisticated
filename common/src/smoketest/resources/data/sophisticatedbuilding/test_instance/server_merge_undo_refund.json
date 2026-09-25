@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "function": "sophisticatedbuilding_smoketest:server_merge_undo_refund",
+  "environment": "sophisticatedbuilding:smoke_merge",
+  "structure": "sophisticatedbuilding:smoketest_empty",
+  "max_ticks": 400,
+  "required": true
+}

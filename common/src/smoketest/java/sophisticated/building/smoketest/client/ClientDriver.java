@@ -8,6 +8,7 @@ import net.minecraft.client.KeyboardHandler;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -335,6 +336,27 @@ public final class ClientDriver {
                 throw new RuntimeException("MouseHandler#onScroll failed", e);
             }
         });
+    }
+
+    /**
+     * A left-button drag in a screen: press at the start (MouseHandler), move the pointer to the end and hand the
+     * screen the move and drag events, release at the end (MouseHandler). The move/drag step calls the screen the way
+     * {@code MouseHandler#handleAccumulatedMovement} does; that method itself only runs for the focused window, and the
+     * harness window is never focused (ClientWindow).
+     */
+    public void dragTo(double fromX, double fromY, double toX, double toY) {
+        clientRun(() -> {
+            pointNow(fromX, fromY);
+            mouseButton(GLFW.GLFW_MOUSE_BUTTON_LEFT, GLFW.GLFW_PRESS);
+        });
+        clientRun(() -> {
+            pointNow(toX, toY);
+            if (mc.gui.screen() != null) {
+                mc.gui.screen().mouseMoved(toX, toY);
+                mc.gui.screen().mouseDragged(new MouseButtonEvent(toX, toY, new MouseButtonInfo(GLFW.GLFW_MOUSE_BUTTON_LEFT, 0)), toX - fromX, toY - fromY);
+            }
+        });
+        clientRun(() -> mouseButton(GLFW.GLFW_MOUSE_BUTTON_LEFT, GLFW.GLFW_RELEASE));
     }
 
     /**

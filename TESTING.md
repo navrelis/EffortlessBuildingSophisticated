@@ -4,8 +4,8 @@ Three layers, from fast to real:
 
 | Layer | Command (in a loader folder) | What it proves |
 |---|---|---|
-| Unit tests | `gradlew build` | Pure logic in `common/src/test` (77 tests on Fabric incl. its config tests, 65 on NeoForge and Forge) |
-| Fabric GameTests | `gradlew runGametest` | 17 server-side building rules (`fabric/src/gametest`; the run reports 18 with vanilla's `minecraft:always_pass`) |
+| Unit tests | `gradlew build` | Pure logic in `common/src/test` (104 tests on Fabric incl. its config tests, 90 on NeoForge and Forge) |
+| Fabric GameTests | `gradlew runGametest` | 24 server-side building rules (`fabric/src/gametest`; the run reports 25 with vanilla's `minecraft:always_pass`) |
 | **In-game smoke tests** | `gradlew runSmokeClient` / `gradlew runSmokeServer` | The mod works in a real game on this loader, including the Sophisticated Backpacks (SB) integration on NeoForge |
 
 `gradlew build` compiles the smoke harness (so it cannot rot) but never runs it. The harness is dev-only: it lives in
@@ -26,7 +26,14 @@ Same for `neoforge` and `forge`. Without `-PsmoketestOut` the result goes to `<l
 
 - **runSmokeClient** starts a real client: muted, moved to a secondary monitor if there is one, and deaf to real
   keyboard and mouse input (its GLFW input callbacks are removed; the harness does not need them), so clicking into the
-  window cannot disturb a run. On the title screen the
+  window cannot disturb a run. It never touches the OS mouse cursor or the focus: the window is created unfocused
+  (harness mixin `SmokeWindowMixin` on every loader, GLFW hints FOCUSED/FOCUS_ON_SHOW off right before the window is
+  created; on NeoForge and Forge the smoke client task first writes `earlyWindowControl = false` into the run's
+  `config/fml.toml`, so FML's early loading window, which is created before any mod code and takes the focus, is not
+  used and the game creates its window itself), is marked inactive for the whole
+  run so the game never grabs, hides or warps the cursor (`ClientWindow#keepOffTheCursor`: focus callback removed,
+  `Minecraft#windowActive` false, Windows `WS_EX_NOACTIVATE`), and the harness moves only the game's own pointer
+  (`MouseHandler#xpos/ypos`) and calls the input handlers directly. On the title screen the
   harness creates a fresh superflat world with a unique name (`sb-smoketest-<time>`, older ones are deleted) through
   the vanilla world creation flow (no quick play), runs the client scenarios, writes the result and stops the game. It
   takes well under a minute after the game has loaded.
@@ -77,14 +84,17 @@ server world.
 | `client.mod_data_pack_compatible` | The mod's data pack is enabled and not flagged incompatible (Forge/NeoForge; pack_format) |
 | `client.radial_menu_opens` | The radial key opens `RadialMenu`, it renders (its hit-test highlights LINE under the mouse), a click selects LINE, releasing the key closes it. Screenshot `radial_menu` |
 | `client.buildmode_line_preview` | After the first right click and turning to the end point, the preview holds exactly the 5 expected positions, all valid. Screenshot `line_preview` |
+| `client.mini_block_preview` | On that preview: a mini block preview (small ghost) in each of the 5 positions by default, none with `showMiniBlockPreview` off, none with `maxMiniBlockPreviews` 4 (below the 5 blocks). Screenshots `mini_preview_on`, `mini_preview_off` |
 | `client.place_line` | The second click places those 5 stone (server world), nothing around them, creative inventory unchanged. Screenshot `line_placed` |
 | `client.break_line` | Two left clicks break the line again (creative mass break) |
 | `client.mirror_modifier` | "Add Mirror" in the modifier screen adds a mirror; a 3 block line places 6 blocks (line + mirror image). Screenshots `modifiers_screen`, `mirror_placed` |
+| `client.disable_quick_replace_preview` | Disable mode, looking at a stone block with planks in hand: no outline of the mod without Quick Replace (vanilla places the block), with Quick Replace the preview of the replaced block and its outline are shown. Screenshots `disable_plain`, `disable_quick_replace_preview` |
 | `client.place_line_survival` | Survival (power level 3 via `/powerlevel`): a 5 block line consumes exactly 5 planks |
 | `client.undo_redo` | Undo removes the 5 blocks and gives the planks back (mined with the axe), redo restores them and charges them again |
-| `client.randomizer_bag_screens` | For each of the 4 bags (randomizer, golden, diamond, omega): sneak + use (looking at the sky) opens its screen class; mouse clicks pick up the stone, drop one into bag slot 0 and put the rest back; Escape closes it (the server closes the menu too); the server's bag holds 1 stone and the player 63; reopening shows the stone in slot 0. Omega: the mouse wheel over slot 0 raises its weight 1 -> 2 and the Reset button sets it back to 1, both checked in the server's bag data. Screenshots `randomizer_bag`, `golden_randomizer_bag`, `diamond_randomizer_bag`, `omega_randomizer_bag`, `omega_randomizer_bag_weights` |
-| `client.player_settings_gui` | `PlayerSettingsGui` opens through the mod's only entry point (`ModeOptions` action `OPEN_PLAYER_SETTINGS`; no key or radial button opens it), renders and closes on Escape. It is a stub: its button and slider are render-only and nothing is stored, so there is no setting to check. Screenshot `player_settings` |
+| `client.randomizer_bag_screens` | For each of the 4 bags (randomizer, golden, diamond, omega): sneak + use (looking at the sky) opens its screen class; mouse clicks pick up the stone, drop one into bag slot 0 and put the rest back; Escape closes it (the server closes the menu too); the server's bag holds 1 stone and the player 63; reopening shows the stone in slot 0. Omega: the mouse wheel over slot 0 raises its weight 1 -> 2 and the Reset button sets it back to 1, both checked in the server's bag data. Screenshots `randomizer_bag`, `golden_randomizer_bag`, `diamond_randomizer_bag`, `omega_randomizer_bag`, `omega_randomizer_bag_weights`. Every bag title fits its texture (`BagTitle`/`TitleFit`: scaled, at most to 0.6, then cut with "..."); a bag renamed in an anvil to a 59 character name shows that name, cut, and the full name as tooltip on hover. Screenshot `renamed_bag_title` |
+| `client.player_settings_gui` | The radial menu's player settings button (above Modifier Settings) opens `PlayerSettingsGui`; a click flips `onlyShowBlockPreviewsWhenBuilding`, a drag sets the Appear Animation slider 5 -> 20 ticks, Done closes it; the loader's client config holds both values in memory and in its file (`config/sophisticatedbuilding-client.json` on Fabric, `.toml` on NeoForge/Forge). The "Open Player Settings" key (unbound by default, bound to F7 for the test) reopens it showing the saved value, Reset to Defaults and the key again restore and save the defaults. Screenshots `radial_player_settings`, `player_settings` |
 | `client.modifier_entry_widgets` | The mod's checkbox and number widgets where a player uses them: in the modifier screen "Add Array" adds an array, a click on the entry's enable checkbox switches it off, the mouse wheel on its Count input raises 5 -> 6, the close button closes the screen, and the server stores the array with these values (`ModifierSettingsPacket`, player data `sophisticatedbuilding:buildModifiers`). Screenshot `modifier_widgets` |
+| `client.radial_option_icons` | Every icon the radial menu draws (15 build modes, 33 actions and options) has pixels in `textures/gui/icons.png` (read from the resource manager, cell position from `AllIcons`); Terrain Mound selected in the radial menu shows its Natural Variation and Terrain Shape option buttons (all 7 hovered, the active ones highlighted), the active shape is clicked again and the previous build mode restored. With the menu open every build mode is switched to and all side buttons (actions and that mode's options, as the menu drew them: `RadialMenu#sideButtons()`) must lie fully inside the window, clear of the ring and without overlapping each other. Screenshots `radial_terrain_options`, `radial_terrain_mountain` |
 | `sb.hud_count_synced` | The client caches (`ClientBuildingUpgradeState`, `ClientBackpackItemCache` via `BuildingUpgradeStatePacket` / `BackpackItemCountPacket`) show tier 1 / 32 blocks and the backpack's 64 stone |
 | `sb.upgrade_supplies_blocks` | Holding 1 stone with a tier 1 Building Upgrade backpack: a 5 block line is placed from the backpack (64 -> 59), the held stone stays, the HUD count follows |
 | `sb.tier_cap` | A 6x6 floor (36) in survival: the preview shows 32 valid / 4 invalid and exactly 32 are placed, all from the backpack (tier 1 cap = 32) |
@@ -107,6 +117,8 @@ exactly what arrives from a client.
 |---|---|
 | `server.place_line_survival` | 5 planks placed and consumed |
 | `server.undo_redo` | Undo/redo packets restore the inventory counts |
+| `server.merge_undo_refund` | Survival merges (+1 snow layer, +1 candle) cost one item each; undo puts both blocks back without mining and gives the items back, redo charges them again |
+| `server.refused_place_not_charged` | The loader's block place event refuses 2 of a 5 block line (as a protection mod would): only the 3 placed planks are charged and undo gives back exactly those. Skipped on Fabric (no place event; `ChargeGameTest` covers refused placements) |
 | `sb.upgrade_supplies_blocks`, `sb.disabled_upgrade_ignored`, `sb.tier_cap`, `sb.tool_swapper_tools`, `sb.worn_backpack_chest`, `sb.worn_backpack` | As on the client, server side (NeoForge only) |
 | `server.no_mod_errors` | As on the client |
 
@@ -249,6 +261,23 @@ What the port from 1.21.1 changed:
   the 26.x render changes only concern the mod's screens) and `SophisticatedBackpacksScreens` (Sophisticated Core 26.2
   GUI API identical; NeoForge only).
 
+Since R2 (player settings editor, bag title fit, radial layout) the checks also use:
+
+- `client.player_settings_gui`: `RadialMenuDriver#hoverButton(action)` (the side buttons as the menu last drew them,
+  `RadialMenu#sideButtons()`), `ClientDriver#dragTo` (press and release through `MouseHandler`, the move itself through
+  `Screen#mouseMoved` and `Screen#mouseDragged(MouseButtonEvent, double, double)` (1.21.9 input records), because
+  `MouseHandler#handleAccumulatedMovement` only forwards moves for the focused window and the harness window never has
+  focus), `PlayerSettingsGui#settingEntries()` with `SettingEntry#key/widget()` and `NumberEntry#values`
+  (`SliderValues`), the fields `doneButton`/`resetButton`, `AbstractSliderButton` track geometry
+  (`x + 4 .. x + width - 4`), `KeyMapping#setKey` + `KeyMapping.resetMapping()` to bind the unbound key for the test,
+  `ClientConfig` values, and the client config file in `<game dir>/config`: `sophisticatedbuilding-client.json`
+  (Fabric, section `Visuals`) or `sophisticatedbuilding-client.toml` (NeoForge/Forge).
+- `client.randomizer_bag_screens`: `BagTitle.fit`/`availableWidth`/`isHovered` and `TitleFit#drawnWidth` (the screens'
+  own layout), `AbstractContainerScreen#imageWidth` (reflection), `Screen#getTitle`, and the anvil name of an item:
+  `ItemStack#set(DataComponents.CUSTOM_NAME, ...)`.
+- `client.radial_option_icons`: `NativeImage#getPixel` (ARGB since 1.21.2), `ResourceManager#open`, the `AllIcons`
+  fields `iconX/iconY`, `RadialMenu#sideButtons()`.
+
 ### What the 1.21.1 -> 1.21.4 adoption changed
 
 - `ClientScenarios#joinFreshWorld`: `new GameRules(WorldDataConfiguration.DEFAULT.enabledFeatures())` (1.21.2+ takes the
@@ -377,6 +406,19 @@ What the port from 1.21.1 changed:
   the array entry switched off with Count 6 and the Count tooltip, `player_settings`: shader type button, speed slider
   and Done over the blurred world, `sb_upgrade_settings_tab`: the open Building Upgrade tab with its toggle on
   "Disabled").
+- Round 2 (ported from mc/1.21.1 fb10ef2..766d18f through the mc/1.21.10, mc/1.21.11 and mc/26.1.2 ports): client
+  config set/save API and the `PlayerSettingsGui` editor (radial button, unbound "Open Player Settings" key), bag title
+  fit + bag name, dead widgets removed (`GuiCheckBoxFixed`, `GuiIconButton`, `GuiNumberField`), Terrain Mound icons +
+  highlight, `RadialButtonLayout`, gameplay fixes (merge-undo refund, no charge for failed placements, full-count
+  charge, stuck undo stack, Disable + Quick Replace preview), cursor/focus-safe smoke client. Same code as on 26.1.2
+  (render-state GUI, `Window#focused`, LWJGL 3.4 `SetWindowLongPtr`, `SmokeWindowMixin` in `Window#createGlfwWindow` for
+  Fabric and NeoForge, Forge 65 at `ImmediateWindowHandler.setupMinecraftWindow(int, int, String, long, Supplier)`, all
+  checked with javap on 26.2); the harness reads and closes the open screen through `Minecraft#gui` (`gui.screen()`,
+  `gui.setScreen`) in the new checks too. Nothing in round 2 touches the 26.2 world rendering (`SubmitNodeCollector`).
+  Verified headless (2026-09-25, Gradle on JDK 25): `gradlew build` Fabric 104 / NeoForge 90 / Forge 90 tests, Fabric
+  `runGametest` "All 25 required tests passed" (24 + `minecraft:always_pass`), `runSmokeServer` Fabric 5
+  (`server.refused_place_not_charged` skipped: no place event on Fabric), NeoForge 11 (`sb.worn_backpack` skipped as
+  before), Forge 5, all passing. `runSmokeClient` not run yet (no game clients until the lead allows them).
 - Rendering (26.2 submits the previews instead of drawing them, see the README): the screenshots were compared with the
   1.21.11 ones of all three loaders. `line_preview` (white outline box, translucent faces, translucent mini ghost
   blocks), `line_placed`, `mirror_placed` (red mirror plane and line, mirrored rows, 2-block preview box),
