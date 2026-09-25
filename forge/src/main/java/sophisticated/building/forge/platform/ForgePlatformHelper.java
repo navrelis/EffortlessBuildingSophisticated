@@ -25,7 +25,7 @@ import java.util.function.Supplier;
 
 public final class ForgePlatformHelper implements IPlatformHelper {
 
-    // Forge 1.18.1 creates deferred registers from its own registries only (registry keys from Forge 40 for 1.18.2)
+    // Forge 1.17.1 creates deferred registers from its own registries only (registry keys from Forge 40 for 1.18.2)
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, SophisticatedBuilding.MODID);
     private static final DeferredRegister<MenuType<?>> CONTAINERS = DeferredRegister.create(ForgeRegistries.CONTAINERS, SophisticatedBuilding.MODID);
 

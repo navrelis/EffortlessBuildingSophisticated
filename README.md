@@ -1,10 +1,10 @@
-# Sophisticated Building - Minecraft 1.20.1
+# Sophisticated Building - Minecraft 1.17.1
 
-This branch (`mc/1.20.1`) holds Sophisticated Building for Minecraft 1.20.1 on Fabric and Forge. The Forge jar also
-runs on NeoForge 1.20.1 (a fork of Forge 47.1 that loads Forge mods), so there is no separate NeoForge build. It is a
-port of the `mc/1.20.4` / `mc/1.21.1` branches with the same layout: loader-neutral code lives once in `common/`, and
-every loader folder is a standalone Gradle build that compiles `common/` together with its own sources into one mod
-jar.
+This branch (`mc/1.17.1`) holds Sophisticated Building for Minecraft 1.17.1 on Fabric and Forge. It is a port of the
+`mc/1.18.x` / `mc/1.19.2` / `mc/1.20.1` / `mc/1.21.1` branches with the same layout: loader-neutral code lives once in
+`common/`, and every loader folder is a standalone Gradle build that compiles `common/` together with its own sources
+into one mod jar. Sophisticated Backpacks exists for Forge 1.17.1 only (the unofficial Fabric port starts at 1.19.2),
+so the Forge jar has the backpack integration and the Fabric jar has none.
 
 ## Layout
 
@@ -14,9 +14,8 @@ common/                    loader-neutral code and assets, no build of its own
   src/main/java              mod logic; loader APIs only through sophisticated.building.platform.Services
   src/main/resources         assets, data (recipes carry both Fabric and Forge load conditions), mixin config
   src/test/java              unit tests, run by every loader build
-  src/smoketest              in-game smoke test harness (dev-only, see TESTING.md); src/smoketestBackpacks: its SB fixture
-fabric/                    Fabric build (Loom): entry points, platform services, JSON config backend,
-                           Sophisticated Backpacks integration (unofficial Fabric port), GameTests (src/gametest)
+  src/smoketest              in-game smoke test harness (dev-only, see TESTING.md); src/smoketestBackpacks: its SB fixture (Forge only)
+fabric/                    Fabric build (Loom): entry points, platform services, JSON config backend, access widener, GameTests (src/gametest)
 forge/                     Forge build (ModDevGradle Legacy): entry points, platform services, ForgeConfigSpec configs,
                            power level capability, Sophisticated Backpacks integration (official build) with Curios fallback
 changelog/                 patch notes
@@ -26,94 +25,116 @@ build-all.ps1              builds every loader folder in turn
 Platform services (`common/.../platform/services`, implementations registered in each loader's
 `META-INF/services`): `IPlatformHelper`, `IBlockEventHelper`, `INetworkHelper`, `IConfigHelper`, `IClientHelper`
 (client only, via `ClientServices`) and the optional `IBackpackIntegration` (falls back to a no-op when Sophisticated
-Backpacks is absent or a loader build ships no integration). `common/` must not import loader or optional-mod APIs;
-`checkCommonIsLoaderNeutral` (part of `check`) fails the build if it does.
+Backpacks is absent or a loader build ships no integration; the Fabric build of this branch ships none). `common/` must
+not import loader or optional-mod APIs; `checkCommonIsLoaderNeutral` (part of `check`) fails the build if it does.
 
 The ghost block previews and outlines use the Catnip outliner and GUI widgets vendored under
 `sophisticated.building.create.catnip` (MIT, see `LICENSE_Ponder.txt`); the mod has no Flywheel/Ponder/Catnip dependency.
 
 ## Versions
 
-| | Fabric | Forge (also NeoForge 1.20.1) |
+| | Fabric | Forge |
 |---|---|---|
-| Minecraft | 1.20.1 (`fabric.mod.json`: exactly 1.20.1) | 1.20.1 (`mods.toml`: `[1.20.1]`) |
-| Java | 17 | 17 |
-| Loader | Fabric Loader 0.19.5 (minimum 0.19.5), Fabric API 0.92.12+1.20.1 | Forge 47.1.3 (minimum 47.1.3, `loaderVersion` `[47,)`); NeoForge 1.20.1-47.1.106 |
-| Toolchain | Loom 1.17.21, Gradle 9.5.1, official Mojang mappings | ModDevGradle Legacy 2.0.147, Gradle 8.14.5, Parchment 2023.09.03, reobfuscated to SRG names |
-| Sophisticated Core/Backpacks | unofficial Fabric port, Core 1.20.1-1.2.7.15.166 (file 7341057), Backpacks 1.20.1-3.23.4.5.110 (file 7147929), CurseMaven; Forge Config API Port v8.0.3 in the dev runtime | official build, Core 1.20.1-1.5.1.2335 (file 8839328), Backpacks 1.20.1-3.26.3.2157 (file 8845923), CurseMaven |
-| Curios / Trinkets | Trinkets 3.7.2 + Cardinal Components 5.2.2 (smoke server runtime only) | Curios 5.14.1+1.20.1, compile only (and smoke runtime) |
+| Minecraft | 1.17.1 (`fabric.mod.json`: exactly 1.17.1) | 1.17.1 (`mods.toml`: `[1.17.1]`) |
+| Java | 16 | 16 |
+| Loader | Fabric Loader 0.19.5 (minimum 0.19.5), Fabric API 0.46.1+1.17 (minimum 0.46.1, mod id `fabric`) | Forge 37.1.1 (minimum 37.1.1, `loaderVersion` `[37,)`) |
+| Toolchain | Loom 1.17.21, Gradle 9.5.1, official Mojang mappings | ModDevGradle Legacy 2.0.147, Gradle 8.14.5, Parchment 2021.12.12, reobfuscated to SRG names |
+| Sophisticated Backpacks | none (no Fabric port for 1.17.1) | official build 1.17.1-3.12.3.496 (file 3594054, CurseMaven, its latest 1.17.1 release; no separate Sophisticated Core on 1.17.1) |
+| Curios / Trinkets | - | Curios 1.17.1-5.0.2.7, compile only (and smoke runtime) |
 
-Forge is compiled against and run on Forge 47.1.3, the oldest Forge 47 build that Sophisticated Backpacks 3.26 accepts
-(`[47.1,)`): NeoForge 1.20.1 forked Forge at 47.1, so a jar built against 47.1.x also runs there. The Forge build was
-also run on NeoForge 1.20.1-47.1.106 (the latest NeoForge 1.20.1) with the same Sophisticated Backpacks and Curios
-jars: its game test server starts and `runSmokeServer` passes (9/9 incl. every `sb.*` check); the client was not
-started on NeoForge.
-
-The Fabric Sophisticated Core jar nests the Porting Lib modules it was built with (`2.3.2+1.20.1`), MixinExtras and
-Team Reborn Energy. `fabric/build.gradle` extracts them (recursively, one jar per mod id) from the resolved Core jar
-into `fabric/build/sophisticatedcore-nested` and adds them to the compile classpath and the dev runtime. Core 1.20.1
-does not nest Forge Config API Port, which Core and Backpacks need at runtime; the dev runs get it from the Modrinth
-maven.
+Forge 37.1.1 is the latest (and recommended) Forge for 1.17.1; the Forge jar was also started on a real Forge 1.17.1
+server (installer 37.1.1, only this jar plus Sophisticated Backpacks and Curios in `mods/`). Plain 1.17 is not covered:
+the jars accept 1.17.1 only (1.17 was not run).
 
 ## Differences from the 1.21.1 branch
 
-Minecraft 1.20.1 has no data components, no `StreamCodec`, no vanilla `CustomPacketPayload` and older loader APIs; the
-port keeps the behaviour wherever the game allows:
+Minecraft 1.17.1 has no data components, no `StreamCodec`, no vanilla `CustomPacketPayload`, no `GuiGraphics`, no
+`TagKey`, no SLF4J, a static `Registry` and older loader APIs; the port keeps the behaviour wherever the game allows:
 
+* No Sophisticated Backpacks on Fabric: the Fabric jar ships no backpack integration, the Building Upgrade items are
+  placeholders without function (as on the loaders of other branches without Sophisticated Backpacks), and their
+  recipes are only loaded when Sophisticated Backpacks is installed (`fabric:load_conditions` / `forge:mod_loaded`).
+* Sophisticated Backpacks 1.17.1 has no Sophisticated Core: the upgrade framework (upgrade items and wrappers, upgrade
+  containers, settings tabs, `IBackpackWrapper`) is in `net.p3pp3rf1y.sophisticatedbackpacks`. Its upgrade items are
+  created in SB's creative tab (no-argument `UpgradeItemBase` constructor); the Building Upgrades override
+  `allowdedIn` / `getCreativeTabs` so they are listed in this mod's tab (and the search tab) as on 1.21.1. SB 1.17.1 has
+  no upgrade count limits: a second Building Upgrade in the same backpack is refused by the upgrade itself
+  (`canAddUpgradeTo`, message "Only one building upgrade can be installed per backpack"), the same limit of one that
+  1.21.1 sets through SB's count limit config; swapping one tier for another stays possible.
 * Item data is NBT. Storage blocks placed with build modes get the stack's `BlockStateTag` and `BlockEntityTag`
-  (and the custom name through the block's `setPlacedBy`, as vanilla 1.20.1 does), in vanilla `BlockItem.place` order.
-  The randomizer bags keep their inventory in the stack's `Items` tag (vanilla container list format), the Omega bag
-  its weights in `SlotWeights`; "a stack with data" (placement templates) means a non-empty tag.
+  (and the custom name through the block's `setPlacedBy`), in vanilla `BlockItem.place` order. The randomizer bags keep
+  their inventory in the stack's `Items` tag (vanilla container list format), the Omega bag its weights in
+  `SlotWeights`; "a stack with data" (placement templates) means a non-empty tag.
 * Payloads implement the mod's own `ModPayload` (`write(FriendlyByteBuf)`, a reading constructor and a
-  `ResourceLocation` id; same ids and fields as on 1.21.1), since 1.20.1 has no vanilla `CustomPacketPayload`. Fabric
-  sends them on the channel named by the id. Forge 1.20.1 identifies the messages of a `SimpleChannel` by their class,
-  so all payloads travel on one channel, `sophisticatedbuilding:main`, as one message that carries the payload id
-  before the body (`ForgeNetworking`); both sides need the mod (protocol version "1", as the 1.21.1 Forge build).
-* Rendering uses the 1.20.1 vertex API (`vertex(...)...endVertex()`, `Tesselator.getBuilder()`,
-  `ChunkBufferBuilderPack`). Fabric draws the ghost block quads with its own copy of vanilla's `putBulkData` loop so the
-  preview alpha is kept. The frozen-while-paused partial tick is the last value read before the pause.
-* GUI: 1.20.1 screens draw the dimmed world themselves (the mod's screens call `renderBackground` first), the mouse
-  wheel only reports the vertical axis, the checkbox uses the nine-sliced disabled button of `widgets.png` (1.20.2+
-  has a sprite for it), and the modifier list switches off the 1.20.1 dirt list background for a translucent dark one
-  like on 1.21.
-* Fabric: no client world change event in Fabric API 0.92, so world load/unload is detected at the start of each
-  client tick. The Transfer API inventory of the 1.20.1 backpack port is extracted from in a transaction, and a
-  backpack's wrapper is looked up with `BackpackWrapperLookup.get(stack)`.
+  `ResourceLocation` id; same ids and fields as on 1.21.1). Fabric sends them on the channel named by the id. Forge
+  identifies the messages of a `SimpleChannel` by their class, so all payloads travel on one channel,
+  `sophisticatedbuilding:main`, as one message that carries the payload id before the body (`ForgeNetworking`); both
+  sides need the mod (protocol version "1"). Forge 1.17.1 has no `consumerMainThread`: the handler queues itself on the
+  main thread. A block set's nullable block state is written as a presence flag plus the state (the bytes
+  `FriendlyByteBuf#writeNullable` writes on newer versions).
+* Text components are `TextComponent` / `TranslatableComponent` / `KeybindComponent` (1.19 replaced them with
+  `Component.literal`/`translatable`).
+* GUI: the screens, widgets and HUD draw through `sophisticated.building.client.gui.GuiGraphics`, a shim with the
+  1.20 `GuiGraphics` methods over `GuiComponent` helpers and a `PoseStack`. Immediate-mode quads end with
+  `BufferBuilder#end()` + `BufferUploader.end(...)`. Math types are `com.mojang.math` (no JOML); creative tab, item
+  and registry code use the static `Registry` and `Item.Properties#tab`. 1.17.1 widgets have `isHovered()` and
+  `isFocused()` (no `isHoveredOrFocused()`).
+* Rendering: 1.17.1 already has core shaders, `RenderType` and `VertexConsumer`, so the preview code is the 1.18 code.
+  The composite `RenderType` factory is private (public from 1.19); the Fabric build opens it with an access widener
+  (`fabric/src/main/resources/sophisticatedbuilding.accesswidener`), Forge's own access transformer already opens it.
+  Model quads use a `java.util.Random`. Fabric draws the ghost block quads with its own copy of vanilla's
+  `putBulkData` loop so the preview alpha is kept. Forge 1.17.1 has no render stages: previews, mirror/array lines,
+  ghost blocks and then the outlines are drawn in `RenderWorldLastEvent`, in the order of the stages on the other
+  loaders.
+* Tags are `Tag<Item>` objects (no `TagKey`); logging is Log4j (`LogManager`, no SLF4J/`LogUtils`); the rail placement
+  helper creates missing chunk sections with 1.17's `LevelChunkSection(sectionY)`.
+* Block breaking: vanilla's `spawnAfterBreak` has no "drop experience" flag and always drops it (what 1.19+ is told
+  to do); on Forge the experience is the break event's, popped after the drops, as on the 1.21.1 Forge build.
+* Fabric: Fabric API 0.46 for 1.17.1 has the v1 command registration callback and no client world change event (world
+  load/unload is detected at the start of each client tick); its mod id is `fabric`, so `fabric.mod.json` depends on
+  `"fabric": ">=0.46.1"`. The JSON config backend reads with Gson 2.8.0 (`new JsonParser().parse`, `entrySet`).
+* Forge 1.17.1 names: `WorldEvent`, `TickEvent.WorldTickEvent`, `InputEvent.KeyInputEvent`, `GuiOpenEvent`,
+  `RenderWorldLastEvent`, `FMLServerStoppedEvent` (`net.minecraftforge.fmlserverevents`),
+  `ClientPlayerNetworkEvent.LoggedInEvent`/`LoggedOutEvent`, `event.world.BlockEvent`; networking in
+  `net.minecraftforge.fmllegacy.network`. The HUD is an `OverlayRegistry` overlay above the crosshair plus
+  `RenderGameOverlayEvent.Post` for the whole HUD (`ElementType.ALL`); key mappings are registered with
+  `net.minecraftforge.fmlclient.registry.ClientRegistry` in client setup; deferred registers are created from
+  `ForgeRegistries`; the power level capability is registered in `RegisterCapabilitiesEvent` (no
+  `@AutoRegisterCapability`); model quads are asked with `EmptyModelData` and the drawn layer set through
+  `ForgeHooksClient.setRenderLayer`; the tooltip line breaking uses the selected language's `Locale`.
 * Forge: the power level is a player capability (saved with the player, copied on death and on return from the End);
-  the SB backpack wrapper comes from the stack's `CapabilityBackpackWrapper` capability. Fake players are skipped by the
-  event handlers (Forge 47 still has `FakePlayer`, unlike Forge 52 on 1.21.1). Experience of blocks broken with build
-  modes is the break event's (Forge moved it there from `spawnAfterBreak`), popped after the drops, as on the 1.21.1
-  Forge build. No `SpecialPlantable` exists, so no block places itself that way. No generic config screen (the config
-  files are the same). The HUD is a GUI overlay above the crosshair plus `RenderGuiEvent.Post`, as on NeoForge 20.4.
-  The randomizer bags have no item handler capability (the mod reads the `Items` tag directly, as on Fabric).
-* Data files use the 1.20.1 folder names (`recipes/`, `tags/items/`), recipe results use `"item"`, and the recipes
-  that need Sophisticated Backpacks carry Forge's `conditions` (`forge:mod_loaded`) next to Fabric's load conditions.
+  the SB backpack wrapper comes from the stack's `CapabilityBackpackWrapper` capability; fake players are skipped by the
+  event handlers; no `SpecialPlantable`; no generic config screen (the config files are the same); the randomizer bags
+  have no item handler capability. JetBrains annotations are compile-only (Forge 1.17.1 does not provide them).
+* Data files use the pre-1.21 folder names (`recipes/`, `tags/items/`), recipe results use `"item"`. The Forge
+  `pack.mcmeta` declares pack format 7 (Minecraft 1.17.1, resource and data packs).
 
 ## Build and test
 
 Each loader folder has its own Gradle wrapper (Fabric: Gradle 9.5.1, Forge: Gradle 8.14.5). Gradle runs on Java 21;
-the mod is compiled for and run on Java 17 (toolchain, downloaded by the Foojay resolver if missing).
+the mod is compiled for and run on Java 16 (toolchain, downloaded by the Foojay resolver if missing).
 
 ```
-cd fabric && ./gradlew build          # jar in fabric/build/libs, runs common + Fabric unit tests
-cd fabric && ./gradlew runGametest    # in-world GameTests (not part of build)
-cd forge  && ./gradlew build          # reobfuscated jar in forge/build/libs, runs the common unit tests
+cd fabric && ./gradlew build          # jar in fabric/build/libs, runs common + Fabric unit tests (77)
+cd fabric && ./gradlew runGametest    # 17 in-world GameTests (not part of build)
+cd forge  && ./gradlew build          # reobfuscated jar in forge/build/libs, runs the common unit tests (65)
 ./build-all.ps1                       # both, stops at the first failure
 ```
 
 ## In-game smoke tests
 
 `gradlew runSmokeClient -PsmoketestOut=<dir>` (real client, fresh world) and `gradlew runSmokeServer -PsmoketestOut=<dir>`
-(headless game test server) in either loader folder run the in-game smoke scenarios, including the Sophisticated
-Backpacks integration on both loaders, and write `<dir>/smoketest-result.json`; the game exits by itself. The
-harness (`common/src/smoketest`, `common/src/smoketestBackpacks`, `<loader>/src/smoketest`, `gradle/smoketest.gradle`)
-is dev-only and never packaged. See [TESTING.md](TESTING.md) for the scenarios, the result contract and how a port
-adopts it.
+(headless: Fabric's game test server; on Forge, which has no game test server before 1.18, a dedicated dev server that
+runs the same scenarios as vanilla game tests) in either loader folder run the in-game smoke scenarios and write
+`<dir>/smoketest-result.json`; the game exits by itself. Forge also runs the Sophisticated Backpacks checks (`sb.*`);
+Fabric has no backpack integration on 1.17.1 and runs none. The harness (`common/src/smoketest`,
+`common/src/smoketestBackpacks` (Forge only), `<loader>/src/smoketest`, `gradle/smoketest.gradle`) is dev-only and never
+packaged. See [TESTING.md](TESTING.md) for the scenarios, the result contract and how a port adopts it.
 
 ## Run
 
-`runClient`, `runServer` in either folder (plus `runGametest` on Fabric, `runGameTestServer` on Forge) start with
-Sophisticated Backpacks/Core in the dev runtime. Accept the EULA in `<loader>/run/eula.txt` for `runServer`.
+`runClient`, `runServer` in either folder (plus `runGametest` on Fabric; Forge 1.17.1 has no game test server); the
+Forge runs have Sophisticated Backpacks in the dev runtime. Accept the EULA in `<loader>/run/eula.txt` for `runServer`.
 
 `runClientExported` starts a client that loads only the jars in `<loader>/run-exported/mods` (for testing
 exported jars; on Fabric put Fabric API there too).
@@ -128,8 +149,9 @@ both files are copied unchanged from `templates/branch` on `main` and stay in sy
 Each loader's `gradle.properties` sets `ci_gradle_jdk` (21 on this branch): the JDK **CI uses to run Gradle
 itself**, independent of the compile toolchain (which `settings.gradle`'s foojay resolver auto-provisions).
 Gradle JVM 21 works for both loaders here (Loom 1.17 needs it; Gradle 8.14.5 with ModDevGradle Legacy runs on it)
-even though the mod itself compiles for and runs on Java 17. CI reads `ci_gradle_jdk` per loader and defaults to 21
-if the key is absent.
+even though the mod itself compiles for and runs on Java 16. CI reads `ci_gradle_jdk` per loader and defaults to 21
+if the key is absent. The Forge build always recompiles Minecraft (`disableRecompilation = false`), also when
+`CI=true`, so the unit tests never load the signed Forge classes.
 
 `.github/workflows/build.yml` runs on push/PR to `mc/**` and on manual dispatch: a `discover` job builds the
 loader matrix (loader name, `ci_gradle_jdk`, whether it has a `src/gametest` folder and a smoke harness), then a

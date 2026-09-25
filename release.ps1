@@ -5,7 +5,8 @@
 # For each discovered loader:
 #   1. runs "gradlew build" (skip with -NoBuild to reuse an existing build/libs jar)
 #   2. locates the main jar <loader>/build/libs/<mod_id>-<loader>-<minecraft_version>-<mod_version>.jar (never the
-#      -sources jar)
+#      -sources jar). A folder named "<loader>-<minecraft>" (e.g. forge-1.21: a second jar of one loader for another
+#      Minecraft version of the branch) is expected to build <mod_id>-<loader>-<minecraft>-<mod_version>.jar
 #   3. verifies the version embedded in the jar's mod metadata (fabric.mod.json / neoforge.mods.toml / mods.toml)
 #      equals mod_version from gradle/shared.properties
 #   4. clears old jars out of <loader>/release/, copies the new jar there, writes <loader>/release/SHA256SUMS.txt
@@ -104,7 +105,15 @@ foreach ($loader in $loaders) {
             }
         }
 
-        $expectedName = "$modId-$loader-$mcVersion-$modVersion.jar"
+        # A folder "<loader>-<minecraft>" (e.g. forge-1.21) builds that loader's jar for another Minecraft version
+        # of the branch: sophisticatedbuilding-forge-1.21-<version>.jar, not ...-forge-1.21-<minecraft_version>-...
+        $jarLoader = $loader
+        $jarMc = $mcVersion
+        if ($loader -match '^([a-z]+)-(\d+(?:\.\d+)+)$') {
+            $jarLoader = $Matches[1]
+            $jarMc = $Matches[2]
+        }
+        $expectedName = "$modId-$jarLoader-$jarMc-$modVersion.jar"
         $jarPath = Join-Path $loaderDir "build/libs/$expectedName"
         if (-not (Test-Path $jarPath)) {
             throw "Expected jar not found: build/libs/$expectedName (run without -NoBuild, or check archivesName/mod_version)"

@@ -19,6 +19,6 @@
   },
   "depends": {
     "sophisticatedbuilding": "*",
-    "fabric-api": "*"
+    "fabric": "*"
   }
 }
