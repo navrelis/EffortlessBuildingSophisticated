@@ -122,7 +122,7 @@ The Forge 1.19.2 jar needs the Sophisticated Backpacks/Core builds of 1.19.2; ne
 1.19-3.18.9.661 with Core 1.19-0.4.10.87, the last ones for 1.19, which also run on 1.19.1) its Building Upgrade items
 cannot be created (Core 0.4.10 has no `IUpgradeCountLimitConfig`, `UpgradeGroup`, `TranslationHelper.translUpgradeGroup`
 and has other `UpgradeItemBase`/`IUpgradeItem` signatures). So `forge-1.19/` builds a second Forge jar
-(`sophisticatedbuilding-forge-1.19-5.0.0.jar`, Minecraft `[1.19,1.19.1]`, Forge `[41.1.0,)`, compiled against Forge
+(`sophisticatedbuilding-forge-1.19-5.0.1.jar`, Minecraft `[1.19,1.19.1]`, Forge `[41.1.0,)`, compiled against Forge
 41.1.0). It compiles `../forge/src` (main and smoketest), `../forge/src/main/templates` and `../common` as they are,
 except the files its own `src/` has under the same path: a `Sync` task copies `../forge/src/<set>/<kind>` without those
 into `build/generated/sharedForge`, so every shared file is compiled once and an override replaces its original (the
@@ -213,7 +213,7 @@ that have one and `gradlew runSmokeServer` for loaders with the smoke harness, a
 `release.ps1` (PowerShell 7, run from the repo root) builds every discovered loader, checks that the version
 embedded in each jar's mod metadata (`fabric.mod.json` / `META-INF/mods.toml`) matches `mod_version` in
 `gradle/shared.properties`, then replaces the contents of `<loader>/release/` with the new jar and a
-`SHA256SUMS.txt` (`forge-1.19/` publishes `sophisticatedbuilding-forge-1.19-5.0.0.jar`):
+`SHA256SUMS.txt` (`forge-1.19/` publishes `sophisticatedbuilding-forge-1.19-5.0.1.jar`):
 
 ```
 pwsh ./release.ps1            # gradlew build for every loader, then publish
