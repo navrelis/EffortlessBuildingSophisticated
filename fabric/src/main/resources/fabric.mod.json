@@ -17,6 +17,7 @@
       "sophisticated.building.fabric.SophisticatedBuildingFabricClient"
     ]
   },
+  "accessWidener": "sophisticatedbuilding.accesswidener",
   "mixins": [
     "sophisticatedbuilding.mixins.json"
   ],
