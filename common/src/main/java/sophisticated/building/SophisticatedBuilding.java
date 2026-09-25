@@ -1,5 +1,6 @@
 package sophisticated.building;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
@@ -180,6 +181,11 @@ public final class SophisticatedBuilding {
         } else {
             ServerProxy.logTranslate(player, prefix, translationKey, suffix, actionBar);
         }
+    }
+
+    //A red message to the player (chat or action bar), translated by the client (the mod is on both sides)
+    public static void message(Player player, boolean actionBar, String translationKey, Object... args) {
+        player.displayClientMessage(Component.translatable(translationKey, args).withStyle(ChatFormatting.RED), actionBar);
     }
 
     public static void logError(String msg) {
