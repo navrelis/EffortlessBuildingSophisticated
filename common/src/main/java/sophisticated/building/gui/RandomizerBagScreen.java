@@ -38,12 +38,13 @@ public class RandomizerBagScreen extends AbstractContainerScreen<RandomizerBagCo
 		this.renderBackground(poseStack);
 		super.render(poseStack, mouseX, mouseY, partialTicks);
 		this.renderTooltip(poseStack, mouseX, mouseY);
+		BagTitle.renderTooltip(new GuiGraphics(poseStack), this.font, this.title, leftPos, topPos, imageWidth, mouseX, mouseY);
 	}
 
 	@Override
 	protected void renderLabels(PoseStack poseStack, int mouseX, int mouseY) {
 		GuiGraphics guiGraphics = new GuiGraphics(poseStack);
-		guiGraphics.drawString(this.font, this.title, 8, 6, 0x404040, false);
+		BagTitle.draw(guiGraphics, this.font, this.title, imageWidth, 0x404040);
 		guiGraphics.drawString(this.font, this.playerInventoryTitle, 8, imageHeight - 96 + 2, 0x404040, false);
 	}
 

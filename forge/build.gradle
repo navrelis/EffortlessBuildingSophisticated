@@ -109,6 +109,8 @@ legacyForge {
             gameDirectory = file('build/smoketest/client-run')
             systemProperty 'sophisticatedbuilding.smoketest.mode', 'client'
             systemProperty 'sophisticatedbuilding.smoketest.out', smoketestOutDir('client').absolutePath
+            // Harness mixin (SmokeWindowMixin): the window is created without taking the focus
+            programArgument '--mixin.config=sophisticatedbuilding_smoketest.mixins.json'
         }
         // Headless: the game test server runs the server scenarios (fake survival players, real backpacks) and writes
         // the same JSON. gradlew runSmokeServer -PsmoketestOut=<dir>

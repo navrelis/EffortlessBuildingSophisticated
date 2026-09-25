@@ -156,6 +156,15 @@ differences of `mc/1.18.2` apply, plus the ones marked **1.18.1**:
   have no item handler capability.
 * Data files use the pre-1.21 folder names (`recipes/`, `tags/items/`), recipe results use `"item"`. The Forge
   `pack.mcmeta` declares resource pack format 8 and data pack format 8 (Minecraft 1.18/1.18.1).
+* Player Settings screen (`PlayerSettingsGui`): 1.18.x screens do not draw the dimmed world themselves and have no
+  widget tooltips (`Tooltip`, `setTooltipForNextRenderPass` are 1.19.3+): the screen draws the background, then the
+  hovered setting's tooltip (label or control) after everything else; the list switches off its dirt background and
+  dirt bands and clips its rows to its area instead; buttons are `new Button(...)` (no builder), widget positions are
+  the public `x`/`y` fields. The bag title tooltip is drawn by the bag screens' `render` the same way.
+* `ForgeConfigSpec.ConfigValue` of Forge 38 and 39 has no `getDefault()`: `ForgeConfigHelper` keeps the default each
+  value was defined with (used by "Reset to Defaults"); `set` and `ForgeConfigSpec#save()` exist.
+* The merge-undo GameTests leave out pink petals (Minecraft 1.20+); short grass is `Blocks.GRASS` in 1.18.x and a player
+  changes level with `ServerPlayer#setLevel`.
 
 ## Build and test
 
@@ -163,12 +172,32 @@ Each loader folder has its own Gradle wrapper (Fabric: Gradle 9.5.1, Forge: Grad
 the mod is compiled for and run on Java 17 (toolchain, downloaded by the Foojay resolver if missing).
 
 ```
-cd fabric && ./gradlew build          # jar in fabric/build/libs, runs common + Fabric unit tests (77)
-cd fabric && ./gradlew runGametest    # 17 in-world GameTests (not part of build)
-cd forge  && ./gradlew build          # reobfuscated jar in forge/build/libs, runs the common unit tests (65)
-cd forge-1.18 && ./gradlew build      # the Forge 1.18 jar in forge-1.18/build/libs, same unit tests (65)
+cd fabric && ./gradlew build          # jar in fabric/build/libs, runs common + Fabric unit tests (104)
+cd fabric && ./gradlew runGametest    # 24 in-world GameTests (not part of build)
+cd forge  && ./gradlew build          # reobfuscated jar in forge/build/libs, runs the common unit tests (90)
+cd forge-1.18 && ./gradlew build      # the Forge 1.18 jar in forge-1.18/build/libs, same unit tests (90)
 ./build-all.ps1                       # all three, stops at the first failure
 ```
+
+## Player settings (client config)
+
+The Player Settings screen (`gui/buildmode/PlayerSettingsGui`) edits the client config (`ClientConfig`: Visuals and
+Performance). It opens from the radial menu (button above Modifier Settings, action `OPEN_PLAYER_SETTINGS`) and with
+the key "Open Player Settings" (unbound by default, category Sophisticated Building; `ClientEvents.PLAYER_SETTINGS_KEY`).
+Switches are ON/OFF buttons, numbers are sliders over the config ranges (`gui/SliderValues`); changes apply at once,
+"Reset to Defaults" restores them, Done/Escape/the key write the loader's file through `IConfigHelper#save`
+(`config/sophisticatedbuilding-client.json` on Fabric, `config/sophisticatedbuilding-client.toml` on Forge).
+The radial menu's Mini Block Preview toggle writes the same `showMiniBlockPreview` setting. The mini block previews are
+the small ghosts of the new block (`previewScale`) that `BlockPreviews.renderBlockPreviews` draws inside the outline;
+`maxMiniBlockPreviews` caps how many (0 = no limit).
+
+## Survival charging and undo (server)
+
+`ServerBlockPlacer` charges the item count of every placed state (`ReplaceRules.restoreCost`: a merge costs one item,
+three candles onto air three), and only for blocks really set (`BlockHelper.placeSchematicBlock` reports it, the
+loader's place event can refuse it; Fabric has none). Undo of a merge (`ReplaceRules.Action.UNMERGE`) puts the old
+state back without mining and gives the merged item back; undo/redo of a block already in the target state counts as
+done.
 
 ## In-game smoke tests
 

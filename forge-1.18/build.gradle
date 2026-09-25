@@ -128,6 +128,8 @@ legacyForge {
             gameDirectory = file('build/smoketest/client-run')
             systemProperty 'sophisticatedbuilding.smoketest.mode', 'client'
             systemProperty 'sophisticatedbuilding.smoketest.out', smoketestOutDir('client').absolutePath
+            // Harness mixin (SmokeWindowMixin): the window is created without taking the focus
+            programArgument '--mixin.config=sophisticatedbuilding_smoketest.mixins.json'
         }
         // Headless. Forge 38 has no game test server: a dedicated server runs the server scenarios as game tests
         // (SmokeServerRunner, fake survival players, real backpacks) and writes the same JSON.

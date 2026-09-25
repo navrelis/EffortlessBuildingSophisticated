@@ -79,8 +79,11 @@ public class BlockPlacerHelper {
             itemStack = new ItemStack(item);
         }
 
-        // The loader fires its block place events around the placement (NeoForge reverts a cancelled placement).
-        return Services.BLOCK_EVENTS.placeBlock(player, level, blockEntry.blockPos,
-                () -> BlockHelper.placeSchematicBlock(level, blockEntry.newBlockState, blockEntry.blockPos, itemStack, null, player));
+        // The loader fires its block place events around the placement (Forge/NeoForge revert a cancelled placement).
+        // Placed = the block was set (not refused, not the same state already) and no place event cancelled it.
+        boolean[] placed = {false};
+        boolean allowed = Services.BLOCK_EVENTS.placeBlock(player, level, blockEntry.blockPos,
+                () -> placed[0] = BlockHelper.placeSchematicBlock(level, blockEntry.newBlockState, blockEntry.blockPos, itemStack, null, player));
+        return allowed && placed[0];
     }
 }
