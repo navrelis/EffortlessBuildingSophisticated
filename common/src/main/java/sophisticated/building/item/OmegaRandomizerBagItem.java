@@ -35,7 +35,7 @@ public class OmegaRandomizerBagItem extends AbstractRandomizerBagItem {
     }
 
     /**
-     * Get the weight for a specific slot (1-10, default 1)
+     * Get the weight for a specific slot (1-90, default 1)
      */
     public int getSlotWeight(ItemStack bag, int slotIndex) {
         if (slotIndex < 0 || slotIndex >= INV_SIZE) return DEFAULT_WEIGHT;

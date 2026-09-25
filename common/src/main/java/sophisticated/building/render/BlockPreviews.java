@@ -2,6 +2,7 @@ package sophisticated.building.render;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
@@ -148,9 +149,7 @@ public class BlockPreviews {
 				if (pos.getZ() > maxZ) maxZ = pos.getZ();
 			}
 			BlockPos dim = new BlockPos(maxX - minX + 1, maxY - minY + 1, maxZ - minZ + 1);
-			String dimensions = "(" + dim.getX() + "x" + dim.getZ() + "x" + dim.getY() + ")";
-			String msg = blockCount + " blocks " + dimensions;
-			SophisticatedBuilding.log(player, msg, true);
+			SophisticatedBuilding.log(player, Component.translatable("sophisticatedbuilding.message.selection_size", blockCount, dim.getX(), dim.getZ(), dim.getY()), true);
 		}
 	}
 

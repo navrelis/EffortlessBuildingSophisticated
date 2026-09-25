@@ -3,7 +3,12 @@ package sophisticated.building;
 import sophisticated.building.config.ConfigType;
 import sophisticated.building.config.ConfigValue;
 import sophisticated.building.config.IConfigBuilder;
+import net.minecraft.world.entity.player.Player;
 import sophisticated.building.platform.Services;
+import sophisticated.building.utilities.SyncedValues;
+
+import javax.annotation.Nullable;
+import java.util.List;
 
 public class CommonConfig {
     private static final IConfigBuilder builder = Services.CONFIG.createBuilder(ConfigType.COMMON);
@@ -13,6 +18,31 @@ public class CommonConfig {
     public static final MaxMirrorRadius maxMirrorRadius = new MaxMirrorRadius(builder);
     // The loader's spec object (Fabric ConfigSpec, NeoForge ModConfigSpec), registered by the loader project.
     public static final Object spec = builder.build();
+
+    // The limits the client uses to build sets, in the order the server sends them (CommonConfigSyncPacket)
+    private static final List<ConfigValue<Integer>> SYNCED = List.of(
+            reach.creative, reach.level0, reach.level1, reach.level2, reach.level3,
+            maxBlocksPlacedAtOnce.creative, maxBlocksPlacedAtOnce.level0, maxBlocksPlacedAtOnce.level1, maxBlocksPlacedAtOnce.level2, maxBlocksPlacedAtOnce.level3,
+            maxBlocksPerAxis.creative, maxBlocksPerAxis.level0, maxBlocksPerAxis.level1, maxBlocksPerAxis.level2, maxBlocksPerAxis.level3,
+            maxMirrorRadius.creative, maxMirrorRadius.level0, maxMirrorRadius.level1, maxMirrorRadius.level2, maxMirrorRadius.level3);
+    // Client: the server's values while connected (the common config is not synced by the loaders)
+    public static final SyncedValues SERVER_VALUES = new SyncedValues();
+
+    /** This side's values of the synced limits, in their order. */
+    public static int[] syncedValues() {
+        int[] values = new int[SYNCED.size()];
+        for (int i = 0; i < values.length; i++) values[i] = SYNCED.get(i).get();
+        return values;
+    }
+
+    /**
+     * A limit of the power levels for this player: on the client the server's value while connected, else this side's
+     * config (the server always uses its own).
+     */
+    public static int value(@Nullable Player player, ConfigValue<Integer> value) {
+        boolean clientSide = player != null && player.level().isClientSide();
+        return SERVER_VALUES.pick(clientSide, SYNCED.indexOf(value), value.get());
+    }
 
     public static class Reach {
         public final ConfigValue<Integer> creative;
@@ -128,7 +158,7 @@ public class CommonConfig {
 
             level0 = builder
                 .comment("Maximum reach in survival without upgrades",
-                        "Consume Power Level upgrades upgrades to permanently increase this.")
+                        "Consume Reach Upgrades to permanently increase this.")
                 .defineInRange("maxMirrorRadiusLevel0", 16, 0, 1000);
 
             level1 = builder
