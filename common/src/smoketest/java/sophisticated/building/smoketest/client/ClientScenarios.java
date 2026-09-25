@@ -21,6 +21,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
 import net.minecraft.world.phys.Vec3;
+import sophisticated.building.ClientConfig;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuildingClient;
 import sophisticated.building.attachment.AttachmentHandler;
@@ -31,7 +32,9 @@ import sophisticated.building.buildmodifier.Mirror;
 import sophisticated.building.client.ClientBackpackItemCache;
 import sophisticated.building.client.ClientBackpackToolCache;
 import sophisticated.building.client.ClientBuildingUpgradeState;
+import sophisticated.building.create.CreateClient;
 import sophisticated.building.create.catnip.outliner.Outliner;
+import sophisticated.building.create.foundation.utility.ghost.GhostBlocks;
 import sophisticated.building.gui.buildmode.RadialMenu;
 import sophisticated.building.gui.buildmodifier.ModifiersScreen;
 import sophisticated.building.platform.Services;
@@ -51,6 +54,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
@@ -96,6 +100,7 @@ final class ClientScenarios {
             d.clientRun(() -> SophisticatedBuildingClient.BUILD_MODES.setBuildMode(BuildModeEnum.LINE));
         }
         check("client.buildmode_line_preview", this::linePreview);
+        check("client.mini_block_preview", this::miniBlockPreview);
         check("client.place_line", this::placeLine);
         check("client.break_line", this::breakLine);
         check("client.mirror_modifier", this::mirrorModifier);
@@ -290,6 +295,65 @@ final class ClientScenarios {
         preview.expectExactly(expected, LINE_LENGTH, 0);
         return "Line preview after the first click: " + preview.valid.size() + " valid blocks " + expected.getFirst().toShortString()
                 + ".." + expected.getLast().toShortString() + ", state " + preview.state;
+    }
+
+    /**
+     * On the line preview of the previous check: the mini block previews (a small ghost of the stone in each outlined
+     * position) are drawn by default, gone with showMiniBlockPreview off, and gone when the line has more blocks than
+     * maxMiniBlockPreviews. Both are client settings of the player settings screen.
+     */
+    private String miniBlockPreview() {
+        if (d.client(SophisticatedBuildingClient.BUILDER_CHAIN::getBuildingState) != BuilderChain.BuildingState.PLACING) {
+            throw new AssertionError("Needs the line preview of client.buildmode_line_preview; " + d.client(this::chainState));
+        }
+        List<BlockPos> line = row(lane(0), LINE_LENGTH);
+        boolean showBefore = d.client(() -> ClientConfig.visuals.showMiniBlockPreview.get());
+        int maxBefore = d.client(() -> ClientConfig.performance.maxMiniBlockPreviews.get());
+        try {
+            int shown = ghostsWith(line, true, 0);
+            d.screenshot("mini_preview_on");
+            int hidden = ghostsWith(line, false, 0);
+            d.screenshot("mini_preview_off");
+            int capped = ghostsWith(line, true, LINE_LENGTH - 1);
+            expectEquals("mini previews with showMiniBlockPreview on (no limit)", LINE_LENGTH, shown);
+            expectEquals("mini previews with showMiniBlockPreview off", 0, hidden);
+            expectEquals("mini previews of " + LINE_LENGTH + " blocks with maxMiniBlockPreviews " + (LINE_LENGTH - 1), 0, capped);
+            return "Line preview: " + shown + " mini block previews by default, " + hidden + " with showMiniBlockPreview off, "
+                    + capped + " with maxMiniBlockPreviews " + (LINE_LENGTH - 1);
+        } finally {
+            d.clientRun(() -> {
+                ClientConfig.visuals.showMiniBlockPreview.set(showBefore);
+                ClientConfig.performance.maxMiniBlockPreviews.set(maxBefore);
+                SophisticatedBuildingClient.BLOCK_PREVIEWS.onConfigChanged();
+            });
+        }
+    }
+
+    /** Sets the two mini preview settings (in memory, like the settings screen before saving) and counts the ghosts. */
+    private int ghostsWith(List<BlockPos> positions, boolean show, int max) {
+        d.clientRun(() -> {
+            ClientConfig.visuals.showMiniBlockPreview.set(show);
+            ClientConfig.performance.maxMiniBlockPreviews.set(max);
+            SophisticatedBuildingClient.BLOCK_PREVIEWS.onConfigChanged();
+        });
+        d.waitTicks(5);
+        return d.client(() -> countGhosts(positions));
+    }
+
+    /** Client thread: ghost blocks shown at these positions (BlockPreviews keys them by position). */
+    private static int countGhosts(List<BlockPos> positions) {
+        try {
+            Field field = GhostBlocks.class.getDeclaredField("ghosts");
+            field.setAccessible(true);
+            Map<?, ?> ghosts = (Map<?, ?>) field.get(CreateClient.GHOST_BLOCKS);
+            int count = 0;
+            for (BlockPos pos : positions) {
+                if (ghosts.containsKey(pos.toShortString())) count++;
+            }
+            return count;
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Cannot read the ghost blocks", e);
+        }
     }
 
     private String placeLine() {
