@@ -37,6 +37,11 @@ public final class NeoForgeSmokeServerTests {
         ServerScenarios.server_refused_place_not_charged(helper);
     }
 
+    @GameTest(template = "smoketest_empty", batch = "smoke_limits", timeoutTicks = ServerScenarios.TIMEOUT_TICKS)
+    public static void server_request_limits(GameTestHelper helper) {
+        ServerScenarios.server_request_limits(helper);
+    }
+
     @GameTest(template = "smoketest_empty", batch = "smoke_3", timeoutTicks = ServerScenarios.TIMEOUT_TICKS)
     public static void sb_upgrade_supplies_blocks(GameTestHelper helper) {
         ServerScenarios.sb_upgrade_supplies_blocks(helper);

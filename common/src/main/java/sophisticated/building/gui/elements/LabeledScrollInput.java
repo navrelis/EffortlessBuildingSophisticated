@@ -28,7 +28,7 @@ import org.lwjgl.glfw.GLFW;
 public class LabeledScrollInput extends ScrollInput {
     protected Label label;
     protected final Component controlScrollsSlowerText = Lang.translateDirect("gui.scrollInput.controlScrollsSlower");
-    protected final Component keyboardControlsText = Component.literal("Arrow keys / +/- to adjust").withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY);
+    protected final Component keyboardControlsText = Component.translatable("sophisticatedbuilding.gui.scroll_input.keyboard").withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY);
     protected boolean controlScrollsSlower;
     protected boolean focused = false;
     

@@ -4,8 +4,8 @@ Three layers, from fast to real:
 
 | Layer | Command (in a loader folder) | What it proves |
 |---|---|---|
-| Unit tests | `gradlew build` | Pure logic in `common/src/test` (104 tests on Fabric incl. its config tests, 90 on NeoForge and Forge) |
-| Fabric GameTests | `gradlew runGametest` | 24 server-side building rules (`fabric/src/gametest`) plus the Porting Lib self test nested in the Fabric Sophisticated Core port (25 required tests) |
+| Unit tests | `gradlew build` | Pure logic in `common/src/test` (117 tests on Fabric incl. its config tests, 103 on NeoForge and Forge) |
+| Fabric GameTests | `gradlew runGametest` | 38 server-side building rules (`fabric/src/gametest`) plus the Porting Lib self test nested in the Fabric Sophisticated Core port (39 required tests) |
 | **In-game smoke tests** | `gradlew runSmokeClient` / `gradlew runSmokeServer` | The mod works in a real game on this loader, including the Sophisticated Backpacks (SB) integration on Fabric and NeoForge |
 
 Forge 1.20.4 has no Sophisticated Backpacks release, so the Forge build ships no SB integration and its smoke runs have
@@ -119,6 +119,7 @@ arrives from a client, and handed to the packets' server handlers.
 | `server.undo_redo` | Undo/redo packets restore the inventory counts |
 | `server.merge_undo_refund` | Survival merges (+1 snow layer, +1 candle) cost one item each; undo puts both blocks back without mining and gives the items back, redo charges them again |
 | `server.refused_place_not_charged` | The loader's block place event refuses 2 of a 5 block line (as a protection mod would): only the 3 placed planks are charged and undo gives back exactly those. Skipped on Fabric (no place event; `ChargeGameTest` covers refused placements) |
+| `server.request_limits` | A survival player's build requests are checked against the power level limits (ServerBlockPlacer#validateRequest): a line starting 60 blocks away and a 20 block extent (survival: 8 per axis) are refused, nothing placed or charged; a normal 5 block line afterwards is placed |
 | `sb.upgrade_supplies_blocks`, `sb.disabled_upgrade_ignored`, `sb.tier_cap`, `sb.tool_swapper_tools`, `sb.worn_backpack_chest`, `sb.worn_backpack` | As on the client, server side |
 | `server.no_mod_errors` | As on the client |
 
@@ -280,6 +281,21 @@ Since R2 (player settings editor, bag title fit) the two checks also use:
   sat in caves and aquifers. `runSmokeServer` now starts every run on a fresh superflat world, as the Forge 1.20.1
   build already did (harness-only, no mod change); Forge 5/5 again on the flat world. `runSmokeClient` pending
   (no game clients until the lead allows them).
+
+- R3 (5.0.1, ported from mc/1.21.1 d8ab383..48261e8): server checks of build requests (`BuildLimits`,
+  `ServerBlockPlacer#validateRequest`, new smoke check `server.request_limits`), common config sync
+  (`CommonConfigSyncPacket`), array and modifier caps, offhand bag filter, material cost count, previous build mode
+  (`BuildModeHistory`), translation keys (`LangKeysTest`), Fabric per-player data in the player save
+  (`PlayerDataMixin`), Fabric break events + optional Common Protection API 1.0.0. Differences to 1.21.1: the start
+  reach uses the vanilla interaction range (4.5 survival, 5 creative; `Player#blockInteractionRange` is 1.20.5+);
+  `CommonConfigSyncPacket` is written in this branch's packet style (`FriendlyByteBuf` constructor and `write`,
+  `writeVarIntArray`); `PowerLevel#serializeNBT()` without registries; item tooltips keep the 1.20.4
+  `appendHoverText(ItemStack, Level, ...)` signature; the Fabric mixin config uses `JAVA_17` (the reference's
+  `JAVA_21` made every Fabric start fail on Java 17); `new ResourceLocation` and `get(0)` in the tests. Verified:
+  `gradlew build` Fabric 117 tests, NeoForge and Forge 103; Fabric `runGametest` "All 39 required tests passed" (38 +
+  the Porting Lib self test); `runSmokeServer` Fabric 12 (1 skip), NeoForge 12/12, Forge 6/6, and with
+  `-PsmokeNoSb=true` Fabric 12 (7 skips), NeoForge 12 (6 skips); `scripts/check-fabric-no-sb-bytecode.ps1 -Mc 1.20.4`
+  on main: 349 classes, 0 differ.
 
 ## Standalone run without Sophisticated Backpacks
 
