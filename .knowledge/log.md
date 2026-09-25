@@ -159,3 +159,4 @@
 - 2026-09-26 B6 batch 1 (lead): 8 branches bumped, 20 jars checked (5.0.1, 335-363 classes, no test classes, no nested jars), committed + pushed
 - 2026-09-26 B6 batch 2 (lead): 9 branches bumped; all 48 jars 5.0.1 (332-364 classes, no test classes, no nested jars); committed + pushed
 - 2026-09-26 C6 dry run (lead): 48 files, ids resolved, slugs ok, changelog 2751 chars; metadata identical to the 5.0.0 plan; waiting for the user's OK
+- 2026-09-26 C6 (lead, user OK): 5.0.1 uploaded, 48 files, CurseForge ids 8974400-8974447; tags v5.0.1 (main) + v5.0.1+<mc> (17 branches) pushed

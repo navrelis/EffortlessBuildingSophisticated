@@ -106,6 +106,6 @@ build + unit tests verified. Open: finish verification, 5.0.1 release material, 
 | M2 | Release texts on main: CHANGELOG.md 5.0.1, release/curseforge-changelog-5.0.1.md, description section 13 "Known issues"; PATCH_NOTES_5.0.1.md on mc/1.21.1 (missing there) | Sonnet | - | done (cace3e5, mc/1.21.1 f788358) |
 | M3 | check-fabric-no-sb-bytecode.ps1: Common Protection API on the classpath (uncommitted from last session) - proven by V3 | lead | V3 | done (bebf6ce; 0 diffs on 1.19.2/1.20.1/1.20.4) |
 | B6 | Bump all 17 branches to 5.0.1, check 48 jars, commit per branch, push | lead (runs script) | V3, M1, M2 | done (17 branches, 48 jars 5.0.1, pushed) |
-| C6 | CurseForge dry run, user OK, upload, tag v5.0.1 | lead | B6 | dry run done (48 files, = 5.0.0 plan); waiting for user OK |
+| C6 | CurseForge dry run, user OK, upload, tag v5.0.1 | lead | B6 | done (user OK; 48 files, ids 8974400-8974447; tags v5.0.1 + v5.0.1+<mc>) |
 | K1 | Client smoke runs on every branch (only after "Clients erlaubt") | lead | B6 | blocked (user go) |
 | Z6 | test-all-versions final, report, graphify, memory, push | lead | B6 | open |

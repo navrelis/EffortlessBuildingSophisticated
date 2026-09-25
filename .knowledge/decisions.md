@@ -44,3 +44,5 @@
   choices; dead lang/tooltips for unregistered items removed; hard-coded English -> translation keys; double-slab cost.
 - Keep (earlier balance decisions): Protect Tile Entities also protects during survival mass breaking; survival mass
   breaking needs an effective tool. User may override.
+- (2026-09-26) Balance decisions kept (user): Protect Tile Entities also protects during survival mass breaking; mass breaking needs an effective tool. Terrain Mound gets no alpha label (user).
+- (2026-09-26) Tags: v<version> on main (as 5.0.0) plus v<version>+<mc> per branch (docs/RELEASING.md). Reason: per-branch tags point at the commit of each branch's jars.
