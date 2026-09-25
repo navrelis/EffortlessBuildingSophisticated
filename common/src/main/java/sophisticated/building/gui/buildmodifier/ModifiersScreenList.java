@@ -21,10 +21,6 @@ public class ModifiersScreenList extends ObjectSelectionList<ModifiersScreenList
 
     public ModifiersScreenList(Minecraft mc, int width, int height, int y1, int itemHeight) {
         super(mc, width, height, y1, y1 + height, itemHeight);
-        // Not the dirt background and dirt bands of 1.20.1 lists: a translucent dark background (see render), like
-        // the list background of the 1.21 builds
-        setRenderBackground(false);
-        setRenderTopAndBottom(false);
         headerHeight = 3;
     }
 
@@ -38,7 +34,30 @@ public class ModifiersScreenList extends ObjectSelectionList<ModifiersScreenList
         UIRenderHelper.angledGradient(guiGraphics, 180, x1, y0 + height / 2, height, 5, c, Color.TRANSPARENT_BLACK);
         guiGraphics.fill(x0, y0, x1, y1, 0x80_000000);
 
-        super.render(poseStack, mouseX, mouseY, partialTicks);
+        // Not the dirt background and dirt bands of the vanilla list: Minecraft 1.16.3 has no setRenderBackground /
+        // setRenderTopAndBottom (1.16.4+), so the list body, scroll bar and decorations of
+        // AbstractSelectionList.render are drawn here without them, over the translucent dark background above (like
+        // the list background of the 1.21 builds)
+        int rowLeft = getRowLeft();
+        int rowTop = y0 + 4 - (int) getScrollAmount();
+        renderList(poseStack, rowLeft, rowTop, mouseX, mouseY, partialTicks);
+        renderScrollBar(guiGraphics);
+        renderDecorations(poseStack, mouseX, mouseY);
+    }
+
+    private void renderScrollBar(GuiGraphics guiGraphics) {
+        int maxScroll = Math.max(0, getMaxPosition() - (y1 - y0 - 4));
+        if (maxScroll <= 0) {
+            return;
+        }
+        int left = getScrollbarPosition();
+        int right = left + 6;
+        int thumbHeight = (int) ((float) ((y1 - y0) * (y1 - y0)) / getMaxPosition());
+        thumbHeight = Math.max(32, Math.min(thumbHeight, y1 - y0 - 8));
+        int thumbTop = Math.max(y0, (int) getScrollAmount() * (y1 - y0 - thumbHeight) / maxScroll + y0);
+        guiGraphics.fill(left, y0, right, y1, 0xFF_000000);
+        guiGraphics.fill(left, thumbTop, right, thumbTop + thumbHeight, 0xFF_808080);
+        guiGraphics.fill(left, thumbTop, right - 1, thumbTop + thumbHeight - 1, 0xFF_C0C0C0);
     }
     
     public void renderWindowForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {

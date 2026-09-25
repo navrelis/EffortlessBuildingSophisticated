@@ -51,11 +51,11 @@ description='''${mod_description}'''
     ordering="NONE"
     side="BOTH"
 
-# Optional dependency on SophisticatedBackpacks for building upgrades (on 1.16.5 there is no separate
+# Optional dependency on SophisticatedBackpacks for building upgrades (on 1.16.3 there is no separate
 # SophisticatedCore mod: the upgrade framework is part of sophisticatedbackpacks)
 [[dependencies.${mod_id}]]
     modId="sophisticatedbackpacks"
     mandatory=false
-    versionRange="[1.16.5-3.15.20,)"
+    versionRange="[1.16.4-1.0.0.94,)"
     ordering="AFTER"
     side="BOTH"

@@ -112,7 +112,7 @@ public class CuriosCompatHelper {
 
         private static boolean isBackpackItem(ItemStack stack) {
             try {
-                return stack.getItem() instanceof net.p3pp3rf1y.sophisticatedbackpacks.backpack.BackpackItem;
+                return stack.getItem() instanceof net.p3pp3rf1y.sophisticatedbackpacks.items.BackpackItem;
             } catch (NoClassDefFoundError e) {
                 return false;
             }

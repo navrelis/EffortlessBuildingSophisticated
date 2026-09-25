@@ -7,18 +7,14 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.p3pp3rf1y.sophisticatedbackpacks.api.IBackpackWrapper;
-import net.p3pp3rf1y.sophisticatedbackpacks.api.UpgradeSlotChangeResult;
-import net.p3pp3rf1y.sophisticatedbackpacks.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedbackpacks.api.UpgradeType;
+import net.p3pp3rf1y.sophisticatedbackpacks.upgrades.UpgradeItemBase;
 import sophisticated.building.SophisticatedBuilding;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Building Upgrade item that can be placed in a backpack's upgrade slot.
@@ -45,7 +41,7 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
      * @param maxBlocks Maximum blocks that can be placed at once with this upgrade
      */
     public BuildingUpgradeItem(int tier, int maxBlocks) {
-        // Sophisticated Backpacks 1.17.1 creates every upgrade item in its own creative tab (no-arg constructor); the
+        // Sophisticated Backpacks 1.16.3 creates every upgrade item in its own creative tab (no-arg constructor); the
         // tab is moved to this mod's in allowdedIn / getCreativeTabs below
         super();
         this.tier = tier;
@@ -87,36 +83,8 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
         tooltip.add(new TranslatableComponent("item.sophisticatedbuilding.building_upgrade.backpack_tooltip")
                 .withStyle(ChatFormatting.DARK_GRAY));
     }
-    
-    // Sophisticated Backpacks 1.17.1 has no upgrade count limits or groups (they arrive with Sophisticated Core on
-    // 1.18.2): only one building upgrade per backpack, refused the way SB refuses a second battery or tool swapper
-    // upgrade. The slot being filled is not known here, so a tier is changed by taking the old upgrade out first.
-    @Override
-    public UpgradeSlotChangeResult canAddUpgradeTo(IBackpackWrapper backpackWrapper, ItemStack upgradeStack, boolean firstLevelStorage) {
-        Set<Integer> errorUpgradeSlots = new HashSet<>();
-        backpackWrapper.getUpgradeHandler().getSlotWrappers().forEach((slot, wrapper) -> {
-            if (wrapper instanceof BuildingUpgradeWrapper) {
-                errorUpgradeSlots.add(slot);
-            }
-        });
-        if (!errorUpgradeSlots.isEmpty()) {
-            return new UpgradeSlotChangeResult.Fail(new TranslatableComponent("sophisticatedcore.gui.error.add.building_upgrade_conflict"),
-                    errorUpgradeSlots, Collections.emptySet(), Collections.emptySet());
-        }
-        return new UpgradeSlotChangeResult.Success();
-    }
-    
-    @Override
-    public UpgradeSlotChangeResult canRemoveUpgradeFrom(IBackpackWrapper backpackWrapper) {
-        return new UpgradeSlotChangeResult.Success();
-    }
-    
-    @Override
-    public UpgradeSlotChangeResult canSwapUpgradeFor(ItemStack upgradeStackToPut, IBackpackWrapper backpackWrapper) {
-        // Allow swapping building upgrades for other building upgrades (upgrading tiers)
-        if (upgradeStackToPut.getItem() instanceof BuildingUpgradeItem) {
-            return new UpgradeSlotChangeResult.Success();
-        }
-        return super.canSwapUpgradeFor(upgradeStackToPut, backpackWrapper);
-    }
+
+    // Sophisticated Backpacks 1.16.3 (1.0.0.94) has no upgrade slot change checks (canAddUpgradeTo & co. arrive with
+    // later 1.16 builds), so a backpack cannot refuse a second Building Upgrade. BuildingUpgradeHelper uses the
+    // highest enabled tier of each backpack, and every backpack only once.
 }

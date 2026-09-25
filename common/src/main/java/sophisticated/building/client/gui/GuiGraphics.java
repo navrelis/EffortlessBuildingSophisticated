@@ -84,16 +84,21 @@ public final class GuiGraphics {
         fill(x + width - 1, y + 1, x + width, y + height - 1, color);
     }
 
-    /** GUI coordinates to window pixels, as 1.19.2's {@code GuiComponent.enableScissor} (missing in 1.18.2) does. */
+    /**
+     * GUI coordinates to window pixels, as 1.19.2's {@code GuiComponent.enableScissor} (missing in 1.18.2) does. Straight
+     * OpenGL calls: Minecraft 1.16.3 has no RenderSystem.enableScissor / disableScissor (1.16.4+) and no scissor state
+     * in GlStateManager.
+     */
     public void enableScissor(int minX, int minY, int maxX, int maxY) {
         Window window = minecraft.getWindow();
         double scale = window.getGuiScale();
-        RenderSystem.enableScissor((int) (minX * scale), (int) (window.getHeight() - maxY * scale),
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        GL11.glScissor((int) (minX * scale), (int) (window.getHeight() - maxY * scale),
                 Math.max(0, (int) ((maxX - minX) * scale)), Math.max(0, (int) ((maxY - minY) * scale)));
     }
 
     public void disableScissor() {
-        RenderSystem.disableScissor();
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
     }
 
     public void blit(ResourceLocation atlas, int x, int y, int uOffset, int vOffset, int width, int height) {

@@ -18,7 +18,7 @@ base {
 }
 
 java {
-    // Minecraft 1.16.5 runs on Java 8 (Mojang ships Java 8 with it), so mods target Java 8.
+    // Minecraft 1.16.3 runs on Java 8 (Mojang ships Java 8 with it), so mods target Java 8.
     toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
     withSourcesJar()
 }
@@ -68,13 +68,13 @@ dependencies {
     mappings loom.officialMojangMappings()
     forge "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    // Sophisticated Backpacks (no separate Sophisticated Core on 1.16.5): compiled against, and present in the dev runs
+    // Sophisticated Backpacks (no separate Sophisticated Core on 1.16.3): compiled against, and present in the dev runs
     // (same version, see gradle.properties) so runClient/runServer start with the backpack integration active.
     // Optional for players.
     modCompileOnly "curse.maven:${sophisticatedbackpacks_cf}"
     modLocalRuntime "curse.maven:${sophisticatedbackpacks_cf}"
-    modCompileOnly "maven.modrinth:curios:${curios_modrinth}"
-    modSmoketestRuntimeOnly "maven.modrinth:curios:${curios_modrinth}"
+    modCompileOnly "curse.maven:${curios_cf}"
+    modSmoketestRuntimeOnly "curse.maven:${curios_cf}"
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -104,7 +104,7 @@ loom {
             vmArg '-Dsophisticatedbuilding.smoketest.mode=client'
             vmArg "-Dsophisticatedbuilding.smoketest.out=${smoketestOutDir('client')}"
         }
-        // Headless: a dedicated server on a fresh superflat world runs the server scenarios (Minecraft 1.16.5 has no
+        // Headless: a dedicated server on a fresh superflat world runs the server scenarios (Minecraft 1.16.3 has no
         // game test framework, see SmokeServerRunner) and writes the same JSON. gradlew runSmokeServer -PsmoketestOut=<dir>
         smokeServer {
             server()

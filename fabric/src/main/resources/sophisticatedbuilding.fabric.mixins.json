@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "sophisticated.building.fabric.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "sophisticatedbuilding.refmap.json",
+  "mixins": [
+    "PlayerListMixin",
+    "ServerPlayerMixin"
+  ],
+  "client": [
+    "GameRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -8,22 +8,17 @@ import sophisticated.building.network.message.BackpackItemCountPacket;
 import sophisticated.building.platform.Services;
 import sophisticated.building.compatibility.CuriosCompatHelper;
 import sophisticated.building.integration.BackpackScanCompat;
-import net.p3pp3rf1y.sophisticatedbackpacks.api.CapabilityBackpackWrapper;
+import net.p3pp3rf1y.sophisticatedbackpacks.util.BackpackWrapper;
+import net.p3pp3rf1y.sophisticatedbackpacks.util.IBackpackWrapper;
 import net.p3pp3rf1y.sophisticatedbackpacks.util.PlayerInventoryProvider;
-import net.p3pp3rf1y.sophisticatedbackpacks.api.IBackpackWrapper;
-import net.p3pp3rf1y.sophisticatedbackpacks.api.IUpgradeWrapper;
-import net.p3pp3rf1y.sophisticatedbackpacks.backpack.wrapper.BackpackUpgradeHandler;
 import sophisticated.building.SophisticatedBuilding;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 public class BuildingUpgradeHelper {
 
@@ -36,7 +31,8 @@ public class BuildingUpgradeHelper {
      * is still consulted afterwards as a belt-and-braces fallback in case a given backpacks build
      * does not auto-register a Curios handler. When the provider's own scan already covered
      * Curios, a stack it yielded would otherwise be visited a second time here; those duplicates
-     * are skipped (see {@link #alreadyVisited}). Must only be called on the logical server: on the
+     * are skipped (the same ItemStack instance; Sophisticated Backpacks 1.16.3 has no backpack contents UUID to
+     * compare copies by). Must only be called on the logical server: on the
      * client the backpack upgrade inventory is never fully synced (see
      * 03_ROOT_CAUSE_BUILDING_UPGRADE.md RC2), so this always returns null there.
      */
@@ -49,13 +45,11 @@ public class BuildingUpgradeHelper {
 
         BuildingUpgradeWrapper[] best = new BuildingUpgradeWrapper[1];
         Set<ItemStack> visitedStacks = Collections.newSetFromMap(new IdentityHashMap<>());
-        Set<UUID> visitedContentsUuids = new HashSet<>();
         try {
-            BackpackScanCompat.forEachBackpack(player, (backpack, invName, identifier, slot) -> {
+            BackpackScanCompat.forEachBackpack(player, (backpack, invName, slot) -> {
                 BuildingUpgradeWrapper wrapper = getBuildingUpgradeFromBackpack(backpack);
                 if (wrapper != null && wrapper.isEnabled()) {
                     visitedStacks.add(backpack);
-                    backpackContentsUuid(wrapper).ifPresent(visitedContentsUuids::add);
                     if (best[0] == null || wrapper.getTier() > best[0].getTier()) {
                         best[0] = wrapper;
                     }
@@ -68,7 +62,7 @@ public class BuildingUpgradeHelper {
 
         if (CuriosCompatHelper.isCuriosLoaded()) {
             for (ItemStack stack : CuriosCompatHelper.getBackpacksFromCurios(player)) {
-                if (alreadyVisited(stack, visitedStacks, visitedContentsUuids)) {
+                if (visitedStacks.contains(stack)) {
                     continue;
                 }
                 BuildingUpgradeWrapper wrapper = getBuildingUpgradeFromBackpack(stack);
@@ -93,13 +87,11 @@ public class BuildingUpgradeHelper {
         }
 
         Set<ItemStack> visitedStacks = Collections.newSetFromMap(new IdentityHashMap<>());
-        Set<UUID> visitedContentsUuids = new HashSet<>();
         try {
-            BackpackScanCompat.forEachBackpack(player, (backpack, invName, identifier, slot) -> {
+            BackpackScanCompat.forEachBackpack(player, (backpack, invName, slot) -> {
                 BuildingUpgradeWrapper wrapper = getBuildingUpgradeFromBackpack(backpack);
                 if (wrapper != null && wrapper.isEnabled()) {
                     visitedStacks.add(backpack);
-                    backpackContentsUuid(wrapper).ifPresent(visitedContentsUuids::add);
                     wrappers.add(wrapper);
                 }
                 return false;
@@ -110,7 +102,7 @@ public class BuildingUpgradeHelper {
 
         if (CuriosCompatHelper.isCuriosLoaded()) {
             for (ItemStack stack : CuriosCompatHelper.getBackpacksFromCurios(player)) {
-                if (alreadyVisited(stack, visitedStacks, visitedContentsUuids)) {
+                if (visitedStacks.contains(stack)) {
                     continue;
                 }
                 BuildingUpgradeWrapper wrapper = getBuildingUpgradeFromBackpack(stack);
@@ -124,48 +116,9 @@ public class BuildingUpgradeHelper {
     }
 
     /**
-     * Whether {@code curiosStack} was already visited by {@link BackpackScanCompat#forEachBackpack}
-     * (which, on backpacks builds with a Curios compat handler registered, already scans worn
-     * Curios slots itself). {@link CuriosCompatHelper#getBackpacksFromCurios} is only a fallback
-     * for builds that lack that handler, so without this check the same backpack could be counted
-     * (and extracted from) twice: once through the provider's scan, once through this fallback.
-     * <p>
-     * Checked first by reference identity, which holds whenever Curios hands back the same
-     * {@link ItemStack} instance the provider's scan already saw (true for the built-in
-     * {@code ItemStackHandler}-backed slot storage Curios uses). As a second safety net in case a
-     * given Curios/Backpacks build instead hands back a copy, it falls back to comparing the
-     * backpack's persistent contents UUID ({@link IBackpackWrapper#getContentsUuid()}), which is
-     * stable across copies of the same backpack stack.
-     */
-    private static boolean alreadyVisited(ItemStack curiosStack, Set<ItemStack> visitedStacks, Set<UUID> visitedContentsUuids) {
-        if (visitedStacks.contains(curiosStack)) {
-            return true;
-        }
-        if (visitedContentsUuids.isEmpty()) {
-            return false;
-        }
-        Optional<UUID> contentsUuid = backpackContentsUuid(curiosStack);
-        return contentsUuid.isPresent() && visitedContentsUuids.contains(contentsUuid.get());
-    }
-
-    private static Optional<UUID> backpackContentsUuid(BuildingUpgradeWrapper wrapper) {
-        try {
-            return wrapper.getBackpackWrapper().getContentsUuid();
-        } catch (Exception | LinkageError e) {
-            return Optional.empty();
-        }
-    }
-
-    private static Optional<UUID> backpackContentsUuid(ItemStack backpackStack) {
-        try {
-            return backpackStack.getCapability(CapabilityBackpackWrapper.getCapabilityInstance()).resolve().flatMap(IBackpackWrapper::getContentsUuid);
-        } catch (Exception | LinkageError e) {
-            return Optional.empty();
-        }
-    }
-
-    /**
-     * Gets the building upgrade wrapper from a backpack ItemStack.
+     * Gets the building upgrade wrapper from a backpack ItemStack: the highest enabled tier installed in it
+     * (Sophisticated Backpacks 1.16.3 cannot refuse a second Building Upgrade in one backpack, see
+     * BuildingUpgradeItem), linked to that backpack so it can reach the backpack inventory.
      *
      * @param backpackStack The backpack item stack
      * @return The BuildingUpgradeWrapper if found and enabled, null otherwise
@@ -177,25 +130,21 @@ public class BuildingUpgradeHelper {
         }
 
         try {
-            IBackpackWrapper wrapper = backpackStack.getCapability(CapabilityBackpackWrapper.getCapabilityInstance()).resolve().orElse(null);
+            IBackpackWrapper wrapper = backpackStack.getCapability(BackpackWrapper.BACKPACK_WRAPPER_CAPABILITY).orElse(null);
             if (wrapper == null) {
                 return null;
             }
 
-            BackpackUpgradeHandler upgradeHandler = wrapper.getUpgradeHandler();
-            List<BuildingUpgradeWrapper> typeWrappers = upgradeHandler.getTypeWrappers(BuildingUpgradeItem.TYPE);
-            if (!typeWrappers.isEmpty()) {
-                return typeWrappers.get(0);
-            }
-
-            // getTypeWrappers only contains wrappers that were enabled when the type cache was last
-            // built; fall back to a direct scan of every installed upgrade so a stale cache can
-            // never hide an upgrade that is actually enabled (see RC3 in 03_ROOT_CAUSE...md).
-            for (IUpgradeWrapper slotWrapper : upgradeHandler.getSlotWrappers().values()) {
-                if (slotWrapper instanceof BuildingUpgradeWrapper && ((BuildingUpgradeWrapper) slotWrapper).isEnabled()) {
-                    return (BuildingUpgradeWrapper) slotWrapper;
+            BuildingUpgradeWrapper best = null;
+            for (BuildingUpgradeWrapper upgradeWrapper : wrapper.getUpgradeHandler().getTypeWrappers(BuildingUpgradeItem.TYPE)) {
+                if (upgradeWrapper.isEnabled() && (best == null || upgradeWrapper.getTier() > best.getTier())) {
+                    best = upgradeWrapper;
                 }
             }
+            if (best != null) {
+                best.setBackpackWrapper(wrapper);
+            }
+            return best;
         } catch (Exception | LinkageError e) {
             SophisticatedBuilding.logger.debug("Error checking backpack for building upgrade: {}", e.getMessage());
         }

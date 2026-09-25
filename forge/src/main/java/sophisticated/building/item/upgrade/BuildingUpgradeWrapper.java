@@ -1,16 +1,43 @@
 package sophisticated.building.item.upgrade;
 
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
-import net.p3pp3rf1y.sophisticatedbackpacks.api.IBackpackWrapper;
-import net.p3pp3rf1y.sophisticatedbackpacks.backpack.wrapper.BackpackInventoryHandler;
 import net.p3pp3rf1y.sophisticatedbackpacks.upgrades.UpgradeWrapperBase;
+import net.p3pp3rf1y.sophisticatedbackpacks.util.BackpackInventoryHandler;
+import net.p3pp3rf1y.sophisticatedbackpacks.util.IBackpackWrapper;
 
+import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
+/**
+ * Sophisticated Backpacks 1.16.3 (1.0.0.94) creates upgrade wrappers from the upgrade stack alone (no backpack wrapper
+ * argument) and has no enable/disable switch for upgrades. The backpack this wrapper is installed in is linked by
+ * {@link BuildingUpgradeHelper} when it looks the upgrade up, and the enabled state is kept in the upgrade stack under
+ * the same "enabled" tag later Sophisticated Backpacks builds use (default enabled).
+ */
 public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWrapper, BuildingUpgradeItem> {
+    private static final String ENABLED_TAG = "enabled";
 
-    public BuildingUpgradeWrapper(IBackpackWrapper backpackWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
-        super(backpackWrapper, upgrade, upgradeSaveHandler);
+    @Nullable
+    private IBackpackWrapper backpackWrapper;
+
+    public BuildingUpgradeWrapper(ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
+        super(upgrade, upgradeSaveHandler);
+    }
+
+    /** Links the backpack this upgrade was found in (its upgrade handler created this wrapper). */
+    void setBackpackWrapper(IBackpackWrapper backpackWrapper) {
+        this.backpackWrapper = backpackWrapper;
+    }
+
+    public boolean isEnabled() {
+        CompoundTag tag = upgrade.getTag();
+        return tag == null || !tag.contains(ENABLED_TAG) || tag.getBoolean(ENABLED_TAG);
+    }
+
+    public void setEnabled(boolean enabled) {
+        upgrade.getOrCreateTag().putBoolean(ENABLED_TAG, enabled);
+        save();
     }
 
     /**
@@ -28,8 +55,9 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
     }
 
     /**
-     * @return The backpack wrapper this upgrade is installed in
+     * @return The backpack wrapper this upgrade is installed in, null before BuildingUpgradeHelper linked it
      */
+    @Nullable
     public IBackpackWrapper getBackpackWrapper() {
         return backpackWrapper;
     }
@@ -38,7 +66,7 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
      * Attempts to extract a specific item from the backpack inventory.
      */
     public ItemStack extractItem(ItemStack item, int amount, boolean simulate) {
-        if (!isEnabled()) {
+        if (!isEnabled() || backpackWrapper == null) {
             return ItemStack.EMPTY;
         }
 
@@ -82,7 +110,7 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
      * @return The total count of the item in the backpack
      */
     public int countItem(ItemStack item) {
-        if (!isEnabled()) {
+        if (!isEnabled() || backpackWrapper == null) {
             return 0;
         }
 
@@ -104,7 +132,7 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
      * @return true if there are placeable blocks in the backpack
      */
     public boolean hasPlaceableBlocks() {
-        if (!isEnabled()) {
+        if (!isEnabled() || backpackWrapper == null) {
             return false;
         }
 
@@ -118,16 +146,6 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
             }
         }
 
-        return false;
-    }
-
-    @Override
-    public boolean canBeDisabled() {
-        return true;
-    }
-
-    @Override
-    public boolean hideSettingsTab() {
         return false;
     }
 }

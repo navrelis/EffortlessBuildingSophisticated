@@ -1,14 +1,14 @@
 package sophisticated.building.fabric;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.client.gui.GuiGraphics;
@@ -25,6 +25,7 @@ import sophisticated.building.render.RenderHandler;
 public final class FabricClientEvents {
     private static Screen lastScreen;
     private static ClientLevel lastWorld;
+    private static ClientPacketListener lastConnection;
     private static final MaterialCostOverlay MATERIAL_COST_OVERLAY = new MaterialCostOverlay();
     private static boolean optionalIntegrationsRegistered;
 
@@ -36,14 +37,6 @@ public final class FabricClientEvents {
         registerMenuScreens();
         registerLifecycleEvents();
         registerRenderEvents();
-
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
-            ClientEvents.onLoggingOut();
-            // Drop the values synced from the server we just left.
-            ModConfigs.restoreLocalServer();
-        });
-
-        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> client.execute(ClientEvents::onLoggingIn));
     }
 
     private static void registerKeyMappings() {
@@ -73,6 +66,22 @@ public final class FabricClientEvents {
                 lastWorld = world;
             }
 
+            // Fabric API 0.25.0 (Minecraft 1.16.3) has no client connection events: detect joining and leaving a server
+            // once per tick. Minecraft.getConnection() is the connection of the local player, so it only changes when
+            // the player logs in or out (not on respawn or dimension change).
+            ClientPacketListener connection = client.getConnection();
+            if (connection != lastConnection) {
+                if (lastConnection != null) {
+                    ClientEvents.onLoggingOut();
+                    // Drop the values synced from the server we just left.
+                    ModConfigs.restoreLocalServer();
+                }
+                if (connection != null) {
+                    ClientEvents.onLoggingIn();
+                }
+                lastConnection = connection;
+            }
+
             ClientEvents.onClientTickPre();
         });
 
@@ -93,21 +102,20 @@ public final class FabricClientEvents {
     }
 
     private static void registerRenderEvents() {
-        // Block previews, mirror/array lines, ghost blocks and outlines all after the translucent
-        // blocks, where Catnip drew its outliner on Fabric.
-        WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
-            if (context.matrixStack() == null) {
-                return;
-            }
-            RenderHandler.onRenderWorld(context.matrixStack());
-            RenderHandler.onRenderOutlines(context.matrixStack());
-        });
-
         HudRenderCallback.EVENT.register((poseStack, tickDelta) -> {
             GuiGraphics guiGraphics = new GuiGraphics(poseStack);
             RenderHandler.onRenderGui(guiGraphics);
             MATERIAL_COST_OVERLAY.render(guiGraphics, tickDelta);
         });
+    }
+
+    /**
+     * Block previews, mirror/array lines, ghost blocks and outlines, once the whole level is rendered (called by
+     * GameRendererMixin: Fabric API 0.25.0 has no WorldRenderEvents; Forge 1.16 renders them at the same place).
+     */
+    public static void onRenderLevel(PoseStack poseStack) {
+        RenderHandler.onRenderWorld(poseStack);
+        RenderHandler.onRenderOutlines(poseStack);
     }
 
     public static void registerOptionalIntegrations() {

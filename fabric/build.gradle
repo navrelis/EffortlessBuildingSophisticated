@@ -14,7 +14,7 @@ base {
 }
 
 java {
-    // Minecraft 1.16.5 runs on Java 8 (Mojang ships Java 8 with it), so mods target Java 8.
+    // Minecraft 1.16.3 runs on Java 8 (Mojang ships Java 8 with it), so mods target Java 8.
     toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
     withSourcesJar()
 }

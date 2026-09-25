@@ -1,13 +1,10 @@
 package sophisticated.building.fabric;
 
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
-import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -64,27 +61,35 @@ public final class FabricCommonEvents {
         PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) ->
                 !CommonEvents.shouldCancelBlockBreak(player));
 
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            ServerPlayer player = handler.player;
-            Services.NETWORK.sendToPlayer(player, ServerConfigSyncPacket.fromCurrent());
-            CommonEvents.onPlayerLoggedIn(player);
-        });
+    }
 
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
-            ServerPlayer player = handler.player;
-            LAST_MAIN_HAND.remove(player.getUUID());
-            CommonEvents.onPlayerLoggedOut(player);
-        });
+    // Fabric API 0.25.0 (Minecraft 1.16.3) has no player connection, respawn or world change events (networking v1 and
+    // entity events v1 arrive later): the mixins in sophisticated.building.fabric.mixin call the four methods below at
+    // the places those events fire in later Fabric API versions.
 
-        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
-            if (AttachmentHandler.hasPowerLevel(oldPlayer)) {
-                AttachmentHandler.setPowerLevel(newPlayer, AttachmentHandler.getOrCreatePowerLevel(oldPlayer));
-            }
-            CommonEvents.onPlayerRespawned(newPlayer);
-        });
+    /** A player joined the server (PlayerList.placeNewPlayer). */
+    public static void onPlayerJoin(ServerPlayer player) {
+        Services.NETWORK.sendToPlayer(player, ServerConfigSyncPacket.fromCurrent());
+        CommonEvents.onPlayerLoggedIn(player);
+    }
 
-        ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) ->
-                CommonEvents.onPlayerChangedDimension(player));
+    /** A player left the server (PlayerList.remove). */
+    public static void onPlayerDisconnect(ServerPlayer player) {
+        LAST_MAIN_HAND.remove(player.getUUID());
+        CommonEvents.onPlayerLoggedOut(player);
+    }
+
+    /** The player respawned or returned from the End (PlayerList.respawn); newPlayer replaces oldPlayer. */
+    public static void onPlayerRespawn(ServerPlayer oldPlayer, ServerPlayer newPlayer) {
+        if (AttachmentHandler.hasPowerLevel(oldPlayer)) {
+            AttachmentHandler.setPowerLevel(newPlayer, AttachmentHandler.getOrCreatePowerLevel(oldPlayer));
+        }
+        CommonEvents.onPlayerRespawned(newPlayer);
+    }
+
+    /** The player moved to another dimension (portal or cross-dimension teleport). */
+    public static void onPlayerChangedWorld(ServerPlayer player) {
+        CommonEvents.onPlayerChangedDimension(player);
     }
 
     private static void onServerTick(MinecraftServer server) {
