@@ -18,7 +18,8 @@
     ]
   },
   "mixins": [
-    "sophisticatedbuilding.mixins.json"
+    "sophisticatedbuilding.mixins.json",
+    "sophisticatedbuilding.fabric.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=${fabric_loader_version_min}",

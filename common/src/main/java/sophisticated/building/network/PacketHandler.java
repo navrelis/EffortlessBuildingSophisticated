@@ -8,6 +8,7 @@ import sophisticated.building.network.message.BackpackItemCountPacket;
 import sophisticated.building.network.message.BackpackToolsPacket;
 import sophisticated.building.network.message.BreakCountdownPacket;
 import sophisticated.building.network.message.BuildingUpgradeStatePacket;
+import sophisticated.building.network.message.CommonConfigSyncPacket;
 import sophisticated.building.network.message.IsQuickReplacingPacket;
 import sophisticated.building.network.message.IsUsingBuildModePacket;
 import sophisticated.building.network.message.ModifierSettingsPacket;
@@ -49,7 +50,8 @@ public final class PacketHandler {
 			new Payload<>(TranslatedLogPacket.ID, TranslatedLogPacket.CODEC, TranslatedLogPacket.Handler::handle, "translated_log"),
 			new Payload<>(BuildingUpgradeStatePacket.ID, BuildingUpgradeStatePacket.CODEC, BuildingUpgradeStatePacket.Handler::handle, "building_upgrade_state"),
 			new Payload<>(BackpackToolsPacket.ID, BackpackToolsPacket.CODEC, BackpackToolsPacket.Handler::handle, "backpack_tools"),
-			new Payload<>(BreakCountdownPacket.ID, BreakCountdownPacket.CODEC, BreakCountdownPacket.Handler::handle, "break_countdown")
+			new Payload<>(BreakCountdownPacket.ID, BreakCountdownPacket.CODEC, BreakCountdownPacket.Handler::handle, "break_countdown"),
+			new Payload<>(CommonConfigSyncPacket.ID, CommonConfigSyncPacket.CODEC, CommonConfigSyncPacket.Handler::handle, "common_config_sync")
 	);
 
 	private PacketHandler() {

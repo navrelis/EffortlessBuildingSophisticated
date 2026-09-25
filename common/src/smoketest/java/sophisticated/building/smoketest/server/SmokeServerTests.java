@@ -31,6 +31,7 @@ public final class SmokeServerTests {
         functions.put("server_undo_redo", ServerScenarios::server_undo_redo);
         functions.put("server_merge_undo_refund", ServerScenarios::server_merge_undo_refund);
         functions.put("server_refused_place_not_charged", ServerScenarios::server_refused_place_not_charged);
+        functions.put("server_request_limits", ServerScenarios::server_request_limits);
         if (SmokeBackpacks.find().isPresent()) {
             functions.put("sb_upgrade_supplies_blocks", ServerScenarios::sb_upgrade_supplies_blocks);
             functions.put("sb_disabled_upgrade_ignored", ServerScenarios::sb_disabled_upgrade_ignored);
