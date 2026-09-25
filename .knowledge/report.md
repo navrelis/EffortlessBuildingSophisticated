@@ -1,3 +1,66 @@
+# Report: Sophisticated Building 4.3.0 on every Minecraft version (sessions 2026-09-24/25)
+
+## Result
+Sophisticated Building 4.3.0 exists for every Minecraft version that has a Sophisticated Backpacks (SB) release,
+1.16.3 to 26.2, on Forge, NeoForge and Fabric wherever the loader exists, with SB integration wherever SB exists for
+that loader and version. 16 branches `mc/<ver>`, all pushed, CI green on every branch. Support matrix with every jar,
+range and dependency floor: README.md on main.
+
+Final all-versions run (`scripts/test-all-versions.ps1`, parallel recipe from docs/TESTING.md, merged report in
+`test-all-versions-final.md`): **196 pass, 0 fail, 0 warn, 74 n/a** (n/a = stage does not apply, e.g. GameTests on
+Forge/NeoForge, or the plain client stage where `runSmokeClient` covers it). Per loader folder: build + unit tests
+(Fabric 77, Forge/NeoForge 65), Fabric GameTests / 1.16.x server tests (17-18), dedicated dev server with SB evidence
+where SB exists, `runSmokeServer` (3 checks, 9 with 6 `sb.*` on SB folders) and `runSmokeClient` (13 checks, 21 with
+8 `sb.*` on SB folders, incl. the GUI checks: randomizer bag screens, player settings screen, modifier entry widgets,
+SB upgrade settings tab). Every client ran muted on the second monitor, one window at a time.
+
+| Branch (HEAD) | Jars (MC range) | SB |
+|---|---|---|
+| mc/1.16.3 (deb5e36) | fabric [1.16.3]; forge [1.16.3] | forge (SB 1.16.4-1.0.0.94, no Tool Swapper) |
+| mc/1.16.5 (6a08ee2) | fabric [1.16.4,1.16.5]; forge [1.16.5]; forge-1.16.4/ [1.16.4] | forge, forge-1.16.4 |
+| mc/1.17.1 (5b627fe) | fabric, forge [1.17.1] | forge |
+| mc/1.18.1 (f36a787) | fabric [1.18,1.18.1]; forge [1.18.1]; forge-1.18/ [1.18] | forge, forge-1.18 |
+| mc/1.18.2 (af0e315) | fabric, forge [1.18.2] | forge |
+| mc/1.19.2 (68d0b45) | fabric [1.19,1.19.2]; forge [1.19.2]; forge-1.19/ [1.19,1.19.1] | fabric (1.19.2), forge, forge-1.19 |
+| mc/1.20.1 (b2fa212) | fabric, forge [1.20.1] (Forge jar also runs on NeoForge 1.20.1, server smoke only) | fabric, forge |
+| mc/1.20.4 (c2395fa) | fabric, neoforge, forge [1.20.4] | fabric, neoforge |
+| mc/1.21.1 (fb10ef2) | fabric + neoforge [1.21,1.21.1]; forge [1.21.1]; forge-1.21/ [1.21] | fabric, neoforge |
+| mc/1.21.4 (4e364ae), 1.21.5 (2961a48), 1.21.8 (49a4ed2), 1.21.10 (f4e9eac), 1.21.11 (a330541) | fabric, neoforge, forge [that version] | neoforge |
+| mc/26.1.2 (1dc1803) | fabric + forge [26.1,26.1.2]; neoforge [26.1.2] | neoforge |
+| mc/26.2 (07f41d4) | fabric, neoforge, forge [26.2] | neoforge |
+
+## This session (2026-09-25, continuation)
+- mc/1.16.5 finished (pb7): 1.16.4 verdict = Fabric jar widened to 1.16.4-1.16.5 (built and run on 1.16.4, real
+  server), Forge 1.16.4 needs its own jar (SB 1.16.4 API differs) -> `forge-1.16.4/`. Real Forge 35/36 servers with SB
+  and Fabric 1.16.4/1.16.5 servers reach Done. Dev-only fix: Forge 36.2 dev clients crashed baking models (Architectury
+  Loom left SRG names in BlockMath) -> `fixDevMinecraft` task. Pushed as a new branch.
+- mc/1.16.3 finished (pb8): merged final 1.16.5 (without forge-1.16.4 and fixDevMinecraft), GUI checks rewritten for
+  SB 1.0.0.94, real Forge 34 server with SB. Pushed as a new branch.
+- H5 GUI smoke checks verified and pushed on the 13 other branches (h5b-h5e); no src/main bug found. Creative tab on
+  1.17.1/1.18.x lists all 16 items (temporary check) -> handoff finding closed.
+- Build fixes: override exclusion decided at copy time on forge-1.21 and forge-1.19 (configuration cache compiled
+  duplicates); FG7 merge-source-sets empty-jar fix on all 8 FG7 branches (processResources deleted classes restored
+  from the build cache; release jars were never affected); 1.21.5 Forge smoke server now deletes its kept world
+  (1.21.5 test framework does not clear test areas).
+- test-all-versions: strict-mode safe JUnit parsing (1.16.x report), Gradle JDK per loader folder from `ci_gradle_jdk`
+  (JDK 25 for 26.x), SB detection for older FML log formats, SB Core required only where the folder declares it,
+  forge-<mc> override folders count as SB folders. 81 offline tests.
+- Hub docs: README support matrix (one row per jar, from jar metadata), CHANGELOG 4.3.0, PORTING toolchain rows and
+  gotchas, TESTING (JDK per folder, SB detection).
+
+## Open points
+- Fabric GameTest servers hung twice, only while three test instances ran in parallel (1.21.8 during a batch, 1.18.2
+  at startup); both pass alone and in CI. If it recurs: take a thread dump (jstack) of the hung server before the
+  20-minute timeout kills it. Workaround: run gametest stages with fewer parallel instances.
+- Findings from the original code, waiting for the user's decision: PlayerSettingsGui is an unfinished stub; randomizer
+  bag titles overflow their GUI texture; 6 unused widget classes in gui/elements (3 already gone on 1.21.10+).
+- NeoForge smoke server skips `sb.worn_backpack` on Curios 12+ (fake player has no Curios slot); the client run covers it.
+- On SB 1.17.1/1.18 the backpack screen is taller than the 854x480 smoke window (SB layout; checks pass).
+- Real Forge 1.16.3/1.16.4 servers need a Java 8 older than 8u321 (modlauncher 8.0.x), documented.
+- NeoForge 1.20.1 with the Forge 1.20.1 jar: server smoke only, no client run.
+
+---
+
 # Report: Sophisticated Building 4.2.0 + 4.2.1 (session 2026-09-24)
 
 ## Round 2 (4.2.1): the known limitations fixed

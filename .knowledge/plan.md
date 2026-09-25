@@ -29,7 +29,7 @@ Status: open / in progress / in review / done. Chains: forward (1.21.1 -> 26.2) 
 | H1 | Adopt smoke harness on 1.21.4 (+ the 2 T1 prod fixes) | Opus | T1 | with P-F2, P-B2 | done (13e138d) |
 | B1c+CI-S | Leak fix on 1.21.1; CI template runs runSmokeServer; docs; stale-log fix | Sonnet | T1 | with H1 | done (main + mc/1.21.1 5d90c3b); sync other branches as each gets the harness |
 | H* | Adopt the smoke harness: 1.20.4 done (H2, e7dd5ce), 1.21.5 (H3) in progress, then every port | Opus | H1 | - | in progress |
-| Z  | Final: e2e check all branches, graphify refresh, report, push | lead | all | - | open |
+| Z  | Final: e2e check all branches, graphify refresh, report, push | lead | all | - | done (196 pass / 0 fail; graph g1) |
 
 ## Definition of done
 - R1/R3: written report with paths/evidence; R3 proof builds actually run.
@@ -65,10 +65,19 @@ Session stopped early by the user on 2026-09-24; continue from handoff.md.
 | B4 | 1.20.1 Forge unit tests fail on CI only (SecurityException signed IForgePlayer) | Opus | - | - | done |
 | B5 | fabric-api floor = tested version on every branch (was "*") | tbd | ports | - | done on finished branches; ports adopt it |
 | T4 | test-all-versions: parallel headless instances, shared window lock, report merge | Opus | T2 | - | done |
-| H5 | Harness: GUI screen checks (bags, settings GUI, SB settings tab) on every branch | Opus | H* | - | in progress (1.21.1 reference) |
+| H5 | Harness: GUI screen checks (bags, settings GUI, SB settings tab) on every branch | Opus | H* | - | done (all 16 branches) |
 
 ## Status 2026-09-25 (session stopped by usage limit)
 Done + pushed + CI green: mc/1.21.1 (+forge-1.21), 1.21.4, 1.21.5, 1.21.8, 1.21.10, 1.21.11, 26.1.2, 26.2, 1.20.4,
 1.20.1, 1.19.2 (+forge-1.19), 1.18.2, 1.18.1 (+forge-1.18), 1.17.1. Paused: mc/1.16.5, mc/1.16.3 (local commits),
 H5 GUI checks on 13 branches (uncommitted). Open: final all-versions run, README matrix/CHANGELOG/PORTING, graphify,
 report. See handoff.md.
+
+## Session 2026-09-25 (continuation)
+Running agents: pb7 (finish mc/1.16.5 incl. 1.16.4 verdict), pb8 (mc/1.16.3 phase A; phase B = merge final 1.16.5 on the lead's message),
+h5b (1.21.4/1.21.5/1.21.8), h5c (1.21.10/1.21.11/26.1.2/26.2), h5d (1.20.4/1.20.1/1.19.2), h5e (1.18.2/1.18.1/1.17.1),
+d1 (override-skip vs configuration cache on forge-1.21/forge-1.19; README matrix, CHANGELOG, PORTING on main).
+Agents commit locally, the lead reviews and pushes. After that: final all-versions run (lead), report, graphify, memory.
+
+## Status 2026-09-25 end
+All 16 branches done, pushed, CI green; final all-versions run 196 pass / 0 fail. Open: user decision on original-code findings; load-only Fabric GameTest hangs. See handoff.md.
