@@ -75,13 +75,11 @@ public class BlockPreviews {
 
 	public void drawLookAtPreview(Player player) {
 		var blocks = SophisticatedBuildingClient.BUILDER_CHAIN.getBlocks();
-		if (blocks.size() == 0) return;
-		
-		if (SophisticatedBuildingClient.BUILD_MODES.getBuildMode() == BuildModeEnum.DISABLED &&
-			blocks.size() == 1) return;
-		if (SophisticatedBuildingClient.BUILDER_CHAIN.getBuildingState() == BuilderChain.BuildingState.IDLE &&
-			ClientConfig.visuals.onlyShowBlockPreviewsWhenBuilding.get() &&
-			blocks.size() == 1) return;
+		if (!PreviewRules.showsLookAtPreview(blocks.size(),
+				SophisticatedBuildingClient.BUILD_MODES.getBuildMode() == BuildModeEnum.DISABLED,
+				SophisticatedBuildingClient.BUILD_SETTINGS.isQuickReplacing(),
+				SophisticatedBuildingClient.BUILDER_CHAIN.getBuildingState() == BuilderChain.BuildingState.IDLE,
+				ClientConfig.visuals.onlyShowBlockPreviewsWhenBuilding.get())) return;
 
 		// Performance optimization: skip getCoordinates() call if we're over the limit
 		// getCoordinates() creates a new HashSet which is expensive for large block sets
@@ -185,40 +183,6 @@ public class BlockPreviews {
 		PreviewRenderHelper.showAABB("break", aabb, 1 / 64f, 0x222222);
 	}
 
-	/**
-	 * Render mini transparent block previews inside each ghost section.
-	 */
-	protected void renderMiniBlockPreviews(BlockSet blocks, boolean breaking) {
-		var player = Minecraft.getInstance().player;
-		if (player == null) return;
-		
-		// Early exit if too many blocks
-		int blockCount = blocks.size();
-		if (cachedMaxMiniPreviews > 0 && blockCount > cachedMaxMiniPreviews) return;
-		
-		// Update cached config
-		updateCachedConfig();
-		
-		Vec3 playerPos = player.position();
-		
-		float miniScale = 0.5f; // Half size to fit inside the outline
-		float miniAlpha = 0.7f;
-		
-		for (BlockEntry blockEntry : blocks) {
-			if (blockEntry.newBlockState == null || blockEntry.newBlockState.isAir()) continue;
-			
-			BlockPos pos = blockEntry.blockPos;
-			
-			// Skip blocks too far away for visual detail
-			double distSq = playerPos.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
-			if (distSq > cachedMaxRenderDistSq) continue;
-			
-			// Use same slot format as effortless-building: blockPos.toShortString()
-			PreviewRenderHelper.showGhostBlock(pos.toShortString(), blockEntry.newBlockState, 
-					pos, miniScale, miniAlpha, blockEntry.invalid || breaking);
-		}
-	}
-
 	// Cached config values to avoid repeated config lookups during rendering
 	private int cachedMaxRenderDist = 64;
 	private double cachedMaxRenderDistSq = 64 * 64;
@@ -240,6 +204,8 @@ public class BlockPreviews {
 		}
 	}
 
+	// The "mini block previews": a small ghost of the new state (previewScale) inside each outlined block, so its rotation
+	// is visible. The look-at preview draws them only with showMiniBlockPreview; maxMiniBlockPreviews caps the count.
 	protected void renderBlockPreviews(BlockSet blocks, boolean breaking, float dissolve) {
 		// Get player position for distance culling
 		var player = Minecraft.getInstance().player;

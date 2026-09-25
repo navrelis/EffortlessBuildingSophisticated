@@ -71,6 +71,20 @@ NeoForge and Forge). Open it with the new button in the radial menu (above Modif
   on top of a button's tooltip.
 * Very long numbers in the modifier settings fields (e.g. coordinates far from spawn) are drawn smaller instead of
   past the field's edges.
+* **Survival, undo of a merge:** undoing a merge (one more snow layer, a slab made double, one more candle, sea
+  pickle, turtle egg or pink petal) now takes that one item off the block again and gives it back; redo charges it
+  again. Previously undoing a snow-layer merge lost the layer, and the other merges could not be undone at all (with
+  survival replace on they were mined instead, and turtle eggs mined that way dropped nothing).
+* **Survival, failed placements:** a block the server does not place is no longer charged: a placement a protection
+  mod refuses (a cancelled place event on NeoForge and Forge), water plants in the Nether, or a block that is already
+  there. Water plants refused in the Nether are no longer dropped as items either.
+* **Survival, multi-item blocks:** a build now charges every item of the block it places, like undo and redo already
+  did (three candles cost three, a double slab two). Before, such a block cost one item, which could duplicate items
+  when the block the preview merged with was gone by the time the build arrived.
+* **Undo stack:** undoing a build whose blocks were already removed (e.g. mined by another player) no longer fails
+  every time and blocks all older undos; blocks that are already back in their old state count as undone.
+* **Disable mode + Quick Replace:** the block that a single click replaces now shows its preview and outline, as in
+  the other modes (plain Disable mode still places like vanilla without a preview).
 
 ## Internal restructure
 
