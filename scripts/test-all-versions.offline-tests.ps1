@@ -588,6 +588,73 @@ try {
 }
 
 Write-Host ''
+Write-Host 'No-progress watchdog and thread dumps (Wait-GradleProcess -StallMinutes, Save-ThreadDumps)' -ForegroundColor Cyan
+
+# Test 19: process tree walk and dump file naming
+$table19 = @(
+    [pscustomobject]@{ ProcessId = 10; ParentProcessId = 1 }
+    [pscustomobject]@{ ProcessId = 11; ParentProcessId = 10 }
+    [pscustomobject]@{ ProcessId = 12; ParentProcessId = 11 }
+    [pscustomobject]@{ ProcessId = 13; ParentProcessId = 12 }
+    [pscustomobject]@{ ProcessId = 20; ParentProcessId = 1 }
+    [pscustomobject]@{ ProcessId = 21; ParentProcessId = 21 }
+)
+$desc19 = @(Get-ProcessDescendants -RootId 10 -ProcessTable $table19 | ForEach-Object { $_.ProcessId })
+Assert-True -Condition (($desc19 -join ',') -eq '11,12,13') -Message "descendants of the stage's own cmd.exe only, whole chain ($($desc19 -join ','))"
+Assert-True -Condition (@(Get-ProcessDescendants -RootId 21 -ProcessTable $table19).Count -eq 0) -Message 'a self-parented entry does not loop'
+Assert-True -Condition ((Get-JavaProcessKind -CommandLine 'java.exe -Dfabric.dli.config=C:\x\launch.cfg -Dfabric.dli.env=server net.fabricmc.devlaunchinjector.Main') -eq 'game') -Message 'Loom dev launch = game'
+Assert-True -Condition ((Get-JavaProcessKind -CommandLine 'java.exe -cp gradle-wrapper.jar org.gradle.wrapper.GradleWrapperMain build') -eq 'gradle') -Message 'Gradle wrapper = gradle'
+Assert-True -Condition ((Get-JavaProcessKind -CommandLine 'java.exe Sleep.java') -eq 'java') -Message 'anything else = java'
+
+$dir19 = New-TempLogDir
+try {
+    # Test 20: a stage whose output stops is stalled after -StallMinutes, killed, no dumps without a Java process
+    $stall = Join-Path $dir19 'stall loader'
+    New-Item -ItemType Directory -Path $stall | Out-Null
+    Set-Content -LiteralPath (Join-Path $stall 'gradlew.bat') -Encoding ascii -Value "@echo off`r`necho starting`r`nping -n 90 127.0.0.1 > nul`r`necho never"
+    $log20 = Join-Path $dir19 'stall.console.log'
+    $sw20 = [System.Diagnostics.Stopwatch]::StartNew()
+    $p20 = Start-GradleProcess -LoaderDir $stall -TaskArgs @('runGametest') -LogPath $log20
+    $w20 = Wait-GradleProcess -Process $p20 -TimeoutMinutes 2 -StallMinutes 0.1 -WatchPath $log20 -DumpDir $dir19 -DumpPrefix 'gametest' -DumpRounds 1
+    $sw20.Stop()
+    Assert-True -Condition ($w20.Stalled -and $w20.TimedOut -and $sw20.Elapsed.TotalSeconds -lt 40) -Message "no output for 6 s -> stalled and killed after $([math]::Round($sw20.Elapsed.TotalSeconds, 1)) s (timeout 2 min)"
+    Assert-True -Condition ($p20.HasExited -and -not (Get-Content -LiteralPath $log20 -Raw).Contains('never')) -Message 'the stalled process tree is gone'
+    Assert-True -Condition (@($w20.ThreadDumps).Count -eq 0) -Message 'no Java process in the tree -> no dump files'
+    Assert-True -Condition ((Format-WaitFailure -Wait $w20 -TimeoutMinutes 2 -StallMinutes 0.1) -eq 'no output for 0.1 min (stalled), killed') -Message 'stall detail text'
+    Assert-True -Condition ((Format-WaitFailure -Wait ([pscustomobject]@{ Stalled = $false; ThreadDumps = @('C:\r\gametest.threaddump-game-pid7-round1.txt') }) -TimeoutMinutes 20 -StallMinutes 10) -eq 'timed out after 20 min; thread dumps: gametest.threaddump-game-pid7-round1.txt') -Message 'timeout detail text names the dump files'
+
+    # Test 21: a process that keeps writing is not stalled
+    $busy = Join-Path $dir19 'busy loader'
+    New-Item -ItemType Directory -Path $busy | Out-Null
+    Set-Content -LiteralPath (Join-Path $busy 'gradlew.bat') -Encoding ascii -Value "@echo off`r`nfor /l %%i in (1,1,8) do (echo tick %%i & ping -n 2 127.0.0.1 > nul)"
+    $log21 = Join-Path $dir19 'busy.console.log'
+    $p21 = Start-GradleProcess -LoaderDir $busy -TaskArgs @('build') -LogPath $log21
+    $w21 = Wait-GradleProcess -Process $p21 -TimeoutMinutes 2 -StallMinutes 0.1 -WatchPath $log21 -DumpDir $dir19
+    Assert-True -Condition (-not $w21.Stalled -and -not $w21.TimedOut -and $w21.ExitCode -eq 0) -Message 'output every second for ~8 s: not stalled, normal exit'
+
+    # Test 22: a hung JVM in the stage's tree gets a real jcmd thread dump before the kill
+    $jdk22 = Resolve-GradleJdk -Version 21
+    if ($jdk22.Error) {
+        Write-Host "  SKIP thread dump of a real JVM: $($jdk22.Error)" -ForegroundColor Yellow
+    } else {
+        $jvm = Join-Path $dir19 'jvm loader'
+        New-Item -ItemType Directory -Path $jvm | Out-Null
+        Set-Content -LiteralPath (Join-Path $jvm 'Hang.java') -Encoding ascii -Value 'public class Hang { public static void main(String[] a) throws Exception { System.out.println("hanging"); Thread.sleep(600000); } }'
+        Set-Content -LiteralPath (Join-Path $jvm 'gradlew.bat') -Encoding ascii -Value "@echo off`r`n`"%JAVA_HOME%\bin\java.exe`" Hang.java"
+        $log22 = Join-Path $dir19 'jvm.console.log'
+        $p22 = Start-GradleProcess -LoaderDir $jvm -TaskArgs @('runGametest') -LogPath $log22 -JavaHome $jdk22.JavaHome
+        $w22 = Wait-GradleProcess -Process $p22 -TimeoutMinutes 3 -StallMinutes 0.25 -WatchPath $log22 -DumpDir $dir19 -DumpPrefix 'gametest' -DumpRounds 1
+        $dumps22 = @($w22.ThreadDumps)
+        $dumpText22 = if ($dumps22.Count -gt 0) { Get-Content -LiteralPath $dumps22[0] -Raw } else { '' }
+        Assert-True -Condition ($w22.Stalled -and $dumps22.Count -eq 1 -and (Split-Path -Leaf $dumps22[0]) -match '^gametest\.threaddump-java-pid\d+-round1\.txt$') -Message "one dump file of the hung JVM ($(($dumps22 | ForEach-Object { Split-Path -Leaf $_ }) -join ', '))"
+        Assert-True -Condition ($dumpText22 -match 'Hang\.java' -and $dumpText22 -match '"main"' -and $dumpText22 -match 'Hang\.main') -Message 'the dump has the command line header and the main thread stack (jcmd Thread.print)'
+        Assert-True -Condition ($p22.HasExited -and $script:TrackedProcesses.Count -eq 0) -Message 'the JVM tree was killed after the dump and untracked'
+    }
+} finally {
+    Remove-Item -LiteralPath $dir19 -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+Write-Host ''
 if ($script:TestsFailed -gt 0) {
     Write-Host "$($script:TestsFailed) of $($script:TestsRun) offline test(s) FAILED" -ForegroundColor Red
     exit 1

@@ -269,6 +269,17 @@ full changelog of every vanilla or loader change in that version.
   second fresh build made a jar without classes (the build then failed in `compileTestJava`). Every FG7 `forge/`
   build therefore marks `processResources` of each source set `doNotTrackState(...)` and `mustRunAfter` its compile
   task (see `forge/build.gradle` on `mc/1.21.1` to `mc/26.2`). Stale resources then only go away with `clean`.
+- Game tests that create a player with `PlayerList.placeNewPlayer` (our `GameTestSupport.spawnPlayer`) hang on
+  Minecraft 1.21.8: there `placeNewPlayer` blocks in `ServerLevel.waitForChunkAndEntities` until the entities of the
+  3x3 chunks around the (random) spawn point are loaded. A chunk's entity load is requested by a task of the chunk
+  main-thread executor, and that wait runs the chunk executor only while `MinecraftServer#haveTime()`; a game test runs
+  inside the server tick, so once the tick is over its time budget (spawn chunks that still have to be loaded, a busy
+  machine) the executor never runs again and the server waits forever (seen as `runGametest` stuck after "Running test
+  environment ... batch 0"; reproduced every time by moving the spawn into unloaded chunks). Fix: call it inside a
+  server task, `((ReentrantBlockableEventLoop<TickTask>) server).doRunTask(new TickTask(server.getTickCount(), ...))`,
+  where `haveTime()` is always true (`mc/1.21.8` `fabric/src/gametest`). 1.21.5 and older have no such wait in
+  `placeNewPlayer`; 1.21.10 and later moved it into the login configuration phase (`PrepareSpawnTask`), which the
+  tests do not go through.
 - Don't run two ForgeGradle 7 builds in parallel against a cold Gradle cache — it can truncate the
   shared fatjar mid-write. The first FG7 configuration on a clean machine takes 6–8 minutes; that's
   expected, not a hang.

@@ -104,6 +104,13 @@
     server's wait for "Done (" or the client's wait for the join line, plus a short fixed grace period after -
     see docs/TESTING.md). Default: 20.
 
+.PARAMETER StallMinutes
+    No-progress watchdog for build, gametest and smoke: when the stage's console log has not grown for this many
+    minutes while its Gradle process still runs, the stage takes thread dumps of every Java process of its own
+    process tree (jcmd Thread.print, 2 rounds 15 s apart, into the stage's log folder) and kills it as failed
+    ("no output for N min (stalled)"). The same dumps are taken before any stage timeout kill, and for a server that
+    never reached "Done (" / a client that never joined. Default 10; 0 = off (only -TimeoutMinutes).
+
 .PARAMETER KeepGoing
     Default on: record a stage failure and keep going with the rest. Pass -KeepGoing:$false to stop the whole
     run at the first failure.
@@ -143,6 +150,7 @@ param(
     [string]$VersionsDir,
     [string]$ReportDir,
     [int]$TimeoutMinutes = 20,
+    [double]$StallMinutes = 10,
     [switch]$KeepGoing = $true,
     [switch]$Headless,
     [string[]]$SmokeTasks = @('runSmokeServer', 'runSmokeClient'),
@@ -358,7 +366,7 @@ function Invoke-BuildStage {
     $logPath = Join-Path $StageLogDir 'build.console.log'
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
     $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs @('build', '--no-daemon', '--stacktrace') -LogPath $logPath -JavaHome $script:LoaderJavaHome
-    $wait = Wait-GradleProcess -Process $proc -TimeoutMinutes $TimeoutMinutes
+    $wait = Wait-GradleProcess -Process $proc -TimeoutMinutes $TimeoutMinutes -StallMinutes $StallMinutes -WatchPath $logPath -DumpDir $StageLogDir -DumpPrefix 'build'
     $sw.Stop()
 
     $junit = Get-JUnitSummary -ResultsDir (Join-Path $LoaderDir 'build/test-results/test')
@@ -368,7 +376,8 @@ function Invoke-BuildStage {
 
     if ($wait.TimedOut) {
         return New-StageResult -Mc $Mc -Loader $LoaderName -Stage 'build' -Result 'fail' `
-            -Detail "timed out after $TimeoutMinutes min; $junitDetail" -DurationSeconds $sw.Elapsed.TotalSeconds -LogPath $logPath
+            -Detail "$(Format-WaitFailure -Wait $wait -TimeoutMinutes $TimeoutMinutes -StallMinutes $StallMinutes); $junitDetail" `
+            -DurationSeconds $sw.Elapsed.TotalSeconds -LogPath $logPath -Extra @{ threadDumps = @($wait.ThreadDumps) }
     }
     $result = if ($wait.ExitCode -eq 0) { 'pass' } else { 'fail' }
     $detail = if ($wait.ExitCode -eq 0) { $junitDetail } else { "exit $($wait.ExitCode); $junitDetail" }
@@ -387,7 +396,7 @@ function Invoke-GametestStage {
     $logPath = Join-Path $StageLogDir 'gametest.console.log'
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
     $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs @('runGametest', '--no-daemon', '--stacktrace') -LogPath $logPath -JavaHome $script:LoaderJavaHome
-    $wait = Wait-GradleProcess -Process $proc -TimeoutMinutes $TimeoutMinutes
+    $wait = Wait-GradleProcess -Process $proc -TimeoutMinutes $TimeoutMinutes -StallMinutes $StallMinutes -WatchPath $logPath -DumpDir $StageLogDir -DumpPrefix 'gametest'
     $sw.Stop()
 
     $junitPath = Join-Path $LoaderDir 'build/gametest/junit.xml'
@@ -401,11 +410,12 @@ function Invoke-GametestStage {
 
     $logContent = if (Test-Path $logPath) { Get-Content -LiteralPath $logPath -Raw } else { '' }
     $match = [regex]::Match($logContent, 'All\s+(\d+)\s+required tests passed')
-    $extra = @{ sbGametestCount = $sbTests.Count }
+    $extra = @{ sbGametestCount = $sbTests.Count; threadDumps = @($wait.ThreadDumps) }
 
     if ($wait.TimedOut) {
         return New-StageResult -Mc $Mc -Loader $LoaderName -Stage 'gametest' -Result 'fail' `
-            -Detail "timed out after $TimeoutMinutes min" -DurationSeconds $sw.Elapsed.TotalSeconds -LogPath $logPath -Extra $extra
+            -Detail (Format-WaitFailure -Wait $wait -TimeoutMinutes $TimeoutMinutes -StallMinutes $StallMinutes) `
+            -DurationSeconds $sw.Elapsed.TotalSeconds -LogPath $logPath -Extra $extra
     }
     if ($match.Success) {
         return New-StageResult -Mc $Mc -Loader $LoaderName -Stage 'gametest' -Result 'pass' `
@@ -446,6 +456,11 @@ function Invoke-ServerStage {
     $doneLine = Wait-ForLogPattern -Path $latestLog -Pattern 'Done \(' -TimeoutMinutes $TimeoutMinutes -Process $proc -BaselineLength $logBaseline
     Start-Sleep -Seconds 3   # let a couple more lines (mod init tail, SB registration) land after "Done ("
     $fullLog = if (Test-Path $latestLog) { Get-Content -LiteralPath $latestLog -Raw } else { '' }
+    # A server that never reached "Done (" but still runs is hung: thread dumps before it is stopped/killed
+    $threadDumps = @()
+    if (-not $doneLine -and -not $proc.HasExited) {
+        $threadDumps = @(Save-ThreadDumps -RootProcessId $proc.Id -OutDir $StageLogDir -Prefix 'server')
+    }
 
     $stoppedCleanly = $false
     if (-not $proc.HasExited) {
@@ -488,7 +503,10 @@ function Invoke-ServerStage {
     }
 
     $problems = [System.Collections.Generic.List[string]]::new()
-    if (-not $doneLine) { $problems.Add("server never reached 'Done (' within $TimeoutMinutes min") }
+    if (-not $doneLine) {
+        $dumpText = if ($threadDumps.Count -gt 0) { "; thread dumps: $(($threadDumps | ForEach-Object { Split-Path -Leaf $_ }) -join ', ')" } else { '' }
+        $problems.Add("server never reached 'Done (' within $TimeoutMinutes min$dumpText")
+    }
     if ($badLines.Count -gt 0) { $problems.Add("$($badLines.Count) ERROR/Exception line(s) mentioning the mod") }
     if ($HasSB) {
         if (-not $sbModsLoaded) { $problems.Add($sbCheck.Problem) }
@@ -509,7 +527,7 @@ function Invoke-ServerStage {
 
     Copy-IfExists -Path $latestLog -Destination (Join-Path $StageLogDir 'server.latest.log') | Out-Null
     return New-StageResult -Mc $Mc -Loader $LoaderName -Stage 'server' -Result $result -Detail $detail -DurationSeconds $sw.Elapsed.TotalSeconds -LogPath $logPath `
-        -Extra @{ sbAvailable = $HasSB; sbVerified = ($HasSB -and $sbModsLoaded -and $sbLinePresent); stoppedCleanly = $stoppedCleanly; serverPort = $serverPort }
+        -Extra @{ sbAvailable = $HasSB; sbVerified = ($HasSB -and $sbModsLoaded -and $sbLinePresent); stoppedCleanly = $stoppedCleanly; serverPort = $serverPort; threadDumps = $threadDumps }
 }
 
 function New-QuickPlayInitScript {
@@ -645,6 +663,10 @@ function Invoke-ClientStage {
         $joinLine = if ($quickPlayFailed) { $null } else { $matchedLine }
         if ($joinLine) { Start-Sleep -Seconds 30 }
         $fullLog = if (Test-Path $latestLog) { Get-Content -LiteralPath $latestLog -Raw } else { '' }
+        if (-not $matchedLine -and -not $proc.HasExited) {
+            $clientDumps = @(Save-ThreadDumps -RootProcessId $proc.Id -OutDir $StageLogDir -Prefix 'client')
+            if ($clientDumps.Count -gt 0) { Write-Host "    thread dumps: $(($clientDumps | ForEach-Object { Split-Path -Leaf $_ }) -join ', ')" }
+        }
 
         if (-not $proc.HasExited) {
             Stop-ProcessTree -ProcessId $proc.Id
@@ -756,7 +778,8 @@ function Invoke-SmokeStage {
         try {
             $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs @($target, "-PsmoketestOut=$outDir", '--no-daemon', '--stacktrace') -LogPath $logPath -JavaHome $script:LoaderJavaHome
             if ($opensWindow) { $moveJob = Start-WindowMoveJob -GameProcessId $proc.Id }
-            $wait = Wait-GradleProcess -Process $proc -TimeoutMinutes $TimeoutMinutes
+            $wait = Wait-GradleProcess -Process $proc -TimeoutMinutes $TimeoutMinutes -StallMinutes $StallMinutes -WatchPath $logPath `
+                -DumpDir $StageLogDir -DumpPrefix $target
         } finally {
             Stop-WindowMoveJob -Job $moveJob
             if ($opensWindow) {
@@ -780,9 +803,10 @@ function Invoke-SmokeStage {
         }
 
         if (-not (Test-Path $resultJsonPath)) {
-            $why = if ($wait.TimedOut) { 'timed out' } else { "exit $($wait.ExitCode)" }
+            $why = if ($wait.TimedOut) { Format-WaitFailure -Wait $wait -TimeoutMinutes $TimeoutMinutes -StallMinutes $StallMinutes } else { "exit $($wait.ExitCode)" }
             $rows.Add((New-StageResult -Mc $Mc -Loader $LoaderName -Stage $stageName -Result 'fail' `
-                -Detail "smoketest-result.json not produced ($why)" -DurationSeconds $sw.Elapsed.TotalSeconds -LogPath $logPath))
+                -Detail "smoketest-result.json not produced ($why)" -DurationSeconds $sw.Elapsed.TotalSeconds -LogPath $logPath `
+                -Extra @{ threadDumps = @($wait.ThreadDumps) }))
             continue
         }
 
@@ -942,6 +966,7 @@ $reportParameters = [ordered]@{
     stages          = $Stages
     smokeTasks      = $SmokeTasks
     timeoutMinutes  = $TimeoutMinutes
+    stallMinutes    = $StallMinutes
     keepGoing       = [bool]$KeepGoing
     headless        = [bool]$Headless
     whatIf          = [bool]$WhatIfPreference

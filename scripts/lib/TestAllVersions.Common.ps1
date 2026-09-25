@@ -112,14 +112,49 @@ function Start-GradleProcess {
 }
 
 function Wait-GradleProcess {
-    <# Synchronous wait with a timeout, for build/gametest/smoke. Kills the tree and returns TimedOut=$true if
-       the timeout elapses. #>
+    <#
+        Synchronous wait for build/gametest/smoke. Ends the wait early when
+          - the timeout elapses (-TimeoutMinutes), or
+          - -StallMinutes > 0 and -WatchPath (the stage's console log) has not grown for that long while the process
+            still runs (no-progress watchdog: a hung game test server stops logging long before the stage timeout).
+        Either way it first saves thread dumps of every Java process in the stage's own process tree into -DumpDir
+        (Save-ThreadDumps; none when -DumpDir is empty), then kills the tree. Returns
+        { TimedOut (also true for a stall); Stalled; ExitCode; ThreadDumps (file paths) }.
+    #>
     param(
         [Parameter(Mandatory)][System.Diagnostics.Process]$Process,
-        [Parameter(Mandatory)][int]$TimeoutMinutes
+        [Parameter(Mandatory)][double]$TimeoutMinutes,
+        [double]$StallMinutes = 0,
+        [string]$WatchPath,
+        [string]$DumpDir,
+        [string]$DumpPrefix = 'stage',
+        [int]$DumpRounds = 2,
+        [int]$DumpIntervalSeconds = 15,
+        [int]$PollMilliseconds = 2000
     )
-    $timedOut = -not $Process.WaitForExit([int]([Math]::Max(1, $TimeoutMinutes) * 60000))
-    if ($timedOut) {
+    $deadline = (Get-Date).AddMinutes([Math]::Max(0.05, $TimeoutMinutes))
+    $lastLength = -1L
+    $lastGrowth = Get-Date
+    $reason = $null
+    while (-not $Process.WaitForExit($PollMilliseconds)) {
+        $now = Get-Date
+        if ($now -ge $deadline) { $reason = 'timeout'; break }
+        if ($StallMinutes -gt 0 -and $WatchPath) {
+            $length = Get-LogBaselineLength -Path $WatchPath
+            if ($length -ne $lastLength) {
+                $lastLength = $length
+                $lastGrowth = $now
+            } elseif (($now - $lastGrowth).TotalMinutes -ge $StallMinutes) {
+                $reason = 'stall'
+                break
+            }
+        }
+    }
+    $dumps = @()
+    if ($reason) {
+        if ($DumpDir) {
+            $dumps = @(Save-ThreadDumps -RootProcessId $Process.Id -OutDir $DumpDir -Prefix $DumpPrefix -Rounds $DumpRounds -IntervalSeconds $DumpIntervalSeconds)
+        }
         Stop-ProcessTree -ProcessId $Process.Id
         # Give the kill a moment to land so ExitCode below doesn't throw on a still-live handle.
         try { $Process.WaitForExit(5000) | Out-Null } catch {}
@@ -127,7 +162,119 @@ function Wait-GradleProcess {
     $exitCode = $null
     try { $exitCode = $Process.ExitCode } catch { $exitCode = -1 }
     Unregister-TrackedProcess -Process $Process
-    return [pscustomobject]@{ TimedOut = $timedOut; ExitCode = $exitCode }
+    return [pscustomobject]@{ TimedOut = [bool]$reason; Stalled = ($reason -eq 'stall'); ExitCode = $exitCode; ThreadDumps = $dumps }
+}
+
+function Format-WaitFailure {
+    <# "timed out after N min" / "no output for N min (stalled), killed", plus the thread dump file names. #>
+    param([Parameter(Mandatory)]$Wait, [double]$TimeoutMinutes, [double]$StallMinutes)
+    $text = if ($Wait.Stalled) { "no output for $StallMinutes min (stalled), killed" } else { "timed out after $TimeoutMinutes min" }
+    $dumps = @($Wait.ThreadDumps)
+    if ($dumps.Count -gt 0) {
+        $text += "; thread dumps: $(($dumps | ForEach-Object { Split-Path -Leaf $_ }) -join ', ')"
+    }
+    return $text
+}
+
+function Get-ProcessDescendants {
+    <# Every process below $RootId in the parent chain (children, grandchildren, ...), from Win32_Process or from
+       -ProcessTable (objects with ProcessId and ParentProcessId; offline tests). Only ever used on a process tree
+       this script started itself. #>
+    param([Parameter(Mandatory)][int]$RootId, [object[]]$ProcessTable)
+    if ($null -eq $ProcessTable) {
+        $ProcessTable = @(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue)
+    }
+    $byParent = @{}
+    foreach ($p in $ProcessTable) {
+        $parent = [int]$p.ParentProcessId
+        if (-not $byParent.ContainsKey($parent)) { $byParent[$parent] = [System.Collections.Generic.List[object]]::new() }
+        $byParent[$parent].Add($p)
+    }
+    $result = [System.Collections.Generic.List[object]]::new()
+    $seen = [System.Collections.Generic.HashSet[int]]::new()
+    $queue = [System.Collections.Generic.Queue[int]]::new()
+    $queue.Enqueue($RootId)
+    [void]$seen.Add($RootId)
+    while ($queue.Count -gt 0) {
+        $current = $queue.Dequeue()
+        if (-not $byParent.ContainsKey($current)) { continue }
+        foreach ($child in $byParent[$current]) {
+            $childId = [int]$child.ProcessId
+            if ($seen.Add($childId)) {
+                $result.Add($child)
+                $queue.Enqueue($childId)
+            }
+        }
+    }
+    return @($result)
+}
+
+function Get-JavaProcessKind {
+    <# 'game' (a Minecraft dev runtime: Loom dev launch, FML/NeoForge/ModLauncher boot), 'gradle' (the Gradle wrapper
+       client or the single-use daemon), else 'java' - only used to name the dump files. #>
+    param([AllowEmptyString()][string]$CommandLine)
+    if ($CommandLine -match 'devlaunchinjector|fabric\.dli|cpw\.mods|net\.minecraftforge\.bootstrap|net\.neoforged\.|BootstrapLauncher|--gameDir|net\.fabricmc\.loader') { return 'game' }
+    if ($CommandLine -match 'GradleWrapperMain|org\.gradle\.|GradleDaemon|gradle-launcher') { return 'gradle' }
+    return 'java'
+}
+
+function Save-ThreadDumps {
+    <#
+        Evidence for a hung stage, taken right before the kill: -Rounds thread dumps, -IntervalSeconds apart, of every
+        java.exe below -RootProcessId (the stage's own cmd.exe: Gradle client, Gradle daemon, game JVM), with
+        "jcmd <pid> Thread.print -l" (jstack -l as fallback) of the JDK that runs that process (its bin folder). Each
+        file starts with the process's command line. The tool is bounded by -JcmdTimeoutSeconds and killed (by its own
+        PID) if it does not return. Returns the dump file paths; never throws.
+    #>
+    param(
+        [Parameter(Mandatory)][int]$RootProcessId,
+        [Parameter(Mandatory)][string]$OutDir,
+        [string]$Prefix = 'stage',
+        [int]$Rounds = 2,
+        [int]$IntervalSeconds = 15,
+        [int]$JcmdTimeoutSeconds = 30
+    )
+    $files = [System.Collections.Generic.List[string]]::new()
+    try {
+        New-Item -ItemType Directory -Path $OutDir -Force -WhatIf:$false | Out-Null
+        for ($round = 1; $round -le [Math]::Max(1, $Rounds); $round++) {
+            if ($round -gt 1) { Start-Sleep -Seconds $IntervalSeconds }
+            $javas = @(Get-ProcessDescendants -RootId $RootProcessId | Where-Object { $_.Name -eq 'java.exe' })
+            foreach ($java in $javas) {
+                $kind = Get-JavaProcessKind -CommandLine ([string]$java.CommandLine)
+                $file = Join-Path $OutDir ('{0}.threaddump-{1}-pid{2}-round{3}.txt' -f $Prefix, $kind, $java.ProcessId, $round)
+                $header = "# $(Get-Date -Format o) pid $($java.ProcessId) ($kind)`n# $($java.CommandLine)`n"
+                $binDir = if ($java.ExecutablePath) { Split-Path -Parent $java.ExecutablePath } else { $null }
+                $tool = @('jcmd.exe', 'jstack.exe') | ForEach-Object { if ($binDir) { Join-Path $binDir $_ } } |
+                    Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+                if (-not $tool) {
+                    Set-Content -LiteralPath $file -Value ($header + "# no jcmd/jstack next to $($java.ExecutablePath)") -Encoding utf8
+                    $files.Add($file)
+                    continue
+                }
+                $toolArgs = if ($tool -like '*jcmd.exe') { @("$($java.ProcessId)", 'Thread.print', '-l') } else { @('-l', "$($java.ProcessId)") }
+                $raw = "$file.raw"
+                $dumper = Start-Process -FilePath $tool -ArgumentList $toolArgs -NoNewWindow -PassThru `
+                    -RedirectStandardOutput $raw -RedirectStandardError "$raw.err"
+                if (-not $dumper.WaitForExit($JcmdTimeoutSeconds * 1000)) {
+                    Stop-ProcessTree -ProcessId $dumper.Id
+                    $header += "# $(Split-Path -Leaf $tool) did not return within $JcmdTimeoutSeconds s (killed)`n"
+                }
+                $body = ''
+                foreach ($part in @($raw, "$raw.err")) {
+                    if (Test-Path -LiteralPath $part) {
+                        $body += (Get-Content -LiteralPath $part -Raw -ErrorAction SilentlyContinue)
+                        Remove-Item -LiteralPath $part -Force -ErrorAction SilentlyContinue
+                    }
+                }
+                Set-Content -LiteralPath $file -Value ($header + $body) -Encoding utf8
+                $files.Add($file)
+            }
+        }
+    } catch {
+        Write-Warning "Thread dumps incomplete: $($_.Exception.Message)"
+    }
+    return @($files)
 }
 
 # ---------------------------------------------------------------------------------------------------------------

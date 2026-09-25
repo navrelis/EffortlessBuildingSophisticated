@@ -345,8 +345,24 @@ $env:SB_JDK_25 = 'C:\path\to\jdk-25'; pwsh scripts/test-all-versions.ps1 -Mc 26.
 ```
 
 The resolution order, the error cases, the child-only `JAVA_HOME` and the report fields are covered by
-`pwsh scripts/test-all-versions.offline-tests.ps1` (no Gradle, no game; 81 tests, together with the log-pattern,
-window-lock, report-merge, JUnit-parsing and SB mod-list tests).
+`pwsh scripts/test-all-versions.offline-tests.ps1` (no Gradle, no game; 95 tests, together with the log-pattern,
+window-lock, report-merge, JUnit-parsing, SB mod-list and watchdog tests).
+
+## Hung stages: no-progress watchdog and thread dumps
+
+`-StallMinutes` (default 10, `0` = off) is a no-progress watchdog for `build`, `gametest` and the smoke tasks: when the
+stage's console log (`<stage>.console.log`, which carries the Gradle output and the game's own console output) has not
+grown for that long while the stage's Gradle process still runs, the stage is ended early as failed ("no output for
+N min (stalled), killed") instead of sitting until `-TimeoutMinutes`. Before any such kill - stall, stage timeout, a
+`server` stage that never reached `Done (`, a `client` stage that never joined - the script takes thread dumps of
+every `java.exe` in the stage's **own** process tree (found through the parent-process chain of the `cmd.exe` it
+started; the Gradle client, the Gradle daemon and the game JVM): `jcmd <pid> Thread.print -l` of the JDK that runs that
+process (`jstack -l` as fallback), 2 rounds 15 s apart, each bounded to 30 s. The files land next to the stage log as
+`<stage>.threaddump-<game|gradle|java>-pid<pid>-round<n>.txt` (first lines: time, pid, command line), are named in the
+row's detail and listed in its `threadDumps` field in `report.json`.
+
+The first hang caught this way (1.21.8 `runGametest`, see `docs/PORTING.md` "Gotchas") showed the server thread parked in
+`ServerLevel.waitForChunkAndEntities` under `PlayerList.placeNewPlayer`, called by the game tests' own player helper.
 
 ## Process safety
 
