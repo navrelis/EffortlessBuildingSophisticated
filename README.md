@@ -1,17 +1,21 @@
 # Sophisticated Building - Minecraft 26.1.2
 
 This branch (`mc/26.1.2`) holds Sophisticated Building for Minecraft 26.1.2 on Fabric, NeoForge and Forge (the Fabric
-and Forge jars also run on 26.1 and 26.1.1). It was ported from `mc/1.21.11` and keeps its layout: loader-neutral
-code lives once in `common/`, and every loader folder is a standalone Gradle build that compiles `common/` together
-with its own sources into one mod jar.
+and Forge jars also run on 26.1 and 26.1.1; a second NeoForge jar, `neoforge-26.1/`, covers 26.1 and 26.1.1). It was
+ported from `mc/1.21.11` and keeps its layout: loader-neutral code lives once in `common/`, and every loader folder is
+a standalone Gradle build that compiles `common/` together with its own sources into one mod jar.
 
 Declared Minecraft versions, each one run (TESTING.md):
 
 * Fabric `>=26.1 <=26.1.2` and Forge `[26.1,26.1.2]`: 26.1, 26.1.1 and 26.1.2 are the same game for this mod; the
   release jars passed `runSmokeServer` on 26.1 and 26.1.1 and `runSmokeClient` on 26.1 (Fabric API 0.155.3+26.1.2 on
   all three; Forge 62.0.9 for 26.1, 63.0.2 for 26.1.1). The Forge jar accepts Forge 62.0.9 and later.
-* NeoForge `[26.1.2]` only: NeoForge for 26.1 and 26.1.1 never left beta, and the Sophisticated Backpacks/Core
-  builds for them are older, with a different API (see `docs/PORTING.md` on `main`); 26.1.2 renamed `BlockEvent.BreakEvent`.
+* NeoForge `[26.1.2]` (`neoforge/`) and `[26.1,26.1.1]` (`neoforge-26.1/`): NeoForge for 26.1 and 26.1.1 never left
+  beta (last builds 26.1.0.19-beta and 26.1.1.15-beta), and 26.1.2 renamed `BlockEvent.BreakEvent` to
+  `BreakBlockEvent`, so the 26.1.2 jar cannot run there (its metadata also asks for Minecraft 26.1.2, NeoForge
+  26.1.2.109, Backpacks 3.26.2 and Core 1.5.0; a real 26.1 server refused it). The `neoforge-26.1` jar passed
+  `runSmokeServer` and `runSmokeClient` on both betas with Sophisticated Backpacks 26.1-3.25.48.1681 and Core
+  26.1-1.4.26.1688, and started on a real NeoForge server of each version with them.
 
 Minecraft is unobfuscated since 26.1: no mappings (no Mojang mappings, no Parchment), Java 25.
 
@@ -30,6 +34,9 @@ fabric/                    Fabric build (Loom): entry points, platform services,
                            (src/gametest); no backpack integration (no Sophisticated Backpacks for Fabric 26.1.2)
 neoforge/                  NeoForge build (ModDevGradle): entry points, platform services, ModConfigSpec configs,
                            power level attachment, Sophisticated Backpacks integration (official build) with Curios fallback
+neoforge-26.1/             NeoForge jar for Minecraft 26.1 and 26.1.1 (NeoForge 26.1.0/26.1.1 betas, Backpacks 3.25):
+                           compiles ../neoforge from a copy, with the break event hook and the helper that fires it
+                           (BlockEvent.BreakEvent) and neoforge.mods.toml overridden in its own src/
 forge/                     Forge build (ForgeGradle 7): entry points, platform services, ForgeConfigSpec configs,
                            power level capability; no backpack integration (no Sophisticated Backpacks for Forge 26.1.2)
 changelog/                 patch notes
@@ -47,13 +54,13 @@ The ghost block previews and outlines use the Catnip outliner and GUI widgets ve
 
 ## Versions
 
-| | Fabric | NeoForge | Forge |
-|---|---|---|---|
-| Minecraft declared | 26.1 - 26.1.2 | 26.1.2 | 26.1 - 26.1.2 |
-| Loader (built against) | Loader 0.19.5, Fabric API 0.155.3+26.1.2 | 26.1.2.109 | 64.1.3 |
-| Minimum declared | Loader 0.19.5, Fabric API 0.155.3 | 26.1.2.109; Backpacks 3.26.2, Core 1.5.0 (optional) | 62.0.9 (run on 62.0.9, 63.0.2, 64.1.3) |
-| Build plugin, Gradle | Loom 1.18.2 (`fabric-loom`, no remapping), Gradle 9.8.0 | ModDevGradle 2.0.147, Gradle 9.2.1 | ForgeGradle 7.0.40, Gradle 9.5.0 |
-| Sophisticated Backpacks | none | Backpacks 26.1.2-3.26.2.2156, Core 26.1.2-1.5.0.2334 (Modrinth maven) | none |
+| | Fabric | NeoForge | NeoForge (`neoforge-26.1/`) | Forge |
+|---|---|---|---|---|
+| Minecraft declared | 26.1 - 26.1.2 | 26.1.2 | 26.1 - 26.1.1 | 26.1 - 26.1.2 |
+| Loader (built against) | Loader 0.19.5, Fabric API 0.155.3+26.1.2 | 26.1.2.109 | 26.1.0.19-beta | 64.1.3 |
+| Minimum declared | Loader 0.19.5, Fabric API 0.155.3 | 26.1.2.109; Backpacks 3.26.2, Core 1.5.0 (optional) | 26.1.0.19-beta (run on 26.1.0.19-beta, 26.1.1.15-beta); Backpacks 3.25.48, Core 1.4.26 (optional) | 62.0.9 (run on 62.0.9, 63.0.2, 64.1.3) |
+| Build plugin, Gradle | Loom 1.18.2 (`fabric-loom`, no remapping), Gradle 9.8.0 | ModDevGradle 2.0.147, Gradle 9.2.1 | as NeoForge | ForgeGradle 7.0.40, Gradle 9.5.0 |
+| Sophisticated Backpacks | none | Backpacks 26.1.2-3.26.2.2156, Core 26.1.2-1.5.0.2334 (Modrinth maven) | Backpacks 26.1-3.25.48.1681, Core 26.1-1.4.26.1688 (Modrinth maven) | none |
 
 Mappings: none (unobfuscated Minecraft). Java 25. Curios 15.0.0+26.1.2
 (NeoForge, compile only and in the smoke runtime).
@@ -162,6 +169,12 @@ Mappings: none (unobfuscated Minecraft). Java 25. Curios 15.0.0+26.1.2
 * NeoForge 26.1.2: `BlockEvent.BreakEvent` is `event.level.block.BreakBlockEvent` (same use: cancelling it denies the
   break); the particles are drawn in two passes, the outlines follow the second one
   (`RenderLevelStageEvent.AfterTranslucentParticles`, was `AfterParticles`).
+* NeoForge 26.1 / 26.1.1 (`neoforge-26.1/`, NeoForge betas): the break hook and `NeoForgeBlockEventHelper` use
+  `BlockEvent.BreakEvent` (overridden files); everything else, the particle stages included, is the 26.1.2 code.
+  Sophisticated Backpacks 3.25.48 (the newest 26.1 build that loads: 3.25.49 to 3.25.51 require Core 1.4.28, which does
+  not exist) with Core 1.4.26 (1.4.27, although tagged 26.1, calls a `StackCopySlot` constructor only NeoForge 26.1.2
+  has and crashes the server when a backpack is opened, with or without this mod); the integration code compiles and
+  runs unchanged against them (its `runOnBackpacks` guard covers Core 1.4's `void` return).
 * Forge 64: `ModList` is static (`ModList.isLoaded`). The frame pass binds its target in the two-argument
   `PassDefinition#extracts(bundle, pass)`: Forge 62/63 have only that one (abstract), Forge 64 added a `DeltaTracker`
   overload that calls it; overriding the new overload failed on Forge 62 with an `AbstractMethodError` (found by the
@@ -206,7 +219,8 @@ cd fabric   && ./gradlew build          # jar in fabric/build/libs, runs common 
 cd fabric   && ./gradlew runGametest    # in-world GameTests (not part of build)
 cd neoforge && ./gradlew build          # jar in neoforge/build/libs, runs the common unit tests
 cd forge    && ./gradlew build          # jar in forge/build/libs, runs the common unit tests
-./build-all.ps1                         # all three, stops at the first failure
+cd neoforge-26.1 && ./gradlew build     # NeoForge jar for 26.1/26.1.1 in neoforge-26.1/build/libs
+./build-all.ps1                         # all four, stops at the first failure
 ```
 
 In-game smoke tests (`gradlew runSmokeClient` / `runSmokeServer` in every loader folder, `sb.*` checks on NeoForge):

@@ -375,15 +375,55 @@ The first Forge 26.1 client run crashed at the first rendered frame: Forge 64 ad
 `FramePassManager.PassDefinition#extracts(LevelTargetBundle, FramePass, DeltaTracker)` (which calls the two-argument
 `extracts`), Forge 62 only has the abstract two-argument method, and the mod overrode the new one
 (`AbstractMethodError`). The mod now overrides the two-argument method, which works on Forge 62 to 64; the servers never
-render, so only the client run found it. NeoForge is not claimed for 26.1/26.1.1 (beta-only NeoForge, older
-Sophisticated Backpacks/Core API).
+render, so only the client run found it. NeoForge 26.1/26.1.1 has its own jar, see the next section.
+
+## NeoForge 26.1 and 26.1.1 (`neoforge-26.1/`)
+
+NeoForge for 26.1 and 26.1.1 exists only as betas; the newest (and last) are 26.1.0.19-beta and 26.1.1.15-beta
+(maven.neoforged.net). Sophisticated Backpacks has NeoForge releases for them: 26.1-3.25.48.1681 is the newest that
+loads (3.25.49 to 3.25.51 require Core `[1.4.28,)`, which was never released), and Core 26.1-1.4.26.1688 is the newest
+that runs on the betas (Core 1.4.27 calls `StackCopySlot(int, int, int)`, which only NeoForge 26.1.2 has: our first 26.1
+client run crashed with `NoSuchMethodError` in Core's `StorageContainerMenuBase$StorageUpgradeSlot` when the backpack
+was opened; the stack has no frame of this mod).
+
+The 26.1.2 NeoForge release jar cannot run there: it subscribes to and fires `BreakBlockEvent` (26.1.2 renamed
+`BlockEvent.BreakEvent`; the betas only have the old class), and its metadata asks for Minecraft 26.1.2, NeoForge
+26.1.2.109, Backpacks 3.26.2 and Core 1.5.0. A real NeoForge 26.1.0.19-beta server with that jar, Backpacks 3.25.48 and
+Core 1.4.27 stopped at mod loading ("Mod sophisticatedbuilding requires minecraft 26.1.2", "... requires neoforge
+26.1.2.109 or above", "... only supports sophisticatedbackpacks 3.26.2 or above", "... only supports sophisticatedcore
+1.5.0 or above").
+
+So `neoforge-26.1/` builds a second NeoForge jar, `sophisticatedbuilding-neoforge-26.1-4.3.0.jar` (Minecraft
+`[26.1,26.1.1]`, NeoForge `[26.1.0.19-beta,)`, Backpacks `[3.25.48,)`, Core `[1.4.26,)`), in the `forge-1.21` style of
+`mc/1.21.1`: `../neoforge/src/{main,smoketest}` are compiled from a copy made at build time, minus the files this
+folder overrides under the same path (`NeoForgeCommonEvents`, `platform/NeoForgeBlockEventHelper`:
+`BlockEvent.BreakEvent`; `src/main/templates/META-INF/neoforge.mods.toml`: the Backpacks/Core ranges). It compiles and
+runs against 26.1.0.19-beta; the 26.1.1 runs pass `-Pneo_version=26.1.1.15-beta`. The integration and the harness
+(SB fixture included) compile unchanged against Backpacks 3.25.48 / Core 1.4.26.
+
+| Runtime (Backpacks 3.25.48, Core 1.4.26, Curios 15.0.0+26.1.2) | runSmokeServer | runSmokeClient |
+|---|---|---|
+| NeoForge 26.1.0.19-beta (Minecraft 26.1) | 9 / 9 passed (6 `sb.*`, `sb.worn_backpack` skipped as on 26.1.2) | 21 / 21 passed (8 `sb.*`) |
+| NeoForge 26.1.1.15-beta (Minecraft 26.1.1) | 9 / 9 passed (6 `sb.*`, `sb.worn_backpack` skipped) | 21 / 21 passed (8 `sb.*`) |
+
+Real dedicated servers (`local/`, git-ignored; NeoForge installer `--installServer`, Java 25) with the release jar
+`sophisticatedbuilding-neoforge-26.1-4.3.0.jar` (SHA-256 `0cc64a3c...`), Backpacks 3.25.48 and Core 1.4.26 in `mods/`:
+NeoForge 26.1.0.19-beta (Minecraft 26.1) and 26.1.1.15-beta (Minecraft 26.1.1) both logged "Registered Sophisticated
+Backpacks upgrade containers" and "Done (", no ERROR or exception from the mod, and stopped cleanly.
+
+Screenshots of the 26.1 / 26.1.1 client runs: previews, radial menu and the mod's screens as on 26.1.2;
+`sb_upgrade_settings_tab` shows the open Building Upgrade tab with its toggle on "Disabled" (Backpacks 3.25 draws the
+tab's icon and toggle with a light frame around them, Backpacks 3.26 without).
+
+CI: the workflow runs `runSmokeServer` only for loader folders with a `src/smoketest` folder; `neoforge-26.1/` has
+none (it overrides no harness file), so CI builds and unit-tests it but does not run its smoke server.
 
 ## Findings (26.1.2)
 
 - Results of the 26.1.2 runs: `runSmokeServer` 3 / 9 (1 skipped: `sb.worn_backpack`, see above) / 3 checks,
-  `runSmokeClient` 10 / 17 (8 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing; Fabric `runGametest`
+  `runSmokeClient` 10 / 17 (7 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing; Fabric `runGametest`
   "All 18 required tests passed" (17 + `minecraft:always_pass`).
-- GUI checks (H5, ported from mc/1.21.1): `runSmokeClient` 13 / 21 (9 `sb.*`, `sb.upgrade_settings_tab` included) / 13
+- GUI checks (H5, ported from mc/1.21.1): `runSmokeClient` 13 / 21 (8 `sb.*`, `sb.upgrade_settings_tab` included) / 13
   checks on Fabric / NeoForge / Forge, all passing (`runSmokeServer` unchanged: 3 / 9 / 3; unit tests 77 / 65 / 65;
   Gradle on JDK 25); every screen behaves as on 1.21.1 (screenshots `sb_upgrade_settings_tab`: the open Building
   Upgrade tab with its toggle on "Disabled", `omega_randomizer_bag_weights`: weight badge 2 and the weight tooltip).
@@ -393,7 +433,7 @@ Sophisticated Backpacks/Core API).
 ## Findings (1.21.11)
 
 - Results of the 1.21.11 runs: `runSmokeServer` 3 / 9 (1 skipped: `sb.worn_backpack`, see above) / 3 checks,
-  `runSmokeClient` 10 / 17 (8 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing; Fabric `runGametest`
+  `runSmokeClient` 10 / 17 (7 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing; Fabric `runGametest`
   "All 18 required tests passed" (17 + `minecraft:always_pass`).
 - As on 1.21.8, NeoForge lists the Sophisticated Backpacks, Core and Curios data packs as `TOO_OLD`; the mod's own data
   pack is compatible (`client.mod_data_pack_compatible`).
@@ -401,7 +441,7 @@ Sophisticated Backpacks/Core API).
 ## Findings (1.21.10)
 
 - Results of the 1.21.10 runs: `runSmokeServer` 3 / 9 (1 skipped: `sb.worn_backpack`, see above) / 3 checks,
-  `runSmokeClient` 10 / 17 (8 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing; Fabric `runGametest`
+  `runSmokeClient` 10 / 17 (7 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing; Fabric `runGametest`
   "All 18 required tests passed".
 - Forge 60.1.15 flags mod data packs against the resource pack version, see above; the mod's `pack.mcmeta` works around
   it.
@@ -411,7 +451,7 @@ Sophisticated Backpacks/Core API).
 ## Findings (1.21.8)
 
 - Results of the 1.21.8 runs: `runSmokeServer` 3 / 9 (1 skipped: `sb.worn_backpack`, see above) / 3 checks,
-  `runSmokeClient` 10 / 17 (8 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing.
+  `runSmokeClient` 10 / 17 (7 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing.
 - The Sophisticated Backpacks and Core data packs of their 1.21.8 builds are listed as `TOO_OLD` by NeoForge (their
   pack format); the mod's own data pack is compatible (`client.mod_data_pack_compatible`).
 
