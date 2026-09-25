@@ -256,6 +256,13 @@ full changelog of every vanilla or loader change in that version.
   it clears on its next tick (in singleplayer no multi-block build was placed). Minecraft 1.20.5+ encodes in memory
   too, Fabric always encodes, dedicated servers are unaffected. Send a decoded copy of every payload
   (`NeoForgeNetworkHelper` on `mc/1.20.4`: `payload.write(buf)` then the payload's reader).
+- ForgeGradle 7 with `net.minecraftforge.gradle.merge-source-sets=true` (needed: without it the Forge dev runs fail
+  with "Modules main and sophisticatedbuilding export package ...") writes classes and resources of a source set into
+  one `build/sourceSets/<set>` directory. `processResources` is not incremental, so Gradle deletes its previous outputs
+  before it runs, and after a `compileJava` restored from the local build cache those included the classes: every
+  second fresh build made a jar without classes (the build then failed in `compileTestJava`). Every FG7 `forge/`
+  build therefore marks `processResources` of each source set `doNotTrackState(...)` and `mustRunAfter` its compile
+  task (see `forge/build.gradle` on `mc/1.21.1` to `mc/26.2`). Stale resources then only go away with `clean`.
 - Don't run two ForgeGradle 7 builds in parallel against a cold Gradle cache — it can truncate the
   shared fatjar mid-write. The first FG7 configuration on a clean machine takes 6–8 minutes; that's
   expected, not a hang.
