@@ -54,6 +54,7 @@
   "item.sophisticatedbuilding.building_upgrade.omega_tooltip": "The ultimate building upgrade!",
   "item.sophisticatedbuilding.building_upgrade.backpack_tooltip": "Place in a backpack upgrade slot",
   "sophisticatedcore.gui.error.add.building_upgrade_conflict": "Only one building upgrade can be installed per backpack",
+  "gui.sophisticatedcore.error.add.building_upgrade_conflict": "Only one building upgrade can be installed per backpack",
   "sophisticatedcore.gui.upgrade_group.building_upgrades": "Building Upgrades",
 
   "sophisticatedbuilding.mode.normal": "Disable",

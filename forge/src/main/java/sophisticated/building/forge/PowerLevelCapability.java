@@ -4,11 +4,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.common.capabilities.AutoRegisterCapability;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
+import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -31,6 +31,11 @@ public final class PowerLevelCapability {
     });
 
     private PowerLevelCapability() {
+    }
+
+    /** Registers the capability (mod bus). {@code @AutoRegisterCapability} is Forge 43+, forge-1.19 runs on Forge 41. */
+    public static void register(RegisterCapabilitiesEvent event) {
+        event.register(Data.class);
     }
 
     @SubscribeEvent
@@ -70,7 +75,6 @@ public final class PowerLevelCapability {
     }
 
     /** The capability value: the power level, null until it is first read or set. */
-    @AutoRegisterCapability
     public static final class Data {
         @Nullable
         private PowerLevel powerLevel;

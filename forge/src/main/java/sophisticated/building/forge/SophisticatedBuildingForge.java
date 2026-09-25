@@ -16,8 +16,8 @@ import sophisticated.building.compatibility.CompatHelper;
 import sophisticated.building.forge.platform.ForgePlatformHelper;
 
 /**
- * Forge entry point (the same jar runs on NeoForge 1.20.1, a fork of Forge 47.1). The Sophisticated Backpacks
- * integration is registered as a service and only active when Sophisticated Backpacks is installed.
+ * Forge entry point. The Sophisticated Backpacks integration is registered as a service and only active when
+ * Sophisticated Backpacks is installed.
  */
 @Mod(SophisticatedBuilding.MODID)
 public class SophisticatedBuildingForge {
@@ -29,6 +29,7 @@ public class SophisticatedBuildingForge {
         SophisticatedBuilding.init();
 
         modEventBus.addListener(SophisticatedBuildingForge::setup);
+        modEventBus.addListener(PowerLevelCapability::register);
 
         ForgePlatformHelper.registerDeferredRegisters(modEventBus);
         ForgeNetworking.setupPackets();

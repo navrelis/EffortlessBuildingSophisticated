@@ -64,14 +64,6 @@ public final class GuiGraphics {
         fill(x + width - 1, y + 1, x + width, y + height - 1, color);
     }
 
-    public void enableScissor(int minX, int minY, int maxX, int maxY) {
-        GuiComponent.enableScissor(minX, minY, maxX, maxY);
-    }
-
-    public void disableScissor() {
-        GuiComponent.disableScissor();
-    }
-
     public void blit(ResourceLocation atlas, int x, int y, int uOffset, int vOffset, int width, int height) {
         blit(atlas, x, y, 0, uOffset, vOffset, width, height, 256, 256);
     }

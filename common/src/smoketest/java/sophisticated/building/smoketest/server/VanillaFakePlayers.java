@@ -3,7 +3,6 @@ package sophisticated.building.smoketest.server;
 import com.mojang.authlib.GameProfile;
 import io.netty.channel.embedded.EmbeddedChannel;
 import net.minecraft.network.Connection;
-import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.server.MinecraftServer;
@@ -12,13 +11,14 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.level.GameType;
 
-import javax.annotation.Nullable;
 import java.util.UUID;
 
 /**
  * A fake server player from vanilla classes only, for loaders without a fake player API (Fabric API 0.77 for 1.19.2):
  * not in the player list, and its connection drops every packet (like the loaders' fake players), so the packets the
- * mod sends to it go nowhere instead of needing a negotiated client.
+ * mod sends to it go nowhere instead of needing a negotiated client. Only send(Packet) is overridden (the overload with
+ * a listener has another parameter type in 1.19 than in 1.19.1+); what goes through that one lands in the embedded
+ * channel and stays there.
  */
 public final class VanillaFakePlayers {
 
@@ -34,10 +34,6 @@ public final class VanillaFakePlayers {
         player.connection = new ServerGamePacketListenerImpl(server, connection, player) {
             @Override
             public void send(Packet<?> packet) {
-            }
-
-            @Override
-            public void send(Packet<?> packet, @Nullable PacketSendListener listener) {
             }
         };
         player.setGameMode(gameType);

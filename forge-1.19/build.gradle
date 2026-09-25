@@ -10,11 +10,11 @@ version = mod_version
 group = mod_group
 
 base {
-    archivesName = "${mod_id}-forge-${minecraft_version}"
+    archivesName = "${mod_id}-forge-${forge_minecraft_version}"
 }
 
 java {
-    // Mojang ships Java 17 to end users in 1.19.2, so mods should target Java 17.
+    // Mojang ships Java 17 to end users in 1.19, so mods should target Java 17.
     toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
     withSourcesJar()
 }
@@ -22,10 +22,30 @@ java {
 // The loader-neutral code and assets in ../common are compiled and packaged into this jar.
 def commonDir = file('../common')
 
+// The Forge jar for Minecraft 1.19 and 1.19.1 (Forge 41 and 42). It is the Forge 1.19.2 build (../forge) with the
+// classes replaced that use the Sophisticated Backpacks/Core API of 1.19.2: every file of ../forge/src/<set> is
+// compiled from a copy, except those that src/<set> of this folder overrides under the same path (see forgeOverrides
+// below and README.md). A Sync task makes the copy, so the shared sources are compiled exactly once per source set and
+// an override can never be shadowed by its original.
+def forgeDir = file('../forge')
+def forgeOverrides = { String set, String kind ->
+    def own = file("src/${set}/${kind}")
+    return own.directory ? fileTree(own).files.collect { own.toPath().relativize(it.toPath()).toString().replace('\\', '/') } : []
+}
+def sharedForgeSources = { String set, String kind ->
+    def excluded = forgeOverrides(set, kind)
+    return tasks.register("sharedForge${set.capitalize()}${kind.capitalize()}", Sync) {
+        from("${forgeDir}/src/${set}/${kind}") { exclude excluded }
+        into layout.buildDirectory.dir("generated/sharedForge/${set}/${kind}")
+    }
+}
+
 sourceSets {
     main {
         java.srcDir "${commonDir}/src/main/java"
+        java.srcDir sharedForgeSources('main', 'java')
         resources.srcDir "${commonDir}/src/main/resources"
+        resources.srcDir sharedForgeSources('main', 'resources')
     }
     test {
         java.srcDir "${commonDir}/src/test/java"
@@ -36,11 +56,13 @@ sourceSets {
     }
     // In-game smoke test harness (runSmokeClient / runSmokeServer, see TESTING.md): loader-neutral scenarios from
     // ../common/src/smoketest, the Sophisticated Backpacks fixture from ../common/src/smoketestBackpacks and the
-    // Forge glue from src/smoketest. Its own mod ("sophisticatedbuilding_smoketest", META-INF/mods.toml), loaded only by
-    // the smoke runs, never packaged into the mod jar.
+    // Forge glue from ../forge/src/smoketest with this folder's overrides. Its own mod
+    // ("sophisticatedbuilding_smoketest", META-INF/mods.toml), loaded only by the smoke runs, never packaged.
     smoketest {
         java.srcDirs "${commonDir}/src/smoketest/java", "${commonDir}/src/smoketestBackpacks/java"
+        java.srcDir sharedForgeSources('smoketest', 'java')
         resources.srcDirs "${commonDir}/src/smoketest/resources", "${commonDir}/src/smoketestBackpacks/resources"
+        resources.srcDir sharedForgeSources('smoketest', 'resources')
         compileClasspath += main.output
         runtimeClasspath += main.output
     }
@@ -69,7 +91,7 @@ repositories {
 
 legacyForge {
     enable {
-        forgeVersion = "${minecraft_version}-${forge_version}"
+        forgeVersion = "${forge_minecraft_version}-${forge_version}"
         // Always decompile and recompile Minecraft+Forge, also on CI. MDG skips that step by default when the
         // environment variable CI is "true" (GitHub Actions) and then remaps the signed Forge universal jar to
         // official names but keeps its signature (META-INF/FORGE.SF/.RSA with the old SHA-256 digests): the unit
@@ -77,11 +99,6 @@ legacyForge {
         // net/minecraftforge/common/extensions/IForgePlayer.class". Recompiled artifacts carry no signature, and
         // CI builds the same artifacts as a local build.
         disableRecompilation = false
-    }
-
-    parchment {
-        mappingsVersion = parchment_mappings_version
-        minecraftVersion = parchment_minecraft_version
     }
 
     // The unit tests exercise vanilla types (BlockPos, ...), so they need Minecraft on their classpath too.
@@ -220,7 +237,7 @@ var generateModMetadata = tasks.register('generateModMetadata', ProcessResources
     ]
     inputs.properties replaceProperties
     expand replaceProperties
-    from 'src/main/templates'
+    from "${forgeDir}/src/main/templates"
     into 'build/generated/sources/modMetadata'
 }
 // Include the output of "generateModMetadata" as an input directory for the build
