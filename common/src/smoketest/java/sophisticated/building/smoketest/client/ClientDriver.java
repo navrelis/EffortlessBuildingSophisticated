@@ -334,6 +334,27 @@ public final class ClientDriver {
         });
     }
 
+    /**
+     * A left-button drag in a screen: press at the start (MouseHandler), move the pointer to the end and hand the
+     * screen the move and drag events, release at the end (MouseHandler). The move/drag step calls the screen the way
+     * {@code MouseHandler#handleAccumulatedMovement} does; that method itself only runs for the focused window, and the
+     * harness window is never focused (ClientWindow).
+     */
+    public void dragTo(double fromX, double fromY, double toX, double toY) {
+        clientRun(() -> {
+            pointNow(fromX, fromY);
+            mouseButton(GLFW.GLFW_MOUSE_BUTTON_LEFT, GLFW.GLFW_PRESS);
+        });
+        clientRun(() -> {
+            pointNow(toX, toY);
+            if (mc.screen != null) {
+                mc.screen.mouseMoved(toX, toY);
+                mc.screen.mouseDragged(toX, toY, GLFW.GLFW_MOUSE_BUTTON_LEFT, toX - fromX, toY - fromY);
+            }
+        });
+        clientRun(() -> mouseButton(GLFW.GLFW_MOUSE_BUTTON_LEFT, GLFW.GLFW_RELEASE));
+    }
+
     /** Presses and releases a keyboard key through KeyboardHandler, what GLFW's key callback does. */
     public void pressKey(int glfwKey) {
         int scanCode = GLFW.glfwGetKeyScancode(glfwKey);

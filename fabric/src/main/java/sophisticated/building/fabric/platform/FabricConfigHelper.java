@@ -3,6 +3,7 @@ package sophisticated.building.fabric.platform;
 import sophisticated.building.config.ConfigSpec;
 import sophisticated.building.config.ConfigType;
 import sophisticated.building.config.IConfigBuilder;
+import sophisticated.building.config.ModConfigs;
 import sophisticated.building.platform.services.IConfigHelper;
 
 import java.util.Locale;
@@ -16,5 +17,10 @@ public final class FabricConfigHelper implements IConfigHelper {
     @Override
     public IConfigBuilder createBuilder(ConfigType type) {
         return new ConfigSpec.Builder(type.name().toLowerCase(Locale.ROOT));
+    }
+
+    @Override
+    public void save(Object spec) {
+        ModConfigs.save(ModConfigs.spec(spec));
     }
 }

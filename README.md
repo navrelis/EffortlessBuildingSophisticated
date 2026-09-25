@@ -84,6 +84,25 @@ Forge: the first build sets up Minecraft through ForgeGradle's Mavenizer (severa
 with another ForgeGradle 7 build on a cold cache. The Forge dev runs (`runClient`, `runServer`, `runGameTestServer`)
 have no Sophisticated Backpacks and no `runClientExported`.
 
+## Player settings (client config)
+
+The Player Settings screen (`gui/buildmode/PlayerSettingsGui`) edits the client config (`ClientConfig`: Visuals and
+Performance). It opens from the radial menu (button above Modifier Settings, action `OPEN_PLAYER_SETTINGS`) and with
+the key "Open Player Settings" (unbound by default, category Sophisticated Building; `ClientEvents.PLAYER_SETTINGS_KEY`).
+Switches are ON/OFF buttons, numbers are sliders over the config ranges (`gui/SliderValues`); changes apply at once,
+"Reset to Defaults" restores them, Done/Escape/the key write the loader's file through `IConfigHelper#save`
+(`config/sophisticatedbuilding-client.json` on Fabric, `config/sophisticatedbuilding-client.toml` on NeoForge and Forge).
+The radial menu's Mini Block Preview toggle writes the same `showMiniBlockPreview` setting. The mini block previews are
+the small ghosts of the new block (`previewScale`) that `BlockPreviews.renderBlockPreviews` draws inside the outline;
+`maxMiniBlockPreviews` caps how many (0 = no limit).
+
+## Survival charging and undo (server)
+
+`ServerBlockPlacer` charges the item count of every placed state (`ReplaceRules.restoreCost`: a merge costs one item,
+three candles onto air three), and only for blocks really set (`BlockHelper.placeSchematicBlock` reports it, the
+loader's place event can refuse it). Undo of a merge (`ReplaceRules.Action.UNMERGE`) puts the old state back without
+mining and gives the merged item back; undo/redo of a block already in the target state counts as done.
+
 ## In-game smoke tests
 
 `gradlew runSmokeClient -PsmoketestOut=<dir>` (real client, fresh world) and `gradlew runSmokeServer -PsmoketestOut=<dir>`
