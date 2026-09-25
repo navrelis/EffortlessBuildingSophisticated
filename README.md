@@ -83,6 +83,16 @@ Forge 51's `bootstrap-api` pulls in jopt-simple 6.0-alpha-3 (module `joptsimple`
 found". Forge runs on Mojang names since 1.20.6 (the Forge 51 universal jar references `Minecraft.options`, not
 `f_91066_`), so the jar is not reobfuscated, as on 1.21.1.
 
+## Player settings (client config)
+
+The Player Settings screen (`gui/buildmode/PlayerSettingsGui`) edits the client config (`ClientConfig`: Visuals and
+Performance). It opens from the radial menu (button above Modifier Settings, action `OPEN_PLAYER_SETTINGS`) and with
+the key "Open Player Settings" (unbound by default, category Sophisticated Building; `ClientEvents.PLAYER_SETTINGS_KEY`).
+Switches are ON/OFF buttons, numbers are sliders over the config ranges (`gui/SliderValues`); changes apply at once,
+"Reset to Defaults" restores them, Done/Escape/the key write the loader's file through `IConfigHelper#save`
+(`config/sophisticatedbuilding-client.json` on Fabric, `config/sophisticatedbuilding-client.toml` on NeoForge and Forge).
+The radial menu's Mini Block Preview toggle writes the same `showMiniBlockPreview` setting.
+
 ## In-game smoke tests
 
 `gradlew runSmokeClient -PsmoketestOut=<dir>` (real client, fresh world) and `gradlew runSmokeServer -PsmoketestOut=<dir>`

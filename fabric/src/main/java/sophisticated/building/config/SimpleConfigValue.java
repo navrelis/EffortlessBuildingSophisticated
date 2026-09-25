@@ -41,10 +41,12 @@ public abstract class SimpleConfigValue<T> implements ConfigValue<T> {
         return value;
     }
 
+    @Override
     public void set(T value) {
         this.value = value;
     }
 
+    @Override
     public T getDefault() {
         return defaultValue;
     }
@@ -101,7 +103,7 @@ public abstract class SimpleConfigValue<T> implements ConfigValue<T> {
         }
     }
 
-    public static final class IntValue extends SimpleConfigValue<Integer> {
+    public static final class IntValue extends SimpleConfigValue<Integer> implements NumberConfigValue<Integer> {
         private final int min;
         private final int max;
 
@@ -111,11 +113,13 @@ public abstract class SimpleConfigValue<T> implements ConfigValue<T> {
             this.max = max;
         }
 
-        public int getMin() {
+        @Override
+        public Integer getMin() {
             return min;
         }
 
-        public int getMax() {
+        @Override
+        public Integer getMax() {
             return max;
         }
 
@@ -147,7 +151,7 @@ public abstract class SimpleConfigValue<T> implements ConfigValue<T> {
         }
     }
 
-    public static final class DoubleValue extends SimpleConfigValue<Double> {
+    public static final class DoubleValue extends SimpleConfigValue<Double> implements NumberConfigValue<Double> {
         private final double min;
         private final double max;
 
@@ -157,11 +161,13 @@ public abstract class SimpleConfigValue<T> implements ConfigValue<T> {
             this.max = max;
         }
 
-        public double getMin() {
+        @Override
+        public Double getMin() {
             return min;
         }
 
-        public double getMax() {
+        @Override
+        public Double getMax() {
             return max;
         }
 
