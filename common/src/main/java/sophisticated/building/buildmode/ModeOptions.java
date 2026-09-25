@@ -141,7 +141,7 @@ public class ModeOptions {
 		UNDO("undo", AllIcons.I_UNDO),
 		REDO("redo", AllIcons.I_REDO),
 		OPEN_MODIFIER_SETTINGS("open_modifier_settings", AllIcons.I_SETTINGS),
-		OPEN_PLAYER_SETTINGS("open_player_settings", AllIcons.I_SETTINGS),
+		OPEN_PLAYER_SETTINGS("open_player_settings", AllIcons.I_PLAYER_SETTINGS),
 		PREVIOUS_BUILD_MODE("previous_build_mode", AllIcons.I_SINGLE),
 		DISABLE_BUILD_MODE_TOGGLE("disable_build_mode_toggle", AllIcons.I_DISABLE),
 

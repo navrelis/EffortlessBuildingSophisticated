@@ -26,8 +26,6 @@ public class BlockPreviews {
 	// Limit max concurrent animations to prevent memory issues with rapid building
 	private static final int MAX_PLACED_BLOCKS_ENTRIES = 50;
 	private final List<PlacedBlocksEntry> placedBlocksList = new ArrayList<>();
-	private boolean miniBlockPreviewEnabled = true;
-	private boolean miniBlockPreviewInitialized;
 	
 	// Cache for coordinates to avoid recreating HashSet every frame
 	private HashSet<BlockPos> coordinatesCache;
@@ -35,15 +33,6 @@ public class BlockPreviews {
 
 	public void onTick() {
 		var player = Minecraft.getInstance().player;
-
-		if (!miniBlockPreviewInitialized) {
-			try {
-				miniBlockPreviewEnabled = ClientConfig.visuals.showMiniBlockPreview.get();
-				miniBlockPreviewInitialized = true;
-			} catch (IllegalStateException ignored) {
-				// Config not loaded yet; keep default and retry next tick
-			}
-		}
 
 		drawPlacedBlocks();
 		drawLookAtPreview(player);
@@ -110,7 +99,7 @@ public class BlockPreviews {
 			//Use fancy shader if config allows, otherwise outlines
 			if (ClientConfig.visuals.showBlockPreviews.get() && blockCount < maxPreviews) {
 				// Render block previews inside each ghost section to show rotation
-				if (miniBlockPreviewEnabled) {
+				if (isMiniBlockPreviewEnabled()) {
 					renderBlockPreviews(blocks, false, 0f);
 				}
 
@@ -256,12 +245,12 @@ public class BlockPreviews {
 		var player = Minecraft.getInstance().player;
 		if (player == null) return;
 		
+		// Update cached config values periodically (before using them, so a changed setting applies)
+		updateCachedConfig();
+
 		// Early exit if too many blocks (performance protection)
 		int blockCount = blocks.size();
 		if (cachedMaxMiniPreviews > 0 && blockCount > cachedMaxMiniPreviews) return;
-		
-		// Update cached config values periodically
-		updateCachedConfig();
 		
 		Vec3 playerPos = player.position();
 		
@@ -384,13 +373,21 @@ public class BlockPreviews {
 		}
 	}
 
+	/** Radial menu action: flips the client config option showMiniBlockPreview and saves it (also shown in the player settings). */
 	public boolean toggleMiniBlockPreview() {
-		miniBlockPreviewEnabled = !miniBlockPreviewEnabled;
-		return miniBlockPreviewEnabled;
+		boolean enabled = !isMiniBlockPreviewEnabled();
+		ClientConfig.visuals.showMiniBlockPreview.set(enabled);
+		ClientConfig.save();
+		return enabled;
 	}
 
 	public boolean isMiniBlockPreviewEnabled() {
-		return miniBlockPreviewEnabled;
+		return ClientConfig.visuals.showMiniBlockPreview.get();
+	}
+
+	/** A client setting changed (player settings screen): re-read the cached values on the next frame. */
+	public void onConfigChanged() {
+		lastConfigCheck = 0;
 	}
 }
 

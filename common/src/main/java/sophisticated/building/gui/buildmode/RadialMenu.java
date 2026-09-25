@@ -184,6 +184,8 @@ public class RadialMenu extends Screen {
 		}
 		buttons.add(new MenuButton(ActionEnum.TOGGLE_MINI_PREVIEW, -buttonDistance - 78, -13, Direction.UP));
 		buttons.add(new MenuButton(ActionEnum.OPEN_MODIFIER_SETTINGS, -buttonDistance - 52, -13, Direction.UP));
+		// Player settings (client config) directly above the modifier settings
+		buttons.add(new MenuButton(ActionEnum.OPEN_PLAYER_SETTINGS, -buttonDistance - 52, -39, Direction.UP));
 		buttons.add(new MenuButton(ActionEnum.UNDO, -buttonDistance - 26, -13, Direction.UP));
 		buttons.add(new MenuButton(ActionEnum.REDO, -buttonDistance, -13, Direction.UP));
 
@@ -443,9 +445,11 @@ public class RadialMenu extends Screen {
 		if (button.action == ActionEnum.OPEN_MODIFIER_SETTINGS) keybindingIndex = 1;
 		if (button.action == ActionEnum.UNDO) keybindingIndex = 2;
 		if (button.action == ActionEnum.REDO) keybindingIndex = 3;
+		if (button.action == ActionEnum.OPEN_PLAYER_SETTINGS) keybindingIndex = ClientEvents.PLAYER_SETTINGS_KEY;
 
 		if (keybindingIndex != -1) {
 			KeyMapping keyMap = ClientEvents.keyBindings[keybindingIndex];
+			if (keyMap.isUnbound()) return null;
 
 			return Components.keybind(keyMap.getName());
 		}
