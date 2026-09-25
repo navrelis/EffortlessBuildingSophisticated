@@ -4,8 +4,8 @@ Three layers, from fast to real:
 
 | Layer | Command (in a loader folder) | What it proves |
 |---|---|---|
-| Unit tests | `gradlew build` | Pure logic in `common/src/test` (77 tests on Fabric incl. its config tests, 65 on Forge) |
-| Fabric server tests | `gradlew runGametest` | 17 server-side building rules (`fabric/src/gametest`, the game tests of the other branches) |
+| Unit tests | `gradlew build` | Pure logic in `common/src/test` (104 tests on Fabric incl. its config tests, 90 on `forge/` and `forge-1.16.4/`) |
+| Fabric server tests | `gradlew runGametest` | 24 server-side building rules (`fabric/src/gametest`, the game tests of the other branches) |
 | **In-game smoke tests** | `gradlew runSmokeClient` / `gradlew runSmokeServer` | The mod works in a real game on this loader, on Forge including the Sophisticated Backpacks (SB) integration |
 
 `gradlew build` compiles the smoke harness and the server tests (so they cannot rot) but never runs them. The harness is
@@ -37,7 +37,7 @@ uses the default superflat layers.
 
 `runGametest` (Fabric) runs every `@ServerTest` of the classes listed under the `sophisticatedbuilding-servertest`
 entrypoint of `fabric/src/gametest/resources/fabric.mod.json` (`FabricServerTests`), writes
-`fabric/build/gametest/junit.xml`, logs `All 17 required tests passed :)` and stops the server; the task prints every
+`fabric/build/gametest/junit.xml`, logs `All 24 required tests passed :)` and stops the server; the task prints every
 test and fails unless all passed. The test names are `<class>.<method>` in lower case, as vanilla names game tests.
 
 ## Running the smoke tests
@@ -53,7 +53,16 @@ Same for `forge` and `forge-1.16.4`. Without `-PsmoketestOut` the result goes to
 
 - **runSmokeClient** starts a real client: muted, moved to a secondary monitor if there is one, and deaf to real
   keyboard and mouse input (its GLFW input callbacks are removed; the harness does not need them), so clicking into the
-  window cannot disturb a run. On the title screen the harness creates a fresh superflat world with a unique name
+  window cannot disturb a run. It never touches the OS mouse cursor or the focus: the window is created unfocused
+  (harness mixin `SmokeWindowMixin`, GLFW hints FOCUSED/FOCUS_ON_SHOW off right before the window is created: on
+  Fabric before vanilla's `glfwCreateWindow`, on Forge 35/36 before `EarlyProgressVisualization.handOffWindow`; the
+  Forge smoke client runs with `-Dfml.earlyprogresswindow=false` - Forge 1.16 has no `fml.toml` switch - so FML's early
+  progress window, which is created before any mod code and takes the focus, is not used and the game creates its
+  window itself; the mixin config is passed with `--mixin.config`), is marked inactive for the whole run so the game
+  never grabs, hides or warps the cursor (`ClientWindow#keepOffTheCursor`: focus callback removed,
+  `Minecraft#windowActive` false, Windows `WS_EX_NOACTIVATE`), and the harness moves only the game's own pointer
+  (`MouseHandler#xpos/ypos`) and calls the input handlers directly. On the title screen the harness creates a fresh
+  superflat world with a unique name
   (`sb-smoketest-<time>`, older ones are deleted) through `Minecraft#createLevel` (no quick play), runs the client
   scenarios, writes the result and stops the game. It takes about a minute after the game has loaded. The game
   directory is `<loader>/build/smoketest/client-run`.
@@ -105,14 +114,17 @@ server world.
 | `client.mod_data_pack_compatible` | The mod's data pack is enabled and not flagged incompatible (Forge; Fabric serves mod data through one combined pack) |
 | `client.radial_menu_opens` | The radial key opens `RadialMenu`, it renders (its hit-test highlights LINE under the mouse), a click selects LINE, releasing the key closes it. Screenshot `radial_menu` |
 | `client.buildmode_line_preview` | After the first right click and turning to the end point, the preview holds exactly the 5 expected positions, all valid. Screenshot `line_preview` |
+| `client.mini_block_preview` | On that preview: a mini block preview (small ghost) in each of the 5 positions by default, none with `showMiniBlockPreview` off, none with `maxMiniBlockPreviews` 4 (below the 5 blocks). Screenshots `mini_preview_on`, `mini_preview_off` |
 | `client.place_line` | The second click places those 5 stone (server world), nothing around them, creative inventory unchanged. Screenshot `line_placed` |
 | `client.break_line` | Two left clicks break the line again (creative mass break) |
 | `client.mirror_modifier` | "Add Mirror" in the modifier screen adds a mirror; a 3 block line places 6 blocks (line + mirror image). Screenshots `modifiers_screen`, `mirror_placed` |
+| `client.disable_quick_replace_preview` | Disable mode, looking at a stone block with planks in hand: no outline of the mod without Quick Replace (vanilla places the block), with Quick Replace the preview of the replaced block and its outline are shown. Screenshots `disable_plain`, `disable_quick_replace_preview` |
 | `client.place_line_survival` | Survival (power level 3 via `/powerlevel`): a 5 block line consumes exactly 5 planks |
 | `client.undo_redo` | Undo removes the 5 blocks and gives the planks back (mined with the axe), redo restores them and charges them again |
-| `client.randomizer_bag_screens` | For each of the 4 bags (randomizer, golden, diamond, omega): sneak + use (looking at the sky) opens its screen class; mouse clicks pick up the stone, drop one into bag slot 0 and put the rest back; Escape closes it (the server closes the menu too); the server's bag holds 1 stone and the player 63; reopening shows the stone in slot 0. Omega: the mouse wheel over slot 0 raises its weight 1 -> 2 and the Reset button sets it back to 1, both checked in the server's bag data. Screenshots `randomizer_bag`, `golden_randomizer_bag`, `diamond_randomizer_bag`, `omega_randomizer_bag`, `omega_randomizer_bag_weights` |
-| `client.player_settings_gui` | `PlayerSettingsGui` opens through the mod's only entry point (`ModeOptions` action `OPEN_PLAYER_SETTINGS`), renders and closes on Escape. It is a stub: its buttons and slider are render-only (`Screen#buttons` on 1.16.5) and nothing is stored. Screenshot `player_settings` |
+| `client.randomizer_bag_screens` | For each of the 4 bags (randomizer, golden, diamond, omega): sneak + use (looking at the sky) opens its screen class; mouse clicks pick up the stone, drop one into bag slot 0 and put the rest back; Escape closes it (the server closes the menu too); the server's bag holds 1 stone and the player 63; reopening shows the stone in slot 0. Omega: the mouse wheel over slot 0 raises its weight 1 -> 2 and the Reset button sets it back to 1, both checked in the server's bag data. Screenshots `randomizer_bag`, `golden_randomizer_bag`, `diamond_randomizer_bag`, `omega_randomizer_bag`, `omega_randomizer_bag_weights`. Every bag title fits its texture (`BagTitle`/`TitleFit`: scaled, at most to 0.6, then cut with "..."); a bag renamed in an anvil to a 59 character name shows that name, cut, and the full name as tooltip on hover. Screenshot `renamed_bag_title` |
+| `client.player_settings_gui` | The radial menu's player settings button (above Modifier Settings) opens `PlayerSettingsGui`; a click flips `onlyShowBlockPreviewsWhenBuilding`, a drag sets the Appear Animation slider 5 -> 20 ticks, Done closes it; the loader's client config holds both values in memory and in its file (`config/sophisticatedbuilding-client.json` on Fabric, `.toml` on Forge). The "Open Player Settings" key (unbound by default, bound to F7 for the test) reopens it showing the saved value, Reset to Defaults and the key again restore and save the defaults. Screenshots `radial_player_settings`, `player_settings` |
 | `client.modifier_entry_widgets` | In the modifier screen "Add Array" adds an array, a click on the entry's enable checkbox switches it off, the mouse wheel on its Count input raises 5 -> 6, the close button closes the screen, and the server stores the array with these values (`ModifierSettingsPacket`, player data `sophisticatedbuilding:buildModifiers`). Screenshot `modifier_widgets` |
+| `client.radial_option_icons` | Every icon the radial menu draws (build modes, actions and options) has pixels in `textures/gui/icons.png` (read from the resource manager, cell position from `AllIcons`); Terrain Mound selected in the radial menu shows its Natural Variation and Terrain Shape option buttons (all 7 hovered, the active ones highlighted), the active shape is clicked again and the previous build mode restored. With the menu open every build mode is switched to and all side buttons (`RadialMenu#sideButtons()`) must lie fully inside the window, clear of the ring and without overlapping each other. Screenshots `radial_terrain_options`, `radial_terrain_mountain` |
 | `sb.hud_count_synced` | Forge: the client caches (`ClientBuildingUpgradeState`, `ClientBackpackItemCache` via `BuildingUpgradeStatePacket` / `BackpackItemCountPacket`) show tier 1 / 32 blocks and the backpack's 64 stone |
 | `sb.upgrade_supplies_blocks` | Forge: holding 1 stone with a tier 1 Building Upgrade backpack: a 5 block line is placed from the backpack (64 -> 59), the held stone stays, the HUD count follows |
 | `sb.tier_cap` | Forge: a 6x6 floor (36) in survival: the preview shows 32 valid / 4 invalid and exactly 32 are placed, all from the backpack (tier 1 cap = 32) |
@@ -123,7 +135,7 @@ server world.
 | `sb.upgrade_settings_tab` | Forge: using a backpack with an enabled tier 1 Building Upgrade opens the SB backpack screen; a click on the upgrade's tab icon opens `BuildingUpgradeSettingsTab`, a click on its toggle disables the upgrade on the server, and after Escape the client's `ClientBuildingUpgradeState` follows. Screenshot `sb_upgrade_settings_tab` |
 | `client.no_mod_errors` | No ERROR line from the mod's loggers and no WARN/ERROR carrying an exception thrown from the mod's code during the whole run |
 
-Fabric reports 13 checks (the `client.*` ones), `forge/` and `forge-1.16.4/` 21 each.
+Fabric reports 16 checks (the `client.*` ones), `forge/` and `forge-1.16.4/` 24 each.
 
 ### Server (`runSmokeServer`, both loaders)
 
@@ -137,10 +149,12 @@ what arrives from a client, and handed to the packets' server handlers.
 |---|---|
 | `server.place_line_survival` | 5 planks placed and consumed |
 | `server.undo_redo` | Undo/redo packets restore the inventory counts |
+| `server.merge_undo_refund` | Survival merges (+1 snow layer, +1 sea pickle; 1.16 has no candles) cost one item each; undo puts both blocks back without mining and gives the items back, redo charges them again |
+| `server.refused_place_not_charged` | The loader's block place event refuses 2 of a 5 block line (as a protection mod would): only the 3 placed planks are charged and undo gives back exactly those. Skipped on Fabric (no place event; `ChargeGameTest` covers refused placements) |
 | `sb.upgrade_supplies_blocks`, `sb.disabled_upgrade_ignored`, `sb.tier_cap`, `sb.tool_swapper_tools`, `sb.worn_backpack_chest`, `sb.worn_backpack` | Forge only (where the SB fixture exists): as on the client, server side |
 | `server.no_mod_errors` | As on the client |
 
-Fabric reports 3 checks, `forge/` and `forge-1.16.4/` 9 each.
+Fabric reports 5 checks (1 skipped), `forge/` and `forge-1.16.4/` 11 each.
 
 ## Layout
 
@@ -231,7 +245,7 @@ Loader glue per build:
   at the top, SB's own layout). The randomizer bag titles are wider than their texture ("Sophisticated Leather
   Randomizer Bag"), as in the original code.
 
-### Results (2026-09-25)
+### Results before R2 (2026-09-25)
 
 | Folder | Runtime | `gradlew build` (unit tests) | Server tests | `runSmokeServer` | `runSmokeClient` |
 |---|---|---|---|---|---|
@@ -246,6 +260,22 @@ upgrade containers", "Done"; Forge 1.16.4 (installer 35.1.37, `forge-1.16.4` jar
 Fabric 1.16.5 and 1.16.4 (Fabric Loader 0.19.5, Fabric API 0.42.0+1.16): "Done". No `ERROR` or exception from the mod.
 Errors from others: "No key layers ... Not a registry ops" (vanilla, flat world from `server.properties`) and, on Forge
 1.16.4, "No data fixer registered for" while Sophisticated Backpacks 1.16.4 registers its entity types.
+
+### R2 (player settings editor, bag titles, radial menu, gameplay fixes; port of mc/1.21.1 fb10ef2..766d18f)
+
+- 1.16.5 specifics of the port: Java 8 (the new pure classes `SliderValues`, `TitleFit`, `RadialButtonLayout` and
+  `RadialMenu.SideButton` are final classes instead of records); `PlayerSettingsGui` built from the 1.16 widgets (see
+  README, "Player settings"); Forge 35/36 `ForgeConfigSpec.ConfigValue` has `set` and `save` but no `getDefault` (the
+  adapter keeps the default); no candles and no pink petals, so the merge tests and the merge smoke scenario use snow
+  layers, slabs, sea pickles and turtle eggs, and the charge test three sea pickles; `Blocks.GRASS` (1.20.3+ short grass),
+  `Entity#setLevel` (1.20+ `setServerLevel`); `ItemStack#setHoverName`, `ResourceManager#getResource` and Gson 2.8.0 in the
+  harness; Forge 1.16 place event `net.minecraftforge.event.world.BlockEvent.EntityPlaceEvent`.
+- Headless results (2026-09-25): unit tests Fabric 104, `forge/` and `forge-1.16.4/` 90 (0 failures, also with
+  `CI=true`); Fabric `runGametest` "All 24 required tests passed"; `runSmokeServer` Fabric 5 checks (4 passed, 1
+  skipped: `server.refused_place_not_charged`, no place event), `forge/` 11/11 and `forge-1.16.4/` 11/11 (6 `sb.*`
+  each).
+- Clients (`runSmokeClient`, 16 / 24 checks) not run yet: the lead holds them until the cursor-safe harness is on every
+  branch.
 
 ## Minecraft 1.16.4 check
 

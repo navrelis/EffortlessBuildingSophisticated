@@ -194,6 +194,33 @@ Players are not affected on the Minecraft launcher (it runs 1.16.4 on its bundle
 server needs a Java 8 older than 8u321 or modlauncher 8.1.3 in its `libraries/` (the real-server test replaced
 `libraries/cpw/mods/modlauncher/8.0.9/modlauncher-8.0.9.jar` with 8.1.3). This is Forge's, not the mod's.
 
+## Player settings (client config)
+
+The Player Settings screen (`gui/buildmode/PlayerSettingsGui`) edits the client config (`ClientConfig`: Visuals and
+Performance). It opens from the radial menu (button above Modifier Settings, action `OPEN_PLAYER_SETTINGS`) and with
+the key "Open Player Settings" (unbound by default, category Sophisticated Building; `ClientEvents.PLAYER_SETTINGS_KEY`).
+Switches are ON/OFF buttons, numbers are sliders over the config ranges (`gui/SliderValues`); changes apply at once,
+"Reset to Defaults" restores them, Done/Escape/the key write the loader's file through `IConfigHelper#save`
+(`config/sophisticatedbuilding-client.json` on Fabric, `config/sophisticatedbuilding-client.toml` on Forge; Forge 35/36's
+`ForgeConfigSpec.ConfigValue` has no `getDefault`, so the Forge adapter keeps the default it was defined with). The
+radial menu's Mini Block Preview toggle writes the same `showMiniBlockPreview` setting. The mini block previews are the
+small ghosts of the new block (`previewScale`) that `BlockPreviews.renderBlockPreviews` draws inside the outline;
+`maxMiniBlockPreviews` caps how many (0 = no limit).
+
+Minecraft 1.16.5 has none of the 1.19.3+ widget helpers the 1.21.1 screen uses (`Button.builder`, `Tooltip`,
+`setTooltip`, `setX/setY`): the rows use `new Button(...)`/`AbstractSliderButton` with their public `x`/`y` fields, the
+screen draws the hovered row's (or the Reset button's) tooltip itself after everything else, and the
+`ContainerObjectSelectionList` of the rows is drawn by the screen (1.16 screens only draw their buttons) without the
+dirt background and bands of 1.16 lists, clipped to its area instead.
+
+## Survival charging and undo (server)
+
+`ServerBlockPlacer` charges the item count of every placed state (`ReplaceRules.restoreCost`: a merge costs one item,
+three sea pickles onto air three), and only for blocks really set (`BlockHelper.placeSchematicBlock` reports it, the
+loader's place event can refuse it). Undo of a merge (`ReplaceRules.Action.UNMERGE`) puts the old state back without
+mining and gives the merged item back; undo/redo of a block already in the target state counts as done. Minecraft 1.16
+has no candles and no pink petals: its merges are snow layers, slabs, sea pickles and turtle eggs.
+
 ## Build and test
 
 Each loader folder has its own Gradle wrapper (Gradle 9.5.1 for all three). Gradle runs on Java 21; the mod is compiled
@@ -201,14 +228,14 @@ for and run on Java 8 (toolchain, downloaded by the Foojay resolver if missing; 
 builds set no release flag).
 
 ```
-cd fabric       && ./gradlew build        # jar in fabric/build/libs, runs common + Fabric unit tests (77)
-cd fabric       && ./gradlew runGametest  # 17 server tests of the building rules (not part of build)
-cd forge        && ./gradlew build        # reobfuscated jar in forge/build/libs, runs the common unit tests (65)
-cd forge-1.16.4 && ./gradlew build        # the Forge 1.16.4 jar in forge-1.16.4/build/libs, same unit tests (65)
+cd fabric       && ./gradlew build        # jar in fabric/build/libs, runs common + Fabric unit tests (104)
+cd fabric       && ./gradlew runGametest  # 24 server tests of the building rules (not part of build)
+cd forge        && ./gradlew build        # reobfuscated jar in forge/build/libs, runs the common unit tests (90)
+cd forge-1.16.4 && ./gradlew build        # the Forge 1.16.4 jar in forge-1.16.4/build/libs, same unit tests (90)
 ./build-all.ps1                            # every loader folder, stops at the first failure
 ```
 
-Minecraft 1.16.5 ships its game test framework stripped and neither loader has a game test API for it, so the 17
+Minecraft 1.16.5 ships its game test framework stripped and neither loader has a game test API for it, so the 24
 Fabric game tests of the other branches run as server tests: the same test bodies on `ServerTestHelper` (the subset of
 vanilla's `GameTestHelper` they use) and `@ServerTest`, run one after the other by `ServerTestRunner`
 (`common/src/smoketest/.../servertest`) on a dedicated dev server with a fresh superflat world; `runGametest` checks the
@@ -221,8 +248,9 @@ JUnit report it writes. See TESTING.md.
 every loader folder run the in-game smoke scenarios and write `<dir>/smoketest-result.json`; the game exits by itself.
 Both Forge folders also run the Sophisticated Backpacks checks (`sb.*`); Fabric has no backpack integration on 1.16.x and
 runs none. The harness (`common/src/smoketest`, `common/src/smoketestBackpacks` (Forge only), `<loader>/src/smoketest`,
-`gradle/smoketest.gradle`) is dev-only and never packaged. See [TESTING.md](TESTING.md) for the scenarios, the result
-contract and how a port adopts it.
+`gradle/smoketest.gradle`) is dev-only and never packaged. A smoke client never moves the OS cursor or takes the focus
+(harness mixin `SmokeWindowMixin`, `ClientWindow.keepOffTheCursor`). See [TESTING.md](TESTING.md) for the scenarios, the
+result contract and how a port adopts it.
 
 ## Run
 
