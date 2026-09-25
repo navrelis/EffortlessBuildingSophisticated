@@ -1,29 +1,33 @@
 package sophisticated.building.smoketest.server;
 
-import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.gametest.framework.GameTestInfo;
-import net.minecraft.gametest.framework.GlobalTestReporter;
-import net.minecraft.gametest.framework.LogTestReporter;
-import net.minecraft.gametest.framework.TestReporter;
+import net.minecraft.server.MinecraftServer;
 import sophisticated.building.smoketest.ModErrorLogCapture;
 import sophisticated.building.smoketest.SmokeReport;
 import sophisticated.building.smoketest.SmokeTest;
 import sophisticated.building.smoketest.SmokeWatchdog;
+import sophisticated.building.smoketest.backpack.SmokeBackpacks;
+import sophisticated.building.smoketest.servertest.ServerTestHelper;
+import sophisticated.building.smoketest.servertest.ServerTestRunner;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
 /**
- * Loader-neutral entry point of the headless server smoke run ({@code runSmokeServer}): a game test server runs the
- * {@link ServerScenarios} registered by the loader glue as game tests; this reporter turns every test into a check of
- * the same JSON the client run writes. The game test server exits by itself when all tests are done (exit code =
- * failed required tests), the watchdog covers a hang.
+ * Loader-neutral entry point of the headless server smoke run ({@code runSmokeServer}): a dedicated server on a fresh
+ * superflat world runs the {@link ServerScenarios} as server tests (Minecraft 1.16.5 has no game test framework, see
+ * {@link ServerTestRunner}) and every test becomes a check of the same JSON the client run writes. When all are done the
+ * result is written and the server stops; the watchdog covers a hang. The loader glue calls {@link #init} from its mod
+ * initialisation, {@link #start} once the server has started and {@link #tick} after every server tick.
  */
 public final class SmokeServer {
 
     private static boolean started;
+    private static ServerTestRunner runner;
 
     private SmokeServer() {
     }
 
-    /** Called by the loader glue from its mod initialisation. */
     public static synchronized void init() {
         if (started || !SmokeTest.isServerMode()) return;
         started = true;
@@ -31,71 +35,70 @@ public final class SmokeServer {
         ModErrorLogCapture.install();
         SmokeReport.get().installShutdownHook();
         SmokeWatchdog.start();
-        GlobalTestReporter.replaceWith(new Reporter());
     }
 
-    /** "sb_tier_cap" (the method name, possibly prefixed with the class) becomes the check "sb.tier_cap". */
-    static String checkName(GameTestInfo info) {
-        String method = methodName(info);
-        int separator = method.indexOf('_');
-        return separator < 0 ? method : method.substring(0, separator) + "." + method.substring(separator + 1);
+    public static void start(MinecraftServer server) {
+        if (!started || runner != null) return;
+        runner = new ServerTestRunner(scenarios(), new ServerTestRunner.Listener() {
+            @Override
+            public void onTestDone(ServerTestRunner.Result result) {
+                report(result);
+            }
+
+            @Override
+            public void onAllDone(List<ServerTestRunner.Result> results) {
+                SmokeTest.LOGGER.info("Server smoke scenarios done: {} of {} failed", results.stream().filter(r -> !r.passed()).count(), results.size());
+                ModErrorLogCapture.report("server.no_mod_errors");
+                SmokeReport.get().finish();
+                server.halt(false);
+            }
+        });
+        runner.start(server);
     }
 
-    private static String methodName(GameTestInfo info) {
-        String name = info.getTestName();
-        return name.substring(name.lastIndexOf('.') + 1);
-    }
-
-    /**
-     * A game test of another mod in the same runtime is not a smoke check (on Fabric 1.20.4 the Porting Lib nested in
-     * the Sophisticated Core port brings its own self test).
-     */
-    static boolean isScenario(GameTestInfo info) {
-        try {
-            ServerScenarios.class.getMethod(methodName(info), GameTestHelper.class);
-            return true;
-        } catch (NoSuchMethodException e) {
-            return false;
+    public static void tick() {
+        if (runner != null && !runner.isFinished()) {
+            runner.tick();
         }
     }
 
-    private static final class Reporter implements TestReporter {
-        private final LogTestReporter log = new LogTestReporter();
-
-        @Override
-        public void onTestFailed(GameTestInfo info) {
-            log.onTestFailed(info);
-            if (!isScenario(info)) {
-                // Still fails the run: the game test server exits with the number of failed required tests
-                SmokeReport.get().fail("server.foreign_game_test", "Game test " + info.getTestName() + " of another mod failed: "
-                        + (info.getError() == null ? "failed" : SmokeReport.describe(info.getError())));
-                return;
-            }
-            Throwable error = info.getError();
-            SmokeReport.get().fail(checkName(info), error == null ? "failed" : SmokeReport.describe(error));
+    /** One test per scenario, in this order; the Sophisticated Backpacks scenarios only where the fixture exists. */
+    private static List<ServerTestRunner.TestFunction> scenarios() {
+        List<ServerTestRunner.TestFunction> tests = new ArrayList<>();
+        add(tests, "server_place_line_survival", ServerScenarios::server_place_line_survival);
+        add(tests, "server_undo_redo", ServerScenarios::server_undo_redo);
+        if (SmokeBackpacks.find().isPresent()) {
+            add(tests, "sb_upgrade_supplies_blocks", ServerScenarios::sb_upgrade_supplies_blocks);
+            add(tests, "sb_disabled_upgrade_ignored", ServerScenarios::sb_disabled_upgrade_ignored);
+            add(tests, "sb_tier_cap", ServerScenarios::sb_tier_cap);
+            add(tests, "sb_tool_swapper_tools", ServerScenarios::sb_tool_swapper_tools);
+            add(tests, "sb_worn_backpack_chest", ServerScenarios::sb_worn_backpack_chest);
+            add(tests, "sb_worn_backpack", ServerScenarios::sb_worn_backpack);
         }
+        return tests;
+    }
 
-        @Override
-        public void onTestSuccess(GameTestInfo info) {
-            log.onTestSuccess(info);
-            if (!isScenario(info)) {
-                SmokeTest.LOGGER.info("Game test {} of another mod passed (not a smoke check)", info.getTestName());
-                return;
-            }
-            String check = checkName(info);
-            String skipReason = ServerScenarios.SKIPPED.get(check);
-            if (skipReason != null) {
-                SmokeReport.get().skip(check, skipReason);
-            } else {
-                SmokeReport.get().pass(check, ServerScenarios.DETAILS.getOrDefault(check, "passed"));
-            }
+    private static void add(List<ServerTestRunner.TestFunction> tests, String name, Consumer<ServerTestHelper> body) {
+        tests.add(new ServerTestRunner.TestFunction(name, ServerScenarios.TIMEOUT_TICKS, true, body));
+    }
+
+    /** "sb_tier_cap" becomes the check "sb.tier_cap". */
+    static String checkName(String testName) {
+        int separator = testName.indexOf('_');
+        return separator < 0 ? testName : testName.substring(0, separator) + "." + testName.substring(separator + 1);
+    }
+
+    private static void report(ServerTestRunner.Result result) {
+        String check = checkName(result.name());
+        if (!result.passed()) {
+            SmokeReport.get().fail(check, result.message());
+            return;
         }
-
-        @Override
-        public void finish() {
-            log.finish();
-            ModErrorLogCapture.report("server.no_mod_errors");
-            SmokeReport.get().finish();
+        String skipReason = ServerScenarios.SKIPPED.get(check);
+        if (skipReason != null) {
+            SmokeReport.get().skip(check, skipReason);
+        } else {
+            SmokeReport.get().pass(check, ServerScenarios.DETAILS.getOrDefault(check, "passed"));
         }
     }
 }

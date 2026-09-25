@@ -1,10 +1,7 @@
 package sophisticated.building.gametest;
 
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -15,16 +12,18 @@ import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.SlabType;
 import sophisticated.building.SophisticatedBuilding;
+import sophisticated.building.smoketest.servertest.ServerTest;
+import sophisticated.building.smoketest.servertest.ServerTestHelper;
 
 import static sophisticated.building.gametest.GameTestSupport.*;
 
 /** Survival placement onto the same block: only a vanilla-style one-step merge is placed, for one item. */
-public class MergeGameTest implements FabricGameTest {
+public class MergeGameTest {
 
     private static final BlockPos REL = new BlockPos(3, 1, 3);
 
-    @GameTest(template = EMPTY_STRUCTURE)
-    public void slabMergesToDouble(GameTestHelper helper) {
+    @ServerTest
+    public void slabMergesToDouble(ServerTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
         try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
             player.inventory.setItem(0, new ItemStack(Items.OAK_SLAB, 3));
@@ -42,8 +41,8 @@ public class MergeGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = EMPTY_STRUCTURE)
-    public void stairsOtherFacingUnchanged(GameTestHelper helper) {
+    @ServerTest
+    public void stairsOtherFacingUnchanged(ServerTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
         try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
             player.inventory.setItem(0, new ItemStack(Items.OAK_STAIRS, 3));

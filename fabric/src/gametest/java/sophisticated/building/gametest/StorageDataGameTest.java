@@ -1,10 +1,7 @@
 package sophisticated.building.gametest;
 
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,11 +13,13 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity;
 import sophisticated.building.SophisticatedBuilding;
+import sophisticated.building.smoketest.servertest.ServerTest;
+import sophisticated.building.smoketest.servertest.ServerTestHelper;
 
 import static sophisticated.building.gametest.GameTestSupport.*;
 
 /** #4: storage blocks placed with build modes keep the contents and name of the inventory stack. */
-public class StorageDataGameTest implements FabricGameTest {
+public class StorageDataGameTest {
 
     private static final String NAME = "Build Loot";
 
@@ -29,8 +28,8 @@ public class StorageDataGameTest implements FabricGameTest {
         stack.setHoverName(new TextComponent(NAME));
         CompoundTag contents = new CompoundTag();
         ContainerHelper.saveAllItems(contents, NonNullList.of(ItemStack.EMPTY, new ItemStack(Items.DIAMOND, 7)));
-        // Minecraft 1.17.1 has no BlockItem.setBlockEntityData: the same "BlockEntityTag" it would write
-        stack.addTagElement(BlockItem.BLOCK_ENTITY_TAG, contents);
+        // Minecraft 1.16.5 has no BlockItem.setBlockEntityData: the same "BlockEntityTag" it would write
+        stack.addTagElement("BlockEntityTag", contents);
         return stack;
     }
 
@@ -40,15 +39,15 @@ public class StorageDataGameTest implements FabricGameTest {
                 && box.getCustomName() != null && NAME.equals(box.getCustomName().getString());
     }
 
-    private static void expectLoot(GameTestHelper helper, BlockPos rel) {
+    private static void expectLoot(ServerTestHelper helper, BlockPos rel) {
         helper.assertBlockPresent(Blocks.SHULKER_BOX, rel);
         ShulkerBoxBlockEntity box = (ShulkerBoxBlockEntity) helper.getBlockEntity(rel);
         assertTrue(hasLoot(box), "Placed shulker box should have 7 diamonds and the name '" + NAME
                 + "', has " + box.getItem(0) + " named " + box.getCustomName());
     }
 
-    @GameTest(template = EMPTY_STRUCTURE)
-    public void survivalKeepsContentsAndName(GameTestHelper helper) {
+    @ServerTest
+    public void survivalKeepsContentsAndName(ServerTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
         try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
             player.inventory.setItem(0, namedShulker());
@@ -67,8 +66,8 @@ public class StorageDataGameTest implements FabricGameTest {
     }
 
     //A plain stack in hand and a stack with data elsewhere: two placements use one of each, both are consumed once
-    @GameTest(template = EMPTY_STRUCTURE)
-    public void survivalPlainAndNamedStacksBothConsumedOnce(GameTestHelper helper) {
+    @ServerTest
+    public void survivalPlainAndNamedStacksBothConsumedOnce(ServerTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
         try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
             player.inventory.setItem(0, new ItemStack(Items.SHULKER_BOX));
@@ -95,8 +94,8 @@ public class StorageDataGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = EMPTY_STRUCTURE)
-    public void creativeCopiesDataAndKeepsStack(GameTestHelper helper) {
+    @ServerTest
+    public void creativeCopiesDataAndKeepsStack(ServerTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.CREATIVE);
         try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
             player.inventory.setItem(0, namedShulker());
@@ -107,7 +106,7 @@ public class StorageDataGameTest implements FabricGameTest {
 
             expectLoot(helper, rel);
             ItemStack held = player.getMainHandItem();
-            assertTrue((held.getItem() == Items.SHULKER_BOX) && held.getCount() == 1 && ItemStack.isSameItemSameTags(held, namedShulker()),
+            assertTrue((held.getItem() == Items.SHULKER_BOX) && held.getCount() == 1 && ItemStack.matches(held, namedShulker()),
                     "The creative player's stack should be kept unchanged, main hand has " + held);
         } finally {
             removePlayer(player);

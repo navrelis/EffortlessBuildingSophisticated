@@ -10,6 +10,7 @@ import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerPlayerGameMode;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.level.GameType;
 
@@ -29,7 +30,7 @@ public final class VanillaFakePlayers {
     public static ServerPlayer create(ServerLevel level, GameType gameType) {
         MinecraftServer server = level.getServer();
         GameProfile profile = new GameProfile(UUID.randomUUID(), "sb-smoketest");
-        ServerPlayer player = new ServerPlayer(server, level, profile);
+        ServerPlayer player = new ServerPlayer(server, level, profile, new ServerPlayerGameMode(level));
         Connection connection = new Connection(PacketFlow.SERVERBOUND);
         new EmbeddedChannel(connection);
         player.connection = new ServerGamePacketListenerImpl(server, connection, player) {

@@ -1,9 +1,6 @@
 package sophisticated.building.gametest;
 
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -11,6 +8,8 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import sophisticated.building.ServerConfig;
 import sophisticated.building.SophisticatedBuilding;
+import sophisticated.building.smoketest.servertest.ServerTest;
+import sophisticated.building.smoketest.servertest.ServerTestHelper;
 
 import static sophisticated.building.gametest.GameTestSupport.*;
 
@@ -19,25 +18,25 @@ import static sophisticated.building.gametest.GameTestSupport.*;
  * Survival mining never uses the empty hand for a block with hardness > 0 (ToolSelector.select returns -2 without a
  * tool candidate), so stone without a pickaxe, like bedrock, is skipped with nothing mined or consumed.
  */
-public class SurvivalReplaceGameTest implements FabricGameTest {
+public class SurvivalReplaceGameTest {
 
     private static final BlockPos REL = new BlockPos(3, 1, 3);
     private static final int PICKAXE_SLOT = 4;
 
     //Survival player with 4 dirt in hand and, optionally, an iron pickaxe in another hotbar slot
-    private static ServerPlayer builder(GameTestHelper helper, boolean withPickaxe) {
+    private static ServerPlayer builder(ServerTestHelper helper, boolean withPickaxe) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
         player.inventory.setItem(0, new ItemStack(Items.DIRT, 4));
         if (withPickaxe) player.inventory.setItem(PICKAXE_SLOT, new ItemStack(Items.IRON_PICKAXE));
         return player;
     }
 
-    private static void applyDirt(GameTestHelper helper, ServerPlayer player) {
+    private static void applyDirt(ServerTestHelper helper, ServerPlayer player) {
         SophisticatedBuilding.SERVER_BLOCK_PLACER.applyBlockSet(player,
                 set(place(helper.absolutePos(REL), Blocks.DIRT.defaultBlockState())));
     }
 
-    private static void expectNothingUsed(GameTestHelper helper, ServerPlayer player, boolean withPickaxe) {
+    private static void expectNothingUsed(ServerTestHelper helper, ServerPlayer player, boolean withPickaxe) {
         expectEquals(helper, "dirt left", 4, count(player, Items.DIRT));
         expectEquals(helper, "cobblestone received", 0, count(player, Items.COBBLESTONE));
         if (withPickaxe) {
@@ -45,8 +44,8 @@ public class SurvivalReplaceGameTest implements FabricGameTest {
         }
     }
 
-    @GameTest(template = EMPTY_STRUCTURE)
-    public void offRejectsOverwrite(GameTestHelper helper) {
+    @ServerTest
+    public void offRejectsOverwrite(ServerTestHelper helper) {
         ServerPlayer player = builder(helper, true);
         try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
             fabricValue(ServerConfig.survivalReplace.enabled).set(false);
@@ -62,8 +61,8 @@ public class SurvivalReplaceGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = EMPTY_STRUCTURE)
-    public void onMinesWithPickaxe(GameTestHelper helper) {
+    @ServerTest
+    public void onMinesWithPickaxe(ServerTestHelper helper) {
         ServerPlayer player = builder(helper, true);
         try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
             fabricValue(ServerConfig.survivalReplace.enabled).set(true);
@@ -83,8 +82,8 @@ public class SurvivalReplaceGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = EMPTY_STRUCTURE)
-    public void onSkipsBedrock(GameTestHelper helper) {
+    @ServerTest
+    public void onSkipsBedrock(ServerTestHelper helper) {
         ServerPlayer player = builder(helper, true);
         try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
             fabricValue(ServerConfig.survivalReplace.enabled).set(true);
@@ -100,8 +99,8 @@ public class SurvivalReplaceGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = EMPTY_STRUCTURE)
-    public void onSkipsStoneWithoutPickaxe(GameTestHelper helper) {
+    @ServerTest
+    public void onSkipsStoneWithoutPickaxe(ServerTestHelper helper) {
         ServerPlayer player = builder(helper, false);
         try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
             fabricValue(ServerConfig.survivalReplace.enabled).set(true);
@@ -118,8 +117,8 @@ public class SurvivalReplaceGameTest implements FabricGameTest {
     }
 
     //The real network path: placeBlocksDelayed waits for the mining time (iron pickaxe on stone: 8 ticks), then tick() applies
-    @GameTest(template = EMPTY_STRUCTURE, batch = "survival_replace_delayed", timeoutTicks = 200)
-    public void onDelayedWaitsForMining(GameTestHelper helper) {
+    @ServerTest(batch = "survival_replace_delayed", timeoutTicks = 200)
+    public void onDelayedWaitsForMining(ServerTestHelper helper) {
         ServerPlayer player = builder(helper, true);
         GameTestSupport.ConfigScope config = ConfigScope.baseline();
         fabricValue(ServerConfig.survivalReplace.enabled).set(true);

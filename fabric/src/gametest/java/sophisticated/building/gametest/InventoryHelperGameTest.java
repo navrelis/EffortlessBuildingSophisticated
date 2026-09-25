@@ -1,24 +1,23 @@
 package sophisticated.building.gametest;
 
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
+import sophisticated.building.smoketest.servertest.ServerTest;
+import sophisticated.building.smoketest.servertest.ServerTestHelper;
 import sophisticated.building.utilities.InventoryHelper;
 
 import static sophisticated.building.gametest.GameTestSupport.*;
 
 /** #2: the single-item removal overload must shrink the existing stack, not drop its data (custom name...). */
-public class InventoryHelperGameTest implements FabricGameTest {
+public class InventoryHelperGameTest {
 
     private static final String NAME = "Keepsake Stone";
 
-    @GameTest(template = EMPTY_STRUCTURE)
-    public void removeFromInventoryKeepsStackData(GameTestHelper helper) {
+    @ServerTest
+    public void removeFromInventoryKeepsStackData(ServerTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
         try {
             ItemStack named = new ItemStack(Items.STONE, 10);

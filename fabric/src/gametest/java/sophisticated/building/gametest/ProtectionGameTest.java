@@ -1,9 +1,6 @@
 package sophisticated.building.gametest;
 
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -11,6 +8,8 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.border.WorldBorder;
 import sophisticated.building.SophisticatedBuilding;
+import sophisticated.building.smoketest.servertest.ServerTest;
+import sophisticated.building.smoketest.servertest.ServerTestHelper;
 
 import static sophisticated.building.gametest.GameTestSupport.*;
 
@@ -19,14 +18,14 @@ import static sophisticated.building.gametest.GameTestSupport.*;
  * server (GameTestServer) never reports spawn protection (MinecraftServer.isUnderSpawnProtection returns false and
  * only DedicatedServer overrides it), so the world border stands in for Level.mayInteract.
  */
-public class ProtectionGameTest implements FabricGameTest {
+public class ProtectionGameTest {
 
     private static final BlockPos INSIDE = new BlockPos(1, 1, 1);
     private static final BlockPos OUTSIDE = new BlockPos(6, 1, 6);
 
     //Own batch: the world border is global, so no other test may run while it is shrunk
-    @GameTest(template = EMPTY_STRUCTURE, batch = "world_border")
-    public void worldBorderSkipsOutside(GameTestHelper helper) {
+    @ServerTest(batch = "world_border")
+    public void worldBorderSkipsOutside(ServerTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
         WorldBorder border = helper.getLevel().getWorldBorder();
         double centerX = border.getCenterX();
@@ -57,8 +56,8 @@ public class ProtectionGameTest implements FabricGameTest {
     }
 
     //Adventure players may not build (Abilities.mayBuild is false), so the whole set is rejected
-    @GameTest(template = EMPTY_STRUCTURE)
-    public void adventureModeRejected(GameTestHelper helper) {
+    @ServerTest
+    public void adventureModeRejected(ServerTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.ADVENTURE);
         try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
             player.inventory.setItem(0, new ItemStack(Items.STONE, 2));

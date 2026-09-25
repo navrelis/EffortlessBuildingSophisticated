@@ -105,7 +105,7 @@ loom {
             vmArg "-Dsophisticatedbuilding.smoketest.out=${smoketestOutDir('client')}"
         }
         // Headless: a dedicated server on a fresh superflat world runs the server scenarios (Minecraft 1.16.3 has no
-        // game test framework, see SmokeServerRunner) and writes the same JSON. gradlew runSmokeServer -PsmoketestOut=<dir>
+        // game test framework, see ServerTestRunner) and writes the same JSON. gradlew runSmokeServer -PsmoketestOut=<dir>
         smokeServer {
             server()
             configName = 'Smoke Test Server'

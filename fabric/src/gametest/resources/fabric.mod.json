@@ -7,7 +7,10 @@
   "license": "LGPL-3.0-only",
   "environment": "*",
   "entrypoints": {
-    "fabric-gametest": [
+    "main": [
+      "sophisticated.building.gametest.FabricServerTests"
+    ],
+    "sophisticatedbuilding-servertest": [
       "sophisticated.building.gametest.StorageDataGameTest",
       "sophisticated.building.gametest.SurvivalReplaceGameTest",
       "sophisticated.building.gametest.MergeGameTest",
@@ -19,6 +22,6 @@
   },
   "depends": {
     "sophisticatedbuilding": "*",
-    "fabric-gametest-api-v1": "*"
+    "fabric": "*"
   }
 }

@@ -30,12 +30,6 @@ sourceSets {
     test {
         java.srcDir "${commonDir}/src/test/java"
     }
-    // In-world tests of the server-side building rules (Fabric GameTest). Own fabric.mod.json with a
-    // "fabric-gametest" entrypoint; only loaded by the gametest run, never packaged into the mod jar.
-    gametest {
-        compileClasspath += main.compileClasspath + main.output
-        runtimeClasspath += main.runtimeClasspath + main.output
-    }
     // In-game smoke test harness (runSmokeClient / runSmokeServer, see TESTING.md): loader-neutral scenarios from
     // ../common/src/smoketest and the Fabric glue from src/smoketest. No Sophisticated Backpacks on Fabric 1.17.1, so no
     // backpack fixture (../common/src/smoketestBackpacks) and no Trinkets. Own fabric.mod.json (mod
@@ -45,6 +39,13 @@ sourceSets {
         resources.srcDir "${commonDir}/src/smoketest/resources"
         compileClasspath += main.compileClasspath + main.output
         runtimeClasspath += main.runtimeClasspath + main.output
+    }
+    // In-world tests of the server-side building rules. Fabric API 0.42 for 1.16.5 has no game test API, so they are
+    // server tests run by the smoke harness' ServerTestRunner (../common/src/smoketest). Own fabric.mod.json listing the
+    // test classes; only loaded by the gametest run, never packaged into the mod jar.
+    gametest {
+        compileClasspath += main.compileClasspath + main.output + smoketest.output
+        runtimeClasspath += main.runtimeClasspath + main.output + smoketest.output
     }
     // Empty source set of the clientExported run: Minecraft and Fabric Loader only, so every mod (this one included)
     // comes from run-exported/mods. This project and its remapped mod dependencies (resolved lazily,
@@ -71,6 +72,9 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
+
+// Written by the gametest run (FabricServerTests), checked by runGametest
+def gametestReport = project.layout.buildDirectory.file('gametest/junit.xml').get().asFile
 
 loom {
     // Keep the dev Minecraft jar free of the interfaces other mods inject (Fabric API): the code
@@ -99,13 +103,12 @@ loom {
             runDir 'run-exported'
             source sourceSets.exportedStub
         }
-        // Headless game test server: runs every @GameTest of src/gametest, writes a JUnit report and
-        // exits non-zero if a required test fails. Run with: gradlew runGametest (not part of build).
+        // Headless dedicated server on a fresh superflat world that runs every @ServerTest of src/gametest, writes a
+        // JUnit report and stops; the task fails unless every test passed. Run with: gradlew runGametest (not part of build).
         gametest {
             server()
             configName = 'Game Test'
-            vmArg '-Dfabric-api.gametest'
-            vmArg "-Dfabric-api.gametest.report-file=${project.layout.buildDirectory.file('gametest/junit.xml').get().asFile}"
+            vmArg "-Dsophisticatedbuilding.gametest.report=${gametestReport}"
             runDir 'build/gametest'
             source sourceSets.gametest
         }
@@ -119,14 +122,14 @@ loom {
             vmArg '-Dsophisticatedbuilding.smoketest.mode=client'
             vmArg "-Dsophisticatedbuilding.smoketest.out=${smoketestOutDir('client')}"
         }
-        // Headless: a game test server runs the server scenarios (fake survival players) and writes the same JSON.
+        // Headless: a dedicated server on a fresh superflat world runs the server scenarios (fake survival players,
+        // Minecraft 1.16.5 has no game test framework, see ServerTestRunner) and writes the same JSON.
         // gradlew runSmokeServer -PsmoketestOut=<dir>
         smokeServer {
             server()
             configName = 'Smoke Test Server'
             runDir 'build/smoketest/server-run'
             source sourceSets.smoketest
-            vmArg '-Dfabric-api.gametest'
             vmArg '-Dsophisticatedbuilding.smoketest.mode=server'
             vmArg "-Dsophisticatedbuilding.smoketest.out=${smoketestOutDir('server')}"
         }
@@ -136,6 +139,42 @@ loom {
 // The smoke runs pass or fail on the result file they write (shared logic in ../gradle/smoketest.gradle)
 tasks.named('runSmokeClient') { verifySmokeRun(it, smoketestOutDir('client')) }
 tasks.named('runSmokeServer') { verifySmokeRun(it, smoketestOutDir('server')) }
+
+// runSmokeServer and runGametest start plain dedicated servers: every run starts on a fresh superflat world (level type
+// without namespace, the default layers: bedrock, 2 dirt, grass) on its own port (other dev servers may run at the same
+// time), with the EULA of these dev-only servers accepted.
+def prepareTestServer = { File dir, int port ->
+    new File(dir, 'world').deleteDir()
+    dir.mkdirs()
+    new File(dir, 'server.properties').text = 'level-type=flat\n' + "server-port=${port}\n"
+    new File(dir, 'eula.txt').text = 'eula=true\n'
+}
+def smokeServerDir = file('build/smoketest/server-run')
+tasks.named('runSmokeServer') {
+    doFirst { prepareTestServer(smokeServerDir, 25732) }
+}
+def gametestDir = file('build/gametest')
+tasks.named('runGametest') {
+    // The server stops itself after the last test; the watchdog of a hanging run
+    timeout = java.time.Duration.ofMinutes(15)
+    doFirst {
+        gametestReport.delete()
+        prepareTestServer(gametestDir, 25733)
+    }
+    doLast {
+        if (!gametestReport.file) {
+            throw new GradleException("The server tests wrote no report (${gametestReport}): the server did not start or crashed, see its log")
+        }
+        def suite = new groovy.xml.XmlSlurper().parse(gametestReport)
+        int total = suite.@tests.toInteger()
+        int failures = suite.@failures.toInteger()
+        suite.testcase.each { tc -> logger.lifecycle("  ${tc.failure.size() ? 'FAIL' : 'PASS'} ${tc.@name}${tc.failure.size() ? ': ' + tc.failure.@message : ''}") }
+        if (total == 0 || failures > 0) {
+            throw new GradleException("${failures} of ${total} server tests failed (see ${gametestReport})")
+        }
+        logger.lifecycle("All ${total} required tests passed")
+    }
+}
 
 processResources {
     var expandProps = [
