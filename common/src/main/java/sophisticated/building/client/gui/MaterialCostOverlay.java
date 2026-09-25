@@ -8,10 +8,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import sophisticated.building.SophisticatedBuildingClient;
 import sophisticated.building.buildmode.BuildModeEnum;
-import sophisticated.building.utilities.BlockEntry;
+import sophisticated.building.utilities.MaterialCost;
 import sophisticated.building.utilities.BlockSet;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class MaterialCostOverlay implements LayeredDraw.Layer {
@@ -27,20 +26,8 @@ public class MaterialCostOverlay implements LayeredDraw.Layer {
         BlockSet blocks = SophisticatedBuildingClient.BUILDER_CHAIN.getBlocks();
         if (blocks == null || blocks.isEmpty()) return;
 
-        // Calculate material costs
-        Map<Item, Integer> costs = new HashMap<>();
-        int totalBlocks = 0;
-
-        for (BlockEntry entry : blocks) {
-            if (entry.newBlockState != null && !entry.newBlockState.isAir()) {
-                Item item = entry.newBlockState.getBlock().asItem();
-                if (item != null) {
-                    costs.merge(item, 1, Integer::sum);
-                    totalBlocks++;
-                }
-            }
-        }
-
+        // Calculate material costs (what the server charges: all items of a state, a merge only the added one)
+        Map<Item, Integer> costs = MaterialCost.tally(blocks);
         if (costs.isEmpty()) return;
 
         // Render HUD

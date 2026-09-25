@@ -93,15 +93,9 @@ public class RenderHandler {
 		drawRandomizerBagHUD(guiGraphics);
 	}
 
-	private static final ChatFormatting highlightColor = ChatFormatting.DARK_AQUA;
-	private static final ChatFormatting normalColor = ChatFormatting.WHITE;
-	private static final Component placingText = Component.literal(
-			normalColor + "Left-click to " + highlightColor + "cancel, " +
-			normalColor + "Right-click to " + highlightColor + "place");
+	private static final Component placingText = Component.translatable("sophisticatedbuilding.hud.placing_hint");
 
-	private static final Component breakingText = Component.literal(
-			normalColor + "Left-click to " + highlightColor + "break, " +
-			normalColor + "Right-click to " + highlightColor + "cancel");
+	private static final Component breakingText = Component.translatable("sophisticatedbuilding.hud.breaking_hint");
 
 	private static void renderSubText(GuiGraphics guiGraphics) {
 		var state = SophisticatedBuildingClient.BUILDER_CHAIN.getBuildingState();

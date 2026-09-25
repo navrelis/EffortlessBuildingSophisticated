@@ -398,7 +398,7 @@ public class RadialMenu extends Screen {
 		guiGraphics.drawString(font, credits, width - font.width(credits) - 4, height - 10, watermarkTextColor);
 
 		//Draw power level info
-		String powerLevelValue = minecraft.player.isCreative() ? "Creative" : String.valueOf(AttachmentHandler.getPowerLevel(minecraft.player));
+		String powerLevelValue = minecraft.player.isCreative() ? I18n.get("sophisticatedbuilding.gui.power_level.creative") : String.valueOf(AttachmentHandler.getPowerLevel(minecraft.player));
 		String powerLevelText = I18n.get("key.sophisticatedbuilding.power_level") + ": " + powerLevelValue;
 		guiGraphics.drawString(font, powerLevelText, width - font.width(powerLevelText) - 4, height - 22, minecraft.player.isCreative() ? watermarkTextColor : ChatFormatting.DARK_PURPLE.getColor());
 
@@ -407,18 +407,18 @@ public class RadialMenu extends Screen {
 			var tooltip = new ArrayList<Component>();
 			tooltip.add(Components.literal(powerLevelText).withStyle(ChatFormatting.DARK_PURPLE));
 			int placementReach = AttachmentHandler.getPlacementReach(minecraft.player, false);
-			tooltip.add(Components.translatable("key.sophisticatedbuilding.placement_reach").withStyle(ChatFormatting.GRAY).append(": " + (placementReach == 0 ? "vanilla" : placementReach + " blocks")));
+			tooltip.add(Components.translatable("key.sophisticatedbuilding.placement_reach").withStyle(ChatFormatting.GRAY).append(": " + (placementReach == 0 ? I18n.get("sophisticatedbuilding.gui.power_level.vanilla_reach") : I18n.get("sophisticatedbuilding.gui.blocks", placementReach))));
 			tooltip.add(Components.translatable("key.sophisticatedbuilding.max_blocks_per_axis").withStyle(ChatFormatting.GRAY).append(": " + AttachmentHandler.getMaxBlocksPerAxis(minecraft.player, false)));
 			tooltip.add(Components.translatable("key.sophisticatedbuilding.max_blocks_placed_at_once").withStyle(ChatFormatting.GRAY).append(": " + AttachmentHandler.getMaxBlocksPlacedAtOnce(minecraft.player, false)));
-			tooltip.add(Components.translatable("key.sophisticatedbuilding.max_mirror_radius").withStyle(ChatFormatting.GRAY).append(": " + AttachmentHandler.getMaxMirrorRadius(minecraft.player, false) + " blocks"));
+			tooltip.add(Components.translatable("key.sophisticatedbuilding.max_mirror_radius").withStyle(ChatFormatting.GRAY).append(": " + I18n.get("sophisticatedbuilding.gui.blocks", AttachmentHandler.getMaxMirrorRadius(minecraft.player, false))));
 
 			if (AttachmentHandler.canIncreasePowerLevel(minecraft.player) && !minecraft.player.isCreative()) {
 				tooltip.add(Components.literal(""));
 				tooltip.add(Components.translatable("key.sophisticatedbuilding.next_power_level").withStyle(ChatFormatting.DARK_AQUA).append(": " + AttachmentHandler.getNextPowerLevel(minecraft.player)));
-				tooltip.add(Components.translatable("key.sophisticatedbuilding.placement_reach").withStyle(ChatFormatting.GRAY).append(": " + AttachmentHandler.getPlacementReach(minecraft.player, true) + " blocks"));
+				tooltip.add(Components.translatable("key.sophisticatedbuilding.placement_reach").withStyle(ChatFormatting.GRAY).append(": " + I18n.get("sophisticatedbuilding.gui.blocks", AttachmentHandler.getPlacementReach(minecraft.player, true))));
 				tooltip.add(Components.translatable("key.sophisticatedbuilding.max_blocks_per_axis").withStyle(ChatFormatting.GRAY).append(": " + AttachmentHandler.getMaxBlocksPerAxis(minecraft.player, true)));
 				tooltip.add(Components.translatable("key.sophisticatedbuilding.max_blocks_placed_at_once").withStyle(ChatFormatting.GRAY).append(": " + AttachmentHandler.getMaxBlocksPlacedAtOnce(minecraft.player, true)));
-				tooltip.add(Components.translatable("key.sophisticatedbuilding.max_mirror_radius").withStyle(ChatFormatting.GRAY).append(": " + AttachmentHandler.getMaxMirrorRadius(minecraft.player, true) + " blocks"));
+				tooltip.add(Components.translatable("key.sophisticatedbuilding.max_mirror_radius").withStyle(ChatFormatting.GRAY).append(": " + I18n.get("sophisticatedbuilding.gui.blocks", AttachmentHandler.getMaxMirrorRadius(minecraft.player, true))));
 				tooltip.add(Components.literal(""));
 				tooltip.addAll(TooltipHelper.cutTextComponent(Components.translatable("key.sophisticatedbuilding.next_power_level_how"), ChatFormatting.GRAY, ChatFormatting.WHITE));
 			}
