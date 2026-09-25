@@ -64,6 +64,8 @@ NeoForge and Forge). Open it with the new button in the radial menu (above Modif
   the bag's own name, so a renamed bag shows its new name.
 * The radial menu's *Mini Block Preview* toggle is now saved: it changes the `showMiniBlockPreview` client setting
   (previously a setting changed in the config file was only read at start-up and the toggle was forgotten on restart).
+* The Terrain Mound options in the radial menu (Natural Variation and Terrain Shape) had blank buttons; they now have
+  icons, and the active variation and shape are highlighted like the other options.
 * Very long numbers in the modifier settings fields (e.g. coordinates far from spawn) are drawn smaller instead of
   past the field's edges.
 

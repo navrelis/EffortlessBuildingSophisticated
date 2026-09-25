@@ -102,6 +102,7 @@ final class ClientScenarios {
         check("client.randomizer_bag_screens", gui::randomizerBagScreens);
         check("client.player_settings_gui", gui::playerSettingsGui);
         check("client.modifier_entry_widgets", gui::modifierEntryWidgets);
+        check("client.radial_option_icons", gui::radialOptionIcons);
 
         runBackpackScenarios();
     }

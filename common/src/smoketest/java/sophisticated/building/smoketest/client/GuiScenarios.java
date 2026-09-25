@@ -3,6 +3,7 @@ package sophisticated.building.smoketest.client;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
@@ -22,10 +23,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.HitResult;
 import org.lwjgl.glfw.GLFW;
+import sophisticated.building.AllIcons;
 import sophisticated.building.ClientConfig;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.SophisticatedBuildingClient;
+import sophisticated.building.buildmode.BuildModeEnum;
 import sophisticated.building.buildmode.ModeOptions;
 import sophisticated.building.buildmodifier.Array;
 import sophisticated.building.buildmodifier.BaseModifier;
@@ -40,6 +43,7 @@ import sophisticated.building.gui.RandomizerBagScreen;
 import sophisticated.building.gui.SliderValues;
 import sophisticated.building.gui.TitleFit;
 import sophisticated.building.gui.buildmode.PlayerSettingsGui;
+import sophisticated.building.gui.buildmode.RadialMenu;
 import sophisticated.building.gui.buildmodifier.BaseModifierEntry;
 import sophisticated.building.gui.buildmodifier.ModifiersScreen;
 import sophisticated.building.gui.buildmodifier.ModifiersScreenList;
@@ -52,6 +56,7 @@ import sophisticated.building.smoketest.backpack.SmokeBackpackScreens;
 import sophisticated.building.smoketest.backpack.SmokeBackpacks;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -253,6 +258,80 @@ final class GuiScenarios {
         }
         d.waitUntil("the bag menu's contents to arrive", 40, () -> menu().containerId != 0 && !menu().getSlot(inventorySlotIndex(menu(), 0)).getItem().isEmpty());
         d.waitTicks(2);
+    }
+
+    //endregion
+
+    //region Radial menu icons
+
+    /**
+     * Every icon the radial menu draws (build modes and every action/option button) has pixels in the icon atlas, and
+     * the Terrain Mound options (noise and terrain type, the last atlas cells to be drawn) show in the menu: Terrain
+     * Mound selected in the radial menu, the menu reopened, its option buttons hovered (screenshot), the active type
+     * clicked again and the previous build mode restored.
+     */
+    String radialOptionIcons() {
+        String atlas = d.client(() -> {
+            List<String> empty = new ArrayList<>();
+            int drawn = 0;
+            try (InputStream in = d.mc.getResourceManager().open(AllIcons.ICON_ATLAS); NativeImage image = NativeImage.read(in)) {
+                for (BuildModeEnum mode : BuildModeEnum.values()) {
+                    if (iconPixels(image, mode.icon) == 0) empty.add("mode " + mode); else drawn++;
+                }
+                for (ModeOptions.ActionEnum action : ModeOptions.ActionEnum.values()) {
+                    if (iconPixels(image, action.icon) == 0) empty.add("action " + action); else drawn++;
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Could not read the icon atlas " + AllIcons.ICON_ATLAS, e);
+            }
+            if (!empty.isEmpty()) throw new AssertionError("Radial menu icons with an empty atlas cell: " + empty);
+            return drawn + " icons (" + BuildModeEnum.values().length + " modes, " + ModeOptions.ActionEnum.values().length + " actions) have pixels";
+        });
+
+        BuildModeEnum before = d.client(SophisticatedBuildingClient.BUILD_MODES::getBuildMode);
+        ModeOptions.ActionEnum typeBefore = d.client(ModeOptions::getTerrainType);
+        radial.select(BuildModeEnum.TERRAIN_MOUND);
+        try {
+            radial.open();
+            int typeRow = optionRow(BuildModeEnum.TERRAIN_MOUND, ModeOptions.OptionEnum.TERRAIN_TYPE);
+            int noiseRow = optionRow(BuildModeEnum.TERRAIN_MOUND, ModeOptions.OptionEnum.TERRAIN_NOISE);
+            radial.hoverOptionButton(ModeOptions.ActionEnum.TERRAIN_NOISE_ON, noiseRow, 1);
+            List<ModeOptions.ActionEnum> types = List.of(ModeOptions.OptionEnum.TERRAIN_TYPE.actions);
+            for (ModeOptions.ActionEnum type : types) {
+                radial.hoverOptionButton(type, typeRow, types.indexOf(type));
+            }
+            radial.hoverNothing();
+            d.screenshot("radial_terrain_options");
+            radial.hoverOptionButton(ModeOptions.ActionEnum.TERRAIN_MOUNTAIN, typeRow, types.indexOf(ModeOptions.ActionEnum.TERRAIN_MOUNTAIN));
+            d.screenshot("radial_terrain_mountain");
+            // Click the type that was active, so the option stays as it was
+            radial.hoverOptionButton(typeBefore, typeRow, types.indexOf(typeBefore));
+            radial.clickAndRelease();
+        } finally {
+            if (d.client(() -> d.mc.screen instanceof RadialMenu)) radial.clickAndRelease();
+            radial.select(before);
+        }
+        return atlas + "; Terrain Mound shows its noise and terrain type option buttons (all 7 hovered in the radial menu),"
+                + " build mode restored to " + before;
+    }
+
+    private static int optionRow(BuildModeEnum mode, ModeOptions.OptionEnum option) {
+        int row = List.of(mode.options).indexOf(option);
+        if (row < 0) throw new AssertionError(mode + " has no " + option + " option");
+        return row;
+    }
+
+    /** Non-transparent pixels of an icon's 16x16 atlas cell (the cell position is private to AllIcons). */
+    private static int iconPixels(NativeImage atlas, AllIcons icon) {
+        int x0 = widget(icon, "iconX", Integer.class);
+        int y0 = widget(icon, "iconY", Integer.class);
+        int count = 0;
+        for (int y = y0; y < y0 + 16; y++) {
+            for (int x = x0; x < x0 + 16; x++) {
+                if ((atlas.getPixelRGBA(x, y) >>> 24) != 0) count++;
+            }
+        }
+        return count;
     }
 
     //endregion
