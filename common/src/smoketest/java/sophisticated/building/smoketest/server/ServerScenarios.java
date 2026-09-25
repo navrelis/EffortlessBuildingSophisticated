@@ -176,6 +176,12 @@ public final class ServerScenarios {
 
     public static void sb_tool_swapper_tools(ServerTestHelper helper) {
         SmokeBackpacks backpacks = backpacks(helper);
+        String noToolSwapper = backpacks.whyNoToolSwapper();
+        if (noToolSwapper != null) {
+            SKIPPED.put("sb.tool_swapper_tools", noToolSwapper);
+            helper.succeed();
+            return;
+        }
         ServerPlayer player = player(helper);
         player.inventory.setItem(0, new ItemStack(Items.STICK));
         ItemStack backpack = backpacks.createBackpack(0, false, true, Collections.singletonList(new ItemStack(Items.DIAMOND_PICKAXE)));

@@ -37,6 +37,15 @@ public interface SmokeBackpacks {
     /** The first stack of this item inside the backpack, or empty. */
     ItemStack find(ItemStack backpack, Item item);
 
+    /**
+     * Why this Sophisticated Backpacks build has no Tool Swapper upgrade (sb.tool_swapper_tools is then skipped), or null
+     * when it has one.
+     */
+    @Nullable
+    default String whyNoToolSwapper() {
+        return null;
+    }
+
     /** Enables or disables the backpack's Building Upgrade (like its toggle button in the backpack screen). */
     void setBuildingUpgradeEnabled(ItemStack backpack, boolean enabled);
 

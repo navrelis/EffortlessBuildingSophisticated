@@ -63,6 +63,15 @@ repositories {
 // mod* configurations of the smoke source set (Curios in its runtime only)
 loom.createRemapConfigurations(sourceSets.smoketest)
 
+// Forge 34 (the last Forge for Minecraft 1.16.3) ships modlauncher 8.0.6, which cannot load a single class on Java 8u321
+// and later (NoSuchMethodError: sun.security.util.ManifestEntryVerifier.<init>(Manifest)); every Java 8 that Gradle
+// provisions today is newer. modlauncher 8.1.3 (the fix Forge 36.2.26 took for 1.16.5) is API compatible and handles
+// both JDK variants, so the dev runs use it. Players are not affected by this build setting: the Minecraft launcher runs
+// 1.16.3 on its bundled Java 8u51, and a dedicated Forge 1.16.3 server needs a Java 8 older than 8u321 (see README).
+configurations.configureEach {
+    resolutionStrategy.force 'cpw.mods:modlauncher:8.1.3'
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
     mappings loom.officialMojangMappings()

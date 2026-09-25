@@ -472,7 +472,12 @@ final class ClientScenarios {
         check("sb.upgrade_supplies_blocks", () -> upgradeSuppliesBlocks(backpacks, holder));
         check("sb.tier_cap", () -> tierCap(backpacks, holder));
         check("sb.disabled_upgrade_ignored", () -> disabledUpgradeIgnored(backpacks, holder));
-        check("sb.tool_swapper_tools", () -> toolSwapperTools(backpacks));
+        String noToolSwapper = backpacks.whyNoToolSwapper();
+        if (noToolSwapper != null) {
+            report.skip("sb.tool_swapper_tools", noToolSwapper);
+        } else {
+            check("sb.tool_swapper_tools", () -> toolSwapperTools(backpacks));
+        }
         check("sb.worn_backpack_chest", () -> wornBackpack(backpacks, null, lane(7)));
         String accessoryReason = d.server(server -> {
             // Probe the accessory slot with an empty backpack; the scenario equips its own one
