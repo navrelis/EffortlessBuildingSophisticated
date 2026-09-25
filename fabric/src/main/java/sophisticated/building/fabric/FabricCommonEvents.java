@@ -15,7 +15,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
 import sophisticated.building.CommonEvents;
-import sophisticated.building.attachment.AttachmentHandler;
 import sophisticated.building.compatibility.CompatHelper;
 import sophisticated.building.network.message.ServerConfigSyncPacket;
 
@@ -76,12 +75,10 @@ public final class FabricCommonEvents {
             CommonEvents.onPlayerLoggedOut(player);
         });
 
-        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
-            if (AttachmentHandler.hasPowerLevel(oldPlayer)) {
-                AttachmentHandler.setPowerLevel(newPlayer, AttachmentHandler.getOrCreatePowerLevel(oldPlayer));
-            }
-            CommonEvents.onPlayerRespawned(newPlayer);
-        });
+        // Death, respawn and leaving the End build a new player object: it takes over the mod's data (power level,
+        // modifier settings), as NeoForge's Clone event does for the power level
+        ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> FabricPlayerData.copy(oldPlayer, newPlayer));
+        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> CommonEvents.onPlayerRespawned(newPlayer));
 
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) ->
                 CommonEvents.onPlayerChangedDimension(player));

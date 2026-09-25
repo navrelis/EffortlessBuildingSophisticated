@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "function": "sophisticatedbuilding_smoketest:server_request_limits",
+  "environment": "sophisticatedbuilding:smoke_limits",
+  "structure": "sophisticatedbuilding:smoketest_empty",
+  "max_ticks": 400,
+  "required": true
+}

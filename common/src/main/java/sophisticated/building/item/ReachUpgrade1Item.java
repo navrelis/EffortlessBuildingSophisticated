@@ -1,6 +1,5 @@
 package sophisticated.building.item;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -39,7 +38,7 @@ public class ReachUpgrade1Item extends Item {
 				if (!world.isClientSide()) {
 					powerLevel.increasePowerLevel();
 					AttachmentHandler.setPowerLevel(player, powerLevel);
-					SophisticatedBuilding.log(player, "Upgraded power level to " + powerLevel.getPowerLevel());
+					SophisticatedBuilding.log(player, Component.translatable("sophisticatedbuilding.message.power_level_upgraded", powerLevel.getPowerLevel()));
 
 					stack.shrink(1);
 
@@ -50,7 +49,7 @@ public class ReachUpgrade1Item extends Item {
 				return InteractionResult.SUCCESS;
 			} else if (currentLevel > 0) {
 				if (!world.isClientSide() && hand == InteractionHand.MAIN_HAND) {
-					SophisticatedBuilding.log(player, "Already used this upgrade! Current power level is " + powerLevel.getPowerLevel() + ".");
+					SophisticatedBuilding.log(player, Component.translatable("sophisticatedbuilding.message.reach_upgrade_already_used", powerLevel.getPowerLevel()));
 
 					world.playSound((Player) null, player.blockPosition(), SoundEvents.ARMOR_EQUIP_LEATHER.value(), SoundSource.PLAYERS, 1f, 1f);
 				}
@@ -62,7 +61,7 @@ public class ReachUpgrade1Item extends Item {
 
 	@Override
 	public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay tooltipDisplay, Consumer<Component> tooltip, TooltipFlag tooltipFlag) {
-		tooltip.accept(Component.literal(ChatFormatting.GRAY + "Consume to increase reach to " + ChatFormatting.BLUE + CommonConfig.reach.level1.get()));
+		tooltip.accept(Component.translatable("item.sophisticatedbuilding.reach_upgrade.tooltip", CommonConfig.reach.level1.get()));
 	}
 
 }

@@ -50,25 +50,25 @@ public class ModifiersScreen extends AbstractSimiScreen {
 			.withPadding(2, 2)
 			.withCallback(() -> addModifier(new Array()));
 		addArrayButton.showingElement(AllIcons.I_ADD.asStencil().withElementRenderer(BoxWidget.gradientFactory.apply(addArrayButton)));
-		addArrayButton.getToolTip().add(Components.literal("Add Array"));
+		addArrayButton.getToolTip().add(Components.translatable("sophisticatedbuilding.gui.modifier.add_array"));
 		
 		addMirrorButton = new BoxWidget(listR - 60, 10, 20, 20)
 			.withPadding(2, 2)
 			.withCallback(() -> addModifier(new Mirror()));
 		addMirrorButton.showingElement(AllIcons.I_ADD.asStencil().withElementRenderer(BoxWidget.gradientFactory.apply(addMirrorButton)));
-		addMirrorButton.getToolTip().add(Components.literal("Add Mirror"));
+		addMirrorButton.getToolTip().add(Components.translatable("sophisticatedbuilding.gui.modifier.add_mirror"));
 		
 		addRadialMirrorButton = new BoxWidget(listR - 30, 10, 20, 20)
 			.withPadding(2, 2)
 			.withCallback(() -> addModifier(new RadialMirror()));
 		addRadialMirrorButton.showingElement(AllIcons.I_ADD.asStencil().withElementRenderer(BoxWidget.gradientFactory.apply(addRadialMirrorButton)));
-		addRadialMirrorButton.getToolTip().add(Components.literal("Add Radial Mirror"));
+		addRadialMirrorButton.getToolTip().add(Components.translatable("sophisticatedbuilding.gui.modifier.add_radial_mirror"));
 
 		closeButton = new BoxWidget(listL - 30, yCenter - 10, 20, 20)
 			.withPadding(2, 2)
 			.withCallback(this::onClose);
 		closeButton.showingElement(AllIcons.I_CONFIG_BACK.asStencil().withElementRenderer(BoxWidget.gradientFactory.apply(closeButton)));
-		closeButton.getToolTip().add(Components.literal("Close"));
+		closeButton.getToolTip().add(Components.translatable("sophisticatedbuilding.gui.modifier.close"));
 
 		addRenderableWidget(addArrayButton);
 		addRenderableWidget(addMirrorButton);
