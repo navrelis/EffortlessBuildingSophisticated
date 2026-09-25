@@ -268,7 +268,8 @@ final class GuiScenarios {
      * Every icon the radial menu draws (build modes and every action/option button) has pixels in the icon atlas, and
      * the Terrain Mound options (noise and terrain type, the last atlas cells to be drawn) show in the menu: Terrain
      * Mound selected in the radial menu, the menu reopened, its option buttons hovered (screenshot), the active type
-     * clicked again and the previous build mode restored.
+     * clicked again and the previous build mode restored. With the menu open, every build mode's side buttons (actions
+     * and options) lie fully inside the window, clear of the ring, without overlapping each other.
      */
     String radialOptionIcons() {
         String atlas = d.client(() -> {
@@ -290,35 +291,71 @@ final class GuiScenarios {
 
         BuildModeEnum before = d.client(SophisticatedBuildingClient.BUILD_MODES::getBuildMode);
         ModeOptions.ActionEnum typeBefore = d.client(ModeOptions::getTerrainType);
+        String layout = "";
         radial.select(BuildModeEnum.TERRAIN_MOUND);
         try {
             radial.open();
-            int typeRow = optionRow(BuildModeEnum.TERRAIN_MOUND, ModeOptions.OptionEnum.TERRAIN_TYPE);
-            int noiseRow = optionRow(BuildModeEnum.TERRAIN_MOUND, ModeOptions.OptionEnum.TERRAIN_NOISE);
-            radial.hoverOptionButton(ModeOptions.ActionEnum.TERRAIN_NOISE_ON, noiseRow, 1);
-            List<ModeOptions.ActionEnum> types = List.of(ModeOptions.OptionEnum.TERRAIN_TYPE.actions);
-            for (ModeOptions.ActionEnum type : types) {
-                radial.hoverOptionButton(type, typeRow, types.indexOf(type));
+            radial.hoverButton(ModeOptions.ActionEnum.TERRAIN_NOISE_ON);
+            for (ModeOptions.ActionEnum type : ModeOptions.OptionEnum.TERRAIN_TYPE.actions) {
+                radial.hoverButton(type);
             }
             radial.hoverNothing();
             d.screenshot("radial_terrain_options");
-            radial.hoverOptionButton(ModeOptions.ActionEnum.TERRAIN_MOUNTAIN, typeRow, types.indexOf(ModeOptions.ActionEnum.TERRAIN_MOUNTAIN));
+            radial.hoverButton(ModeOptions.ActionEnum.TERRAIN_MOUNTAIN);
             d.screenshot("radial_terrain_mountain");
+            radial.hoverNothing();
+            String inside = sideButtonsInsideForEveryMode();
+            d.clientRun(() -> SophisticatedBuildingClient.BUILD_MODES.setBuildMode(BuildModeEnum.TERRAIN_MOUND));
             // Click the type that was active, so the option stays as it was
-            radial.hoverOptionButton(typeBefore, typeRow, types.indexOf(typeBefore));
+            radial.hoverButton(typeBefore);
             radial.clickAndRelease();
+            layout = inside;
         } finally {
             if (d.client(() -> d.mc.screen instanceof RadialMenu)) radial.clickAndRelease();
             radial.select(before);
         }
         return atlas + "; Terrain Mound shows its noise and terrain type option buttons (all 7 hovered in the radial menu),"
-                + " build mode restored to " + before;
+                + " build mode restored to " + before + "; " + layout;
     }
 
-    private static int optionRow(BuildModeEnum mode, ModeOptions.OptionEnum option) {
-        int row = List.of(mode.options).indexOf(option);
-        if (row < 0) throw new AssertionError(mode + " has no " + option + " option");
-        return row;
+    /**
+     * With the radial menu open: switches through every build mode (the menu shows that mode's options) and checks the
+     * side buttons as the menu drew them. Restores nothing (the caller sets the mode it needs next).
+     */
+    private String sideButtonsInsideForEveryMode() {
+        List<String> problems = new ArrayList<>();
+        int checked = 0;
+        String window = d.client(() -> RadialMenu.instance.width + "x" + RadialMenu.instance.height + " GUI (scale " + d.mc.getWindow().getGuiScale() + ")");
+        for (BuildModeEnum mode : BuildModeEnum.values()) {
+            d.clientRun(() -> SophisticatedBuildingClient.BUILD_MODES.setBuildMode(mode));
+            int expected = 0;
+            for (ModeOptions.OptionEnum option : mode.options) expected += option.actions.length;
+            int options = expected;
+            d.waitUntil("the radial menu to draw the " + mode + " options", 40, () -> RadialMenu.instance.sideButtons().stream()
+                    .filter(b -> List.of(mode.options).stream().anyMatch(o -> List.of(o.actions).contains(b.action()))).count() >= options);
+            d.waitTicks(1);
+            checked += d.client(() -> {
+                RadialMenu menu = RadialMenu.instance;
+                List<RadialMenu.SideButton> buttons = menu.sideButtons();
+                double ringClearance = widget(menu, "ringOuterEdge", Double.class);
+                for (RadialMenu.SideButton b : buttons) {
+                    if (b.left() < 0 || b.top() < 0 || b.right() > menu.width || b.bottom() > menu.height) {
+                        problems.add(mode + " " + b.action() + " outside the " + menu.width + "x" + menu.height + " window: " + b);
+                    }
+                    double innerEdge = Math.min(Math.abs(b.left() - menu.width / 2.0), Math.abs(b.right() - menu.width / 2.0));
+                    if (innerEdge < ringClearance) problems.add(mode + " " + b.action() + " reaches into the ring: " + b);
+                    for (RadialMenu.SideButton o : buttons) {
+                        if (o != b && b.left() < o.right() && o.left() < b.right() && b.top() < o.bottom() && o.top() < b.bottom()) {
+                            problems.add(mode + " " + b.action() + " overlaps " + o.action());
+                        }
+                    }
+                }
+                return buttons.size();
+            });
+        }
+        if (!problems.isEmpty()) throw new AssertionError("Radial menu side buttons: " + problems);
+        return "all " + checked + " side buttons of the " + BuildModeEnum.values().length + " build modes inside the " + window
+                + ", clear of the ring, no overlaps";
     }
 
     /** Non-transparent pixels of an icon's 16x16 atlas cell (the cell position is private to AllIcons). */
@@ -354,7 +391,7 @@ final class GuiScenarios {
         try {
             // Radial menu: hold its key, point at the player settings button (above the modifier settings), click
             radial.open();
-            radial.hoverLeftButton(ModeOptions.ActionEnum.OPEN_PLAYER_SETTINGS, -52, -39);
+            radial.hoverButton(ModeOptions.ActionEnum.OPEN_PLAYER_SETTINGS);
             d.screenshot("radial_player_settings");
             radial.clickAndRelease();
             PlayerSettingsGui screen = waitForSettingsScreen("the radial menu's player settings button");

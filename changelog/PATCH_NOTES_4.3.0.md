@@ -66,6 +66,9 @@ NeoForge and Forge). Open it with the new button in the radial menu (above Modif
   (previously a setting changed in the config file was only read at start-up and the toggle was forgotten on restart).
 * The Terrain Mound options in the radial menu (Natural Variation and Terrain Shape) had blank buttons; they now have
   icons, and the active variation and shape are highlighted like the other options.
+* The radial menu's side buttons stay inside the window at every window size and GUI scale (on small windows the
+  Terrain Shape and tile-entity protection buttons were partly off screen); the power level summary no longer pops up
+  on top of a button's tooltip.
 * Very long numbers in the modifier settings fields (e.g. coordinates far from spawn) are drawn smaller instead of
   past the field's edges.
 
