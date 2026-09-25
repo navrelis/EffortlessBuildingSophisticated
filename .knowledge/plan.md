@@ -64,3 +64,11 @@ Session stopped early by the user on 2026-09-24; continue from handoff.md.
 | V2 | Forge 1.21 jar (forge-1.21/ on mc/1.21.1) | Opus | V1 | - | done (58ea037) |
 | B4 | 1.20.1 Forge unit tests fail on CI only (SecurityException signed IForgePlayer) | Opus | - | - | done |
 | B5 | fabric-api floor = tested version on every branch (was "*") | tbd | ports | - | done on finished branches; ports adopt it |
+| T4 | test-all-versions: parallel headless instances, shared window lock, report merge | Opus | T2 | - | done |
+| H5 | Harness: GUI screen checks (bags, settings GUI, SB settings tab) on every branch | Opus | H* | - | in progress (1.21.1 reference) |
+
+## Status 2026-09-25 (session stopped by usage limit)
+Done + pushed + CI green: mc/1.21.1 (+forge-1.21), 1.21.4, 1.21.5, 1.21.8, 1.21.10, 1.21.11, 26.1.2, 26.2, 1.20.4,
+1.20.1, 1.19.2 (+forge-1.19), 1.18.2, 1.18.1 (+forge-1.18), 1.17.1. Paused: mc/1.16.5, mc/1.16.3 (local commits),
+H5 GUI checks on 13 branches (uncommitted). Open: final all-versions run, README matrix/CHANGELOG/PORTING, graphify,
+report. See handoff.md.
