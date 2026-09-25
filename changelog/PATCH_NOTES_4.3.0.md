@@ -18,7 +18,8 @@ releases before 4.3.0 were named `sophisticatedbuilding-<loader>-<version>.jar` 
 Sophisticated Building is now available for Minecraft 1.20.1 on Fabric and Forge, with the same
 features as the 1.21.1 build. NeoForge for 1.20.1 is a fork of Forge 47.1 and loads Forge mods, so
 the Forge jar is also the NeoForge 1.20.1 jar (tested on NeoForge 1.20.1-47.1.106 with Sophisticated
-Backpacks: the server starts and the server-side build and backpack checks pass). Where 1.20.1 works
+Backpacks: client and server start, building, the radial menu, the mod's screens and the backpack
+checks incl. the Building Upgrade settings tab pass). Where 1.20.1 works
 differently:
 
 * Items keep their data in NBT (1.20.1 has no data components). Storage blocks placed with build

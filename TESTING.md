@@ -229,6 +229,16 @@ names in both dev runtimes, MDG Legacy included), `KeyboardHandler#keyPress`, `A
   supplies blocks after up to 5 s (the scenarios wait for it).
 - The same Forge harness also passes `runSmokeServer` on NeoForge 1.20.1-47.1.106 (9/9, all `sb.*`), with
   `legacyForge { enable { neoForgeVersion = "1.20.1-47.1.106" } }` in place of the Forge version.
+- The Forge release jar on NeoForge 1.20.1 (client and server): a scratch build outside the branch
+  (`local/h5d2-neoforge-1.20.1`, git-ignored) compiled this harness against the release jar
+  (`forge/release/sophisticatedbuilding-forge-1.20.1-4.3.0.jar`, SHA-256 as in `SHA256SUMS`, remapped from SRG to
+  Mojang names by ModDevGradle Legacy's `obfuscation.createRemappingConfiguration`, loaded from that jar, not from the
+  sources) and ran it on `neoForgeVersion = "1.20.1-47.1.106"` with Sophisticated Core 1.20.1-1.5.1.2335, Backpacks
+  1.20.1-3.26.3.2157 (the Forge builds) and Curios 5.14.1+1.20.1. `runSmokeServer` 9/9 (6 `sb.*`), `runSmokeClient`
+  21/21 (8 `sb.*`, incl. `sb.upgrade_settings_tab` and `sb.worn_backpack` in the Curios `back` slot), no error or
+  exception from the mod (`client.no_mod_errors`). The screenshots show the ghost-block line preview with its outline
+  and the "5 blocks (5x1x1)" hint, the placed line, the radial menu and the backpack's Building Upgrade tab switched
+  to "Disabled". No fix was needed.
 - GUI checks (H5): every screen works on both loader builds at the first run (client 21/21 on Forge, 21/21 on Fabric
   with `sb.worn_backpack` skipped as before); the 1.20.1 GUI code of this branch (`GuiGraphics` screens, the Omega
   weights badge and tooltip, the Building Upgrade settings tab on Forge SB and the Fabric SB port) needed no fix.
