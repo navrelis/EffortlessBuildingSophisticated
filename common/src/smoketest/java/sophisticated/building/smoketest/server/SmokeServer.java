@@ -67,6 +67,8 @@ public final class SmokeServer {
         List<ServerTestRunner.TestFunction> tests = new ArrayList<>();
         add(tests, "server_place_line_survival", ServerScenarios::server_place_line_survival);
         add(tests, "server_undo_redo", ServerScenarios::server_undo_redo);
+        add(tests, "server_merge_undo_refund", ServerScenarios::server_merge_undo_refund);
+        add(tests, "server_refused_place_not_charged", ServerScenarios::server_refused_place_not_charged);
         if (SmokeBackpacks.find().isPresent()) {
             add(tests, "sb_upgrade_supplies_blocks", ServerScenarios::sb_upgrade_supplies_blocks);
             add(tests, "sb_disabled_upgrade_ignored", ServerScenarios::sb_disabled_upgrade_ignored);

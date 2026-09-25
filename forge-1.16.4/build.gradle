@@ -145,6 +145,10 @@ loom {
             runDir 'build/smoketest/client-run'
             source sourceSets.smoketest
             vmArg '-Dsophisticatedbuilding.smoketest.mode=client'
+            // The harness mixin (SmokeWindowMixin) creates the window without taking the focus; FML's early progress
+            // window (created before any mod code, with the focus) is turned off so the game creates its window itself
+            programArgs '--mixin.config', 'sophisticatedbuilding_smoketest.mixins.json'
+            vmArg '-Dfml.earlyprogresswindow=false'
             environmentVariable 'MOD_CLASSES', modClasses([(mod_id): sourceSets.main, sophisticatedbuilding_smoketest: sourceSets.smoketest])
             vmArg "-Dsophisticatedbuilding.smoketest.out=${smoketestOutDir('client')}"
         }

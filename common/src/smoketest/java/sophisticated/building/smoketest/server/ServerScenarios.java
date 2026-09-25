@@ -13,6 +13,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.network.ModPayload;
 import sophisticated.building.network.message.PerformRedoPacket;
@@ -28,7 +29,9 @@ import sophisticated.building.utilities.BlockEntry;
 import sophisticated.building.utilities.BlockSet;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -91,6 +94,87 @@ public final class ServerScenarios {
                 .thenExecute(() -> {
                     expectEquals(helper, "oak planks after redo", 64 - LINE, count(player.inventory, Items.OAK_PLANKS));
                     DETAILS.put("server.undo_redo", "Undo mined the line back into the inventory (64 planks), redo placed it again (" + (64 - LINE) + ")");
+                })
+                .thenExecute(() -> cleanup(player))
+                .thenSucceed();
+    }
+
+    /**
+     * Undo of merges (+1 snow layer, +1 sea pickle) gives back the merged items without mining; redo charges them again.
+     * Minecraft 1.16 has no candles (the other branches merge a candle); the sea pickle is a count merge as well.
+     */
+    public static void server_merge_undo_refund(ServerTestHelper helper) {
+        ServerPlayer player = player(helper);
+        player.inventory.setItem(0, new ItemStack(Items.SNOW, 1));
+        player.inventory.setItem(1, new ItemStack(Items.SEA_PICKLE, 1));
+        BlockPos snowPos = helper.absolutePos(new BlockPos(1, 1, 1));
+        BlockPos picklePos = helper.absolutePos(new BlockPos(3, 1, 1));
+        BlockState snow = Blocks.SNOW.defaultBlockState();
+        BlockState pickle = Blocks.SEA_PICKLE.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, false);
+        BlockState snow2 = snow.setValue(BlockStateProperties.LAYERS, 2);
+        BlockState pickle2 = pickle.setValue(BlockStateProperties.PICKLES, 2);
+        for (BlockPos pos : Arrays.asList(snowPos, picklePos)) {
+            helper.getLevel().setBlock(pos.below(), Blocks.DIRT.defaultBlockState(), 3);
+        }
+        helper.getLevel().setBlock(snowPos, snow, 3);
+        helper.getLevel().setBlock(picklePos, pickle, 3);
+        List<BlockEntry> entries = Arrays.asList(new BlockEntry(snowPos, snow2, Items.SNOW), new BlockEntry(picklePos, pickle2, Items.SEA_PICKLE));
+        sendPlace(player, new BlockSet(entries, snowPos, picklePos, false));
+
+        helper.startSequence()
+                .thenWaitUntil(() -> expectStates(helper, snowPos, snow2, picklePos, pickle2))
+                .thenIdle(5)
+                .thenExecute(() -> expectItems(helper, player, "after the merges", 0))
+                .thenExecute(() -> PerformUndoPacket.Handler.handle(roundTrip(new PerformUndoPacket(), PerformUndoPacket::new), player))
+                .thenWaitUntil(() -> expectStates(helper, snowPos, snow, picklePos, pickle))
+                .thenExecute(() -> expectItems(helper, player, "after undo", 1))
+                .thenExecute(() -> PerformRedoPacket.Handler.handle(roundTrip(new PerformRedoPacket(), PerformRedoPacket::new), player))
+                .thenWaitUntil(() -> expectStates(helper, snowPos, snow2, picklePos, pickle2))
+                .thenExecute(() -> {
+                    expectItems(helper, player, "after redo", 0);
+                    DETAILS.put("server.merge_undo_refund", "Survival merges (+1 snow layer, +1 sea pickle) cost one item each, undo gave "
+                            + "both back without mining, redo charged them again");
+                })
+                .thenExecute(() -> cleanup(player))
+                .thenSucceed();
+    }
+
+    /**
+     * The loader's block place event refuses 2 of a 5 block line (a protection mod): only the 3 placed blocks are charged,
+     * and undo only takes those back.
+     */
+    public static void server_refused_place_not_charged(ServerTestHelper helper) {
+        String check = "server.refused_place_not_charged";
+        ServerPlayer player = player(helper);
+        List<BlockPos> line = row(helper, LINE);
+        List<BlockPos> refused = Arrays.asList(line.get(1), line.get(3));
+        List<BlockPos> placed = Arrays.asList(line.get(0), line.get(2), line.get(4));
+        if (!SmokeServerPlatform.get().refusePlacementsAt(new HashSet<>(refused))) {
+            SKIPPED.put(check, "This loader fires no block place event for the mod's placements (Fabric); "
+                    + "the Fabric server test ChargeGameTest covers refused placements");
+            cleanup(player);
+            helper.succeed();
+            return;
+        }
+        player.inventory.setItem(0, new ItemStack(Items.OAK_PLANKS, 64));
+        player.inventory.setItem(8, new ItemStack(Items.IRON_AXE));
+        sendPlace(player, placeSet(line, Blocks.OAK_PLANKS.defaultBlockState()));
+
+        helper.startSequence()
+                .thenWaitUntil(() -> expectAll(helper, placed, Blocks.OAK_PLANKS))
+                .thenIdle(5)
+                .thenExecute(() -> {
+                    SmokeServerPlatform.get().refusePlacementsAt(Collections.emptySet());
+                    expectAll(helper, refused, Blocks.AIR);
+                    expectEquals(helper, "oak planks left (only the 3 placed blocks charged)", 64 - placed.size(),
+                            count(player.inventory, Items.OAK_PLANKS));
+                })
+                .thenExecute(() -> PerformUndoPacket.Handler.handle(roundTrip(new PerformUndoPacket(), PerformUndoPacket::new), player))
+                .thenWaitUntil(() -> expectAll(helper, line, Blocks.AIR))
+                .thenExecute(() -> {
+                    expectEquals(helper, "oak planks after undo", 64, count(player.inventory, Items.OAK_PLANKS));
+                    DETAILS.put(check, "The place event refused 2 of a " + LINE + " block line: " + placed.size()
+                            + " placed and charged (64 -> " + (64 - placed.size()) + "), undo gave back exactly those");
                 })
                 .thenExecute(() -> cleanup(player))
                 .thenSucceed();
@@ -304,6 +388,24 @@ public final class ServerScenarios {
         } finally {
             buffer.release();
         }
+    }
+
+    private static void expectStates(ServerTestHelper helper, BlockPos posA, BlockState stateA, BlockPos posB, BlockState stateB) {
+        expectState(helper, posA, stateA);
+        expectState(helper, posB, stateB);
+    }
+
+    private static void expectState(ServerTestHelper helper, BlockPos pos, BlockState expected) {
+        BlockState state = helper.getLevel().getBlockState(pos);
+        if (state != expected) {
+            helper.fail("Expected " + expected + " at " + ServerTestHelper.shortString(pos) + " but was " + state);
+        }
+    }
+
+    /** Snow layers and sea pickles held: both the same count. */
+    private static void expectItems(ServerTestHelper helper, ServerPlayer player, String when, int each) {
+        expectEquals(helper, "snow layers " + when, each, count(player.inventory, Items.SNOW));
+        expectEquals(helper, "sea pickles " + when, each, count(player.inventory, Items.SEA_PICKLE));
     }
 
     private static void expectAll(ServerTestHelper helper, List<BlockPos> positions, Block block) {
