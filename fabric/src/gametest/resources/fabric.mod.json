@@ -17,7 +17,9 @@
       "sophisticated.building.gametest.UndoGameTest",
       "sophisticated.building.gametest.SkipFirstGameTest",
       "sophisticated.building.gametest.ProtectionGameTest",
-      "sophisticated.building.gametest.InventoryHelperGameTest"
+      "sophisticated.building.gametest.InventoryHelperGameTest",
+      "sophisticated.building.gametest.MergeUndoGameTest",
+      "sophisticated.building.gametest.ChargeGameTest"
     ]
   },
   "depends": {
