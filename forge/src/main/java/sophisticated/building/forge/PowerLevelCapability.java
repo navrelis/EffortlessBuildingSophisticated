@@ -27,7 +27,7 @@ import sophisticated.building.attachment.PowerLevel;
 @Mod.EventBusSubscriber(modid = SophisticatedBuilding.MODID)
 public final class PowerLevelCapability {
 
-    private static final Capability<Data> POWER_LEVEL = CapabilityManager.get(new CapabilityToken<>() {
+    private static final Capability<Data> POWER_LEVEL = CapabilityManager.get(new CapabilityToken<Data>() {
     });
 
     private PowerLevelCapability() {

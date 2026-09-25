@@ -61,7 +61,8 @@ public abstract class AbstractSimiScreen extends Screen {
 	@Override
 	public void tick() {
 		for (GuiEventListener listener : children()) {
-			if (listener instanceof TickableGuiEventListener tickable) {
+			if (listener instanceof TickableGuiEventListener) {
+				TickableGuiEventListener tickable = (TickableGuiEventListener) listener;
 				tickable.tick();
 			}
 		}
@@ -148,9 +149,11 @@ public abstract class AbstractSimiScreen extends Screen {
 
 	protected void renderWindowForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
 		for (GuiEventListener listener : children()) {
-			if (listener instanceof Widget widget) {
-				if (widget instanceof AbstractSimiWidget simiWidget && simiWidget.isMouseOver(mouseX, mouseY)
-					&& simiWidget.visible) {
+			if (listener instanceof Widget) {
+				Widget widget = (Widget) listener;
+				if (widget instanceof AbstractSimiWidget && ((AbstractSimiWidget) widget).isMouseOver(mouseX, mouseY)
+					&& ((AbstractSimiWidget) widget).visible) {
+					AbstractSimiWidget simiWidget = (AbstractSimiWidget) widget;
 					List<Component> tooltip = simiWidget.getToolTip();
 					if (tooltip.isEmpty()) {
 						continue;
@@ -160,7 +163,8 @@ public abstract class AbstractSimiScreen extends Screen {
 					graphics.renderComponentTooltip(font, tooltip, ttx, tty);
 				}
 
-				if (widget instanceof ModifiersScreenList list) {
+				if (widget instanceof ModifiersScreenList) {
+					ModifiersScreenList list = (ModifiersScreenList) widget;
 					list.renderWindowForeground(graphics, mouseX, mouseY, partialTicks);
 				}
 			}

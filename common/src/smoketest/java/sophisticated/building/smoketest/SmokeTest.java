@@ -5,6 +5,11 @@ import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.ServiceLoader;
 
 /**
  * Switches and settings of the in-game smoke test harness. Everything is driven by system properties that only the
@@ -34,7 +39,7 @@ public final class SmokeTest {
 
     public static boolean isEnabled() {
         String out = System.getProperty(PROP_OUT);
-        return out != null && !out.isBlank();
+        return out != null && !out.trim().isEmpty();
     }
 
     public static boolean isClientMode() {
@@ -47,6 +52,19 @@ public final class SmokeTest {
 
     public static Path outDir() {
         return Paths.get(System.getProperty(PROP_OUT)).toAbsolutePath().normalize();
+    }
+
+    /** The first implementation of the service registered in {@code META-INF/services}, or empty. */
+    public static <T> Optional<T> firstService(Class<T> type) {
+        Iterator<T> services = ServiceLoader.load(type, type.getClassLoader()).iterator();
+        return services.hasNext() ? Optional.of(services.next()) : Optional.empty();
+    }
+
+    /** Every implementation of the service registered in {@code META-INF/services}. */
+    public static <T> List<T> allServices(Class<T> type) {
+        List<T> all = new ArrayList<>();
+        ServiceLoader.load(type, type.getClassLoader()).forEach(all::add);
+        return all;
     }
 
     public static int timeoutSeconds() {

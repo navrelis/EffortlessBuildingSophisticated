@@ -24,7 +24,9 @@ import sophisticated.building.platform.Services;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -62,18 +64,19 @@ public class ServerBlockPlacer {
             BlockState state = level.getBlockState(block.blockPos);
             if (!BlockUtilities.needsMining(state) || state.is(block.newBlockState.getBlock())) continue;
 
-            var selected = BreakToolHelper.selectTool(player, level, block.blockPos, state, candidates);
+            BreakToolHelper.ToolSlot selected = BreakToolHelper.selectTool(player, level, block.blockPos, state, candidates);
             if (BreakToolHelper.isImpossible(selected)) continue;
 
             replaceCount++;
-            var tool = selected == null ? ItemStack.EMPTY : selected.get();
+            ItemStack tool = selected == null ? ItemStack.EMPTY : selected.get();
             totalTicks += BreakToolHelper.estimateBreakTicks(level, block.blockPos, state, tool);
         }
         if (replaceCount == 0) return clientPlaceTime;
 
         long now = level.getGameTime();
         long placeTime = ReplaceRules.placeTime(clientPlaceTime, now, totalTicks, ServerConfig.survivalBreaking.maxDelayTicks.get());
-        if (player instanceof ServerPlayer serverPlayer) {
+        if (player instanceof ServerPlayer) {
+            ServerPlayer serverPlayer = (ServerPlayer) player;
             Services.NETWORK.sendToPlayer(serverPlayer, new BreakCountdownPacket((int) Math.max(0, placeTime - now), replaceCount, true));
         }
         return placeTime;
@@ -82,7 +85,7 @@ public class ServerBlockPlacer {
     public void tick() {
 
         //Iterator to prevent concurrent modification exception
-        for (var iterator = delayedEntries.iterator(); iterator.hasNext(); ) {
+        for (Iterator<DelayedEntry> iterator = delayedEntries.iterator(); iterator.hasNext(); ) {
             DelayedEntry entry = iterator.next();
             // Check if player is still valid/online to avoid crashes
             if (entry.player.isRemoved()) {
@@ -102,7 +105,42 @@ public class ServerBlockPlacer {
         return delayedEntriesView;
     }
 
-    public record DelayedEntry(Player player, BlockSet blocks, long placeTime) {}
+    public static final class DelayedEntry {
+        private final Player player;
+        private final BlockSet blocks;
+        private final long placeTime;
+
+        public DelayedEntry(Player player, BlockSet blocks, long placeTime) {
+            this.player = player;
+            this.blocks = blocks;
+            this.placeTime = placeTime;
+        }
+
+        public Player player() {
+            return player;
+        }
+
+        public BlockSet blocks() {
+            return blocks;
+        }
+
+        public long placeTime() {
+            return placeTime;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof DelayedEntry)) return false;
+            DelayedEntry that = (DelayedEntry) o;
+            return Objects.equals(player, that.player) && Objects.equals(blocks, that.blocks) && placeTime == that.placeTime;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(player, blocks, placeTime);
+        }
+    }
 //endregion
 
     public void breakBlocks(Player player, BlockSet blocks) {
@@ -127,11 +165,11 @@ public class ServerBlockPlacer {
             if (blocks.isSkipped(block)) continue;
             blockCount++;
 
-            var state = player.level.getBlockState(block.blockPos);
-            var selected = BreakToolHelper.selectTool(player, player.level, block.blockPos, state, candidates);
+            BlockState state = player.level.getBlockState(block.blockPos);
+            BreakToolHelper.ToolSlot selected = BreakToolHelper.selectTool(player, player.level, block.blockPos, state, candidates);
             if (BreakToolHelper.isImpossible(selected)) continue;
 
-            var tool = selected == null ? net.minecraft.world.item.ItemStack.EMPTY : selected.get();
+            ItemStack tool = selected == null ? net.minecraft.world.item.ItemStack.EMPTY : selected.get();
             totalTicks += BreakToolHelper.estimateBreakTicks(player.level, block.blockPos, state, tool);
         }
         int delay = ToolSelector.capDelay(totalTicks, ServerConfig.survivalBreaking.maxDelayTicks.get());
@@ -140,7 +178,8 @@ public class ServerBlockPlacer {
         // at apply time in applyBlockSet, against the live stacks.
         delayedEntries.add(new DelayedEntry(player, blocks, player.level.getGameTime() + delay));
 
-        if (player instanceof ServerPlayer serverPlayer) {
+        if (player instanceof ServerPlayer) {
+            ServerPlayer serverPlayer = (ServerPlayer) player;
             Services.NETWORK.sendToPlayer(serverPlayer, new BreakCountdownPacket(delay, blockCount, false));
         }
     }
@@ -164,10 +203,10 @@ public class ServerBlockPlacer {
 
         SophisticatedBuilding.ITEM_USAGE_TRACKER.initialize();
         List<BreakToolHelper.ToolSlot> candidates = player.isCreative() ? null : BreakToolHelper.collectCandidates(player);
-        var templates = new PlacementTemplates(player);
+        PlacementTemplates templates = new PlacementTemplates(player);
         //Only the blocks the mod itself changed (never the skipped first block, which vanilla handled)
-        var undoSet = new BlockSet();
-        var notAppliedSet = new BlockSet();
+        BlockSet undoSet = new BlockSet();
+        BlockSet notAppliedSet = new BlockSet();
         int survivalBreaksAttempted = 0;
         int survivalBreaksSucceeded = 0;
         for (BlockEntry block : blocks) {
@@ -213,9 +252,9 @@ public class ServerBlockPlacer {
 
         SophisticatedBuilding.ITEM_USAGE_TRACKER.initialize();
         List<BreakToolHelper.ToolSlot> candidates = player.isCreative() ? null : BreakToolHelper.collectCandidates(player);
-        var templates = new PlacementTemplates(player);
-        var redoSet = new BlockSet();
-        var notUndoneSet = new BlockSet();
+        PlacementTemplates templates = new PlacementTemplates(player);
+        BlockSet redoSet = new BlockSet();
+        BlockSet notUndoneSet = new BlockSet();
         for (BlockEntry block : blocks) {
             if (blocks.isSkipped(block)) continue;
 
@@ -261,11 +300,14 @@ public class ServerBlockPlacer {
 
         isPlacingOrBreakingBlocks = true;
         try {
-            return switch (action) {
-                case BREAK -> BlockPlacerHelper.breakBlock(player, block, candidates);
-                case REPLACE -> mineAndPlace(player, block, candidates, templates, count);
-                default -> placeIfAvailable(player, block, templates, count);
-            };
+            switch (action) {
+                case BREAK:
+                    return BlockPlacerHelper.breakBlock(player, block, candidates);
+                case REPLACE:
+                    return mineAndPlace(player, block, candidates, templates, count);
+                default:
+                    return placeIfAvailable(player, block, templates, count);
+            }
         } finally {
             isPlacingOrBreakingBlocks = false;
         }
@@ -294,7 +336,7 @@ public class ServerBlockPlacer {
     //(tool durability, drops to the inventory, exhaustion). Nothing is mined or charged if either fails.
     private boolean mineAndPlace(Player player, BlockEntry block, List<BreakToolHelper.ToolSlot> candidates,
                                  PlacementTemplates templates, int count) {
-        var tracker = SophisticatedBuilding.ITEM_USAGE_TRACKER;
+        ItemUsageTracker tracker = SophisticatedBuilding.ITEM_USAGE_TRACKER;
         if (!tracker.tryIncreaseUsageCount(block.item, count, player)) return false;
         if (!BlockPlacerHelper.breakBlock(player, block, candidates)) {
             tracker.decreaseUsageCount(block.item, count);
@@ -307,8 +349,8 @@ public class ServerBlockPlacer {
     //uncountOnFailure: a failed placement is taken back from the usage count instead of being charged
     private boolean placeWithTemplate(Player player, BlockEntry block, PlacementTemplates templates, boolean uncountOnFailure,
                                       int count) {
-        var tracker = SophisticatedBuilding.ITEM_USAGE_TRACKER;
-        var template = block.item == null ? null : templates.find(block.item);
+        ItemUsageTracker tracker = SophisticatedBuilding.ITEM_USAGE_TRACKER;
+        PlacementTemplates.Template template = block.item == null ? null : templates.find(block.item);
         boolean success = BlockPlacerHelper.placeBlock(player, block, template == null ? ItemStack.EMPTY : template.stack());
         if (!success && uncountOnFailure) {
             tracker.decreaseUsageCount(block.item, count);
@@ -331,8 +373,8 @@ public class ServerBlockPlacer {
 
         boolean breaking = BlockUtilities.isNullOrAir(block.existingBlockState);
 
-        var tempBlockEntry = new BlockEntry(block.blockPos);
-        var temp = block.existingBlockState;
+        BlockEntry tempBlockEntry = new BlockEntry(block.blockPos);
+        BlockState temp = block.existingBlockState;
         tempBlockEntry.existingBlockState = block.newBlockState;
         tempBlockEntry.newBlockState = temp;
         if (!breaking) {
@@ -355,11 +397,14 @@ public class ServerBlockPlacer {
 
         isPlacingOrBreakingBlocks = true;
         try {
-            return switch (action) {
-                case BREAK -> BlockPlacerHelper.breakBlock(player, tempBlockEntry, candidates);
-                case REPLACE -> mineAndPlace(player, tempBlockEntry, candidates, templates, count);
-                default -> placeIfAvailable(player, tempBlockEntry, templates, count);
-            };
+            switch (action) {
+                case BREAK:
+                    return BlockPlacerHelper.breakBlock(player, tempBlockEntry, candidates);
+                case REPLACE:
+                    return mineAndPlace(player, tempBlockEntry, candidates, templates, count);
+                default:
+                    return placeIfAvailable(player, tempBlockEntry, templates, count);
+            }
         } finally {
             isPlacingOrBreakingBlocks = false;
         }
@@ -444,8 +489,8 @@ public class ServerBlockPlacer {
         //Like vanilla for every block use and break, in any game mode: spawn protection and world border
         //(operators bypass spawn protection) and adventure mode restrictions
         if (!player.level.mayInteract(player, block.blockPos)) return false;
-        if (player instanceof ServerPlayer serverPlayer
-                && serverPlayer.blockActionRestricted(serverPlayer.level, block.blockPos, serverPlayer.gameMode.getGameModeForPlayer())) {
+        if (player instanceof ServerPlayer
+                && ((ServerPlayer) player).blockActionRestricted(player.level, block.blockPos, ((ServerPlayer) player).gameMode.getGameModeForPlayer())) {
             return false;
         }
 

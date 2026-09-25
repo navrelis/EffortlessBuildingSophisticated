@@ -32,12 +32,18 @@ public class BuildSettings {
     }
 
     public ModeOptions.ActionEnum getReplaceModeActionEnum() {
-        return switch (getReplaceMode()) {
-            case ONLY_AIR -> ModeOptions.ActionEnum.REPLACE_ONLY_AIR;
-            case BLOCKS_AND_AIR -> ModeOptions.ActionEnum.REPLACE_BLOCKS_AND_AIR;
-            case ONLY_BLOCKS -> ModeOptions.ActionEnum.REPLACE_ONLY_BLOCKS;
-            case FILTERED_BY_OFFHAND -> ModeOptions.ActionEnum.REPLACE_FILTERED_BY_OFFHAND;
-        };
+        switch (getReplaceMode()) {
+            case ONLY_AIR:
+                return ModeOptions.ActionEnum.REPLACE_ONLY_AIR;
+            case BLOCKS_AND_AIR:
+                return ModeOptions.ActionEnum.REPLACE_BLOCKS_AND_AIR;
+            case ONLY_BLOCKS:
+                return ModeOptions.ActionEnum.REPLACE_ONLY_BLOCKS;
+            case FILTERED_BY_OFFHAND:
+                return ModeOptions.ActionEnum.REPLACE_FILTERED_BY_OFFHAND;
+            default:
+                throw new IllegalStateException("Unexpected value: " + getReplaceMode());
+        }
     }
 
     public void toggleProtectTileEntities() {

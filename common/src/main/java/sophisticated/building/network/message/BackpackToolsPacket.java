@@ -17,8 +17,18 @@ import java.util.List;
  * backpack's upgrade inventory itself (see 08_SURVIVAL_BREAKING_ANALYSIS.md D6), so this is the
  * only source of backpack tool candidates on the client, via {@link ClientBackpackToolCache}.
  */
-public record BackpackToolsPacket(List<ItemStack> tools) implements ModPayload {
+public final class BackpackToolsPacket implements ModPayload {
 	public static final ResourceLocation ID = SophisticatedBuilding.asResource("backpack_tools");
+
+	private final List<ItemStack> tools;
+
+	public BackpackToolsPacket(List<ItemStack> tools) {
+		this.tools = tools;
+	}
+
+	public List<ItemStack> tools() {
+		return tools;
+	}
 
 	public BackpackToolsPacket(FriendlyByteBuf buf) {
 		this(buf.readList(FriendlyByteBuf::readItem));

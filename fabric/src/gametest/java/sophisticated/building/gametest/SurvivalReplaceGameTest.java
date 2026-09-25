@@ -48,7 +48,7 @@ public class SurvivalReplaceGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE)
     public void offRejectsOverwrite(GameTestHelper helper) {
         ServerPlayer player = builder(helper, true);
-        try (var config = ConfigScope.baseline()) {
+        try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
             fabricValue(ServerConfig.survivalReplace.enabled).set(false);
             helper.setBlock(REL, Blocks.STONE);
 
@@ -65,7 +65,7 @@ public class SurvivalReplaceGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE)
     public void onMinesWithPickaxe(GameTestHelper helper) {
         ServerPlayer player = builder(helper, true);
-        try (var config = ConfigScope.baseline()) {
+        try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
             fabricValue(ServerConfig.survivalReplace.enabled).set(true);
             helper.setBlock(REL, Blocks.STONE);
 
@@ -86,7 +86,7 @@ public class SurvivalReplaceGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE)
     public void onSkipsBedrock(GameTestHelper helper) {
         ServerPlayer player = builder(helper, true);
-        try (var config = ConfigScope.baseline()) {
+        try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
             fabricValue(ServerConfig.survivalReplace.enabled).set(true);
             helper.setBlock(REL, Blocks.BEDROCK);
 
@@ -103,7 +103,7 @@ public class SurvivalReplaceGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE)
     public void onSkipsStoneWithoutPickaxe(GameTestHelper helper) {
         ServerPlayer player = builder(helper, false);
-        try (var config = ConfigScope.baseline()) {
+        try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
             fabricValue(ServerConfig.survivalReplace.enabled).set(true);
             helper.setBlock(REL, Blocks.STONE);
 
@@ -121,7 +121,7 @@ public class SurvivalReplaceGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE, batch = "survival_replace_delayed", timeoutTicks = 200)
     public void onDelayedWaitsForMining(GameTestHelper helper) {
         ServerPlayer player = builder(helper, true);
-        var config = ConfigScope.baseline();
+        GameTestSupport.ConfigScope config = ConfigScope.baseline();
         fabricValue(ServerConfig.survivalReplace.enabled).set(true);
         helper.setBlock(REL, Blocks.STONE);
         long start = helper.getLevel().getGameTime();

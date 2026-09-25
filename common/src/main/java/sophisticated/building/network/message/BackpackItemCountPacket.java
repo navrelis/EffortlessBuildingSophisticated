@@ -12,8 +12,24 @@ import sophisticated.building.network.ModPayload;
 /**
  * Sync a single item count from a backpack to the client for HUD display.
  */
-public record BackpackItemCountPacket(ResourceLocation itemId, int count) implements ModPayload {
+public final class BackpackItemCountPacket implements ModPayload {
     public static final ResourceLocation ID = SophisticatedBuilding.asResource("backpack_item_count");
+
+    private final ResourceLocation itemId;
+    private final int count;
+
+    public BackpackItemCountPacket(ResourceLocation itemId, int count) {
+        this.itemId = itemId;
+        this.count = count;
+    }
+
+    public ResourceLocation itemId() {
+        return itemId;
+    }
+
+    public int count() {
+        return count;
+    }
 
     public BackpackItemCountPacket(FriendlyByteBuf buf) {
         this(buf.readResourceLocation(), buf.readInt());

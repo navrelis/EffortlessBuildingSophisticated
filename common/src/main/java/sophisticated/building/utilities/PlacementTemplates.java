@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 //Server only. Finds the real inventory stack whose data a placed block should get, for one block set.
 public class PlacementTemplates {
@@ -18,7 +19,36 @@ public class PlacementTemplates {
      *                   inventory has none left (backpack path)
      * @param individual true if this is a stack with data that the caller must consume itself (survival)
      */
-    public record Template(ItemStack stack, boolean individual) {}
+    public static final class Template {
+        private final ItemStack stack;
+        private final boolean individual;
+
+        public Template(ItemStack stack, boolean individual) {
+            this.stack = stack;
+            this.individual = individual;
+        }
+
+        public ItemStack stack() {
+            return stack;
+        }
+
+        public boolean individual() {
+            return individual;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Template)) return false;
+            Template that = (Template) o;
+            return Objects.equals(stack, that.stack) && individual == that.individual;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(stack, individual);
+        }
+    }
 
     private final Player player;
     private final TemplateSelector<ItemStack> selector = new TemplateSelector<>(ItemStack::getCount, PlacementTemplates::hasData);

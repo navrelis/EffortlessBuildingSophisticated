@@ -16,14 +16,14 @@ public class Array extends BaseModifier {
 	public void findCoordinates(BlockSet blocks, Player player) {
 		if (!enabled || offset.getX() == 0 && offset.getY() == 0 && offset.getZ() == 0) return;
 
-		var originalBlocks = new BlockSet(blocks);
+		BlockSet originalBlocks = new BlockSet(blocks);
 		for (BlockEntry blockEntry : originalBlocks) {
-			var pos = blockEntry.blockPos;
+			BlockPos pos = blockEntry.blockPos;
 			for (int i = 0; i < count; i++) {
 				pos = pos.offset(offset);
 				if (blocks.containsKey(pos)) continue;
 
-				var newBlockEntry = new BlockEntry(pos);
+				BlockEntry newBlockEntry = new BlockEntry(pos);
 				newBlockEntry.copyRotationSettingsFrom(blockEntry);
 				blocks.add(newBlockEntry);
 			}
@@ -47,7 +47,7 @@ public class Array extends BaseModifier {
 
 	@Override
 	public CompoundTag serializeNBT() {
-		var compound = super.serializeNBT();
+		CompoundTag compound = super.serializeNBT();
 		compound.putIntArray("offset", new int[]{offset.getX(), offset.getY(), offset.getZ()});
 		compound.putInt("count", count);
 		return compound;

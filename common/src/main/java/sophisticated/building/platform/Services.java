@@ -9,6 +9,7 @@ import sophisticated.building.platform.services.IConfigHelper;
 import sophisticated.building.platform.services.INetworkHelper;
 import sophisticated.building.platform.services.IPlatformHelper;
 
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.ServiceLoader;
 
@@ -63,7 +64,8 @@ public final class Services {
     }
 
     public static <T> Optional<T> loadOptional(Class<T> clazz) {
-        Optional<T> loadedService = ServiceLoader.load(clazz, Services.class.getClassLoader()).findFirst();
+        Iterator<T> services = ServiceLoader.load(clazz, Services.class.getClassLoader()).iterator();
+        Optional<T> loadedService = services.hasNext() ? Optional.of(services.next()) : Optional.empty();
         loadedService.ifPresent(service -> LOGGER.debug("Loaded {} for service {}", service, clazz));
         return loadedService;
     }

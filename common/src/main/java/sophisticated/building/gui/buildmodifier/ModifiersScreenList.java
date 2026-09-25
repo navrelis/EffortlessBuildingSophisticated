@@ -152,9 +152,10 @@ public class ModifiersScreenList extends ObjectSelectionList<ModifiersScreenList
         }
 
         public void renderForeground(GuiGraphics guiGraphics, int index, int y, int x, int width, int height, int mouseX, int mouseY, boolean p_230432_9_, float partialTicks) {
-            for (var listener : listeners) {
-                if (listener instanceof AbstractSimiWidget simiWidget && (simiWidget.isHovered() || simiWidget.isFocused())
-                    && simiWidget.visible) {
+            for (GuiEventListener listener : listeners) {
+                if (listener instanceof AbstractSimiWidget && (((AbstractSimiWidget) listener).isHovered() || ((AbstractSimiWidget) listener).isFocused())
+                    && ((AbstractSimiWidget) listener).visible) {
+                    AbstractSimiWidget simiWidget = (AbstractSimiWidget) listener;
                     List<Component> tooltip = simiWidget.getToolTip();
                     if (tooltip.isEmpty())
                         continue;

@@ -83,7 +83,16 @@ public final class ForgeNetworking {
 	}
 
 	/** One payload on the wire: its id, then its body. */
-	public record Message(ModPayload payload) {
+	public static final class Message {
+		private final ModPayload payload;
+
+		public Message(ModPayload payload) {
+			this.payload = payload;
+		}
+
+		public ModPayload payload() {
+			return payload;
+		}
 
 		private void write(FriendlyByteBuf buf) {
 			buf.writeResourceLocation(payload.id());
@@ -93,9 +102,11 @@ public final class ForgeNetworking {
 		private static Message read(FriendlyByteBuf buf) {
 			ResourceLocation id = buf.readResourceLocation();
 			// A bidirectional payload has the same reader in both lists
-			PacketHandler.Payload<?> payload = find(PacketHandler.SERVERBOUND, id)
-					.or(() -> find(PacketHandler.CLIENTBOUND, id))
-					.orElseThrow(() -> new IllegalArgumentException("Unknown payload " + id));
+			Optional<PacketHandler.Payload<?>> found = find(PacketHandler.SERVERBOUND, id);
+			if (!found.isPresent()) {
+				found = find(PacketHandler.CLIENTBOUND, id);
+			}
+			PacketHandler.Payload<?> payload = found.orElseThrow(() -> new IllegalArgumentException("Unknown payload " + id));
 			return new Message(payload.reader().apply(buf));
 		}
 	}

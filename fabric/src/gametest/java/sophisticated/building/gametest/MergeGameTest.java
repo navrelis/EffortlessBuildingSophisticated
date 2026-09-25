@@ -26,7 +26,7 @@ public class MergeGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE)
     public void slabMergesToDouble(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
-        try (var config = ConfigScope.baseline()) {
+        try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
             player.getInventory().setItem(0, new ItemStack(Items.OAK_SLAB, 3));
             BlockState bottom = Blocks.OAK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM);
             BlockState dbl = Blocks.OAK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
@@ -45,7 +45,7 @@ public class MergeGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE)
     public void stairsOtherFacingUnchanged(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
-        try (var config = ConfigScope.baseline()) {
+        try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
             player.getInventory().setItem(0, new ItemStack(Items.OAK_STAIRS, 3));
             BlockState north = Blocks.OAK_STAIRS.defaultBlockState().setValue(StairBlock.FACING, Direction.NORTH);
             BlockState east = Blocks.OAK_STAIRS.defaultBlockState().setValue(StairBlock.FACING, Direction.EAST);

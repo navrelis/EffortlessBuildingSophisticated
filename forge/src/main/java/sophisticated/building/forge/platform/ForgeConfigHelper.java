@@ -20,7 +20,16 @@ public final class ForgeConfigHelper implements IConfigHelper {
         return new Builder(new ForgeConfigSpec.Builder());
     }
 
-    private record Builder(ForgeConfigSpec.Builder builder) implements IConfigBuilder {
+    private static final class Builder implements IConfigBuilder {
+        private final ForgeConfigSpec.Builder builder;
+
+        public Builder(ForgeConfigSpec.Builder builder) {
+            this.builder = builder;
+        }
+
+        public ForgeConfigSpec.Builder builder() {
+            return builder;
+        }
 
         @Override
         public IConfigBuilder comment(String... lines) {

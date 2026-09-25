@@ -92,8 +92,8 @@ public final class ClientDriver {
             return future.get(CALL_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (ExecutionException e) {
             Throwable cause = e.getCause();
-            if (cause instanceof RuntimeException runtime) throw runtime;
-            if (cause instanceof Error error) throw error;
+            if (cause instanceof RuntimeException) throw (RuntimeException) cause;
+            if (cause instanceof Error) throw (Error) cause;
             throw new RuntimeException(cause);
         } catch (TimeoutException e) {
             throw new AssertionError("The " + what + " did not complete within " + CALL_TIMEOUT_SECONDS + " s");
@@ -164,8 +164,8 @@ public final class ClientDriver {
                 // The client thread is busy (loading); keep the task queued
             } catch (ExecutionException e) {
                 Throwable cause = e.getCause();
-                if (cause instanceof RuntimeException runtime) throw runtime;
-                if (cause instanceof Error error) throw error;
+                if (cause instanceof RuntimeException) throw (RuntimeException) cause;
+                if (cause instanceof Error) throw (Error) cause;
                 throw new RuntimeException(cause);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

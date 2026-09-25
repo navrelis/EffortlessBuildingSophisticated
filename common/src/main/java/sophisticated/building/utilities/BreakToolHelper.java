@@ -53,7 +53,7 @@ public class BreakToolHelper {
 	public static List<ToolSlot> collectCandidates(Player player) {
 		List<ToolSlot> candidates = new ArrayList<>();
 
-		var inventory = player.getInventory();
+		Inventory inventory = player.getInventory();
 		int selected = inventory.selected;
 
 		addPlayerSlot(candidates, inventory, selected, true);
@@ -144,7 +144,7 @@ public class BreakToolHelper {
 		if (!isTool(stack)) {
 			return;
 		}
-		var inventory = player.getInventory();
+		Inventory inventory = player.getInventory();
 		int offhandIndex = Inventory.SLOT_OFFHAND;
 		candidates.add(new ToolSlot() {
 			@Override

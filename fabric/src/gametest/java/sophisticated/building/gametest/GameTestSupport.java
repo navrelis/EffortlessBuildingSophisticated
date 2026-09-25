@@ -25,6 +25,7 @@ import sophisticated.building.utilities.BlockEntry;
 import sophisticated.building.utilities.BlockSet;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -133,7 +134,7 @@ public final class GameTestSupport {
 
     /** A set whose first position is the first entry. */
     public static BlockSet set(boolean skipFirst, BlockEntry... entries) {
-        List<BlockEntry> list = List.of(entries);
+        List<BlockEntry> list = Arrays.asList(entries);
         return new BlockSet(list, entries[0].blockPos, entries[entries.length - 1].blockPos, skipFirst);
     }
 

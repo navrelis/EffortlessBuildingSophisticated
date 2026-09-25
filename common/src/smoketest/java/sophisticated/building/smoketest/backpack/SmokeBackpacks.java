@@ -3,11 +3,11 @@ package sophisticated.building.smoketest.backpack;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import sophisticated.building.smoketest.SmokeTest;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
-import java.util.ServiceLoader;
 
 /**
  * Test fixture for the Sophisticated Backpacks scenarios: builds real backpacks with real upgrades through the
@@ -19,7 +19,7 @@ public interface SmokeBackpacks {
 
     /** The fixture of this loader build, or empty when it has no Sophisticated Backpacks. */
     static Optional<SmokeBackpacks> find() {
-        return ServiceLoader.load(SmokeBackpacks.class, SmokeBackpacks.class.getClassLoader()).findFirst();
+        return SmokeTest.firstService(SmokeBackpacks.class);
     }
 
     /** Human readable description of the Sophisticated Backpacks build under test. */

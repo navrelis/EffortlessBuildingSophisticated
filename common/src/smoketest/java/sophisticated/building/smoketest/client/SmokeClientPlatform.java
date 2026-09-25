@@ -2,7 +2,7 @@ package sophisticated.building.smoketest.client;
 
 import net.minecraft.client.KeyMapping;
 
-import java.util.ServiceLoader;
+import sophisticated.building.smoketest.SmokeTest;
 
 /**
  * Optional client glue of a loader, registered in {@code META-INF/services} by its smoke source set. Loaders without one
@@ -14,7 +14,7 @@ public interface SmokeClientPlatform {
     };
 
     static SmokeClientPlatform get() {
-        return ServiceLoader.load(SmokeClientPlatform.class, SmokeClientPlatform.class.getClassLoader()).findFirst().orElse(DEFAULT);
+        return SmokeTest.firstService(SmokeClientPlatform.class).orElse(DEFAULT);
     }
 
     /**

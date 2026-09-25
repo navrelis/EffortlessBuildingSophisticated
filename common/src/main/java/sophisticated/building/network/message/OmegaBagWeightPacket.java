@@ -12,8 +12,24 @@ import sophisticated.building.network.ModPayload;
 /**
  * Packet to update slot weight in Omega Randomizer Bag
  */
-public record OmegaBagWeightPacket(int slotIndex, int weight) implements ModPayload {
+public final class OmegaBagWeightPacket implements ModPayload {
 	public static final ResourceLocation ID = SophisticatedBuilding.asResource("omega_bag_weight");
+
+	private final int slotIndex;
+	private final int weight;
+
+	public OmegaBagWeightPacket(int slotIndex, int weight) {
+		this.slotIndex = slotIndex;
+		this.weight = weight;
+	}
+
+	public int slotIndex() {
+		return slotIndex;
+	}
+
+	public int weight() {
+		return weight;
+	}
 
 	public OmegaBagWeightPacket(FriendlyByteBuf buf) {
 		this(buf.readInt(), buf.readInt());
@@ -34,7 +50,8 @@ public record OmegaBagWeightPacket(int slotIndex, int weight) implements ModPayl
 		public static void handle(final OmegaBagWeightPacket packet, final Player player) {
 			if (player != null) {
 				ItemStack heldItem = player.getItemInHand(InteractionHand.MAIN_HAND);
-				if (heldItem.getItem() instanceof OmegaRandomizerBagItem omegaBag) {
+				if (heldItem.getItem() instanceof OmegaRandomizerBagItem) {
+					OmegaRandomizerBagItem omegaBag = (OmegaRandomizerBagItem) heldItem.getItem();
 					if (packet.slotIndex < 0 || packet.slotIndex >= OmegaRandomizerBagItem.INV_SIZE) {
 						return;
 					}

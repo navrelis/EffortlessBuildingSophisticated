@@ -1,9 +1,11 @@
 package sophisticated.building.render;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import sophisticated.building.ClientConfig;
@@ -34,7 +36,7 @@ public class BlockPreviews {
 	private int lastBlocksSize = -1;
 
 	public void onTick() {
-		var player = Minecraft.getInstance().player;
+		LocalPlayer player = Minecraft.getInstance().player;
 
 		if (!miniBlockPreviewInitialized) {
 			try {
@@ -57,7 +59,7 @@ public class BlockPreviews {
 	 * the blocks actually vanish.
 	 */
 	public void drawPendingBreaks() {
-		var coordinates = ClientBreakCountdown.pendingCoordinates();
+		HashSet<BlockPos> coordinates = ClientBreakCountdown.pendingCoordinates();
 		if (coordinates.isEmpty()) return;
 
 		PreviewRenderHelper.showCluster("pending-break", coordinates, "thin_checkered",
@@ -85,7 +87,7 @@ public class BlockPreviews {
 	}
 
 	public void drawLookAtPreview(Player player) {
-		var blocks = SophisticatedBuildingClient.BUILDER_CHAIN.getBlocks();
+		BlockSet blocks = SophisticatedBuildingClient.BUILDER_CHAIN.getBlocks();
 		if (blocks.size() == 0) return;
 		
 		if (SophisticatedBuildingClient.BUILD_MODES.getBuildMode() == BuildModeEnum.DISABLED &&
@@ -99,7 +101,7 @@ public class BlockPreviews {
 		int blockCount = blocks.size();
 		int maxPreviews = ClientConfig.visuals.maxBlockPreviews.get();
 		
-		var state = SophisticatedBuildingClient.BUILDER_CHAIN.getPretendBuildingState();
+		BuilderChain.BuildingState state = SophisticatedBuildingClient.BUILDER_CHAIN.getPretendBuildingState();
 
 		//Dont fade out the outline if we are still determining where to place
 		//Every outline with same ID will not fade out (because it gets replaced)
@@ -114,20 +116,20 @@ public class BlockPreviews {
 					renderBlockPreviews(blocks, false, 0f);
 				}
 
-				var coordinates = blocks.getCoordinates();
+				HashSet<BlockPos> coordinates = blocks.getCoordinates();
 				PreviewRenderHelper.showCluster(outlineID, coordinates, "checkered", 
 						1 / 32f, 1f, 1f, 1f, 1f);
 			} else {
 				//Thicker outline without block previews - still need coordinates for outline
-				var coordinates = blocks.getCoordinates();
+				HashSet<BlockPos> coordinates = blocks.getCoordinates();
 				PreviewRenderHelper.showCluster(outlineID, coordinates, "highlight_checkered",
 						1 / 16f, 1f, 1f, 1f, 1f);
 			}
 
 		} else {
 			//Breaking - split into blocks we can break (red) and blocks we cannot (grey, invalid)
-			var validCoordinates = new HashSet<BlockPos>();
-			var invalidCoordinates = new HashSet<BlockPos>();
+			HashSet<BlockPos> validCoordinates = new HashSet<BlockPos>();
+			HashSet<BlockPos> invalidCoordinates = new HashSet<BlockPos>();
 			for (BlockEntry entry : blocks) {
 				if (entry.invalid) {
 					invalidCoordinates.add(entry.blockPos);
@@ -175,7 +177,7 @@ public class BlockPreviews {
 		BlockPos pos = builderChain.getStartPosForBreaking();
 		if (pos == null) return;
 
-		var abilitiesState = builderChain.getAbilitiesState();
+		BuilderChain.AbilitiesState abilitiesState = builderChain.getAbilitiesState();
 		if (ClientConfig.visuals.onlyShowBlockPreviewsWhenBuilding.get()) {
 			if (abilitiesState == BuilderChain.AbilitiesState.NONE) return;
 		} else {
@@ -187,7 +189,7 @@ public class BlockPreviews {
 
 		AABB aabb = new AABB(pos);
 		if (player.level.isLoaded(pos)) {
-			var blockState = player.level.getBlockState(pos);
+			BlockState blockState = player.level.getBlockState(pos);
 			if (!blockState.isAir()) {
 				aabb = blockState.getShape(player.level, pos).bounds().move(pos);
 			}
@@ -200,7 +202,7 @@ public class BlockPreviews {
 	 * Render mini transparent block previews inside each ghost section.
 	 */
 	protected void renderMiniBlockPreviews(BlockSet blocks, boolean breaking) {
-		var player = Minecraft.getInstance().player;
+		LocalPlayer player = Minecraft.getInstance().player;
 		if (player == null) return;
 		
 		// Early exit if too many blocks
@@ -253,7 +255,7 @@ public class BlockPreviews {
 
 	protected void renderBlockPreviews(BlockSet blocks, boolean breaking, float dissolve) {
 		// Get player position for distance culling
-		var player = Minecraft.getInstance().player;
+		LocalPlayer player = Minecraft.getInstance().player;
 		if (player == null) return;
 		
 		// Early exit if too many blocks (performance protection)
@@ -282,8 +284,8 @@ public class BlockPreviews {
 		// Skip air blocks - they don't need preview rendering
 		if (blockEntry.newBlockState.isAir()) return;
 
-		var blockPos = blockEntry.blockPos;
-		var blockState = blockEntry.newBlockState;
+		BlockPos blockPos = blockEntry.blockPos;
+		BlockState blockState = blockEntry.newBlockState;
 
 		float baseScale = ClientConfig.visuals.previewScale.get().floatValue();
 		float scale = baseScale;

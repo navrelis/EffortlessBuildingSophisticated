@@ -8,8 +8,18 @@ import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.network.ModPayload;
 import sophisticated.building.systems.ServerBuildState;
 
-public record IsQuickReplacingPacket(boolean isQuickReplacing) implements ModPayload {
+public final class IsQuickReplacingPacket implements ModPayload {
 	public static final ResourceLocation ID = SophisticatedBuilding.asResource("is_quick_replacing");
+
+	private final boolean isQuickReplacing;
+
+	public IsQuickReplacingPacket(boolean isQuickReplacing) {
+		this.isQuickReplacing = isQuickReplacing;
+	}
+
+	public boolean isQuickReplacing() {
+		return isQuickReplacing;
+	}
 
 	public IsQuickReplacingPacket(FriendlyByteBuf buf) {
 		this(buf.readBoolean());
@@ -27,7 +37,8 @@ public record IsQuickReplacingPacket(boolean isQuickReplacing) implements ModPay
 
 	public static class Handler {
 		public static void handle(final IsQuickReplacingPacket packet, final Player sender) {
-			if (sender instanceof ServerPlayer player) {
+			if (sender instanceof ServerPlayer) {
+				ServerPlayer player = (ServerPlayer) sender;
 				ServerBuildState.setIsQuickReplacing(player, packet.isQuickReplacing());
 			}
 		}

@@ -4,6 +4,8 @@ import net.minecraft.core.BlockPos;
 import org.junit.jupiter.api.Test;
 import sophisticated.building.buildmode.buildmodes.Line;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -17,16 +19,16 @@ class LineThicknessTest {
 	void thickness1GivesThePlainXLine() {
 		List<BlockPos> blocks = Line.getLineBlocks(0, 0, 0, 3, 0, 0, 1);
 		assertEquals(4, blocks.size());
-		assertEquals(Set.of(
+		assertEquals(new HashSet<>(Arrays.asList(
 				new BlockPos(0, 0, 0), new BlockPos(1, 0, 0),
 				new BlockPos(2, 0, 0), new BlockPos(3, 0, 0)
-		), Set.copyOf(blocks));
+		)), new HashSet<>(blocks));
 	}
 
 	@Test
 	void thickness3OnXLineOfLength4Gives4Times9Blocks() {
 		List<BlockPos> blocks = Line.getLineBlocks(0, 0, 0, 3, 0, 0, 3);
-		Set<BlockPos> unique = Set.copyOf(blocks);
+		Set<BlockPos> unique = new HashSet<>(blocks);
 		assertEquals(4 * 9, unique.size());
 
 		// square cross-section: every block within +/-1 in Y and Z of the X axis
@@ -44,7 +46,7 @@ class LineThicknessTest {
 	@Test
 	void thickness5OnXLineOfLength4Gives4Times25Blocks() {
 		List<BlockPos> blocks = Line.getLineBlocks(0, 0, 0, 3, 0, 0, 5);
-		Set<BlockPos> unique = Set.copyOf(blocks);
+		Set<BlockPos> unique = new HashSet<>(blocks);
 		assertEquals(4 * 25, unique.size());
 		assertTrue(unique.stream().allMatch(pos -> Math.abs(pos.getY()) <= 2 && Math.abs(pos.getZ()) <= 2));
 	}
@@ -52,7 +54,7 @@ class LineThicknessTest {
 	@Test
 	void thickness3OnYLineOfLength4Gives4Times9BlocksWithinXAndZ() {
 		List<BlockPos> blocks = Line.getLineBlocks(0, 0, 0, 0, 3, 0, 3);
-		Set<BlockPos> unique = Set.copyOf(blocks);
+		Set<BlockPos> unique = new HashSet<>(blocks);
 		assertEquals(4 * 9, unique.size());
 		assertTrue(unique.stream().allMatch(pos -> Math.abs(pos.getX()) <= 1 && Math.abs(pos.getZ()) <= 1));
 		for (int y = 0; y <= 3; y++) {
@@ -67,7 +69,7 @@ class LineThicknessTest {
 	@Test
 	void thickness3OnZLineOfLength4Gives4Times9BlocksWithinXAndY() {
 		List<BlockPos> blocks = Line.getLineBlocks(0, 0, 0, 0, 0, 3, 3);
-		Set<BlockPos> unique = Set.copyOf(blocks);
+		Set<BlockPos> unique = new HashSet<>(blocks);
 		assertEquals(4 * 9, unique.size());
 		assertTrue(unique.stream().allMatch(pos -> Math.abs(pos.getX()) <= 1 && Math.abs(pos.getY()) <= 1));
 		for (int z = 0; z <= 3; z++) {

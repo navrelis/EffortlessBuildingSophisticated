@@ -13,8 +13,24 @@ import sophisticated.building.network.ModPayload;
  * 03_ROOT_CAUSE_BUILDING_UPGRADE.md RC2); it only ever uses the last value synced through this
  * packet, via {@link ClientBuildingUpgradeState}.
  */
-public record BuildingUpgradeStatePacket(int tier, int maxBlocks) implements ModPayload {
+public final class BuildingUpgradeStatePacket implements ModPayload {
     public static final ResourceLocation ID = SophisticatedBuilding.asResource("building_upgrade_state");
+
+    private final int tier;
+    private final int maxBlocks;
+
+    public BuildingUpgradeStatePacket(int tier, int maxBlocks) {
+        this.tier = tier;
+        this.maxBlocks = maxBlocks;
+    }
+
+    public int tier() {
+        return tier;
+    }
+
+    public int maxBlocks() {
+        return maxBlocks;
+    }
 
     public BuildingUpgradeStatePacket(FriendlyByteBuf buf) {
         this(buf.readInt(), buf.readInt());

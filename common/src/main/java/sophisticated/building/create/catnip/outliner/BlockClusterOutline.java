@@ -104,53 +104,59 @@ public class BlockClusterOutline extends Outline {
 
 	public static void loadFaceData(Direction face, Vector3f pos0, Vector3f pos1, Vector3f pos2, Vector3f pos3, Vector3f normal) {
 		switch (face) {
-			case DOWN -> {
+			case DOWN: {
 				// 0 1 2 3
 				pos0.set(0, 0, 1);
 				pos1.set(0, 0, 0);
 				pos2.set(1, 0, 0);
 				pos3.set(1, 0, 1);
 				normal.set(0, -1, 0);
+				break;
 			}
-			case UP -> {
+			case UP: {
 				// 4 5 6 7
 				pos0.set(0, 1, 0);
 				pos1.set(0, 1, 1);
 				pos2.set(1, 1, 1);
 				pos3.set(1, 1, 0);
 				normal.set(0, 1, 0);
+				break;
 			}
-			case NORTH -> {
+			case NORTH: {
 				// 7 2 1 4
 				pos0.set(1, 1, 0);
 				pos1.set(1, 0, 0);
 				pos2.set(0, 0, 0);
 				pos3.set(0, 1, 0);
 				normal.set(0, 0, -1);
+				break;
 			}
-			case SOUTH -> {
+			case SOUTH: {
 				// 5 0 3 6
 				pos0.set(0, 1, 1);
 				pos1.set(0, 0, 1);
 				pos2.set(1, 0, 1);
 				pos3.set(1, 1, 1);
 				normal.set(0, 0, 1);
+				break;
 			}
-			case WEST -> {
+			case WEST: {
 				// 4 1 0 5
 				pos0.set(0, 1, 0);
 				pos1.set(0, 0, 0);
 				pos2.set(0, 0, 1);
 				pos3.set(0, 1, 1);
 				normal.set(-1, 0, 0);
+				break;
 			}
-			case EAST -> {
+			case EAST: {
 				// 6 3 2 7
 				pos0.set(1, 1, 1);
 				pos1.set(1, 0, 1);
 				pos2.set(1, 0, 0);
 				pos3.set(1, 1, 0);
 				normal.set(1, 0, 0);
+				break;
 			}
 		}
 	}
@@ -256,8 +262,9 @@ public class BlockClusterOutline extends Outline {
 		public boolean equals(Object o) {
 			if (this == o)
 				return true;
-			if (!(o instanceof MergeEntry other))
+			if (!(o instanceof MergeEntry))
 				return false;
+			MergeEntry other = (MergeEntry) o;
 
 			return this.axis == other.axis && this.pos.equals(other.pos);
 		}

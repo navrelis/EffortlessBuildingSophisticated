@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
@@ -13,6 +14,7 @@ import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.SlabType;
 import sophisticated.building.SophisticatedBuilding;
+import sophisticated.building.systems.UndoRedo;
 import sophisticated.building.utilities.BlockSet;
 import sophisticated.building.utilities.FixedStack;
 
@@ -28,11 +30,11 @@ public class UndoGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE, batch = "undo_item_counts", timeoutTicks = 200)
     public void doubleSlabUndoChargesTwoSlabs(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
-        var config = ConfigScope.baseline();
+        GameTestSupport.ConfigScope config = ConfigScope.baseline();
         player.getInventory().setItem(AXE_SLOT, new ItemStack(Items.IRON_AXE));
         BlockState dbl = Blocks.OAK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
         helper.setBlock(REL, dbl);
-        var undo = SophisticatedBuilding.UNDO_REDO;
+        UndoRedo undo = SophisticatedBuilding.UNDO_REDO;
 
         SophisticatedBuilding.SERVER_BLOCK_PLACER.breakBlocks(player, set(breaking(helper.absolutePos(REL))));
 
@@ -69,7 +71,7 @@ public class UndoGameTest implements FabricGameTest {
     }
 
     private static void removeOneSlab(ServerPlayer player) {
-        var inventory = player.getInventory();
+        Inventory inventory = player.getInventory();
         for (int i = 0; i < inventory.getContainerSize(); i++) {
             ItemStack stack = inventory.getItem(i);
             if (stack.is(Items.OAK_SLAB)) {

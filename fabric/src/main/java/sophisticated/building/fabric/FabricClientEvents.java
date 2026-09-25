@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -46,7 +47,7 @@ public final class FabricClientEvents {
     }
 
     private static void registerKeyMappings() {
-        for (var keyBinding : ClientEvents.keyBindings) {
+        for (KeyMapping keyBinding : ClientEvents.keyBindings) {
             KeyBindingHelper.registerKeyBinding(keyBinding);
         }
     }

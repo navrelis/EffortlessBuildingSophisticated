@@ -37,7 +37,8 @@ public class AttachmentHandler {
         PowerLevel powerLevel = getOrCreatePowerLevel(player);
         if (powerLevel == null) return; // Defensive guard during sync
 
-        if (player instanceof ServerPlayer serverPlayer) {
+        if (player instanceof ServerPlayer) {
+            ServerPlayer serverPlayer = (ServerPlayer) player;
             Services.NETWORK.sendToPlayer(serverPlayer, new PowerLevelPacket(powerLevel.getPowerLevel()));
         }
     }

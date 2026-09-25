@@ -3,6 +3,7 @@ package sophisticated.building.utilities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
@@ -58,11 +59,11 @@ public class BlockEntry {
 
         //Find new blockstate with right direction
         Block block = Block.byItem(this.item);
-        var direction = originalDirection;
+        Direction direction = originalDirection;
         if (rotation != null) direction = rotation.rotate(direction);
         direction = applyMirror(direction);
         //TODO mirror and rotate relativeHitVec?
-        var blockPlaceContext = new MyPlaceContext(world, player, blockPos, direction, itemStack, clickedFace, relativeHitVec);
+        MyPlaceContext blockPlaceContext = new MyPlaceContext(world, player, blockPos, direction, itemStack, clickedFace, relativeHitVec);
         try {
             newBlockState = block.getStateForPlacement(blockPlaceContext);
         } catch (RuntimeException e) {
@@ -100,7 +101,7 @@ public class BlockEntry {
     public static BlockEntry decode(FriendlyByteBuf buf) {
         BlockEntry block = new BlockEntry(buf.readBlockPos());
         if (buf.readBoolean()) {
-            var nbt = buf.readNbt();
+            CompoundTag nbt = buf.readNbt();
             block.newBlockState = nbt == null ? null : NbtUtils.readBlockState(nbt);
         }
         block.item = Item.byId(buf.readInt());

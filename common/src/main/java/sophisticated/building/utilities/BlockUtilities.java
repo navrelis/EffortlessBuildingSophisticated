@@ -19,6 +19,8 @@ import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 //Common
@@ -34,8 +36,8 @@ public class BlockUtilities {
     }
 
     //Properties that count the items a block is made of (one more item placed onto the block adds one)
-    public static final List<IntegerProperty> COUNT_PROPERTIES = List.of(BlockStateProperties.CANDLES,
-            BlockStateProperties.PICKLES, BlockStateProperties.EGGS, BlockStateProperties.LAYERS);
+    public static final List<IntegerProperty> COUNT_PROPERTIES = Collections.unmodifiableList(Arrays.asList(BlockStateProperties.CANDLES,
+            BlockStateProperties.PICKLES, BlockStateProperties.EGGS, BlockStateProperties.LAYERS));
 
     //True if next adds one item to existing like a vanilla merge: a single slab becomes double, or exactly one count
     //property (candles, pickles, eggs, snow layers, petals) goes up by one; all other properties equal except waterlogged
@@ -76,7 +78,7 @@ public class BlockUtilities {
     public static BlockState getBlockState(Player player, InteractionHand hand, ItemStack blockItemStack, BlockEntry blockEntry, Vec3 relativeHitVec, Direction sideHit) {
         Block block = Block.byItem(blockItemStack.getItem());
         Vec3 hitVec = relativeHitVec.add(Vec3.atLowerCornerOf(blockEntry.blockPos));
-        var blockHitResult = new BlockHitResult(hitVec, sideHit, blockEntry.blockPos, false);
+        BlockHitResult blockHitResult = new BlockHitResult(hitVec, sideHit, blockEntry.blockPos, false);
         return block.getStateForPlacement(new BlockPlaceContext(player, hand, blockItemStack, blockHitResult));
     }
 

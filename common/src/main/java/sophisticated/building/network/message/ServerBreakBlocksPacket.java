@@ -11,8 +11,18 @@ import sophisticated.building.utilities.BlockSet;
 /**
  * Sends a message to the server to break multiple blocks
  */
-public record ServerBreakBlocksPacket(BlockSet blocks) implements ModPayload {
+public final class ServerBreakBlocksPacket implements ModPayload {
 	public static final ResourceLocation ID = SophisticatedBuilding.asResource("server_break_blocks");
+
+	private final BlockSet blocks;
+
+	public ServerBreakBlocksPacket(BlockSet blocks) {
+		this.blocks = blocks;
+	}
+
+	public BlockSet blocks() {
+		return blocks;
+	}
 
 	public ServerBreakBlocksPacket(FriendlyByteBuf buf) {
 		this(BlockSet.decode(buf));
@@ -30,7 +40,8 @@ public record ServerBreakBlocksPacket(BlockSet blocks) implements ModPayload {
 
 	public static class Handler {
 		public static void handle(final ServerBreakBlocksPacket packet, final Player sender) {
-			if (sender instanceof ServerPlayer player) {
+			if (sender instanceof ServerPlayer) {
+				ServerPlayer player = (ServerPlayer) sender;
 				SophisticatedBuilding.SERVER_BLOCK_PLACER.breakBlocks(player, packet.blocks());
 			}
 		}

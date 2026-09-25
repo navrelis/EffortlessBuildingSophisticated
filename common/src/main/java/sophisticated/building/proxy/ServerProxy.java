@@ -9,7 +9,8 @@ public class ServerProxy {
 	//Only physical server! Singleplayer server is seen as clientproxy
 
 	public static void logTranslate(Player player, String prefix, String translationKey, String suffix, boolean actionBar) {
-		if (player instanceof ServerPlayer serverPlayer) {
+		if (player instanceof ServerPlayer) {
+			ServerPlayer serverPlayer = (ServerPlayer) player;
 			Services.NETWORK.sendToPlayer(serverPlayer, new TranslatedLogPacket(prefix, translationKey, suffix, actionBar));
 		}
 	}

@@ -6,6 +6,7 @@ import com.google.gson.JsonPrimitive;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -196,7 +197,7 @@ public abstract class SimpleConfigValue<T> implements ConfigValue<T> {
 
     public static final class StringListValue extends SimpleConfigValue<List<String>> {
         StringListValue(String key, String comment, List<String> defaultValue) {
-            super(key, comment, List.copyOf(defaultValue));
+            super(key, comment, Collections.unmodifiableList(new ArrayList<>(defaultValue)));
         }
 
         @Override
@@ -221,7 +222,7 @@ public abstract class SimpleConfigValue<T> implements ConfigValue<T> {
                     warn.accept(path + " contains a non-string entry, it is ignored");
                 }
             }
-            set(List.copyOf(parsed));
+            set(Collections.unmodifiableList(new ArrayList<>(parsed)));
         }
     }
 

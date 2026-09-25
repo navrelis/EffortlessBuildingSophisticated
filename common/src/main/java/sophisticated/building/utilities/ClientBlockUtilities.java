@@ -1,12 +1,14 @@
 package sophisticated.building.utilities;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -21,9 +23,9 @@ public class ClientBlockUtilities {
         }
 
         if (mc.hitResult.getType() == HitResult.Type.BLOCK) {
-            var blockHitResult = (BlockHitResult) mc.hitResult;
-            var blockPos = blockHitResult.getBlockPos();
-            var blockState = level.getBlockState(blockPos);
+            BlockHitResult blockHitResult = (BlockHitResult) mc.hitResult;
+            BlockPos blockPos = blockHitResult.getBlockPos();
+            BlockState blockState = level.getBlockState(blockPos);
 
             // Menu providers capture true GUI-bearing blocks (chests, crafting table, etc.).
             return blockState.getMenuProvider(level, blockPos) != null;

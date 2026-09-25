@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class ClientBackpackToolCache {
 
-	private static final AtomicReference<List<ItemStack>> TOOLS = new AtomicReference<>(List.of());
+	private static final AtomicReference<List<ItemStack>> TOOLS = new AtomicReference<>(Collections.emptyList());
 
 	private ClientBackpackToolCache() {
 	}
@@ -39,6 +39,6 @@ public class ClientBackpackToolCache {
 	}
 
 	public static void clear() {
-		TOOLS.set(List.of());
+		TOOLS.set(Collections.emptyList());
 	}
 }

@@ -1,5 +1,6 @@
 package sophisticated.building.utilities;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -77,9 +78,10 @@ public class InventoryHelper {
 	}
 
 	private static void forceResyncSelectedSlot(Player player, Item item, int selectedSlot) {
-		if (!(player instanceof ServerPlayer serverPlayer)) {
+		if (!(player instanceof ServerPlayer)) {
 			return;
 		}
+		ServerPlayer serverPlayer = (ServerPlayer) player;
 
 		ItemStack selectedStack = player.getInventory().getItem(selectedSlot);
 		if (!selectedStack.isEmpty() && selectedStack.getItem() == item) {
@@ -314,9 +316,10 @@ public class InventoryHelper {
 			}
 
 			// Sync new backpack count to client for HUD accuracy
-			if (removed > 0 && player instanceof ServerPlayer serverPlayer) {
+			if (removed > 0 && player instanceof ServerPlayer) {
+				ServerPlayer serverPlayer = (ServerPlayer) player;
 				int newCount = Services.backpacks().countBlockInBackpacksForDisplay(player, new ItemStack(item));
-				var key = net.minecraft.core.Registry.ITEM.getKey(item);
+				ResourceLocation key = net.minecraft.core.Registry.ITEM.getKey(item);
 				if (key != null) {
 					Services.NETWORK.sendToPlayer(serverPlayer,
 						new sophisticated.building.network.message.BackpackItemCountPacket(key, newCount));

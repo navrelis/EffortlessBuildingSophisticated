@@ -1,5 +1,6 @@
 package sophisticated.building.item;
 
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.MenuProvider;
@@ -34,10 +35,10 @@ public class OmegaRandomizerBagItem extends AbstractRandomizerBagItem {
     public int getSlotWeight(ItemStack bag, int slotIndex) {
         if (slotIndex < 0 || slotIndex >= INV_SIZE) return DEFAULT_WEIGHT;
         
-        var tag = bag.getTag();
+        CompoundTag tag = bag.getTag();
         if (tag == null || !tag.contains(WEIGHTS_TAG)) return DEFAULT_WEIGHT;
         
-        var weightsArray = tag.getIntArray(WEIGHTS_TAG);
+        int[] weightsArray = tag.getIntArray(WEIGHTS_TAG);
         if (weightsArray.length <= slotIndex) return DEFAULT_WEIGHT;
         
         return Math.max(MIN_WEIGHT, Math.min(MAX_WEIGHT, weightsArray[slotIndex]));
@@ -50,7 +51,7 @@ public class OmegaRandomizerBagItem extends AbstractRandomizerBagItem {
         if (slotIndex < 0 || slotIndex >= INV_SIZE) return;
         weight = Math.max(MIN_WEIGHT, Math.min(MAX_WEIGHT, weight));
         
-        var tag = bag.getOrCreateTag();
+        CompoundTag tag = bag.getOrCreateTag();
         
         int[] weights;
         if (tag.contains(WEIGHTS_TAG)) {

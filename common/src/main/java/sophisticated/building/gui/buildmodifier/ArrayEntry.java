@@ -27,7 +27,7 @@ public class ArrayEntry extends BaseModifierEntry<Array> {
 
 		for (int i = 0; i < 3; i++) {
 			final int index = i;
-			var scrollInput = new LabeledScrollInput(0, 0, 18, 18)
+			ScrollInput scrollInput = new LabeledScrollInput(0, 0, 18, 18)
 				.titled(new TextComponent(i == 0 ? "X Offset" : i == 1 ? "Y Offset" : "Z Offset"))
 				.calling(value -> {
 					modifier.offset = MathHelper.with(modifier.offset, index, value);
@@ -86,7 +86,7 @@ public class ArrayEntry extends BaseModifierEntry<Array> {
 		int currentReach = Math.max(-1, getArrayReach());
 		int maxReach = AttachmentHandler.getMaxBlocksPerAxis(Minecraft.getInstance().player, false);
 		ChatFormatting reachColor = isCurrentReachValid(currentReach, maxReach) ? ChatFormatting.GRAY : ChatFormatting.RED;
-		var reachText = "" + reachColor + currentReach + ChatFormatting.GRAY + "/" + ChatFormatting.GRAY + maxReach;
+		String reachText = "" + reachColor + currentReach + ChatFormatting.GRAY + "/" + ChatFormatting.GRAY + maxReach;
 		reachLabel.text = new TextComponent(reachText);
 	}
 

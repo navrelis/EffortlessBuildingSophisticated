@@ -2,6 +2,7 @@ package sophisticated.building.item.upgrade;
 
 import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedbackpacks.api.IBackpackWrapper;
+import net.p3pp3rf1y.sophisticatedbackpacks.backpack.wrapper.BackpackInventoryHandler;
 import net.p3pp3rf1y.sophisticatedbackpacks.upgrades.UpgradeWrapperBase;
 
 import java.util.function.Consumer;
@@ -41,7 +42,7 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
             return ItemStack.EMPTY;
         }
 
-        var inventoryHandler = backpackWrapper.getInventoryHandler();
+        BackpackInventoryHandler inventoryHandler = backpackWrapper.getInventoryHandler();
         int slots = inventoryHandler.getSlots();
         int totalExtracted = 0;
         ItemStack result = ItemStack.EMPTY;
@@ -85,7 +86,7 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
             return 0;
         }
 
-        var inventoryHandler = backpackWrapper.getInventoryHandler();
+        BackpackInventoryHandler inventoryHandler = backpackWrapper.getInventoryHandler();
         int slots = inventoryHandler.getSlots();
         int count = 0;
 
@@ -107,7 +108,7 @@ public class BuildingUpgradeWrapper extends UpgradeWrapperBase<BuildingUpgradeWr
             return false;
         }
 
-        var inventoryHandler = backpackWrapper.getInventoryHandler();
+        BackpackInventoryHandler inventoryHandler = backpackWrapper.getInventoryHandler();
         int slots = inventoryHandler.getSlots();
 
         for (int i = 0; i < slots; i++) {

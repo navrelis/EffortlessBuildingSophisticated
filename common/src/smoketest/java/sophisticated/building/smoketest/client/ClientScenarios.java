@@ -2,11 +2,13 @@ package sophisticated.building.smoketest.client;
 
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
@@ -50,10 +52,12 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -203,7 +207,7 @@ final class ClientScenarios {
 
     /** A failure screen (world creation failed, disconnected) never goes away by itself: fail at once. */
     private void failOnErrorScreen() {
-        var screen = d.mc.screen;
+        Screen screen = d.mc.screen;
         if (screen instanceof net.minecraft.client.gui.screens.DisconnectedScreen
                 || screen instanceof net.minecraft.client.gui.screens.AlertScreen
                 || screen instanceof net.minecraft.client.gui.screens.ErrorScreen) {
@@ -217,7 +221,7 @@ final class ClientScenarios {
         return d.server(server -> {
             List<String> packs = new ArrayList<>();
             String modPack = null;
-            for (var pack : server.getPackRepository().getSelectedPacks()) {
+            for (Pack pack : server.getPackRepository().getSelectedPacks()) {
                 String entry = pack.getId() + (pack.getCompatibility().isCompatible() ? "" : " (" + pack.getCompatibility() + ")");
                 packs.add(entry);
                 if (pack.getId().contains(sophisticated.building.SophisticatedBuilding.MODID) && !pack.getId().contains("smoketest")) {
@@ -238,7 +242,7 @@ final class ClientScenarios {
     private static void deleteOldWorlds(Path saves) {
         if (!Files.isDirectory(saves)) return;
         try (Stream<Path> worlds = Files.list(saves)) {
-            for (Path world : worlds.filter(p -> p.getFileName().toString().startsWith(WORLD_PREFIX)).toList()) {
+            for (Path world : worlds.filter(p -> p.getFileName().toString().startsWith(WORLD_PREFIX)).collect(Collectors.toList())) {
                 deleteWorld(world);
             }
         } catch (IOException e) {
@@ -249,7 +253,7 @@ final class ClientScenarios {
     private static void deleteWorld(Path dir) {
         if (!Files.exists(dir)) return;
         try (Stream<Path> files = Files.walk(dir)) {
-            for (Path file : files.sorted(Comparator.reverseOrder()).toList()) {
+            for (Path file : files.sorted(Comparator.reverseOrder()).collect(Collectors.toList())) {
                 Files.delete(file);
             }
         } catch (IOException e) {
@@ -340,9 +344,10 @@ final class ClientScenarios {
         });
         Mirror mirror = d.client(() -> {
             List<BaseModifier> list = SophisticatedBuildingClient.BUILD_MODIFIERS.getModifierSettingsList();
-            if (list.size() != before + 1 || !(list.get(list.size() - 1) instanceof Mirror added)) {
+            if (list.size() != before + 1 || !(list.get(list.size() - 1) instanceof Mirror)) {
                 throw new AssertionError("Clicking 'Add Mirror' did not add a mirror (modifiers: " + list + ")");
             }
+            Mirror added = (Mirror) list.get(list.size() - 1);
             // What the mirror entry's position and axis inputs set
             added.position = plane;
             added.mirrorX = true;
@@ -451,7 +456,7 @@ final class ClientScenarios {
             return;
         }
         Optional<SmokeBackpacks> fixture = SmokeBackpacks.find();
-        if (fixture.isEmpty()) {
+        if (!fixture.isPresent()) {
             report.fail("sb.fixture", "This loader build has the Sophisticated Backpacks integration but its smoke source set registers no SmokeBackpacks fixture");
             return;
         }
@@ -473,7 +478,7 @@ final class ClientScenarios {
             // Probe the accessory slot with an empty backpack; the scenario equips its own one
             ServerPlayer player = ClientDriver.serverPlayer(server);
             player.getInventory().clearContent();
-            String reason = backpacks.equipInAccessorySlot(player, backpacks.createBackpack(0, false, false, List.of()));
+            String reason = backpacks.equipInAccessorySlot(player, backpacks.createBackpack(0, false, false, Collections.emptyList()));
             clearAccessory(backpacks, player);
             return reason;
         });
@@ -499,7 +504,7 @@ final class ClientScenarios {
             ServerPlayer player = ClientDriver.serverPlayer(server);
             player.getInventory().clearContent();
             player.getInventory().setItem(0, new ItemStack(Items.STONE, 1));
-            player.getInventory().setItem(holder.slot, backpacks.createBackpack(1, true, false, List.of(new ItemStack(Items.STONE, 64))));
+            player.getInventory().setItem(holder.slot, backpacks.createBackpack(1, true, false, Collections.singletonList(new ItemStack(Items.STONE, 64))));
             return null;
         });
         d.selectHotbarSlot(0);
@@ -605,7 +610,7 @@ final class ClientScenarios {
             ServerPlayer player = ClientDriver.serverPlayer(server);
             player.getInventory().clearContent();
             player.getInventory().setItem(0, new ItemStack(Items.STICK));
-            player.getInventory().setItem(1, backpacks.createBackpack(0, false, true, List.of(new ItemStack(Items.DIAMOND_PICKAXE))));
+            player.getInventory().setItem(1, backpacks.createBackpack(0, false, true, Collections.singletonList(new ItemStack(Items.DIAMOND_PICKAXE))));
             return null;
         });
         placeDirectly(line, Blocks.STONE);
@@ -634,7 +639,7 @@ final class ClientScenarios {
             player.getInventory().clearContent();
             clearAccessory(backpacks, player);
             player.getInventory().setItem(0, new ItemStack(Items.STONE, 1));
-            ItemStack backpack = backpacks.createBackpack(1, true, false, List.of(new ItemStack(Items.STONE, 64)));
+            ItemStack backpack = backpacks.createBackpack(1, true, false, Collections.singletonList(new ItemStack(Items.STONE, 64)));
             if (accessory == null) {
                 player.setItemSlot(EquipmentSlot.CHEST, backpack);
                 return "chest armor slot";
@@ -756,7 +761,35 @@ final class ClientScenarios {
         });
     }
 
-    private record Preview(List<BlockPos> valid, List<BlockPos> invalid, BuilderChain.BuildingState state, String context) {
+    private static final class Preview {
+        private final List<BlockPos> valid;
+        private final List<BlockPos> invalid;
+        private final BuilderChain.BuildingState state;
+        private final String context;
+
+        public Preview(List<BlockPos> valid, List<BlockPos> invalid, BuilderChain.BuildingState state, String context) {
+            this.valid = valid;
+            this.invalid = invalid;
+            this.state = state;
+            this.context = context;
+        }
+
+        public List<BlockPos> valid() {
+            return valid;
+        }
+
+        public List<BlockPos> invalid() {
+            return invalid;
+        }
+
+        public BuilderChain.BuildingState state() {
+            return state;
+        }
+
+        public String context() {
+            return context;
+        }
+
         void expectExactly(List<BlockPos> positions, int validCount, int invalidCount) {
             List<BlockPos> all = new ArrayList<>(valid);
             all.addAll(invalid);
@@ -814,7 +847,7 @@ final class ClientScenarios {
         } catch (AssertionError timeout) {
             List<String> actual = d.server(server -> positions.stream()
                     .map(pos -> pos.toShortString() + "=" + server.overworld().getBlockState(pos).getBlock().getName().getString())
-                    .toList());
+                    .collect(Collectors.toList()));
             throw new AssertionError(timeout.getMessage() + "; world: " + actual);
         }
     }
@@ -822,7 +855,7 @@ final class ClientScenarios {
     private List<String> worldState(List<BlockPos> positions) {
         return d.server(server -> positions.stream()
                 .map(pos -> pos.toShortString() + "=" + server.overworld().getBlockState(pos).getBlock().getName().getString())
-                .toList());
+                .collect(Collectors.toList()));
     }
 
     private boolean allAre(List<BlockPos> positions, Block block) {
@@ -862,7 +895,7 @@ final class ClientScenarios {
     }
 
     private static String shortList(List<BlockPos> positions) {
-        return positions.stream().map(BlockPos::toShortString).toList().toString();
+        return positions.stream().map(BlockPos::toShortString).collect(Collectors.toList()).toString();
     }
 
     private static AbstractWidget widget(Object screen, String fieldName) {

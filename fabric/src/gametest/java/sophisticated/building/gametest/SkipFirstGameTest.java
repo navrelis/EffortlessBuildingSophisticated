@@ -40,7 +40,7 @@ public class SkipFirstGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE, batch = "skip_first", timeoutTicks = 100)
     public void likeVanillaSkipsFirst(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
-        var config = ConfigScope.baseline();
+        GameTestSupport.ConfigScope config = ConfigScope.baseline();
         player.getInventory().setItem(0, new ItemStack(Items.STONE, 3));
         assertTrue(ServerBuildState.isLikeVanilla(player), "Player should start like vanilla");
 
@@ -66,7 +66,7 @@ public class SkipFirstGameTest implements FabricGameTest {
     public void quickReplacingPlacesFirst(GameTestHelper helper) {
         //Quick Replace needs canReplaceBlocks: creative always, survival only with survival replace enabled
         ServerPlayer player = spawnPlayer(helper, GameType.CREATIVE);
-        var config = ConfigScope.baseline();
+        GameTestSupport.ConfigScope config = ConfigScope.baseline();
         ServerBuildState.setIsQuickReplacing(player, true);
         assertTrue(!ServerBuildState.isLikeVanilla(player), "Quick replacing player should not be like vanilla");
 
@@ -88,7 +88,7 @@ public class SkipFirstGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE, batch = "skip_first", timeoutTicks = 100)
     public void buildModePlacesFirst(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
-        var config = ConfigScope.baseline();
+        GameTestSupport.ConfigScope config = ConfigScope.baseline();
         player.getInventory().setItem(0, new ItemStack(Items.STONE, 3));
         ServerBuildState.setIsUsingBuildMode(player, true);
 

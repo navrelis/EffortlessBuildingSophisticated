@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -189,7 +190,7 @@ public final class GuiGraphics {
     }
 
     public void renderTooltip(Font font, Component text, int x, int y) {
-        renderComponentTooltip(font, List.of(text), x, y);
+        renderComponentTooltip(font, Collections.singletonList(text), x, y);
     }
 
     private void withPoseAsModelView(Runnable draw) {

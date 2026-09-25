@@ -12,10 +12,20 @@ import sophisticated.building.network.ModPayload;
  * Sends all {@link ServerConfig} values (compact values-only JSON) to the client on join, so
  * client-side decisions (e.g. {@code PowerLevel.canBreakFar}) use the server's settings.
  */
-public record ServerConfigSyncPacket(String json) implements ModPayload {
+public final class ServerConfigSyncPacket implements ModPayload {
 	public static final ResourceLocation ID = SophisticatedBuilding.asResource("server_config_sync");
 
 	private static final int MAX_JSON_LENGTH = 1 << 20;
+
+	private final String json;
+
+	public ServerConfigSyncPacket(String json) {
+		this.json = json;
+	}
+
+	public String json() {
+		return json;
+	}
 
 	public ServerConfigSyncPacket(FriendlyByteBuf buf) {
 		this(buf.readUtf(MAX_JSON_LENGTH));

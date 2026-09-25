@@ -45,7 +45,7 @@ public class ItemUsageTracker {
     //minuend - subtrahend per key, only keeping positive results
     public static <K> Map<K, Integer> subtractCounts(Map<K, Integer> minuend, Map<K, Integer> subtrahend) {
         Map<K, Integer> result = new HashMap<>();
-        for (var entry : minuend.entrySet()) {
+        for (Map.Entry<K, Integer> entry : minuend.entrySet()) {
             int remaining = entry.getValue() - subtrahend.getOrDefault(entry.getKey(), 0);
             if (remaining > 0) {
                 result.put(entry.getKey(), remaining);

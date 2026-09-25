@@ -72,7 +72,7 @@ public class GhostBlockParams {
 	}
 
 	public GhostBlockParams colored(int color) {
-		var color2 = new Color(color, false);
+		Color color2 = new Color(color, false);
 		return this.colored(() -> color2);
 	}
 

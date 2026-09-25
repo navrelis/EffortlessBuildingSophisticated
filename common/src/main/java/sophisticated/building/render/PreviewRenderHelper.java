@@ -6,6 +6,7 @@ import net.minecraft.world.phys.AABB;
 import sophisticated.building.create.AllSpecialTextures;
 import sophisticated.building.create.CreateClient;
 import sophisticated.building.create.catnip.data.Pair;
+import sophisticated.building.create.catnip.outliner.Outline;
 import sophisticated.building.create.catnip.outliner.Outliner;
 import sophisticated.building.create.catnip.theme.Color;
 
@@ -24,7 +25,7 @@ public class PreviewRenderHelper {
                                     float lineWidth, float r, float g, float b, float a) {
         Color color = new Color(r, g, b, a);
 
-        var outline = Outliner.getInstance().showCluster(id, coordinates)
+        Outline.OutlineParams outline = Outliner.getInstance().showCluster(id, coordinates)
                 .disableLineNormals()
                 .lineWidth(lineWidth)
                 .colored(color);

@@ -26,7 +26,34 @@ public final class SmokeReport {
     private static final SmokeReport INSTANCE = new SmokeReport();
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
-    private record Check(String name, boolean passed, boolean skipped, String detail) {
+    private static final class Check {
+        private final String name;
+        private final boolean passed;
+        private final boolean skipped;
+        private final String detail;
+
+        public Check(String name, boolean passed, boolean skipped, String detail) {
+            this.name = name;
+            this.passed = passed;
+            this.skipped = skipped;
+            this.detail = detail;
+        }
+
+        public String name() {
+            return name;
+        }
+
+        public boolean passed() {
+            return passed;
+        }
+
+        public boolean skipped() {
+            return skipped;
+        }
+
+        public String detail() {
+            return detail;
+        }
     }
 
     private final List<Check> checks = new ArrayList<>();
@@ -142,7 +169,7 @@ public final class SmokeReport {
             Path file = resultFile();
             Files.createDirectories(file.getParent());
             Path tmp = file.resolveSibling(SmokeTest.RESULT_FILE + ".tmp");
-            Files.writeString(tmp, GSON.toJson(root), StandardCharsets.UTF_8);
+            Files.write(tmp, (GSON.toJson(root)).getBytes(StandardCharsets.UTF_8));
             Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         } catch (IOException e) {
             SmokeTest.LOGGER.error("Could not write the smoke test result", e);

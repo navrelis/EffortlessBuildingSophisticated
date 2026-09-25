@@ -43,7 +43,7 @@ public class BuildModes {
 	}
 
 	public void activatePreviousBuildMode() {
-		var temp = buildMode;
+		BuildModeEnum temp = buildMode;
 		setBuildMode(previousBuildMode);
 		previousBuildMode = temp;
 	}

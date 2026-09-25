@@ -68,7 +68,8 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 			return;
 		}
 		ItemStack heldBag = Minecraft.getInstance().player.getItemInHand(InteractionHand.MAIN_HAND);
-		if (heldBag.getItem() instanceof OmegaRandomizerBagItem omegaBag) {
+		if (heldBag.getItem() instanceof OmegaRandomizerBagItem) {
+			OmegaRandomizerBagItem omegaBag = (OmegaRandomizerBagItem) heldBag.getItem();
 			// Reset all weights to 1
 			for (int i = 0; i < OmegaRandomizerBagItem.INV_SIZE; i++) {
 				Slot slot = this.menu.getSlot(i);
@@ -111,7 +112,8 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 			
 			if (mouseX >= slotX && mouseX < slotX + 16 && mouseY >= slotY && mouseY < slotY + 16) {
 				ItemStack heldBag = Minecraft.getInstance().player.getItemInHand(InteractionHand.MAIN_HAND);
-				if (heldBag.getItem() instanceof OmegaRandomizerBagItem omegaBag) {
+				if (heldBag.getItem() instanceof OmegaRandomizerBagItem) {
+					OmegaRandomizerBagItem omegaBag = (OmegaRandomizerBagItem) heldBag.getItem();
 					int currentWeight = omegaBag.getSlotWeight(heldBag, i);
 					int newWeight = currentWeight;
 					
@@ -207,7 +209,8 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 			return;
 		}
 		ItemStack heldBag = Minecraft.getInstance().player.getItemInHand(InteractionHand.MAIN_HAND);
-		if (!(heldBag.getItem() instanceof OmegaRandomizerBagItem omegaBag)) return;
+		if (!(heldBag.getItem() instanceof OmegaRandomizerBagItem)) return;
+		OmegaRandomizerBagItem omegaBag = (OmegaRandomizerBagItem) heldBag.getItem();
 		
 		Font font = Minecraft.getInstance().font;
 		PoseStack ms = guiGraphics.pose();

@@ -40,7 +40,7 @@ public class MirrorEntry extends BaseModifierEntry<Mirror> {
 		//ScrollInput works with double the value, so we can have 0.5 increments
 		for (int i = 0; i < 3; i++) {
 			final int index = i;
-			var scrollInput = new LabeledScrollInput(0, 0, 36, 18)
+			ScrollInput scrollInput = new LabeledScrollInput(0, 0, 36, 18)
 				.showControlScrollsSlowerTooltip()
 				.titled(new TextComponent(i == 0 ? "X Position" : i == 1 ? "Y Position" : "Z Position"))
 				.format(integer -> new TextComponent(df.format(integer / 2.0)))

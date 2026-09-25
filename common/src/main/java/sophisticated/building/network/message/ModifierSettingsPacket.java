@@ -13,10 +13,20 @@ import sophisticated.building.platform.Services;
 /**
  * Sync build modifiers between server and client, for saving and loading.
  */
-public record ModifierSettingsPacket(CompoundTag modifiersTag) implements ModPayload {
+public final class ModifierSettingsPacket implements ModPayload {
 	public static final ResourceLocation ID = SophisticatedBuilding.asResource("modifier_settings");
 	// Key of the modifier settings in the per-player data (see IPlatformHelper.getPersistentData)
 	private static final String DATA_KEY = SophisticatedBuilding.MODID + ":buildModifiers";
+
+	private final CompoundTag modifiersTag;
+
+	public ModifierSettingsPacket(CompoundTag modifiersTag) {
+		this.modifiersTag = modifiersTag;
+	}
+
+	public CompoundTag modifiersTag() {
+		return modifiersTag;
+	}
 
 	public ModifierSettingsPacket(FriendlyByteBuf buf) {
 		this(buf.readNbt());
@@ -38,7 +48,8 @@ public record ModifierSettingsPacket(CompoundTag modifiersTag) implements ModPay
 
 	public static class ServerHandler {
 		public static void handleServer(final ModifierSettingsPacket packet, final Player sender) {
-			if (sender instanceof ServerPlayer player) {
+			if (sender instanceof ServerPlayer) {
+				ServerPlayer player = (ServerPlayer) sender;
 				Services.PLATFORM.getPersistentData(player).put(DATA_KEY, packet.modifiersTag().copy());
 			}
 		}

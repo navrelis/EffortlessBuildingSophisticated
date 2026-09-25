@@ -2,6 +2,7 @@ package sophisticated.building.buildmodifier;
 
 import sophisticated.building.utilities.NBTUtils;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.network.message.ModifierSettingsPacket;
@@ -78,15 +79,15 @@ public class BuildModifiers {
 	}
 
 	public CompoundTag serializeNBT() {
-		var compoundTag = new CompoundTag();
+		CompoundTag compoundTag = new CompoundTag();
 		compoundTag.put("modifierSettingsList", NBTUtils.writeCompoundList(modifierSettingsList, BaseModifier::serializeNBT));
 		return compoundTag;
 	}
 
 	public void deserializeNBT(CompoundTag compoundTag) {
-		var listTag = compoundTag.getList("modifierSettingsList", Tag.TAG_COMPOUND);
+		ListTag listTag = compoundTag.getList("modifierSettingsList", Tag.TAG_COMPOUND);
 		modifierSettingsList = NBTUtils.readCompoundList(listTag, tag -> {
-			var modifier = createModifier(tag.getString("type"));
+			BaseModifier modifier = createModifier(tag.getString("type"));
 			modifier.deserializeNBT(tag);
 			return modifier;
 		});

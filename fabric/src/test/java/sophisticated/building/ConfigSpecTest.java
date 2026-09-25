@@ -13,8 +13,10 @@ import sophisticated.building.config.ModConfigs;
 import sophisticated.building.config.SimpleConfigValue;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -48,7 +50,7 @@ class ConfigSpecTest {
             enabled = builder.comment("Enabled.").define("enabled", true);
             count = builder.comment("Count.").defineInRange("count", 10, 1, 100);
             scale = builder.defineInRange("scale", 0.25, 0.05, 1.0);
-            names = builder.defineList("names", List.of("a", "b"));
+            names = builder.defineList("names", Arrays.asList("a", "b"));
             builder.pop();
             builder.comment("Second section.").push("Other");
             other = builder.defineInRange("other", 5, 0, 10);
@@ -68,7 +70,7 @@ class ConfigSpecTest {
         assertFalse(result.missingKeys());
         assertTrue(result.warnings().isEmpty());
         assertEquals(10, config.count.get());
-        assertEquals(List.of("a", "b"), config.names.get());
+        assertEquals(Arrays.asList("a", "b"), config.names.get());
         JsonObject general = new JsonParser().parse(json).getAsJsonObject().getAsJsonObject("General");
         assertEquals("Count. Range: 1 ~ 100. Default: 10", general.get("_comment_count").getAsString());
         assertEquals("Second section.", new JsonParser().parse(json).getAsJsonObject()
@@ -104,7 +106,7 @@ class ConfigSpecTest {
         assertEquals(100, config.count.get());
         assertEquals(0.05, config.scale.get());
         assertEquals(0, config.other.get());
-        assertEquals(List.of("x"), config.names.get());
+        assertEquals(Arrays.asList("x"), config.names.get());
     }
 
     @Test
@@ -119,7 +121,7 @@ class ConfigSpecTest {
         assertEquals(true, config.enabled.get());
         assertEquals(10, config.count.get());
         assertEquals(0.5, config.scale.get());
-        assertEquals(List.of("a", "b"), config.names.get());
+        assertEquals(Arrays.asList("a", "b"), config.names.get());
         assertEquals(7, config.other.get());
     }
 
@@ -142,20 +144,20 @@ class ConfigSpecTest {
 
         ConfigFile.load(config.spec, dir, LOGGER);
         assertTrue(Files.exists(file));
-        assertEquals(config.spec.toFileJson().strip(), Files.readString(file).strip());
+        assertEquals(config.spec.toFileJson().trim(), new String(Files.readAllBytes(file), StandardCharsets.UTF_8).trim());
 
-        Files.writeString(file, "{\"General\": {\"count\": 42}}");
+        Files.write(file, ("{\"General\": {\"count\": 42}}").getBytes(StandardCharsets.UTF_8));
         ConfigFile.load(config.spec, dir, LOGGER);
         assertEquals(42, config.count.get());
-        JsonObject rewritten = new JsonParser().parse(Files.readString(file)).getAsJsonObject();
+        JsonObject rewritten = new JsonParser().parse(new String(Files.readAllBytes(file), StandardCharsets.UTF_8)).getAsJsonObject();
         assertEquals(42, rewritten.getAsJsonObject("General").get("count").getAsInt());
         assertEquals(5, rewritten.getAsJsonObject("Other").get("other").getAsInt());
 
         String broken = "{\"General\": {\"count\": 50";
-        Files.writeString(file, broken);
+        Files.write(file, (broken).getBytes(StandardCharsets.UTF_8));
         ConfigFile.load(config.spec, dir, LOGGER);
         assertEquals(10, config.count.get());
-        assertEquals(broken, Files.readString(file));
+        assertEquals(broken, new String(Files.readAllBytes(file), StandardCharsets.UTF_8));
     }
 
     @Test
@@ -164,20 +166,20 @@ class ConfigSpecTest {
         Path file = dir.resolve("sophisticatedbuilding-test.json");
         String original = "{\"General\": {\"enabled\": true, \"count\": 500, \"scale\": 0.25, \"names\": [\"a\", \"b\"]}, "
                 + "\"Other\": {\"other\": 5}}";
-        Files.writeString(file, original);
+        Files.write(file, (original).getBytes(StandardCharsets.UTF_8));
 
         ConfigFile.load(config.spec, dir, LOGGER);
 
         assertEquals(100, config.count.get());
-        JsonObject rewritten = new JsonParser().parse(Files.readString(file)).getAsJsonObject();
+        JsonObject rewritten = new JsonParser().parse(new String(Files.readAllBytes(file), StandardCharsets.UTF_8)).getAsJsonObject();
         assertEquals(100, rewritten.getAsJsonObject("General").get("count").getAsInt());
 
         Path backup = dir.resolve("sophisticatedbuilding-test.json.bak");
         assertTrue(Files.exists(backup));
-        assertEquals(original, Files.readString(backup));
+        assertEquals(original, new String(Files.readAllBytes(backup), StandardCharsets.UTF_8));
 
         // The corrected file itself has nothing left to fix.
-        ConfigSpec.LoadResult secondResult = config.spec.load(Files.readString(file));
+        ConfigSpec.LoadResult secondResult = config.spec.load(new String(Files.readAllBytes(file), StandardCharsets.UTF_8));
         assertTrue(secondResult.warnings().isEmpty());
         assertFalse(secondResult.missingKeys());
         assertTrue(secondResult.unknownKeys().isEmpty());
@@ -193,19 +195,19 @@ class ConfigSpecTest {
         Path file = dir.resolve("sophisticatedbuilding-test.json");
         String original = "{\"General\": {\"enabled\": \"yes\", \"count\": 10, \"scale\": 0.25, \"names\": [\"a\", \"b\"]}, "
                 + "\"Other\": {\"other\": 5}}";
-        Files.writeString(file, original);
+        Files.write(file, (original).getBytes(StandardCharsets.UTF_8));
 
         ConfigFile.load(config.spec, dir, LOGGER);
 
         assertEquals(true, config.enabled.get());
-        JsonObject rewritten = new JsonParser().parse(Files.readString(file)).getAsJsonObject();
+        JsonObject rewritten = new JsonParser().parse(new String(Files.readAllBytes(file), StandardCharsets.UTF_8)).getAsJsonObject();
         assertEquals(true, rewritten.getAsJsonObject("General").get("enabled").getAsBoolean());
 
         Path backup = dir.resolve("sophisticatedbuilding-test.json.bak");
         assertTrue(Files.exists(backup));
-        assertEquals(original, Files.readString(backup));
+        assertEquals(original, new String(Files.readAllBytes(backup), StandardCharsets.UTF_8));
 
-        ConfigSpec.LoadResult secondResult = config.spec.load(Files.readString(file));
+        ConfigSpec.LoadResult secondResult = config.spec.load(new String(Files.readAllBytes(file), StandardCharsets.UTF_8));
         assertTrue(secondResult.warnings().isEmpty());
         assertFalse(secondResult.missingKeys());
         assertTrue(secondResult.unknownKeys().isEmpty());
@@ -220,22 +222,22 @@ class ConfigSpecTest {
         Path file = dir.resolve("sophisticatedbuilding-test.json");
         String original = "{\"General\": {\"enabled\": true, \"count\": 10, \"scale\": 0.25, \"names\": [\"a\", \"b\"], "
                 + "\"legacyOption\": 1}, \"Other\": {\"other\": 5}}";
-        Files.writeString(file, original);
+        Files.write(file, (original).getBytes(StandardCharsets.UTF_8));
 
         ConfigSpec.LoadResult directResult = config.spec.load(original);
-        assertEquals(List.of("General.legacyOption"), directResult.unknownKeys());
+        assertEquals(Arrays.asList("General.legacyOption"), directResult.unknownKeys());
         assertTrue(directResult.needsCorrection());
 
         ConfigFile.load(config.spec, dir, LOGGER);
 
-        assertFalse(Files.readString(file).contains("legacyOption"));
+        assertFalse(new String(Files.readAllBytes(file), StandardCharsets.UTF_8).contains("legacyOption"));
 
         Path backup = dir.resolve("sophisticatedbuilding-test.json.bak");
         assertTrue(Files.exists(backup));
-        assertTrue(Files.readString(backup).contains("legacyOption"));
+        assertTrue(new String(Files.readAllBytes(backup), StandardCharsets.UTF_8).contains("legacyOption"));
 
         // Loading the corrected file again reports no more unknown keys.
-        ConfigSpec.LoadResult secondResult = config.spec.load(Files.readString(file));
+        ConfigSpec.LoadResult secondResult = config.spec.load(new String(Files.readAllBytes(file), StandardCharsets.UTF_8));
         assertTrue(secondResult.unknownKeys().isEmpty());
         assertFalse(secondResult.needsCorrection());
     }
@@ -244,14 +246,14 @@ class ConfigSpecTest {
     void secondBackupUsesNumberedSuffixWhenFirstAlreadyExists(@TempDir Path dir) throws IOException {
         TestConfig config = new TestConfig();
         Path file = dir.resolve("sophisticatedbuilding-test.json");
-        Files.writeString(file, "{\"General\": {\"enabled\": true, \"count\": 500, \"scale\": 0.25, \"names\": [\"a\", \"b\"]}, "
-                + "\"Other\": {\"other\": 5}}");
-        Files.writeString(dir.resolve("sophisticatedbuilding-test.json.bak"), "existing backup");
+        Files.write(file, ("{\"General\": {\"enabled\": true, \"count\": 500, \"scale\": 0.25, \"names\": [\"a\", \"b\"]}, "
+                + "\"Other\": {\"other\": 5}}").getBytes(StandardCharsets.UTF_8));
+        Files.write(dir.resolve("sophisticatedbuilding-test.json.bak"), ("existing backup").getBytes(StandardCharsets.UTF_8));
 
         ConfigFile.load(config.spec, dir, LOGGER);
 
         assertTrue(Files.exists(dir.resolve("sophisticatedbuilding-test-1.json.bak")));
-        assertEquals("existing backup", Files.readString(dir.resolve("sophisticatedbuilding-test.json.bak")));
+        assertEquals("existing backup", new String(Files.readAllBytes(dir.resolve("sophisticatedbuilding-test.json.bak")), StandardCharsets.UTF_8));
     }
 
     @Test
@@ -280,7 +282,7 @@ class ConfigSpecTest {
     @Test
     void whitelistIsNeverSyncedAndKeepsLocalValue() {
         try {
-            simple(ServerConfig.validation.whitelist).set(List.of("SecretAdmin"));
+            simple(ServerConfig.validation.whitelist).set(Arrays.asList("SecretAdmin"));
             String sync = serverSpec().toSyncJson();
 
             JsonObject validation = new JsonParser().parse(sync).getAsJsonObject().getAsJsonObject("Validation");
@@ -290,12 +292,12 @@ class ConfigSpecTest {
             assertFalse(sync.contains("Player1"));
             assertTrue(serverSpec().toFileJson().contains("SecretAdmin"));
 
-            simple(ServerConfig.validation.whitelist).set(List.of("LocalName"));
+            simple(ServerConfig.validation.whitelist).set(Arrays.asList("LocalName"));
             assertTrue(serverSpec().loadSync(sync).parsed());
-            assertEquals(List.of("LocalName"), ServerConfig.validation.whitelist.get());
+            assertEquals(Arrays.asList("LocalName"), ServerConfig.validation.whitelist.get());
 
             assertFalse(serverSpec().loadSync("{broken").parsed());
-            assertEquals(List.of("LocalName"), ServerConfig.validation.whitelist.get());
+            assertEquals(Arrays.asList("LocalName"), ServerConfig.validation.whitelist.get());
         } finally {
             serverSpec().resetToDefaults();
         }

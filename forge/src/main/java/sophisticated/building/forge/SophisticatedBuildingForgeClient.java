@@ -1,5 +1,6 @@
 package sophisticated.building.forge;
 
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.world.entity.player.Player;
@@ -58,7 +59,7 @@ public class SophisticatedBuildingForgeClient {
 
     private static void registerKeyMappings() {
         // Register keybindings for mod controls
-        for (var keyBinding : ClientEvents.keyBindings) {
+        for (KeyMapping keyBinding : ClientEvents.keyBindings) {
             ClientRegistry.registerKeyBinding(keyBinding);
         }
     }

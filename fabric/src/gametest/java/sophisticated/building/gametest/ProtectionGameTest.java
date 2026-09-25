@@ -32,7 +32,7 @@ public class ProtectionGameTest implements FabricGameTest {
         double centerX = border.getCenterX();
         double centerZ = border.getCenterZ();
         double size = border.getSize();
-        try (var config = ConfigScope.baseline()) {
+        try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
             player.getInventory().setItem(0, new ItemStack(Items.STONE, 2));
             BlockPos inside = helper.absolutePos(INSIDE);
             BlockPos outside = helper.absolutePos(OUTSIDE);
@@ -60,7 +60,7 @@ public class ProtectionGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE)
     public void adventureModeRejected(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.ADVENTURE);
-        try (var config = ConfigScope.baseline()) {
+        try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
             player.getInventory().setItem(0, new ItemStack(Items.STONE, 2));
 
             SophisticatedBuilding.SERVER_BLOCK_PLACER.applyBlockSet(player, set(

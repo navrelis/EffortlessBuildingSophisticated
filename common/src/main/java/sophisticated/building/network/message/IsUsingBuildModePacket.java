@@ -8,8 +8,18 @@ import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.network.ModPayload;
 import sophisticated.building.systems.ServerBuildState;
 
-public record IsUsingBuildModePacket(boolean isUsingBuildMode) implements ModPayload {
+public final class IsUsingBuildModePacket implements ModPayload {
 	public static final ResourceLocation ID = SophisticatedBuilding.asResource("is_using_build_mode");
+
+	private final boolean isUsingBuildMode;
+
+	public IsUsingBuildModePacket(boolean isUsingBuildMode) {
+		this.isUsingBuildMode = isUsingBuildMode;
+	}
+
+	public boolean isUsingBuildMode() {
+		return isUsingBuildMode;
+	}
 
 	public IsUsingBuildModePacket(FriendlyByteBuf buf) {
 		this(buf.readBoolean());
@@ -27,7 +37,8 @@ public record IsUsingBuildModePacket(boolean isUsingBuildMode) implements ModPay
 
 	public static class Handler {
 		public static void handle(final IsUsingBuildModePacket packet, final Player sender) {
-			if (sender instanceof ServerPlayer player) {
+			if (sender instanceof ServerPlayer) {
+				ServerPlayer player = (ServerPlayer) sender;
 				ServerBuildState.setIsUsingBuildMode(player, packet.isUsingBuildMode());
 			}
 		}

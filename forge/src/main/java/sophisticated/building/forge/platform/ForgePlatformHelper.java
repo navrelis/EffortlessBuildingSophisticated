@@ -44,7 +44,7 @@ public final class ForgePlatformHelper implements IPlatformHelper {
     public boolean isModLoaded(String modId) {
         try {
             // ModList is available after mod discovery; fall back to the loading mod list before that
-            var modList = ModList.get();
+            ModList modList = ModList.get();
             if (modList != null) {
                 return modList.isLoaded(modId);
             }

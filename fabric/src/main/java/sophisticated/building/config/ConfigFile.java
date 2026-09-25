@@ -33,7 +33,7 @@ public final class ConfigFile {
 
         String content;
         try {
-            content = Files.readString(file, StandardCharsets.UTF_8);
+            content = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
         } catch (IOException e) {
             spec.resetToDefaults();
             logger.error("Could not read config file {}, using defaults: {}", file, e.toString());
@@ -87,7 +87,7 @@ public final class ConfigFile {
         try {
             Files.createDirectories(file.getParent());
             Path temp = file.resolveSibling(file.getFileName() + ".tmp");
-            Files.writeString(temp, spec.toFileJson() + System.lineSeparator(), StandardCharsets.UTF_8);
+            Files.write(temp, (spec.toFileJson() + System.lineSeparator()).getBytes(StandardCharsets.UTF_8));
             Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             logger.error("Could not write config file {}: {}", file, e.toString());

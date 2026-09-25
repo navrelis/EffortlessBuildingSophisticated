@@ -52,10 +52,10 @@ public class ToolSwapperIntegration {
 			}
 			ToolSwapperUpgradeWrapper toolSwapper = null;
 			for (IUpgradeWrapper slotWrapper : wrapper.getUpgradeHandler().getSlotWrappers().values()) {
-				if (slotWrapper instanceof ToolSwapperUpgradeWrapper candidate
-						&& candidate.isEnabled()
-						&& candidate.getToolSwapMode() != ToolSwapMode.NO_SWAP) {
-					toolSwapper = candidate;
+				if (slotWrapper instanceof ToolSwapperUpgradeWrapper
+						&& ((ToolSwapperUpgradeWrapper) slotWrapper).isEnabled()
+						&& ((ToolSwapperUpgradeWrapper) slotWrapper).getToolSwapMode() != ToolSwapMode.NO_SWAP) {
+					toolSwapper = (ToolSwapperUpgradeWrapper) slotWrapper;
 					break;
 				}
 			}

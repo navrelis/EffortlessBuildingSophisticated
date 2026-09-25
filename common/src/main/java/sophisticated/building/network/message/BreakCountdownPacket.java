@@ -13,8 +13,30 @@ import sophisticated.building.network.ModPayload;
  * instant and sends nothing. {@code placing} marks a survival placement that mines the blocks it
  * replaces; {@code blockCount} is then the number of replaced blocks.
  */
-public record BreakCountdownPacket(int delayTicks, int blockCount, boolean placing) implements ModPayload {
+public final class BreakCountdownPacket implements ModPayload {
 	public static final ResourceLocation ID = SophisticatedBuilding.asResource("break_countdown");
+
+	private final int delayTicks;
+	private final int blockCount;
+	private final boolean placing;
+
+	public BreakCountdownPacket(int delayTicks, int blockCount, boolean placing) {
+		this.delayTicks = delayTicks;
+		this.blockCount = blockCount;
+		this.placing = placing;
+	}
+
+	public int delayTicks() {
+		return delayTicks;
+	}
+
+	public int blockCount() {
+		return blockCount;
+	}
+
+	public boolean placing() {
+		return placing;
+	}
 
 	public BreakCountdownPacket(FriendlyByteBuf buf) {
 		this(buf.readInt(), buf.readInt(), buf.readBoolean());

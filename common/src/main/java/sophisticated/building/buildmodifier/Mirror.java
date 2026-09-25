@@ -1,6 +1,7 @@
 package sophisticated.building.buildmodifier;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
@@ -20,7 +21,7 @@ public class Mirror extends BaseModifier {
 	
 	public Mirror() {
 		super();
-		var player = Minecraft.getInstance().player;
+		LocalPlayer player = Minecraft.getInstance().player;
 		if (player != null)
 			position = Vec3.atLowerCornerOf(Minecraft.getInstance().player.blockPosition());
 	}
@@ -29,7 +30,7 @@ public class Mirror extends BaseModifier {
 	public void findCoordinates(BlockSet blocks, Player player) {
 		if (!(enabled && (mirrorX || mirrorY || mirrorZ))) return;
 
-		var originalBlocks = new BlockSet(blocks);
+		BlockSet originalBlocks = new BlockSet(blocks);
 		for (BlockEntry blockEntry : originalBlocks) {
 			if (!isWithinRange(blockEntry.blockPos)) continue;
 
@@ -51,7 +52,7 @@ public class Mirror extends BaseModifier {
 
 		if (blocks.containsKey(newBlockPos)) return;
 
-		var newBlockEntry = new BlockEntry(newBlockPos);
+		BlockEntry newBlockEntry = new BlockEntry(newBlockPos);
 		newBlockEntry.copyRotationSettingsFrom(blockEntry);
 		newBlockEntry.mirrorX = !newBlockEntry.mirrorX;
 		blocks.add(newBlockEntry);
@@ -67,7 +68,7 @@ public class Mirror extends BaseModifier {
 
 		if (blocks.containsKey(newBlockPos)) return;
 
-		var newBlockEntry = new BlockEntry(newBlockPos);
+		BlockEntry newBlockEntry = new BlockEntry(newBlockPos);
 		newBlockEntry.copyRotationSettingsFrom(blockEntry);
 		newBlockEntry.mirrorY = !newBlockEntry.mirrorY;
 		blocks.add(newBlockEntry);
@@ -82,7 +83,7 @@ public class Mirror extends BaseModifier {
 
 		if (blocks.containsKey(newBlockPos)) return;
 
-		var newBlockEntry = new BlockEntry(newBlockPos);
+		BlockEntry newBlockEntry = new BlockEntry(newBlockPos);
 		newBlockEntry.copyRotationSettingsFrom(blockEntry);
 		newBlockEntry.mirrorZ = !newBlockEntry.mirrorZ;
 		blocks.add(newBlockEntry);
@@ -100,21 +101,27 @@ public class Mirror extends BaseModifier {
 	
 	public void toggleMirrorAxis(int index) {
 		switch (index) {
-			case 0 -> mirrorX = !mirrorX;
-			case 1 -> mirrorY = !mirrorY;
-			case 2 -> mirrorZ = !mirrorZ;
+			case 0:
+				mirrorX = !mirrorX;
+				break;
+			case 1:
+				mirrorY = !mirrorY;
+				break;
+			case 2:
+				mirrorZ = !mirrorZ;
+				break;
 		}
 	}
 	
 	public boolean getMirrorAxis(int index) {
 		switch (index) {
-			case 0 -> {
+			case 0: {
 				return mirrorX;
 			}
-			case 1 -> {
+			case 1: {
 				return mirrorY;
 			}
-			case 2 -> {
+			case 2: {
 				return mirrorZ;
 			}
 		}
@@ -123,7 +130,7 @@ public class Mirror extends BaseModifier {
 
 	@Override
 	public CompoundTag serializeNBT() {
-		var compound = super.serializeNBT();
+		CompoundTag compound = super.serializeNBT();
 		compound.putDouble("positionX", position.x);
 		compound.putDouble("positionY", position.y);
 		compound.putDouble("positionZ", position.z);

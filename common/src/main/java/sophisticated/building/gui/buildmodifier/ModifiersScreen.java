@@ -17,6 +17,7 @@ import sophisticated.building.platform.ClientServices;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
+import java.util.List;
 
 public class ModifiersScreen extends AbstractSimiScreen {
 	protected ModifiersScreenList list;
@@ -79,9 +80,9 @@ public class ModifiersScreen extends AbstractSimiScreen {
 	private void initScrollEntries() {
 
 		list.children().clear();
-		var modifierSettingsList = SophisticatedBuildingClient.BUILD_MODIFIERS.getModifierSettingsList();
+		List<BaseModifier> modifierSettingsList = SophisticatedBuildingClient.BUILD_MODIFIERS.getModifierSettingsList();
 		for (BaseModifier modifier : modifierSettingsList) {
-			var entry = createModifierPanel(modifier);
+			BaseModifierEntry entry = createModifierPanel(modifier);
 			if (entry != null) {
 				list.children().add(entry);
 			}
@@ -101,7 +102,7 @@ public class ModifiersScreen extends AbstractSimiScreen {
 	}
 
 	private void addModifier(BaseModifier modifier) {
-		var entry = createModifierPanel(modifier);
+		BaseModifierEntry entry = createModifierPanel(modifier);
 		if (entry != null) {
 			list.children().add(entry);
 		}

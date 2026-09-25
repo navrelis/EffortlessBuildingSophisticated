@@ -3,6 +3,7 @@ package sophisticated.building;
 import org.junit.jupiter.api.Test;
 import sophisticated.building.utilities.ToolSelector;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -47,7 +48,7 @@ class ToolSelectorTest {
 	void correctAndEffectiveToolChosenOverEarlierEffectiveButWrongTierTool() {
 		FakeCandidate wrongTier = new FakeCandidate(true, false, Integer.MAX_VALUE, false);
 		FakeCandidate correctTier = new FakeCandidate(true, true, Integer.MAX_VALUE, false);
-		int index = ToolSelector.select(List.of(wrongTier, correctTier), ToolSelector.Need.TOOL, true, true);
+		int index = ToolSelector.select(Arrays.asList(wrongTier, correctTier), ToolSelector.Need.TOOL, true, true);
 		assertEquals(1, index);
 	}
 
@@ -55,7 +56,7 @@ class ToolSelectorTest {
 	void stopBeforeToolBreaksSkipsCandidateWithOneUseLeftAndTakesTheNextOne() {
 		FakeCandidate almostBroken = new FakeCandidate(true, true, 1, false);
 		FakeCandidate healthy = new FakeCandidate(true, true, 10, false);
-		int index = ToolSelector.select(List.of(almostBroken, healthy), ToolSelector.Need.TOOL, true, true);
+		int index = ToolSelector.select(Arrays.asList(almostBroken, healthy), ToolSelector.Need.TOOL, true, true);
 		assertEquals(1, index);
 	}
 
@@ -63,14 +64,14 @@ class ToolSelectorTest {
 	void noEffectiveToolFallsBackToMainHandWhenCorrectToolNotRequired() {
 		FakeCandidate ineffective = new FakeCandidate(false, false, Integer.MAX_VALUE, false);
 		FakeCandidate mainHand = new FakeCandidate(false, false, Integer.MAX_VALUE, true);
-		int index = ToolSelector.select(List.of(ineffective, mainHand), ToolSelector.Need.TOOL, false, true);
+		int index = ToolSelector.select(Arrays.asList(ineffective, mainHand), ToolSelector.Need.TOOL, false, true);
 		assertEquals(1, index);
 	}
 
 	@Test
 	void returnsImpossibleWhenMainHandAbsentAndNoToolFits() {
 		FakeCandidate ineffective = new FakeCandidate(false, false, Integer.MAX_VALUE, false);
-		int index = ToolSelector.select(List.of(ineffective), ToolSelector.Need.TOOL, false, true);
+		int index = ToolSelector.select(Arrays.asList(ineffective), ToolSelector.Need.TOOL, false, true);
 		assertEquals(-2, index);
 	}
 

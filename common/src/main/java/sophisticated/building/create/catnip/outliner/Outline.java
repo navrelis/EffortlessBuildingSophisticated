@@ -75,23 +75,29 @@ public abstract class Outline {
 		maxPos.set(origin.x() + halfWidth, origin.y() + halfWidth, origin.z() + halfWidth);
 
 		switch (direction) {
-			case DOWN -> {
+			case DOWN: {
 				minPos.add(0, -length, 0);
+				break;
 			}
-			case UP -> {
+			case UP: {
 				maxPos.add(0, length, 0);
+				break;
 			}
-			case NORTH -> {
+			case NORTH: {
 				minPos.add(0, 0, -length);
+				break;
 			}
-			case SOUTH -> {
+			case SOUTH: {
 				maxPos.add(0, 0, length);
+				break;
 			}
-			case WEST -> {
+			case WEST: {
 				minPos.add(-length, 0, 0);
+				break;
 			}
-			case EAST -> {
+			case EAST: {
 				maxPos.add(length, 0, 0);
+				break;
 			}
 		}
 

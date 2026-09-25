@@ -51,7 +51,8 @@ public final class FabricCommonEvents {
             // Like NeoForge/Forge: the client already predicted the placement and took the item from the selected
             // slot, and the server never tells it otherwise. Resend the slot, or a player holding exactly the items
             // the build needs (e.g. 1 block + a backpack with a Building Upgrade) loses the held block client side.
-            if (player instanceof ServerPlayer serverPlayer) {
+            if (player instanceof ServerPlayer) {
+                ServerPlayer serverPlayer = (ServerPlayer) player;
                 serverPlayer.connection.send(new ClientboundContainerSetSlotPacket(
                         serverPlayer.inventoryMenu.containerId,
                         serverPlayer.inventoryMenu.incrementStateId(),

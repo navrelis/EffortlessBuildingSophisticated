@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Schema of one JSON config file: sections (NeoForge {@code push} names) holding options
@@ -75,7 +76,7 @@ public final class ConfigSpec {
             for (Section section : sections) {
                 section.values.stream().filter(value -> !syncOnly || value.isSynced()).forEach(SimpleConfigValue::reset);
             }
-            return new LoadResult(false, false, List.of(), e.getMessage(), List.of());
+            return new LoadResult(false, false, Collections.emptyList(), e.getMessage(), Collections.emptyList());
         }
 
         List<String> warnings = new ArrayList<>();
@@ -83,7 +84,7 @@ public final class ConfigSpec {
         boolean missingKeys = false;
         for (Section section : sections) {
             List<SimpleConfigValue<?>> values = syncOnly
-                    ? section.values.stream().filter(SimpleConfigValue::isSynced).toList()
+                    ? section.values.stream().filter(SimpleConfigValue::isSynced).collect(Collectors.toList())
                     : section.values;
             if (values.isEmpty()) {
                 continue;
@@ -172,7 +173,40 @@ public final class ConfigSpec {
      * @param unknownKeys keys present in the JSON that are not defined options (e.g. old/typo'd
      *                    keys); they are dropped when the file is rewritten
      */
-    public record LoadResult(boolean parsed, boolean missingKeys, List<String> warnings, String error, List<String> unknownKeys) {
+    public static final class LoadResult {
+        private final boolean parsed;
+        private final boolean missingKeys;
+        private final List<String> warnings;
+        private final String error;
+        private final List<String> unknownKeys;
+
+        public LoadResult(boolean parsed, boolean missingKeys, List<String> warnings, String error, List<String> unknownKeys) {
+            this.parsed = parsed;
+            this.missingKeys = missingKeys;
+            this.warnings = warnings;
+            this.error = error;
+            this.unknownKeys = unknownKeys;
+        }
+
+        public boolean parsed() {
+            return parsed;
+        }
+
+        public boolean missingKeys() {
+            return missingKeys;
+        }
+
+        public List<String> warnings() {
+            return warnings;
+        }
+
+        public String error() {
+            return error;
+        }
+
+        public List<String> unknownKeys() {
+            return unknownKeys;
+        }
 
         /** True if loading found anything that requires the file to be corrected and backed up. */
         public boolean needsCorrection() {
@@ -180,7 +214,28 @@ public final class ConfigSpec {
         }
     }
 
-    private record Section(String name, String comment, List<SimpleConfigValue<?>> values) {
+    private static final class Section {
+        private final String name;
+        private final String comment;
+        private final List<SimpleConfigValue<?>> values;
+
+        public Section(String name, String comment, List<SimpleConfigValue<?>> values) {
+            this.name = name;
+            this.comment = comment;
+            this.values = values;
+        }
+
+        public String name() {
+            return name;
+        }
+
+        public String comment() {
+            return comment;
+        }
+
+        public List<SimpleConfigValue<?>> values() {
+            return values;
+        }
     }
 
     /** Mirrors the NeoForge {@code ModConfigSpec.Builder} calls used by the config classes. */
@@ -255,7 +310,7 @@ public final class ConfigSpec {
             if (current != null) {
                 throw new IllegalStateException("Config section not popped: " + current.name);
             }
-            return new ConfigSpec(name, List.copyOf(sections));
+            return new ConfigSpec(name, Collections.unmodifiableList(new ArrayList<>(sections)));
         }
 
         private <V extends SimpleConfigValue<?>> V add(V value) {

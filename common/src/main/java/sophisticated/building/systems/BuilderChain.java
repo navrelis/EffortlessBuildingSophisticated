@@ -1,7 +1,10 @@
 package sophisticated.building.systems;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -11,6 +14,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -37,7 +41,9 @@ import sophisticated.building.platform.Services;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 // Receives block placed events, then finds additional blocks we want to place through various systems,
@@ -85,9 +91,9 @@ public class BuilderChain {
     private BreakToolHelper.BreakPlan lastBreakPlan;
 
     public void onRightClick() {
-        var mc = Minecraft.getInstance();
-        var player = mc.player;
-        var world = mc.level;
+        Minecraft mc = Minecraft.getInstance();
+        LocalPlayer player = mc.player;
+        ClientLevel world = mc.level;
         if (player == null || world == null) return;
 
         if (ClientBlockUtilities.determineIfLookingAtInteractiveObject(mc, world) && !player.isShiftKeyDown()) {
@@ -104,7 +110,7 @@ public class BuilderChain {
             buildingState = BuildingState.PLACING;
         }
 
-        var buildMode = SophisticatedBuildingClient.BUILD_MODES.getBuildMode();
+        BuildModeEnum buildMode = SophisticatedBuildingClient.BUILD_MODES.getBuildMode();
 
         //Find out if we should place blocks now
         if (buildMode.instance.onClick(blocks)) {
@@ -146,7 +152,7 @@ public class BuilderChain {
             return;
         }
 
-        var player = Minecraft.getInstance().player;
+        LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
         if (!AttachmentHandler.canBreakFar(player)) return;
 
@@ -161,7 +167,7 @@ public class BuilderChain {
             SophisticatedBuildingClient.BUILDER_FILTER.filterOnExistingBlockStates(blocks, player);
         }
 
-        var buildMode = SophisticatedBuildingClient.BUILD_MODES.getBuildMode();
+        BuildModeEnum buildMode = SophisticatedBuildingClient.BUILD_MODES.getBuildMode();
 
         //Find out if we should break blocks now
         if (buildMode.instance.onClick(blocks)) {
@@ -233,9 +239,9 @@ public class BuilderChain {
         // Tick the BlockSet cooldown for rate-limited logging
         BlockSet.ClientSide.tickCooldown();
         
-        var mc = Minecraft.getInstance();
-        var player = mc.player;
-        var world = mc.level;
+        Minecraft mc = Minecraft.getInstance();
+        LocalPlayer player = mc.player;
+        ClientLevel world = mc.level;
         
         // Check if we need a full update based on player movement/look changes
         Vec3 currentPos = player.position();
@@ -255,7 +261,7 @@ public class BuilderChain {
             return;
         }
 
-        var previousCoordinates = new HashSet<>(blocks.getCoordinates());
+        HashSet<BlockPos> previousCoordinates = new HashSet<>(blocks.getCoordinates());
         blocks.clear();
         startPosForPlacing = null;
         startPosForBreaking = null;
@@ -268,7 +274,7 @@ public class BuilderChain {
             return;
         }
 
-        var buildMode = SophisticatedBuildingClient.BUILD_MODES.getBuildMode();
+        BuildModeEnum buildMode = SophisticatedBuildingClient.BUILD_MODES.getBuildMode();
 
         if (buildingState == BuildingState.IDLE) {
             //Find start position
@@ -303,7 +309,7 @@ public class BuilderChain {
             lastBreakPlan = null;
         }
 
-        var heldItem = player.getItemInHand(InteractionHand.MAIN_HAND);
+        ItemStack heldItem = player.getItemInHand(InteractionHand.MAIN_HAND);
         findNewBlockStates(player, heldItem); //includes filtering on new blockstates
 
         //Check if any changes are made
@@ -328,12 +334,12 @@ public class BuilderChain {
     //Whether we can place or break blocks, determined by what we are looking at and what we are holding
     private AbilitiesState determineAbilities(Minecraft mc, Player player, Level world) {
 
-        var hitResult = Minecraft.getInstance().hitResult;
+        HitResult hitResult = Minecraft.getInstance().hitResult;
         if (hitResult != null && hitResult.getType() == HitResult.Type.BLOCK) {
             lookingAtNear = (BlockHitResult) hitResult;
         }
 
-        var itemStack = player.getItemInHand(InteractionHand.MAIN_HAND);
+        ItemStack itemStack = player.getItemInHand(InteractionHand.MAIN_HAND);
         boolean blockInHand = CompatHelper.isItemBlockProxy(itemStack);
         boolean lookingAtInteractiveObject = ClientBlockUtilities.determineIfLookingAtInteractiveObject(mc, world);
         boolean isShiftKeyDown = player.isShiftKeyDown();
@@ -360,7 +366,7 @@ public class BuilderChain {
         }
         if (lookingAt == null || lookingAt.getType() == HitResult.Type.MISS) return null;
 
-        var startPos = lookingAt.getBlockPos();
+        BlockPos startPos = lookingAt.getBlockPos();
 
         //Check if out of reach
         if (!shouldLookAtNear && player.blockPosition().distSqr(startPos) > maxReach * maxReach) return null;
@@ -385,7 +391,7 @@ public class BuilderChain {
             if (!shouldLookAtNear && !AttachmentHandler.canBreakFar(player)) return null;
         }
 
-        var blockEntry = new BlockEntry(startPos);
+        BlockEntry blockEntry = new BlockEntry(startPos);
         startPosForPlacing = blockEntry;
         return blockEntry;
     }
@@ -399,16 +405,16 @@ public class BuilderChain {
     private void findNewBlockStates(Player player, ItemStack heldItem) {
         if (buildingState == BuildingState.BREAKING) return;
 
-        var originalDirection = player.getDirection();
-        var clickedFace = lookingAt.getDirection();
+        Direction originalDirection = player.getDirection();
+        Direction clickedFace = lookingAt.getDirection();
         Vec3 relativeHitVec = lookingAt.getLocation().subtract(Vec3.atLowerCornerOf(lookingAt.getBlockPos()));
 
         //Keep track of itemstack usage
         SophisticatedBuildingClient.ITEM_USAGE_TRACKER.initialize();
 
-        var iter = blocks.entrySet().iterator();
+        Iterator<Map.Entry<BlockPos, BlockEntry>> iter = blocks.entrySet().iterator();
         while (iter.hasNext()) {
-            var blockEntry = iter.next().getValue();
+            BlockEntry blockEntry = iter.next().getValue();
 
             //Determine itemstack - pass position for per-position randomization
             ItemStack itemStack = determineItemStack(player, heldItem, blockEntry.blockPos);
@@ -480,8 +486,8 @@ public class BuilderChain {
         if (heldItem.getItem() instanceof BlockItem) return;
         if (lookingAt == null || lookingAt.getType() != HitResult.Type.BLOCK) return;
         
-        var originalDirection = player.getDirection();
-        var clickedFace = lookingAt.getDirection();
+        Direction originalDirection = player.getDirection();
+        Direction clickedFace = lookingAt.getDirection();
         Vec3 relativeHitVec = lookingAt.getLocation().subtract(Vec3.atLowerCornerOf(lookingAt.getBlockPos()));
 
         for (BlockEntry blockEntry : blocks) {
@@ -514,7 +520,7 @@ public class BuilderChain {
             soundTime = ClientEvents.ticksInGame;
 
             if (blocks.getLastBlockEntry() != null && blocks.getLastBlockEntry().newBlockState != null) {
-                var lastBlockState = blocks.getLastBlockEntry().newBlockState;
+                BlockState lastBlockState = blocks.getLastBlockEntry().newBlockState;
                 SoundType soundType = Services.BLOCK_EVENTS.getSoundType(lastBlockState, player.level, blocks.lastPos, player);
                 SoundEvent soundEvent = buildingState == BuildingState.BREAKING ? soundType.getBreakSound() : soundType.getPlaceSound();
                 player.level.playSound(player, player.blockPosition(), soundEvent, SoundSource.BLOCKS, 0.3f, 0.8f);
@@ -526,7 +532,7 @@ public class BuilderChain {
         if (buildingState == BuildingState.IDLE) return;
         buildingState = BuildingState.IDLE;
         SophisticatedBuildingClient.BUILD_MODES.onCancel();
-        var player = Minecraft.getInstance().player;
+        LocalPlayer player = Minecraft.getInstance().player;
         if (player != null) {
             player.playSound(SoundEvents.UI_TOAST_OUT, 4, 1);
         }

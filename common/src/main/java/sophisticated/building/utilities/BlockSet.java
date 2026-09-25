@@ -3,6 +3,7 @@ package sophisticated.building.utilities;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.Item;
@@ -18,6 +19,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 //Common
 public class BlockSet extends HashMap<BlockPos, BlockEntry> implements Iterable<BlockEntry> {
@@ -102,7 +104,7 @@ public class BlockSet extends HashMap<BlockPos, BlockEntry> implements Iterable<
     }
 
     public static void encode(FriendlyByteBuf buf, BlockSet block) {
-        List<BlockEntry> entries = block.values().stream().filter(be -> !be.invalid).toList();
+        List<BlockEntry> entries = block.values().stream().filter(be -> !be.invalid).collect(Collectors.toList());
 
         // 1. Build Palette
         List<Pair<BlockState, Item>> palette = new ArrayList<>();
@@ -155,7 +157,7 @@ public class BlockSet extends HashMap<BlockPos, BlockEntry> implements Iterable<
         for (int i = 0; i < paletteSize; i++) {
             BlockState state = null;
             if (buf.readBoolean()) {
-                var nbt = buf.readNbt();
+                CompoundTag nbt = buf.readNbt();
                 state = nbt == null ? null : NbtUtils.readBlockState(nbt);
             }
             Item item = Item.byId(buf.readVarInt());

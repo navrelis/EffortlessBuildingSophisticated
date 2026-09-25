@@ -12,6 +12,7 @@ import net.p3pp3rf1y.sophisticatedbackpacks.client.gui.utils.GuiHelper;
 import net.p3pp3rf1y.sophisticatedbackpacks.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedbackpacks.client.gui.utils.UV;
 import sophisticated.building.gui.BuildingUpgradeContainer;
+import sophisticated.building.item.upgrade.BuildingUpgradeWrapper;
 
 import static net.p3pp3rf1y.sophisticatedbackpacks.client.gui.controls.ButtonDefinitions.createToggleButtonDefinition;
 import static net.p3pp3rf1y.sophisticatedbackpacks.client.gui.controls.ButtonDefinitions.getBooleanStateData;
@@ -31,7 +32,7 @@ public class BuildingUpgradeSettingsTab extends UpgradeSettingsTab<BuildingUpgra
                 button -> getContainer().setEnabled(!getContainer().isEnabled()),
                 () -> getContainer().isEnabled()));
 
-        var wrapper = getContainer().getUpgradeWrapper();
+        BuildingUpgradeWrapper wrapper = getContainer().getUpgradeWrapper();
         addHideableChild(new Label(new Position(x + 24, y + 27),
                 new TranslatableComponent("sophisticatedbuilding.gui.building_upgrade.info", wrapper.getTier(), wrapper.getMaxBlocks())));
     }

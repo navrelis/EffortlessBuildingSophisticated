@@ -33,6 +33,7 @@ import sophisticated.building.platform.Services;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -127,7 +128,8 @@ public abstract class AbstractRandomizerBagItem extends Item {
 		// Use weighted selection for Omega bags
 		if (this instanceof OmegaRandomizerBagItem && player != null) {
 			ItemStack bagStack = player.getItemInHand(InteractionHand.MAIN_HAND);
-			if (bagStack.getItem() instanceof OmegaRandomizerBagItem omegaBag) {
+			if (bagStack.getItem() instanceof OmegaRandomizerBagItem) {
+				OmegaRandomizerBagItem omegaBag = (OmegaRandomizerBagItem) bagStack.getItem();
 				int selectedSlot = pickWeightedSlot(slots, omegaBag, bagStack);
 				return bagInventory.getStackInSlot(selectedSlot).copy();
 			}
@@ -193,7 +195,8 @@ public abstract class AbstractRandomizerBagItem extends Item {
 		// Use weighted selection for Omega bags
 		if (this instanceof OmegaRandomizerBagItem && player != null) {
 			ItemStack bagStack = player.getItemInHand(InteractionHand.MAIN_HAND);
-			if (bagStack.getItem() instanceof OmegaRandomizerBagItem omegaBag) {
+			if (bagStack.getItem() instanceof OmegaRandomizerBagItem) {
+				OmegaRandomizerBagItem omegaBag = (OmegaRandomizerBagItem) bagStack.getItem();
 				selectedSlot = pickWeightedSlotWithSplittableRandom(availableSlots, omegaBag, bagStack, posRandom);
 			} else {
 				// Fallback to equal weight
@@ -362,8 +365,8 @@ public abstract class AbstractRandomizerBagItem extends Item {
 
 			BlockState blockState = Block.byItem(toPlace.getItem()).getStateForPlacement(blockItemUseContext);
 
-			var blockEntry = new BlockEntry(pos, blockState, toPlace.getItem());
-			var blockSet = new BlockSet(List.of(blockEntry), pos, pos, false);
+			BlockEntry blockEntry = new BlockEntry(pos, blockState, toPlace.getItem());
+			BlockSet blockSet = new BlockSet(Collections.singletonList(blockEntry), pos, pos, false);
 			SophisticatedBuilding.SERVER_BLOCK_PLACER.applyBlockSet(player, blockSet);
 		}
 		return InteractionResult.SUCCESS;

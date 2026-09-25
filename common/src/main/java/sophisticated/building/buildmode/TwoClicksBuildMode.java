@@ -1,6 +1,7 @@
 package sophisticated.building.buildmode;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.SophisticatedBuildingClient;
@@ -43,10 +44,10 @@ public abstract class TwoClicksBuildMode extends BaseBuildMode {
 	public void findCoordinates(BlockSet blocks) {
 		if (clicks == 0) return;
 
-		var player = Minecraft.getInstance().player;
+		LocalPlayer player = Minecraft.getInstance().player;
 		if (firstBlockEntry == null || firstBlockEntry.blockPos == null) return;
-		var firstPos = firstBlockEntry.blockPos;
-		var secondPos = findSecondPos(player, firstBlockEntry.blockPos, true);
+		BlockPos firstPos = firstBlockEntry.blockPos;
+		BlockPos secondPos = findSecondPos(player, firstBlockEntry.blockPos, true);
 		if (secondPos == null) return;
 
 		//Limit amount of blocks we can place per row

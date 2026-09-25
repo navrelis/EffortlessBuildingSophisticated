@@ -8,6 +8,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import sophisticated.building.client.gui.GuiGraphics;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
@@ -26,6 +27,7 @@ import sophisticated.building.client.ClientBreakCountdown;
 import sophisticated.building.inventory.IItemHandler;
 import sophisticated.building.item.AbstractRandomizerBagItem;
 import sophisticated.building.systems.BuilderChain;
+import sophisticated.building.utilities.BreakToolHelper;
 import sophisticated.building.utilities.InventoryHelper;
 
 import java.util.LinkedHashMap;
@@ -108,15 +110,15 @@ public class RenderHandler {
 			normalColor + "Right-click to " + highlightColor + "cancel");
 
 	private static void renderSubText(GuiGraphics guiGraphics) {
-		var state = SophisticatedBuildingClient.BUILDER_CHAIN.getBuildingState();
+		BuilderChain.BuildingState state = SophisticatedBuildingClient.BUILDER_CHAIN.getBuildingState();
 		if (state == BuilderChain.BuildingState.IDLE) return;
 
-		var text = state == BuilderChain.BuildingState.PLACING ? placingText : breakingText;
+		Component text = state == BuilderChain.BuildingState.PLACING ? placingText : breakingText;
 
 		Minecraft mc = Minecraft.getInstance();
 		int screenWidth = mc.getWindow().getGuiScaledWidth();
 		int screenHeight = mc.getWindow().getGuiScaledHeight();
-		var font = mc.font;
+		Font font = mc.font;
 
 		PoseStack ms = guiGraphics.pose();
 		ms.pushPose();
@@ -132,7 +134,7 @@ public class RenderHandler {
 	//Draw item stacks at cursor, showing what will be used and what is missing
 	private static void drawStacks(GuiGraphics guiGraphics) {
 		Minecraft mc = Minecraft.getInstance();
-		var player = mc.player;
+		LocalPlayer player = mc.player;
 		if (player == null) return;
 
 		// Use the pretend state (as if actively building) for the breaking branch so a survival
@@ -144,10 +146,10 @@ public class RenderHandler {
 			return;
 		}
 
-		var state = SophisticatedBuildingClient.BUILDER_CHAIN.getBuildingState();
+		BuilderChain.BuildingState state = SophisticatedBuildingClient.BUILDER_CHAIN.getBuildingState();
 		if (state != BuilderChain.BuildingState.PLACING) return;
 
-		var stacks = SophisticatedBuildingClient.ITEM_USAGE_TRACKER.total;
+		Map<Item, Integer> stacks = SophisticatedBuildingClient.ITEM_USAGE_TRACKER.total;
 		//Show if we are in survival or we are using multiple types of items
 		if (player.isCreative() && stacks.size() <= 1) {
 			return;
@@ -161,7 +163,7 @@ public class RenderHandler {
 
 		//Draw item texture with count
 		int i = 0;
-		for (var stack : stacks.entrySet()) {
+		for (Map.Entry<Item, Integer> stack : stacks.entrySet()) {
 			int total = stack.getValue();
 			int missing = SophisticatedBuildingClient.ITEM_USAGE_TRACKER.getMissingCount(stack.getKey());
 
@@ -182,7 +184,7 @@ public class RenderHandler {
 	private static void drawBreakPlanStacks(GuiGraphics guiGraphics, Minecraft mc, net.minecraft.world.entity.player.Player player) {
 		if (player.isCreative()) return;
 
-		var plan = SophisticatedBuildingClient.BUILDER_CHAIN.getBreakPlan();
+		BreakToolHelper.BreakPlan plan = SophisticatedBuildingClient.BUILDER_CHAIN.getBreakPlan();
 		if (plan == null || (plan.usesPerTool.isEmpty() && plan.unbreakable == 0)) return;
 
 		int screenWidth = mc.getWindow().getGuiScaledWidth();
@@ -192,7 +194,7 @@ public class RenderHandler {
 		int y = screenHeight / 2 - 8;
 
 		int i = 0;
-		for (var entry : plan.usesPerTool.entrySet()) {
+		for (Map.Entry<BreakToolHelper.ToolSlot, Integer> entry : plan.usesPerTool.entrySet()) {
 			ItemStack stack = entry.getKey().get().copy();
 			stack.setCount(Math.min(entry.getValue(), stack.getMaxStackSize()));
 			drawItemStack(guiGraphics, stack, x + i * 20, y, false);
@@ -285,7 +287,7 @@ public class RenderHandler {
 	 * Draw the randomizer bag HUD.
 	 */
 	private static void drawRandomizerBagHUD(GuiGraphics guiGraphics) {
-		var player = Minecraft.getInstance().player;
+		LocalPlayer player = Minecraft.getInstance().player;
 		if (player == null) return;
 
 		if (player.isCreative()) {
@@ -295,7 +297,8 @@ public class RenderHandler {
 		ItemStack heldItem = player.getItemInHand(InteractionHand.MAIN_HAND);
 		Map<Item, Integer> bundledCounts = new LinkedHashMap<>();
 
-		if (heldItem.getItem() instanceof AbstractRandomizerBagItem bagItem) {
+		if (heldItem.getItem() instanceof AbstractRandomizerBagItem) {
+			AbstractRandomizerBagItem bagItem = (AbstractRandomizerBagItem) heldItem.getItem();
 			IItemHandler bagInventory = bagItem.getBagInventory(heldItem);
 			if (bagInventory == null) return;
 
@@ -334,7 +337,7 @@ public class RenderHandler {
 
 		// Draw each template with count
 		int i = 0;
-		for (var entry : bundledCounts.entrySet()) {
+		for (Map.Entry<Item, Integer> entry : bundledCounts.entrySet()) {
 			Item item = entry.getKey();
 			int count = entry.getValue();
 			

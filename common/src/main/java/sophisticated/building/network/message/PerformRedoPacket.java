@@ -7,8 +7,11 @@ import net.minecraft.world.entity.player.Player;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.network.ModPayload;
 
-public record PerformRedoPacket() implements ModPayload {
+public final class PerformRedoPacket implements ModPayload {
 	public static final ResourceLocation ID = SophisticatedBuilding.asResource("perform_redo");
+
+	public PerformRedoPacket() {
+	}
 
 	public PerformRedoPacket(FriendlyByteBuf buf) {
 		this();
@@ -25,7 +28,8 @@ public record PerformRedoPacket() implements ModPayload {
 
 	public static class Handler {
 		public static void handle(final PerformRedoPacket packet, final Player sender) {
-			if (sender instanceof ServerPlayer player) {
+			if (sender instanceof ServerPlayer) {
+				ServerPlayer player = (ServerPlayer) sender;
 				SophisticatedBuilding.UNDO_REDO.redo(player);
 			}
 		}

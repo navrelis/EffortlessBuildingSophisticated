@@ -10,6 +10,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -78,7 +79,7 @@ public class ClientBreakCountdown {
 	/** Handles the server's {@code BreakCountdownPacket}: starts a new countdown for the oldest pending set of that kind. */
 	public static void onPacket(int delayTicks, int blockCount, boolean placing) {
 		PendingSet pending = null;
-		for (var iterator = PENDING.iterator(); iterator.hasNext(); ) {
+		for (Iterator<PendingSet> iterator = PENDING.iterator(); iterator.hasNext(); ) {
 			PendingSet candidate = iterator.next();
 			if (candidate.placing == placing) {
 				iterator.remove();
@@ -99,7 +100,7 @@ public class ClientBreakCountdown {
 	 * dropped (the server refused the break).
 	 */
 	public static void tick() {
-		for (var iterator = ACTIVE.iterator(); iterator.hasNext(); ) {
+		for (Iterator<Countdown> iterator = ACTIVE.iterator(); iterator.hasNext(); ) {
 			Countdown countdown = iterator.next();
 			countdown.remainingTicks--;
 			if (!countdown.animated && countdown.remainingTicks <= countdown.animationLead) {
@@ -117,7 +118,7 @@ public class ClientBreakCountdown {
 			}
 		}
 
-		for (var iterator = PENDING.iterator(); iterator.hasNext(); ) {
+		for (Iterator<PendingSet> iterator = PENDING.iterator(); iterator.hasNext(); ) {
 			PendingSet pending = iterator.next();
 			pending.ageTicks++;
 			if (pending.ageTicks > PENDING_TIMEOUT_TICKS) {

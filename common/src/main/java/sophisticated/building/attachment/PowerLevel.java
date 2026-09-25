@@ -37,12 +37,16 @@ public class PowerLevel {
 
 	public int getPlacementReach(Player player, boolean nextPowerLevel) {
 		if (player.isCreative()) return CommonConfig.reach.creative.get();
-		return switch (nextPowerLevel ? getNextPowerLevel() : getPowerLevel()) {
-			case 1 -> CommonConfig.reach.level1.get();
-			case 2 -> CommonConfig.reach.level2.get();
-			case 3 -> CommonConfig.reach.level3.get();
-			default -> CommonConfig.reach.level0.get();
-		};
+		switch (nextPowerLevel ? getNextPowerLevel() : getPowerLevel()) {
+			case 1:
+				return CommonConfig.reach.level1.get();
+			case 2:
+				return CommonConfig.reach.level2.get();
+			case 3:
+				return CommonConfig.reach.level3.get();
+			default:
+				return CommonConfig.reach.level0.get();
+		}
 	}
 
 	//How far away we can detect the second and third click of build modes (distance to player)
@@ -53,32 +57,44 @@ public class PowerLevel {
 
 	public int getMaxBlocksPlacedAtOnce(Player player, boolean nextPowerLevel) {
 		if (player.isCreative()) return CommonConfig.maxBlocksPlacedAtOnce.creative.get();
-		return switch (nextPowerLevel ? getNextPowerLevel() : getPowerLevel()) {
-			case 1 -> CommonConfig.maxBlocksPlacedAtOnce.level1.get();
-			case 2 -> CommonConfig.maxBlocksPlacedAtOnce.level2.get();
-			case 3 -> CommonConfig.maxBlocksPlacedAtOnce.level3.get();
-			default -> CommonConfig.maxBlocksPlacedAtOnce.level0.get();
-		};
+		switch (nextPowerLevel ? getNextPowerLevel() : getPowerLevel()) {
+			case 1:
+				return CommonConfig.maxBlocksPlacedAtOnce.level1.get();
+			case 2:
+				return CommonConfig.maxBlocksPlacedAtOnce.level2.get();
+			case 3:
+				return CommonConfig.maxBlocksPlacedAtOnce.level3.get();
+			default:
+				return CommonConfig.maxBlocksPlacedAtOnce.level0.get();
+		}
 	}
 
 	public int getMaxBlocksPerAxis(Player player, boolean nextPowerLevel) {
 		if (player.isCreative()) return CommonConfig.maxBlocksPerAxis.creative.get();
-		return switch (nextPowerLevel ? getNextPowerLevel() : getPowerLevel()) {
-			case 1 -> CommonConfig.maxBlocksPerAxis.level1.get();
-			case 2 -> CommonConfig.maxBlocksPerAxis.level2.get();
-			case 3 -> CommonConfig.maxBlocksPerAxis.level3.get();
-			default -> CommonConfig.maxBlocksPerAxis.level0.get();
-		};
+		switch (nextPowerLevel ? getNextPowerLevel() : getPowerLevel()) {
+			case 1:
+				return CommonConfig.maxBlocksPerAxis.level1.get();
+			case 2:
+				return CommonConfig.maxBlocksPerAxis.level2.get();
+			case 3:
+				return CommonConfig.maxBlocksPerAxis.level3.get();
+			default:
+				return CommonConfig.maxBlocksPerAxis.level0.get();
+		}
 	}
 
 	public int getMaxMirrorRadius(Player player, boolean nextPowerLevel) {
 		if (player.isCreative()) return CommonConfig.maxMirrorRadius.creative.get();
-		return switch (getPowerLevel() + (nextPowerLevel ? 1 : 0)) {
-			case 1 -> CommonConfig.maxMirrorRadius.level1.get();
-			case 2 -> CommonConfig.maxMirrorRadius.level2.get();
-			case 3 -> CommonConfig.maxMirrorRadius.level3.get();
-			default -> CommonConfig.maxMirrorRadius.level0.get();
-		};
+		switch (getPowerLevel() + (nextPowerLevel ? 1 : 0)) {
+			case 1:
+				return CommonConfig.maxMirrorRadius.level1.get();
+			case 2:
+				return CommonConfig.maxMirrorRadius.level2.get();
+			case 3:
+				return CommonConfig.maxMirrorRadius.level3.get();
+			default:
+				return CommonConfig.maxMirrorRadius.level0.get();
+		}
 	}
 
 	public boolean isDisabled(Player player) {

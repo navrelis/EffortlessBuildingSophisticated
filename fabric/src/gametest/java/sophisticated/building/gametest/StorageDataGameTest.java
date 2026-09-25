@@ -50,7 +50,7 @@ public class StorageDataGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE)
     public void survivalKeepsContentsAndName(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
-        try (var config = ConfigScope.baseline()) {
+        try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
             player.getInventory().setItem(0, namedShulker());
             BlockPos rel = new BlockPos(2, 1, 2);
 
@@ -70,7 +70,7 @@ public class StorageDataGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE)
     public void survivalPlainAndNamedStacksBothConsumedOnce(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.SURVIVAL);
-        try (var config = ConfigScope.baseline()) {
+        try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
             player.getInventory().setItem(0, new ItemStack(Items.SHULKER_BOX));
             player.getInventory().setItem(5, namedShulker());
             BlockPos relA = new BlockPos(1, 1, 2);
@@ -98,7 +98,7 @@ public class StorageDataGameTest implements FabricGameTest {
     @GameTest(template = EMPTY_STRUCTURE)
     public void creativeCopiesDataAndKeepsStack(GameTestHelper helper) {
         ServerPlayer player = spawnPlayer(helper, GameType.CREATIVE);
-        try (var config = ConfigScope.baseline()) {
+        try (GameTestSupport.ConfigScope config = ConfigScope.baseline()) {
             player.getInventory().setItem(0, namedShulker());
             BlockPos rel = new BlockPos(2, 1, 2);
 

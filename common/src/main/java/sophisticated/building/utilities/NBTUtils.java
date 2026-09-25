@@ -40,7 +40,8 @@ public class NBTUtils {
         List<T> result = new ArrayList<>();
         for (int i = 0; i < listTag.size(); i++) {
             Tag tag = listTag.get(i);
-            if (tag instanceof CompoundTag compoundTag) {
+            if (tag instanceof CompoundTag) {
+                CompoundTag compoundTag = (CompoundTag) tag;
                 result.add(deserializer.apply(compoundTag));
             }
         }

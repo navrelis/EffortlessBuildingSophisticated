@@ -9,9 +9,36 @@ import sophisticated.building.network.ModPayload;
 /**
  * Send packet to client to translate and log the containing message
  */
-public record TranslatedLogPacket(String prefix, String translationKey, String suffix,
-                                  boolean actionBar) implements ModPayload {
+public final class TranslatedLogPacket implements ModPayload {
 	public static final ResourceLocation ID = SophisticatedBuilding.asResource("translated_log");
+
+	private final String prefix;
+	private final String translationKey;
+	private final String suffix;
+	private final boolean actionBar;
+
+	public TranslatedLogPacket(String prefix, String translationKey, String suffix, boolean actionBar) {
+		this.prefix = prefix;
+		this.translationKey = translationKey;
+		this.suffix = suffix;
+		this.actionBar = actionBar;
+	}
+
+	public String prefix() {
+		return prefix;
+	}
+
+	public String translationKey() {
+		return translationKey;
+	}
+
+	public String suffix() {
+		return suffix;
+	}
+
+	public boolean actionBar() {
+		return actionBar;
+	}
 
 	public TranslatedLogPacket(FriendlyByteBuf buf) {
 		this(buf.readUtf(), buf.readUtf(), buf.readUtf(), buf.readBoolean());

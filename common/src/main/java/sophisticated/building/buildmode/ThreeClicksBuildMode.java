@@ -1,6 +1,7 @@
 package sophisticated.building.buildmode;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
@@ -43,8 +44,8 @@ public abstract class ThreeClicksBuildMode extends BaseBuildMode {
 				return false;
 			}
 
-			var player = Minecraft.getInstance().player;
-			var secondPos = findSecondPos(player, firstBlockEntry.blockPos, true);
+			LocalPlayer player = Minecraft.getInstance().player;
+			BlockPos secondPos = findSecondPos(player, firstBlockEntry.blockPos, true);
 			secondBlockEntry = new BlockEntry(secondPos);
 		} else {
 			//Third click, place blocks
@@ -59,10 +60,10 @@ public abstract class ThreeClicksBuildMode extends BaseBuildMode {
 		if (clicks == 0) return;
 
 		if (clicks == 1) {
-			var player = Minecraft.getInstance().player;
+			LocalPlayer player = Minecraft.getInstance().player;
 			if (firstBlockEntry == null || firstBlockEntry.blockPos == null) return;
-			var firstPos = firstBlockEntry.blockPos;
-			var secondPos = findSecondPos(player, firstBlockEntry.blockPos, true);
+			BlockPos firstPos = firstBlockEntry.blockPos;
+			BlockPos secondPos = findSecondPos(player, firstBlockEntry.blockPos, true);
 			if (secondPos == null) return;
 
 			//Limit amount of blocks we can place per row
@@ -88,7 +89,7 @@ public abstract class ThreeClicksBuildMode extends BaseBuildMode {
 			blocks.firstPos = firstPos;
 			blocks.lastPos = secondPos;
 		} else {
-			var player = Minecraft.getInstance().player;
+			LocalPlayer player = Minecraft.getInstance().player;
 			if (firstBlockEntry == null || firstBlockEntry.blockPos == null) return;
 			if (secondBlockEntry == null || secondBlockEntry.blockPos == null) return;
 			BlockPos firstPos = firstBlockEntry.blockPos;

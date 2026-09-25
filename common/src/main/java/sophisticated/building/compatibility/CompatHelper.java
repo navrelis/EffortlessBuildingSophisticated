@@ -65,7 +65,8 @@ public class CompatHelper {
 			return proxy;
 
 		//Randomizer Bag
-		if (proxyItem instanceof AbstractRandomizerBagItem randomizerBagItem) {
+		if (proxyItem instanceof AbstractRandomizerBagItem) {
+			AbstractRandomizerBagItem randomizerBagItem = (AbstractRandomizerBagItem) proxyItem;
 			IItemHandler bagInventory = randomizerBagItem.getBagInventory(proxy);
 			if (bagInventory == null) return ItemStack.EMPTY;
 			
@@ -84,7 +85,8 @@ public class CompatHelper {
 			return proxy;
 
 		//Randomizer Bag
-		if (proxyItem instanceof AbstractRandomizerBagItem randomizerBagItem) {
+		if (proxyItem instanceof AbstractRandomizerBagItem) {
+			AbstractRandomizerBagItem randomizerBagItem = (AbstractRandomizerBagItem) proxyItem;
 			IItemHandler bagInventory = randomizerBagItem.getBagInventory(proxy);
 			if (bagInventory == null) return ItemStack.EMPTY;
 			
@@ -124,7 +126,8 @@ public class CompatHelper {
 			return ((BlockItem) stack.getItem()).getBlock() == block;
 		}
 
-		if (stack.getItem() instanceof AbstractRandomizerBagItem randomizerBagItem) {
+		if (stack.getItem() instanceof AbstractRandomizerBagItem) {
+			AbstractRandomizerBagItem randomizerBagItem = (AbstractRandomizerBagItem) stack.getItem();
 			IItemHandler bagInventory = randomizerBagItem.getBagInventory(stack);
 			ItemStack firstMatch = ItemHelper.findFirstMatch(bagInventory, s -> s.getItem() instanceof BlockItem);
 			return firstMatch != null && !firstMatch.isEmpty();

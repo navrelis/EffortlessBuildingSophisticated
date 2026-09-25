@@ -40,28 +40,30 @@ import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.platform.Services;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
 public class BlockHelper {
-	private static final List<IntegerProperty> COUNT_STATES = List.of(
+	private static final List<IntegerProperty> COUNT_STATES = Collections.unmodifiableList(Arrays.asList(
 			BlockStateProperties.EGGS,
 			BlockStateProperties.PICKLES,
 			BlockStateProperties.CANDLES
-	);
+	));
 
-	private static final List<Block> VINELIKE_BLOCKS = List.of(
+	private static final List<Block> VINELIKE_BLOCKS = Collections.unmodifiableList(Arrays.asList(
 			Blocks.VINE, Blocks.GLOW_LICHEN
-	);
+	));
 
-	private static final List<BooleanProperty> VINELIKE_STATES = List.of(
+	private static final List<BooleanProperty> VINELIKE_STATES = Collections.unmodifiableList(Arrays.asList(
 			BlockStateProperties.UP,
 			BlockStateProperties.NORTH,
 			BlockStateProperties.EAST,
 			BlockStateProperties.SOUTH,
 			BlockStateProperties.WEST,
 			BlockStateProperties.DOWN
-	);
+	));
 
 	public static BlockState setZeroAge(BlockState blockState) {
 		if (blockState.hasProperty(BlockStateProperties.AGE_1))
@@ -130,9 +132,10 @@ public class BlockHelper {
 			player.awardStat(Stats.BLOCK_MINED.get(state.getBlock()));
 		}
 
-		if (world instanceof ServerLevel serverLevel && world.getGameRules()
+		if (world instanceof ServerLevel && world.getGameRules()
 				.getBoolean(GameRules.RULE_DOBLOCKDROPS) && !Services.BLOCK_EVENTS.isRestoringBlockSnapshots(world)
 				&& (player == null || !player.isCreative())) {
+			ServerLevel serverLevel = (ServerLevel) world;
 			List<ItemStack> drops = Block.getDrops(state, serverLevel, pos, blockEntity, player, usedTool);
 			if (player != null)
 				Services.BLOCK_EVENTS.onBlockDropsCollected(serverLevel, pos, state, blockEntity, player, usedTool);
@@ -189,7 +192,8 @@ public class BlockHelper {
 		CompoundTag data = null;
 		if (blockEntity == null)
 			return null;
-		if (blockEntity instanceof IPartialSafeNBT safeNbtBE) {
+		if (blockEntity instanceof IPartialSafeNBT) {
+			IPartialSafeNBT safeNbtBE = (IPartialSafeNBT) blockEntity;
 			data = new CompoundTag();
 			safeNbtBE.writeSafe(data);
 		}

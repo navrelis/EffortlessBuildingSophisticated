@@ -46,7 +46,8 @@ public class Pair<F, S> {
 	public boolean equals(final Object obj) {
 		if (obj == this)
 			return true;
-		if (obj instanceof Pair<?, ?> other) {
+		if (obj instanceof Pair) {
+			Pair<?, ?> other = (Pair<?, ?>) obj;
 			return Objects.equals(first, other.first) && Objects.equals(second, other.second);
 		}
 		return false;

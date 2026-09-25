@@ -19,6 +19,8 @@ import sophisticated.building.network.message.ServerPlaceBlocksPacket;
 import sophisticated.building.network.message.TranslatedLogPacket;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -30,7 +32,7 @@ import java.util.function.Function;
  */
 public final class PacketHandler {
 
-	public static final List<Payload<?>> SERVERBOUND = List.of(
+	public static final List<Payload<?>> SERVERBOUND = Collections.unmodifiableList(Arrays.asList(
 			new Payload<>(IsUsingBuildModePacket.ID, IsUsingBuildModePacket::new, IsUsingBuildModePacket.Handler::handle, "is_using_build_mode"),
 			new Payload<>(IsQuickReplacingPacket.ID, IsQuickReplacingPacket::new, IsQuickReplacingPacket.Handler::handle, "is_quick_replacing"),
 			new Payload<>(ServerPlaceBlocksPacket.ID, ServerPlaceBlocksPacket::new, ServerPlaceBlocksPacket.Handler::handle, "server_place_blocks"),
@@ -40,9 +42,9 @@ public final class PacketHandler {
 			new Payload<>(PerformRedoPacket.ID, PerformRedoPacket::new, PerformRedoPacket.Handler::handle, "perform_undo"),
 			new Payload<>(OmegaBagWeightPacket.ID, OmegaBagWeightPacket::new, OmegaBagWeightPacket.Handler::handle, null),
 			new Payload<>(ModifierSettingsPacket.ID, ModifierSettingsPacket::new, ModifierSettingsPacket.ServerHandler::handleServer, "modifier_settings")
-	);
+	));
 
-	public static final List<Payload<?>> CLIENTBOUND = List.of(
+	public static final List<Payload<?>> CLIENTBOUND = Collections.unmodifiableList(Arrays.asList(
 			new Payload<>(BackpackItemCountPacket.ID, BackpackItemCountPacket::new, BackpackItemCountPacket.Handler::handle, null),
 			new Payload<>(ModifierSettingsPacket.ID, ModifierSettingsPacket::new, ModifierSettingsPacket.ClientHandler::handleClient, "modifier_settings"),
 			new Payload<>(PowerLevelPacket.ID, PowerLevelPacket::new, PowerLevelPacket.Handler::handle, "power_level"),
@@ -50,7 +52,7 @@ public final class PacketHandler {
 			new Payload<>(BuildingUpgradeStatePacket.ID, BuildingUpgradeStatePacket::new, BuildingUpgradeStatePacket.Handler::handle, "building_upgrade_state"),
 			new Payload<>(BackpackToolsPacket.ID, BackpackToolsPacket::new, BackpackToolsPacket.Handler::handle, "backpack_tools"),
 			new Payload<>(BreakCountdownPacket.ID, BreakCountdownPacket::new, BreakCountdownPacket.Handler::handle, "break_countdown")
-	);
+	));
 
 	private PacketHandler() {
 	}
@@ -62,9 +64,34 @@ public final class PacketHandler {
 	 *                   {@code sophisticatedbuilding.networking.<failureKey>.failed} when the handler throws;
 	 *                   null to only drop the failure. On Fabric the game's task queue logs it.
 	 */
-	public record Payload<T extends ModPayload>(ResourceLocation id,
-												Function<FriendlyByteBuf, T> reader,
-												BiConsumer<T, Player> handler,
-												@Nullable String failureKey) {
+	public static final class Payload<T extends ModPayload> {
+		private final ResourceLocation id;
+		private final Function<FriendlyByteBuf, T> reader;
+		private final BiConsumer<T, Player> handler;
+		private final String failureKey;
+
+		public Payload(ResourceLocation id, Function<FriendlyByteBuf, T> reader, BiConsumer<T, Player> handler, @Nullable String failureKey) {
+			this.id = id;
+			this.reader = reader;
+			this.handler = handler;
+			this.failureKey = failureKey;
+		}
+
+		public ResourceLocation id() {
+			return id;
+		}
+
+		public Function<FriendlyByteBuf, T> reader() {
+			return reader;
+		}
+
+		public BiConsumer<T, Player> handler() {
+			return handler;
+		}
+
+		@Nullable
+		public String failureKey() {
+			return failureKey;
+		}
 	}
 }

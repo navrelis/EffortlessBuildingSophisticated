@@ -7,8 +7,11 @@ import net.minecraft.world.entity.player.Player;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.network.ModPayload;
 
-public record PerformUndoPacket() implements ModPayload {
+public final class PerformUndoPacket implements ModPayload {
 	public static final ResourceLocation ID = SophisticatedBuilding.asResource("perform_undo");
+
+	public PerformUndoPacket() {
+	}
 
 	public PerformUndoPacket(FriendlyByteBuf buf) {
 		this();
@@ -24,7 +27,8 @@ public record PerformUndoPacket() implements ModPayload {
 
 	public static class Handler {
 		public static void handle(final PerformUndoPacket packet, final Player sender) {
-			if (sender instanceof ServerPlayer player) {
+			if (sender instanceof ServerPlayer) {
+				ServerPlayer player = (ServerPlayer) sender;
 				SophisticatedBuilding.UNDO_REDO.undo(player);
 			}
 		}

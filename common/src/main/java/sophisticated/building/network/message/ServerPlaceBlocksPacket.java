@@ -11,8 +11,24 @@ import sophisticated.building.utilities.BlockSet;
 /**
  * Sends a message to the server to place multiple blocks
  */
-public record ServerPlaceBlocksPacket(BlockSet blocks, long placeTime) implements ModPayload {
+public final class ServerPlaceBlocksPacket implements ModPayload {
 	public static final ResourceLocation ID = SophisticatedBuilding.asResource("server_place_blocks");
+
+	private final BlockSet blocks;
+	private final long placeTime;
+
+	public ServerPlaceBlocksPacket(BlockSet blocks, long placeTime) {
+		this.blocks = blocks;
+		this.placeTime = placeTime;
+	}
+
+	public BlockSet blocks() {
+		return blocks;
+	}
+
+	public long placeTime() {
+		return placeTime;
+	}
 
 	public ServerPlaceBlocksPacket(FriendlyByteBuf buf) {
 		this(BlockSet.decode(buf), buf.readLong());
@@ -31,7 +47,8 @@ public record ServerPlaceBlocksPacket(BlockSet blocks, long placeTime) implement
 
 	public static class Handler {
 		public static void handle(final ServerPlaceBlocksPacket packet, final Player sender) {
-			if (sender instanceof ServerPlayer player) {
+			if (sender instanceof ServerPlayer) {
+				ServerPlayer player = (ServerPlayer) sender;
 				SophisticatedBuilding.SERVER_BLOCK_PLACER.placeBlocksDelayed(player, packet.blocks(), packet.placeTime());
 			}
 		}

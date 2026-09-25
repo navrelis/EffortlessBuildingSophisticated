@@ -18,8 +18,8 @@ public class PlaceChecker {
         if (world == null || blockEntry == null)
             return false;
 
-        var pos = blockEntry.blockPos;
-        var state = blockEntry.newBlockState;
+        BlockPos pos = blockEntry.blockPos;
+        BlockState state = blockEntry.newBlockState;
         BlockEntity tileEntity = null;
 
         if (state == null)

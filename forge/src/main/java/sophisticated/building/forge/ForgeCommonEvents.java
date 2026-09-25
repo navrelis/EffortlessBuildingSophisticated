@@ -30,8 +30,8 @@ public class ForgeCommonEvents {
 
 	@SubscribeEvent
 	public static void onTick(TickEvent.WorldTickEvent event) {
-		if (event.phase == TickEvent.Phase.START && event.world instanceof ServerLevel level) {
-			CommonEvents.onLevelTick(level);
+		if (event.phase == TickEvent.Phase.START && event.world instanceof ServerLevel) {
+			CommonEvents.onLevelTick((ServerLevel) event.world);
 		}
 	}
 
@@ -44,13 +44,15 @@ public class ForgeCommonEvents {
 	@SubscribeEvent
 	public static void onBlockPlaced(BlockEvent.EntityPlaceEvent event) {
 		if (event.getWorld().isClientSide()) return; //Never called clientside anyway, but just to be sure
-		if (!(event.getEntity() instanceof Player player)) return;
+		if (!(event.getEntity() instanceof Player)) return;
+		Player player = (Player) event.getEntity();
 		if (event.getEntity() instanceof FakePlayer) return;
 
 		if (CommonEvents.shouldCancelBlockPlace(player)) {
 			event.setCanceled(true);
 			//Notify client to not decrease itemstack
-			if (player instanceof ServerPlayer serverPlayer) {
+			if (player instanceof ServerPlayer) {
+				ServerPlayer serverPlayer = (ServerPlayer) player;
 				int slotIndex = 36 + serverPlayer.getInventory().selected;
 				serverPlayer.connection.send(new ClientboundContainerSetSlotPacket(
 						serverPlayer.inventoryMenu.containerId,
@@ -77,7 +79,8 @@ public class ForgeCommonEvents {
 	@SubscribeEvent
 	public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
 		if (event.getEntity() instanceof FakePlayer) return;
-		if (!(event.getEntity() instanceof ServerPlayer player)) return;
+		if (!(event.getEntity() instanceof ServerPlayer)) return;
+		ServerPlayer player = (ServerPlayer) event.getEntity();
 
 		CommonEvents.onPlayerLoggedIn(player);
 	}
@@ -98,7 +101,8 @@ public class ForgeCommonEvents {
 
 	@SubscribeEvent
 	public static void onEquipmentChange(LivingEquipmentChangeEvent event) {
-		if (!(event.getEntity() instanceof ServerPlayer player)) return;
+		if (!(event.getEntity() instanceof ServerPlayer)) return;
+		ServerPlayer player = (ServerPlayer) event.getEntity();
 		if (event.getSlot() != EquipmentSlot.MAINHAND) return;
 
 		CommonEvents.onMainHandChanged(player, event.getTo());
@@ -107,7 +111,8 @@ public class ForgeCommonEvents {
 	@SubscribeEvent
 	public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
 		if (event.phase != TickEvent.Phase.END) return;
-		if (!(event.player instanceof ServerPlayer player)) return;
+		if (!(event.player instanceof ServerPlayer)) return;
+		ServerPlayer player = (ServerPlayer) event.player;
 		if (player instanceof FakePlayer) return;
 
 		CommonEvents.onPlayerTick(player);
@@ -116,10 +121,11 @@ public class ForgeCommonEvents {
 	@SubscribeEvent
 	public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
 		if (event.getEntity() instanceof FakePlayer) return;
-		if (!(event.getEntity() instanceof ServerPlayer player)) {
+		if (!(event.getEntity() instanceof ServerPlayer)) {
 			SophisticatedBuilding.log("PlayerLoggedOutEvent triggers on client side");
 			return;
 		}
+		ServerPlayer player = (ServerPlayer) event.getEntity();
 
 		CommonEvents.onPlayerLoggedOut(player);
 	}
@@ -127,10 +133,11 @@ public class ForgeCommonEvents {
 	@SubscribeEvent
 	public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
 		if (event.getEntity() instanceof FakePlayer) return;
-		if (!(event.getEntity() instanceof ServerPlayer player)) {
+		if (!(event.getEntity() instanceof ServerPlayer)) {
 			SophisticatedBuilding.log("PlayerRespawnEvent triggers on client side");
 			return;
 		}
+		ServerPlayer player = (ServerPlayer) event.getEntity();
 
 		CommonEvents.onPlayerRespawned(player);
 	}
@@ -138,10 +145,11 @@ public class ForgeCommonEvents {
 	@SubscribeEvent
 	public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
 		if (event.getEntity() instanceof FakePlayer) return;
-		if (!(event.getEntity() instanceof ServerPlayer player)) {
+		if (!(event.getEntity() instanceof ServerPlayer)) {
 			SophisticatedBuilding.log("PlayerChangedDimensionEvent triggers on client side");
 			return;
 		}
+		ServerPlayer player = (ServerPlayer) event.getEntity();
 
 		CommonEvents.onPlayerChangedDimension(player);
 	}

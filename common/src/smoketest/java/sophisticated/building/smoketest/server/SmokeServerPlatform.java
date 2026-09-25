@@ -4,7 +4,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameType;
 
-import java.util.ServiceLoader;
+import sophisticated.building.smoketest.SmokeTest;
 
 /**
  * Loader glue of the server smoke run, registered in {@code META-INF/services} by the loader's smoke source set.
@@ -12,7 +12,7 @@ import java.util.ServiceLoader;
 public interface SmokeServerPlatform {
 
     static SmokeServerPlatform get() {
-        return ServiceLoader.load(SmokeServerPlatform.class, SmokeServerPlatform.class.getClassLoader()).findFirst()
+        return SmokeTest.firstService(SmokeServerPlatform.class)
                 .orElseThrow(() -> new IllegalStateException("The loader's smoke source set registers no SmokeServerPlatform"));
     }
 

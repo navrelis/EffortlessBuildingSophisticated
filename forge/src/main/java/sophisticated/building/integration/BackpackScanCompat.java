@@ -1,6 +1,7 @@
 package sophisticated.building.integration;
 
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModList;
 import net.p3pp3rf1y.sophisticatedbackpacks.util.PlayerInventoryProvider;
 import sophisticated.building.SophisticatedBuilding;
@@ -55,7 +56,7 @@ public final class BackpackScanCompat {
      */
     public static boolean forEachBackpack(Player player, PlayerInventoryProvider.BackpackInventorySlotConsumer consumer) {
         Optional<MethodHandle> methodHandle = handle();
-        if (methodHandle.isEmpty()) {
+        if (!methodHandle.isPresent()) {
             reportUnavailable(null);
             return false;
         }
@@ -92,7 +93,7 @@ public final class BackpackScanCompat {
     // loader-specific
     private static String installedBackpacksVersion() {
         try {
-            var container = ModList.get().getModContainerById("sophisticatedbackpacks");
+            Optional<? extends ModContainer> container = ModList.get().getModContainerById("sophisticatedbackpacks");
             return container.map(c -> c.getModInfo().getVersion().toString()).orElse("unknown");
         } catch (Exception e) {
             return "unknown";

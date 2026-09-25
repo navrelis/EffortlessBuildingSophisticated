@@ -121,7 +121,7 @@ public class AABBOutline extends Outline {
 		float maxV;
 
 		switch (face) {
-			case DOWN -> {
+			case DOWN: {
 				// 0 1 2 3
 				pos0.set(minX, minY, maxZ);
 				pos1.set(minX, minY, minZ);
@@ -130,8 +130,9 @@ public class AABBOutline extends Outline {
 				maxU = maxX - minX;
 				maxV = maxZ - minZ;
 				normal.set(0, -1, 0);
+				break;
 			}
-			case UP -> {
+			case UP: {
 				// 4 5 6 7
 				pos0.set(minX, maxY, minZ);
 				pos1.set(minX, maxY, maxZ);
@@ -140,8 +141,9 @@ public class AABBOutline extends Outline {
 				maxU = maxX - minX;
 				maxV = maxZ - minZ;
 				normal.set(0, 1, 0);
+				break;
 			}
-			case NORTH -> {
+			case NORTH: {
 				// 7 2 1 4
 				pos0.set(maxX, maxY, minZ);
 				pos1.set(maxX, minY, minZ);
@@ -150,8 +152,9 @@ public class AABBOutline extends Outline {
 				maxU = maxX - minX;
 				maxV = maxY - minY;
 				normal.set(0, 0, -1);
+				break;
 			}
-			case SOUTH -> {
+			case SOUTH: {
 				// 5 0 3 6
 				pos0.set(minX, maxY, maxZ);
 				pos1.set(minX, minY, maxZ);
@@ -160,8 +163,9 @@ public class AABBOutline extends Outline {
 				maxU = maxX - minX;
 				maxV = maxY - minY;
 				normal.set(0, 0, 1);
+				break;
 			}
-			case WEST -> {
+			case WEST: {
 				// 4 1 0 5
 				pos0.set(minX, maxY, minZ);
 				pos1.set(minX, minY, minZ);
@@ -170,8 +174,9 @@ public class AABBOutline extends Outline {
 				maxU = maxZ - minZ;
 				maxV = maxY - minY;
 				normal.set(-1, 0, 0);
+				break;
 			}
-			case EAST -> {
+			case EAST: {
 				// 6 3 2 7
 				pos0.set(maxX, maxY, maxZ);
 				pos1.set(maxX, minY, maxZ);
@@ -180,10 +185,12 @@ public class AABBOutline extends Outline {
 				maxU = maxZ - minZ;
 				maxV = maxY - minY;
 				normal.set(1, 0, 0);
+				break;
 			}
-			default -> {
+			default: {
 				maxU = 1;
 				maxV = 1;
+				break;
 			}
 		}
 

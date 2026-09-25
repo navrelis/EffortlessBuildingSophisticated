@@ -54,7 +54,8 @@ public class PowerLevelCommand {
         PowerLevel powerCap = AttachmentHandler.getOrCreatePowerLevel(player);
         powerCap.setPowerLevel(powerLevel);
         AttachmentHandler.setPowerLevel(player, powerCap);
-        if (player instanceof ServerPlayer serverPlayer) {
+        if (player instanceof ServerPlayer) {
+            ServerPlayer serverPlayer = (ServerPlayer) player;
             Services.NETWORK.sendToPlayer(serverPlayer, new PowerLevelPacket(powerLevel));
         }
 

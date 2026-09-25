@@ -183,7 +183,7 @@ public class BuildingUpgradeHelper {
             }
 
             BackpackUpgradeHandler upgradeHandler = wrapper.getUpgradeHandler();
-            var typeWrappers = upgradeHandler.getTypeWrappers(BuildingUpgradeItem.TYPE);
+            List<BuildingUpgradeWrapper> typeWrappers = upgradeHandler.getTypeWrappers(BuildingUpgradeItem.TYPE);
             if (!typeWrappers.isEmpty()) {
                 return typeWrappers.get(0);
             }
@@ -192,8 +192,8 @@ public class BuildingUpgradeHelper {
             // built; fall back to a direct scan of every installed upgrade so a stale cache can
             // never hide an upgrade that is actually enabled (see RC3 in 03_ROOT_CAUSE...md).
             for (IUpgradeWrapper slotWrapper : upgradeHandler.getSlotWrappers().values()) {
-                if (slotWrapper instanceof BuildingUpgradeWrapper buildingUpgradeWrapper && buildingUpgradeWrapper.isEnabled()) {
-                    return buildingUpgradeWrapper;
+                if (slotWrapper instanceof BuildingUpgradeWrapper && ((BuildingUpgradeWrapper) slotWrapper).isEnabled()) {
+                    return (BuildingUpgradeWrapper) slotWrapper;
                 }
             }
         } catch (Exception | LinkageError e) {
@@ -285,9 +285,9 @@ public class BuildingUpgradeHelper {
         }
         
         // Sync remaining count to client
-        if (!simulate && totalExtracted > 0 && player instanceof ServerPlayer serverPlayer) {
+        if (!simulate && totalExtracted > 0 && player instanceof ServerPlayer) {
             int remaining = countBlockInBackpacksForDisplay(player, blockItem);
-            Services.NETWORK.sendToPlayer(serverPlayer, new BackpackItemCountPacket(
+            Services.NETWORK.sendToPlayer((ServerPlayer) player, new BackpackItemCountPacket(
                     Registry.ITEM.getKey(blockItem.getItem()),
                     remaining
             ));

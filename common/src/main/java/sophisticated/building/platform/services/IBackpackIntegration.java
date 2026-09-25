@@ -6,6 +6,7 @@ import net.minecraft.world.item.ItemStack;
 import sophisticated.building.utilities.BreakToolHelper;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -61,6 +62,6 @@ public interface IBackpackIntegration {
 
     /** Tools inside enabled Tool Swapper upgrades of the player's backpacks. Server only. */
     default List<BreakToolHelper.ToolSlot> collectBackpackTools(Player player) {
-        return List.of();
+        return Collections.emptyList();
     }
 }

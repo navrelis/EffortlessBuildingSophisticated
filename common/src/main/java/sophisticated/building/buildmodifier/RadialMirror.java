@@ -1,6 +1,7 @@
 package sophisticated.building.buildmodifier;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
@@ -25,7 +26,7 @@ public class RadialMirror extends BaseModifier {
 
 	public RadialMirror() {
 		super();
-		var player = Minecraft.getInstance().player;
+		LocalPlayer player = Minecraft.getInstance().player;
 		if (player != null)
 			position = Vec3.atLowerCornerOf(Minecraft.getInstance().player.blockPosition());
 	}
@@ -34,7 +35,7 @@ public class RadialMirror extends BaseModifier {
 	public void findCoordinates(BlockSet blocks, Player player) {
 		if (!enabled) return;
 
-		var originalBlocks = new BlockSet(blocks);
+		BlockSet originalBlocks = new BlockSet(blocks);
 		for (BlockEntry blockEntry : originalBlocks) {
 			if (!isWithinRange(blockEntry.blockPos)) continue;
 
@@ -162,7 +163,7 @@ public class RadialMirror extends BaseModifier {
 
 	@Override
 	public CompoundTag serializeNBT() {
-		var compound = super.serializeNBT();
+		CompoundTag compound = super.serializeNBT();
 		compound.putDouble("positionX", position.x);
 		compound.putDouble("positionY", position.y);
 		compound.putDouble("positionZ", position.z);

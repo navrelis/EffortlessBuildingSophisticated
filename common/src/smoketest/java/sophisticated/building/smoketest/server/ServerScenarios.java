@@ -28,6 +28,7 @@ import sophisticated.building.utilities.BlockEntry;
 import sophisticated.building.utilities.BlockSet;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -103,7 +104,7 @@ public final class ServerScenarios {
         SmokeBackpacks backpacks = backpacks(helper);
         ServerPlayer player = player(helper);
         player.getInventory().setItem(0, new ItemStack(Items.STONE, 1));
-        ItemStack backpack = backpacks.createBackpack(1, true, false, List.of(new ItemStack(Items.STONE, 64)));
+        ItemStack backpack = backpacks.createBackpack(1, true, false, Collections.singletonList(new ItemStack(Items.STONE, 64)));
         player.getInventory().setItem(1, backpack);
         List<BlockPos> line = row(helper, LINE);
         sendPlace(player, placeSet(line, Blocks.STONE.defaultBlockState()));
@@ -126,7 +127,7 @@ public final class ServerScenarios {
         ServerPlayer player = player(helper);
         int held = 3;
         player.getInventory().setItem(0, new ItemStack(Items.STONE, held));
-        ItemStack backpack = backpacks.createBackpack(1, false, false, List.of(new ItemStack(Items.STONE, 64)));
+        ItemStack backpack = backpacks.createBackpack(1, false, false, Collections.singletonList(new ItemStack(Items.STONE, 64)));
         player.getInventory().setItem(1, backpack);
         List<BlockPos> line = row(helper, LINE);
         sendPlace(player, placeSet(line, Blocks.STONE.defaultBlockState()));
@@ -149,7 +150,7 @@ public final class ServerScenarios {
         SmokeBackpacks backpacks = backpacks(helper);
         ServerPlayer player = player(helper);
         player.getInventory().setItem(0, new ItemStack(Items.STONE, 1));
-        ItemStack backpack = backpacks.createBackpack(1, true, false, List.of(new ItemStack(Items.STONE, 64)));
+        ItemStack backpack = backpacks.createBackpack(1, true, false, Collections.singletonList(new ItemStack(Items.STONE, 64)));
         player.getInventory().setItem(1, backpack);
         List<BlockPos> floor = new ArrayList<>();
         for (int x = 0; x < 6; x++) {
@@ -177,7 +178,7 @@ public final class ServerScenarios {
         SmokeBackpacks backpacks = backpacks(helper);
         ServerPlayer player = player(helper);
         player.getInventory().setItem(0, new ItemStack(Items.STICK));
-        ItemStack backpack = backpacks.createBackpack(0, false, true, List.of(new ItemStack(Items.DIAMOND_PICKAXE)));
+        ItemStack backpack = backpacks.createBackpack(0, false, true, Collections.singletonList(new ItemStack(Items.DIAMOND_PICKAXE)));
         player.getInventory().setItem(1, backpack);
         List<BlockPos> line = row(helper, LINE);
         line.forEach(pos -> helper.getLevel().setBlock(pos, Blocks.STONE.defaultBlockState(), Block.UPDATE_ALL));
@@ -208,7 +209,7 @@ public final class ServerScenarios {
         SmokeBackpacks backpacks = backpacks(helper);
         ServerPlayer player = player(helper);
         player.getInventory().setItem(0, new ItemStack(Items.STONE, 1));
-        ItemStack backpack = backpacks.createBackpack(1, true, false, List.of(new ItemStack(Items.STONE, 64)));
+        ItemStack backpack = backpacks.createBackpack(1, true, false, Collections.singletonList(new ItemStack(Items.STONE, 64)));
         String slot;
         if (accessory) {
             String reason = backpacks.equipInAccessorySlot(player, backpack);

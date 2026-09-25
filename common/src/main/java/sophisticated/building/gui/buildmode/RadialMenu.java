@@ -369,7 +369,7 @@ public class RadialMenu extends Screen {
 
 		//if hover over power level info, show tooltip
 		if (mouseX >= width - font.width(powerLevelText) - 14 && mouseX <= width && mouseY >= height - 24 && mouseY <= height) {
-			var tooltip = new ArrayList<Component>();
+			ArrayList<Component> tooltip = new ArrayList<Component>();
 			tooltip.add(Components.literal(powerLevelText).withStyle(ChatFormatting.DARK_PURPLE));
 			int placementReach = AttachmentHandler.getPlacementReach(minecraft.player, false);
 			tooltip.add(Components.translatable("key.sophisticatedbuilding.placement_reach").withStyle(ChatFormatting.GRAY).append(": " + (placementReach == 0 ? "vanilla" : placementReach + " blocks")));
@@ -420,7 +420,7 @@ public class RadialMenu extends Screen {
 		for (final MenuButton button : buttons) {
 			if (button.highlighted) {
 
-				var tooltip = new ArrayList<Component>();
+				ArrayList<Component> tooltip = new ArrayList<Component>();
 				tooltip.add(Components.literal(button.name).withStyle(ChatFormatting.AQUA));
 
 				//Add description when holding shift
@@ -432,7 +432,7 @@ public class RadialMenu extends Screen {
 				}
 
 				//Add keybind in brackets
-				var keybind = findKeybind(button);
+				MutableComponent keybind = findKeybind(button);
 				if (keybind != null)
 					tooltip.add(Lang.translateDirect("tooltip.keybind", keybind.withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY));
 				guiGraphics.renderComponentTooltip(font, tooltip, mouseX, mouseY);

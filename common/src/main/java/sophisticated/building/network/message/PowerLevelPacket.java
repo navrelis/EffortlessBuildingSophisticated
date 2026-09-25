@@ -11,8 +11,18 @@ import sophisticated.building.network.ModPayload;
 /**
  * Sync power level from server to client
  */
-public record PowerLevelPacket(int powerLevel) implements ModPayload {
+public final class PowerLevelPacket implements ModPayload {
 	public static final ResourceLocation ID = SophisticatedBuilding.asResource("power_level");
+
+	private final int powerLevel;
+
+	public PowerLevelPacket(int powerLevel) {
+		this.powerLevel = powerLevel;
+	}
+
+	public int powerLevel() {
+		return powerLevel;
+	}
 
 	public PowerLevelPacket(FriendlyByteBuf buf) {
 		this(buf.readInt());

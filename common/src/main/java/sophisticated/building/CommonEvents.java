@@ -158,7 +158,8 @@ public final class CommonEvents {
         try {
             if (held.getItem() instanceof BlockItem) {
                 syncItemCount(player, held.getItem());
-            } else if (held.getItem() instanceof AbstractRandomizerBagItem bagItem) {
+            } else if (held.getItem() instanceof AbstractRandomizerBagItem) {
+                AbstractRandomizerBagItem bagItem = (AbstractRandomizerBagItem) held.getItem();
                 IItemHandler bagInventory = bagItem.getBagInventory(held);
                 if (bagInventory != null) {
                     List<ItemStack> templates = bagItem.getTemplates(bagInventory);
@@ -198,7 +199,8 @@ public final class CommonEvents {
 
             if (held.getItem() instanceof BlockItem) {
                 itemsToSync.add(held.getItem());
-            } else if (held.getItem() instanceof AbstractRandomizerBagItem bagItem) {
+            } else if (held.getItem() instanceof AbstractRandomizerBagItem) {
+                AbstractRandomizerBagItem bagItem = (AbstractRandomizerBagItem) held.getItem();
                 IItemHandler bagInventory = bagItem.getBagInventory(held);
                 if (bagInventory != null) {
                     List<ItemStack> templates = bagItem.getTemplates(bagInventory);

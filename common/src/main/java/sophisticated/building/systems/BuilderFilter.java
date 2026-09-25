@@ -1,18 +1,24 @@
 package sophisticated.building.systems;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import sophisticated.building.SophisticatedBuildingClient;
 import sophisticated.building.compatibility.CompatHelper;
 import sophisticated.building.utilities.BlockEntry;
 import sophisticated.building.utilities.BlockSet;
 import sophisticated.building.utilities.PlaceChecker;
+import java.util.Iterator;
+import java.util.Map;
 
 public class BuilderFilter {
     public void filterOnCoordinates(BlockSet blocks, Player player) {
-        var world = player.level;
-        var iter = blocks.entrySet().iterator();
+        Level world = player.level;
+        Iterator<Map.Entry<BlockPos, BlockEntry>> iter = blocks.entrySet().iterator();
         while (iter.hasNext()) {
-            var pos = iter.next().getValue().blockPos;
+            BlockPos pos = iter.next().getValue().blockPos;
             boolean remove = false;
 
             if (!world.isLoaded(pos)) remove = true;
@@ -23,14 +29,14 @@ public class BuilderFilter {
     }
 
     public void filterOnExistingBlockStates(BlockSet blocks, Player player) {
-        var buildSettings = SophisticatedBuildingClient.BUILD_SETTINGS;
-        var buildingState = SophisticatedBuildingClient.BUILDER_CHAIN.getPretendBuildingState();
+        BuildSettings buildSettings = SophisticatedBuildingClient.BUILD_SETTINGS;
+        BuilderChain.BuildingState buildingState = SophisticatedBuildingClient.BUILDER_CHAIN.getPretendBuildingState();
         boolean placing = buildingState == BuilderChain.BuildingState.PLACING;
 
-        var iter = blocks.entrySet().iterator();
+        Iterator<Map.Entry<BlockPos, BlockEntry>> iter = blocks.entrySet().iterator();
         while (iter.hasNext()) {
-            var blockEntry = iter.next().getValue();
-            var blockState = blockEntry.existingBlockState;
+            BlockEntry blockEntry = iter.next().getValue();
+            BlockState blockState = blockEntry.existingBlockState;
             boolean remove = false;
 
             if (buildSettings.shouldProtectTileEntities() && blockState.hasBlockEntity()) remove = true;
@@ -42,7 +48,7 @@ public class BuilderFilter {
             }
 
             if (buildSettings.shouldReplaceFiltered()) {
-                var offhandItem = player.getOffhandItem();
+                ItemStack offhandItem = player.getOffhandItem();
                 if (!CompatHelper.containsBlock(offhandItem, blockState.getBlock())) remove = true;
             }
 
@@ -52,7 +58,7 @@ public class BuilderFilter {
 
     //Returns true if we should remove the entry
     public boolean filterOnNewBlockState(BlockEntry blockEntry, Player player) {
-        var buildingState = SophisticatedBuildingClient.BUILDER_CHAIN.getPretendBuildingState();
+        BuilderChain.BuildingState buildingState = SophisticatedBuildingClient.BUILDER_CHAIN.getPretendBuildingState();
         boolean placing = buildingState == BuilderChain.BuildingState.PLACING;
 
         boolean remove = false;

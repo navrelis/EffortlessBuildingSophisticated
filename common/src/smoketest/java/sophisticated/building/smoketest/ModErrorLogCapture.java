@@ -10,6 +10,7 @@ import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -53,7 +54,7 @@ public final class ModErrorLogCapture {
     }
 
     public static synchronized List<String> events() {
-        return List.copyOf(EVENTS);
+        return Collections.unmodifiableList(new ArrayList<>(EVENTS));
     }
 
     /** Records the {@code <prefix>.no_mod_errors} check. */
