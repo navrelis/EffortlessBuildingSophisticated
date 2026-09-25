@@ -4,7 +4,7 @@ Three layers, from fast to real:
 
 | Layer | Command (in a loader folder) | What it proves |
 |---|---|---|
-| Unit tests | `gradlew build` | Pure logic in `common/src/test` (100 tests on Fabric incl. its config tests, 86 on NeoForge, Forge and Forge 1.21) |
+| Unit tests | `gradlew build` | Pure logic in `common/src/test` (104 tests on Fabric incl. its config tests, 90 on NeoForge, Forge and Forge 1.21) |
 | Fabric GameTests | `gradlew runGametest` | 24 server-side building rules (`fabric/src/gametest`) |
 | **In-game smoke tests** | `gradlew runSmokeClient` / `gradlew runSmokeServer` | The mod works in a real game on this loader, including the Sophisticated Backpacks (SB) integration |
 
@@ -84,7 +84,7 @@ server world.
 | `client.randomizer_bag_screens` | For each of the 4 bags (randomizer, golden, diamond, omega): sneak + use (looking at the sky) opens its screen class; mouse clicks pick up the stone, drop one into bag slot 0 and put the rest back; Escape closes it (the server closes the menu too); the server's bag holds 1 stone and the player 63; reopening shows the stone in slot 0. Omega: the mouse wheel over slot 0 raises its weight 1 -> 2 and the Reset button sets it back to 1, both checked in the server's bag data. Screenshots `randomizer_bag`, `golden_randomizer_bag`, `diamond_randomizer_bag`, `omega_randomizer_bag`, `omega_randomizer_bag_weights`. Every bag title fits its texture (`BagTitle`/`TitleFit`: scaled, at most to 0.6, then cut with "..."); a bag renamed in an anvil to a 59 character name shows that name, cut, and the full name as tooltip on hover. Screenshot `renamed_bag_title` |
 | `client.player_settings_gui` | The radial menu's player settings button (above Modifier Settings) opens `PlayerSettingsGui`; a click flips `onlyShowBlockPreviewsWhenBuilding`, a drag sets the Appear Animation slider 5 -> 20 ticks, Done closes it; the loader's client config holds both values in memory and in its file (`config/sophisticatedbuilding-client.json` on Fabric, `.toml` on NeoForge/Forge). The "Open Player Settings" key (unbound by default, bound to F7 for the test) reopens it showing the saved value, Reset to Defaults and the key again restore and save the defaults. Screenshots `radial_player_settings`, `player_settings` |
 | `client.modifier_entry_widgets` | The mod's checkbox and number widgets where a player uses them: in the modifier screen "Add Array" adds an array, a click on the entry's enable checkbox switches it off, the mouse wheel on its Count input raises 5 -> 6, the close button closes the screen, and the server stores the array with these values (`ModifierSettingsPacket`, player data `sophisticatedbuilding:buildModifiers`). Screenshot `modifier_widgets` |
-| `client.radial_option_icons` | Every icon the radial menu draws (15 build modes, 33 actions and options) has pixels in `textures/gui/icons.png` (read from the resource manager, cell position from `AllIcons`); Terrain Mound selected in the radial menu shows its Natural Variation and Terrain Shape option buttons (all 7 hovered, the active ones highlighted), the active shape is clicked again and the previous build mode restored. Screenshots `radial_terrain_options`, `radial_terrain_mountain` |
+| `client.radial_option_icons` | Every icon the radial menu draws (15 build modes, 33 actions and options) has pixels in `textures/gui/icons.png` (read from the resource manager, cell position from `AllIcons`); Terrain Mound selected in the radial menu shows its Natural Variation and Terrain Shape option buttons (all 7 hovered, the active ones highlighted), the active shape is clicked again and the previous build mode restored. With the menu open every build mode is switched to and all side buttons (actions and that mode's options, as the menu drew them: `RadialMenu#sideButtons()`) must lie fully inside the window, clear of the ring and without overlapping each other. Screenshots `radial_terrain_options`, `radial_terrain_mountain` |
 | `sb.hud_count_synced` | The client caches (`ClientBuildingUpgradeState`, `ClientBackpackItemCache` via `BuildingUpgradeStatePacket` / `BackpackItemCountPacket`) show tier 1 / 32 blocks and the backpack's 64 stone |
 | `sb.upgrade_supplies_blocks` | Holding 1 stone with a tier 1 Building Upgrade backpack: a 5 block line is placed from the backpack (64 -> 59), the held stone stays, the HUD count follows |
 | `sb.tier_cap` | A 6x6 floor (36) in survival: the preview shows 32 valid / 4 invalid and exactly 32 are placed, all from the backpack (tier 1 cap = 32) |
@@ -249,8 +249,14 @@ Since R2 (player settings editor, bag title fit) the two checks also use:
   pointed at empty cells of `icons.png` (row 4, columns 1-7; empty in every version of the file in the history, so they
   were never drawn) and showed as blank buttons in the radial menu; they are drawn now, and the active variation and
   shape are highlighted like the other options (they were missing from the radial menu's selection check). New check
-  `client.radial_option_icons`, verified on Fabric (`runSmokeClient` 22/22). At the 854x480 smoke window (GUI scale 2)
-  the fifth Terrain Shape button reaches 5 px past the right screen edge; at normal window sizes it fits.
+  `client.radial_option_icons`, verified on Fabric (`runSmokeClient` 22/22).
+- R2 follow-up 2: at the 854x480 smoke window (GUI scale 2) the fifth Terrain Shape button ran 5 px past the right
+  screen edge and the protect button 6 px past the left one. The side buttons are now placed by `RadialButtonLayout`
+  (pure, unit-tested for 320x240 - the smallest GUI Minecraft allows - up to 960x540 and every build mode): at the
+  original positions when there is room, moved towards the ring when not (never into it), long rows wrapped into
+  extra lines on the narrowest screens, the option column moved up when it would reach the power level text at the
+  bottom right. The radial menu's own power level tooltip (bottom right) was drawn together with the tooltip of a
+  button under the pointer; it now shows only when no button or mode is under the pointer.
 
 ## Minecraft 1.21 check (one jar for 1.21 and 1.21.1)
 

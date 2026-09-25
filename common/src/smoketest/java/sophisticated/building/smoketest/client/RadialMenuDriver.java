@@ -60,30 +60,25 @@ final class RadialMenuDriver {
     }
 
     /**
-     * Moves the mouse onto the action button whose centre is {@code (dx, dy)} from the screen centre, in units of the
-     * menu's {@code buttonDistance} offset (the left button rows sit at {@code -buttonDistance + dx}), and waits until
-     * the menu's render pass highlights the action.
+     * Moves the mouse onto a side button (action or build mode option) where the menu last drew it
+     * ({@link RadialMenu#sideButtons()}), and waits until the menu's render pass highlights it.
      */
-    void hoverLeftButton(ModeOptions.ActionEnum action, double dx, double dy) {
+    void hoverButton(ModeOptions.ActionEnum action) {
+        d.waitUntil("the radial menu to draw the " + action + " button", 40, () -> button(action) != null);
         d.clientRun(() -> {
-            set("accumulatedMouseX", -getDouble("buttonDistance") + dx);
-            set("accumulatedMouseY", dy);
+            RadialMenu.SideButton button = button(action);
+            set("accumulatedMouseX", (button.left() + button.right()) / 2 - RadialMenu.instance.width / 2.0);
+            set("accumulatedMouseY", (button.top() + button.bottom()) / 2 - RadialMenu.instance.height / 2.0);
         });
         pointerToMenuMouse();
         d.waitUntil("the radial menu to highlight the " + action + " button", 40, () -> RadialMenu.instance.doAction == action);
     }
 
-    /**
-     * Moves the mouse onto a build mode option button on the right: column {@code column} of option row {@code row}
-     * (the menu places them at {@code buttonDistance + column * 26, -13 + row * 39}), and waits for the highlight.
-     */
-    void hoverOptionButton(ModeOptions.ActionEnum action, int row, int column) {
-        d.clientRun(() -> {
-            set("accumulatedMouseX", getDouble("buttonDistance") + column * 26);
-            set("accumulatedMouseY", -13 + row * 39);
-        });
-        pointerToMenuMouse();
-        d.waitUntil("the radial menu to highlight the " + action + " option", 40, () -> RadialMenu.instance.doAction == action);
+    private static RadialMenu.SideButton button(ModeOptions.ActionEnum action) {
+        for (RadialMenu.SideButton button : RadialMenu.instance.sideButtons()) {
+            if (button.action() == action) return button;
+        }
+        return null;
     }
 
     /** Moves the mouse to the ring's centre, where nothing is highlighted and no tooltip is drawn. */
