@@ -280,6 +280,16 @@ function Test-ModListedInLog {
 # JUnit XML parsing (build/test-results/test/*.xml and the fabric gametest report).
 # ---------------------------------------------------------------------------------------------------------------
 
+function Get-XmlIntAttribute {
+    <# Integer value of an attribute of an XmlElement, 0 when it is missing or not a number. Strict-mode safe (dot
+       access to a missing attribute throws under Set-StrictMode): JUnit writers differ in which counters they write
+       (the 1.16.x server test runner writes only tests and failures). #>
+    param([Parameter(Mandatory)][System.Xml.XmlElement]$Element, [Parameter(Mandatory)][string]$Name)
+    $value = 0
+    if ([int]::TryParse($Element.GetAttribute($Name), [ref]$value)) { return $value }
+    return 0
+}
+
 function Get-JUnitSummary {
     <# Sums tests/failures/errors/skipped across every matching *.xml under $ResultsDir. #>
     param([Parameter(Mandatory)][string]$ResultsDir)
@@ -297,10 +307,10 @@ function Get-JUnitSummary {
         # which is exactly the shape Gradle's own JUnit XML report writer uses.
         $suites = @($xml.SelectNodes('//testsuite'))
         foreach ($suite in $suites) {
-            $summary.Tests += [int]($suite.tests ?? 0)
-            $summary.Failures += [int]($suite.failures ?? 0)
-            $summary.Errors += [int]($suite.errors ?? 0)
-            $summary.Skipped += [int]($suite.skipped ?? 0)
+            $summary.Tests += Get-XmlIntAttribute -Element $suite -Name 'tests'
+            $summary.Failures += Get-XmlIntAttribute -Element $suite -Name 'failures'
+            $summary.Errors += Get-XmlIntAttribute -Element $suite -Name 'errors'
+            $summary.Skipped += Get-XmlIntAttribute -Element $suite -Name 'skipped'
             $summary.FileCount++
         }
     }
@@ -316,11 +326,15 @@ function Get-JUnitTestNames {
     } catch {
         return @()
     }
+    # GetAttribute instead of dot-property access: under Set-StrictMode "$_.classname" throws
+    # PropertyNotFoundException when the attribute is missing, and the server test runner of the 1.16.x branches (no
+    # GameTest API; fabric/src/gametest FabricServerTests on mc/1.16.x) writes <testcase name="..." time="..."/>
+    # without a classname. A missing attribute reads as ''.
     $cases = @($xml.SelectNodes('//testcase'))
     return $cases | ForEach-Object {
         [pscustomobject]@{
-            ClassName = [string]$_.classname
-            Name      = [string]$_.name
+            ClassName = $_.GetAttribute('classname')
+            Name      = $_.GetAttribute('name')
             Failed    = ($null -ne $_.SelectSingleNode('failure'))
             Errored   = ($null -ne $_.SelectSingleNode('error'))
         }

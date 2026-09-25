@@ -369,6 +369,49 @@ try {
 }
 
 Write-Host ''
+Write-Host 'Get-JUnitTestNames / Get-JUnitSummary (JUnit XML shapes)' -ForegroundColor Cyan
+
+# ---------------------------------------------------------------------------------------------------------------
+# Test 12: the server test runner of the 1.16.x branches (no GameTest API) writes <testcase name time/> without a
+# classname and a <testsuite> with only tests + failures; Gradle's writer has every attribute. Both parse under
+# Set-StrictMode (dot access to a missing attribute used to throw PropertyNotFoundException).
+# ---------------------------------------------------------------------------------------------------------------
+$dir12 = New-TempLogDir
+try {
+    $legacy = Join-Path $dir12 'junit.xml'
+    Set-Content -LiteralPath $legacy -Encoding utf8 -Value @(
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<testsuite name="sophisticatedbuilding-servertests" tests="3" failures="1">'
+        '  <testcase name="mergegametest.slabmergestodouble" time="0.0"/>'
+        '  <testcase name="backpackgametest.upgradesupplies" time="0.05"/>'
+        '  <testcase name="protectiongametest.worldborderskipsoutside" time="0.0">'
+        '    <failure message="placed outside the border"/>'
+        '  </testcase>'
+        '</testsuite>'
+    )
+    $names12 = @(Get-JUnitTestNames -XmlPath $legacy)
+    Assert-True -Condition ($names12.Count -eq 3) -Message "a testcase without classname is parsed (got $($names12.Count) of 3)"
+    Assert-True -Condition ($names12[0].ClassName -eq '' -and $names12[0].Name -eq 'mergegametest.slabmergestodouble') -Message 'missing classname reads as empty, name is kept'
+    Assert-True -Condition ($names12[2].Failed -and -not $names12[0].Failed) -Message 'failure element detected per testcase'
+    $sb12 = @($names12 | Where-Object { $_.ClassName -match 'Backpack' -or $_.Name -match 'Backpack' })
+    Assert-True -Condition ($sb12.Count -eq 1) -Message 'the gametest stage''s Backpack filter works on name-only testcases'
+
+    $resultsDir12 = Join-Path $dir12 'results'
+    New-Item -ItemType Directory -Path $resultsDir12 | Out-Null
+    Copy-Item -LiteralPath $legacy -Destination (Join-Path $resultsDir12 'legacy.xml')
+    Set-Content -LiteralPath (Join-Path $resultsDir12 'TEST-gradle.xml') -Encoding utf8 -Value @(
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<testsuite name="sophisticated.building.FooTest" tests="5" skipped="1" failures="0" errors="0" timestamp="2026-09-25T10:00:00" hostname="x" time="0.1">'
+        '  <testcase name="a()" classname="sophisticated.building.FooTest" time="0.0"/>'
+        '</testsuite>'
+    )
+    $summary12 = Get-JUnitSummary -ResultsDir $resultsDir12
+    Assert-True -Condition ($summary12.Tests -eq 8 -and $summary12.Failures -eq 1 -and $summary12.Errors -eq 0 -and $summary12.Skipped -eq 1 -and $summary12.FileCount -eq 2) -Message "Get-JUnitSummary sums both shapes, missing counters as 0 (tests $($summary12.Tests), failures $($summary12.Failures), skipped $($summary12.Skipped))"
+} finally {
+    Remove-Item -LiteralPath $dir12 -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+Write-Host ''
 if ($script:TestsFailed -gt 0) {
     Write-Host "$($script:TestsFailed) of $($script:TestsRun) offline test(s) FAILED" -ForegroundColor Red
     exit 1
