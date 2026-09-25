@@ -1,11 +1,11 @@
-# Testing Sophisticated Building 1.17.1
+# Testing Sophisticated Building 1.16.3
 
 Three layers, from fast to real:
 
 | Layer | Command (in a loader folder) | What it proves |
 |---|---|---|
 | Unit tests | `gradlew build` | Pure logic in `common/src/test` (77 tests on Fabric incl. its config tests, 65 on Forge) |
-| Fabric GameTests | `gradlew runGametest` | 17 server-side building rules (`fabric/src/gametest`) |
+| Fabric server tests | `gradlew runGametest` | 17 server-side building rules (`fabric/src/gametest`; Minecraft 1.16.3 has no game test framework, they run on the harness' `ServerTestRunner` on a dedicated dev server) |
 | **In-game smoke tests** | `gradlew runSmokeClient` / `gradlew runSmokeServer` | The mod works in a real game on this loader, on Forge including the Sophisticated Backpacks (SB) integration |
 
 `gradlew build` compiles the smoke harness (so it cannot rot) but never runs it. The harness is dev-only: it lives in
@@ -27,18 +27,15 @@ Same for `forge`. Without `-PsmoketestOut` the result goes to `<loader>/build/sm
   scenarios, writes the result and stops the game. It takes about a minute after the game has loaded. The game
   directory is `<loader>/build/smoketest/client-run`; putting `soundCategory_master:0.0` and `pauseOnLostFocus:false`
   into its `options.txt` beforehand also silences the title screen before the harness mutes the game.
-- **runSmokeServer** is headless (no GPU needed, for CI) and runs the server scenarios as game tests with fake
-  survival players (and real backpacks on Forge), writes the same result file and exits.
-  - Fabric: Fabric API's game test server.
-  - Forge: Forge 1.17.1 has no game test server launch target (it arrives with Forge 38 for 1.18), so the task starts
-    a plain dedicated dev server and the harness runs the scenarios itself once the server has started
-    (`ForgeSmokeServerTests`: one vanilla `TestFunction` per scenario, each in its own `GameTestBatch`, started with
-    `GameTestRunner.runTestBatches` next to the world spawn and ticked through `GameTestTicker`, as the vanilla game test
-    server does), then stops the server. Every run starts on a fresh superflat world: the task deletes the old world
-    and writes `server.properties` (`level-type=flat`, its own `server-port=25731` so it can run next to other dev
-    servers) and `eula.txt` (dev-only server) into `forge/build/smoketest/server-run`. Minecraft 1.17.1 cannot read
-    flat `generator-settings` from `server.properties` (it logs `ERROR ... Not a registry ops`, a vanilla bug, not the
-    mod's) and uses the default superflat layers.
+- **runSmokeServer** is headless (no GPU needed, for CI) and runs the server scenarios with fake survival players (and
+  real backpacks on Forge), writes the same result file and exits. Minecraft 1.16.3 has no game test framework (it
+  arrives with 1.17) and Fabric API 0.25 no game test API, so on both loaders the task starts a plain dedicated dev
+  server and the harness' `ServerTestRunner` (`common/src/smoketest/.../servertest`) runs one test per scenario in its
+  own area next to the world spawn, ticked by the server, then stops the server. Every run starts on a fresh superflat
+  world: the task deletes the old world and writes `server.properties` (`level-type=flat`, its own `server-port` so it
+  can run next to other dev servers: Forge 25734, Fabric 25735, Fabric `runGametest` 25736) and `eula.txt` (dev-only
+  server). Minecraft 1.16 cannot read flat `generator-settings` from `server.properties` (it logs
+  `ERROR ... Not a registry ops`, a vanilla bug, not the mod's) and uses the default superflat layers.
 
 The game exits by itself in every case: after the scenarios, on a failure screen, on a crash (a JVM shutdown hook
 writes a failing `harness.completed` check), and after the internal watchdog (5 min,
@@ -93,7 +90,7 @@ server world.
 | `sb.upgrade_supplies_blocks` | Forge: holding 1 stone with a tier 1 Building Upgrade backpack: a 5 block line is placed from the backpack (64 -> 59), the held stone stays, the HUD count follows |
 | `sb.tier_cap` | Forge: a 6x6 floor (36) in survival: the preview shows 32 valid / 4 invalid and exactly 32 are placed, all from the backpack (tier 1 cap = 32) |
 | `sb.disabled_upgrade_ignored` | Forge: upgrade disabled, holding 3 stone: only 3 of a 5 block line are placed, the backpack is untouched |
-| `sb.tool_swapper_tools` | Forge: survival mass break of 5 stone with a stick in hand uses the diamond pickaxe from a Tool Swapper backpack (damage 5, cobblestone in the inventory); the client first learns the tool through `BackpackToolsPacket` |
+| `sb.tool_swapper_tools` | **Skipped on 1.16.3**: Sophisticated Backpacks 1.16.4-1.0.0.94 has no Tool Swapper upgrade (the fixture's `whyNoToolSwapper()`). On newer branches, Forge: survival mass break of 5 stone with a stick in hand uses the diamond pickaxe from a Tool Swapper backpack (damage 5, cobblestone in the inventory); the client first learns the tool through `BackpackToolsPacket` |
 | `sb.worn_backpack_chest` | Forge: the backpack worn in the chest armor slot supplies a line |
 | `sb.worn_backpack` | Forge: the backpack worn in the Curios `back` slot supplies a line |
 | `client.no_mod_errors` | No ERROR line from the mod's loggers and no WARN/ERROR carrying an exception thrown from the mod's code during the whole run |
@@ -102,8 +99,9 @@ Fabric reports 10 checks (the `client.*` ones), Forge 17.
 
 ### Server (`runSmokeServer`, both loaders)
 
-Game tests with a fake survival player (Forge `FakePlayerFactory`; on Fabric, whose API 0.46 has no fake player,
-`VanillaFakePlayers`: a vanilla `ServerPlayer` outside the player list whose connection drops every packet). The block
+Server tests with a fake survival player: `VanillaFakePlayers` on both loaders, a vanilla `ServerPlayer` outside the
+player list whose connection drops every packet (Fabric API 0.25 has no fake player; Forge 34's fake players have no
+connection at all, so `setGameMode` and every packet to them throw). The block
 sets are written with the packets' `write` methods and read back with their `FriendlyByteBuf` constructors, exactly
 what arrives from a client, and handed to the packets' server handlers.
 
@@ -111,12 +109,10 @@ what arrives from a client, and handed to the packets' server handlers.
 |---|---|
 | `server.place_line_survival` | 5 planks placed and consumed |
 | `server.undo_redo` | Undo/redo packets restore the inventory counts |
-| `sb.upgrade_supplies_blocks`, `sb.disabled_upgrade_ignored`, `sb.tier_cap`, `sb.tool_swapper_tools`, `sb.worn_backpack_chest`, `sb.worn_backpack` | Forge only: as on the client, server side |
+| `sb.upgrade_supplies_blocks`, `sb.disabled_upgrade_ignored`, `sb.tier_cap`, `sb.tool_swapper_tools`, `sb.worn_backpack_chest`, `sb.worn_backpack` | Forge only: as on the client, server side (`sb.tool_swapper_tools` skipped, see above) |
 | `server.no_mod_errors` | As on the client |
 
-Fabric reports 3 checks, Forge 9. Game tests of other mods in the runtime are not checks: they are only logged when
-they pass; if one fails, the run fails with a `server.foreign_game_test` check (on 1.17.1 no other mod in the dev
-runtime registers one; the Forge smoke server only runs the harness's own tests).
+Fabric reports 3 checks, Forge 9 (8 passed, 1 skipped). The server test runner only runs the harness' own tests.
 
 ## Layout
 
