@@ -8,7 +8,7 @@ version needs, the API breaks to expect, and what "done" means for a port. Read
 
 1. **Pick the branch name and scope.** One branch per distinct toolchain/API surface — see
    "Merge verdicts" below for which adjacent Minecraft versions can share one branch (e.g.
-   `mc/1.16.5` covers both 1.16.4 and 1.16.5) and which need their own branch (e.g. `1.18.2` always
+   `mc/1.18.1` covers both 1.18 and 1.18.1) and which need their own branch (e.g. `1.18.2` always
    gets its own branch, even though 1.18/1.18.1 can merge with each other). Check `README.md`'s
    support matrix for the branch's target status and which loaders it targets.
 2. **Branch off the nearest already-ported branch**, not off `main` — `main` has no game code.
@@ -32,7 +32,7 @@ version needs, the API breaks to expect, and what "done" means for a port. Read
    the new branch's worktree, and appends `ci_gradle_jdk=<value>` to each loader's
    `gradle.properties` if it's missing (`-GradleJdk` to override the default of 21 when this
    branch's toolchain needs a different Gradle JVM — see the toolchain matrix's Gradle JVM
-   constraints, e.g. ForgeGradle 6 needs JDK 17). Commit the result in the branch's own worktree;
+   constraints; every branch up to 1.21.11 uses 21, 26.x uses 25). Commit the result in the branch's own worktree;
    the script itself never commits. See `docs/RELEASING.md`'s CI section for the full
    templates + sync workflow.
 6. **Port `common/`** against the new Minecraft version, fixing the API breaks listed below for
@@ -64,25 +64,42 @@ Java per Minecraft version: 8 (1.16.x), 16 (1.17.1), 17 (1.18–1.20.4), 21 (1.2
 Mojang mappings cover 1.16.3–1.21.11; 26.x ships unobfuscated (no mappings/intermediary/Parchment
 layer at all).
 
+The tables below list what the branches actually build with (read from each branch's `build.gradle`,
+`gradle.properties` and `gradle/wrapper/gradle-wrapper.properties`). Gradle itself runs on JDK 21 on every branch up to
+1.21.11, including ForgeGradle 6 on Gradle 8.12.1 and the Java 8 builds of 1.16.x (`ci_gradle_jdk=21`), and on JDK 25
+for 26.x (`ci_gradle_jdk=25`); the compile toolchain is provisioned separately (foojay resolver).
+
 ### Forge
 
-| MC | Forge (latest / recommended) | Plugin + Gradle | Parchment |
-|---|---|---|---|
-| 1.16.3 | 34.1.42 / 34.1.0 | ForgeGradle 6.0.54 + Gradle 8.4 (copy the 1.16.5 template; the official MDK is stale for this version) | - |
-| 1.16.4 | 35.1.37 / 35.1.4 | same | - |
-| 1.16.5 | 36.2.42 / 36.2.34 | FG [6.0,6.2) + Gradle 8.4 (Gradle JVM JDK 17, target Java 8) | 2022.03.06 |
-| 1.17.1 | 37.1.1 | ModDevGradle Legacy 2.0.147 + Gradle 8.14.5, or FG6 + Gradle 8.8 | 2021.12.12 |
-| 1.18 / 1.18.1 | 38.0.17 / 39.1.2 | MDG Legacy or FG6 | - / 2022.03.06 |
-| 1.18.2 | 40.3.12 / 40.3.0 | FG6 + Gradle 8.8 | 2022.11.06 |
-| 1.19 / 1.19.1 / 1.19.2 | 41.1.0 / 42.0.9 / 43.5.2 (rec. 43.5.0) | MDG Legacy or FG6 + Gradle 8.8 | - / - / 2022.11.27 |
-| 1.20.1 | 47.4.23 / 47.4.10 (compile against 47.1.3 for NeoForge 47.1 cross-compat, see below) | MDG Legacy 2.0.147 + Gradle 8.14.5 (recommended) | 2023.09.03 |
-| 1.20.4 | 49.2.9 | FG >=6.0.16 + Gradle 8.12.1 (reobf) | 2024.04.14 |
-| 1.21 | 51.0.33 (the only one) | FG7 7.0.40 + Gradle 9.3.1 with `jopt-simple` forced to 5.0.4 (see Gotchas; no reobf since 1.20.6) | 2024.11.10 |
-| 1.21.1 | 52.1.16 / 52.1.0 | FG [7.0.3,8) -> 7.0.40 + Gradle 9.3.1 | 2024.11.17 |
-| 1.21.4 / 1.21.5 / 1.21.8 / 1.21.10 | 54.1.18 / 55.1.14 / 58.1.22 / 60.1.15 | FG7 + Gradle 9.3.1 | 2025.03.23 / 2025.06.15 / 2025.09.14 / 2025.10.12 |
-| 1.21.11 | 61.2.1 / 61.2.0 | FG7 + Gradle 9.5.0 | 2025.12.20 |
-| 26.1 / 26.1.1 / 26.1.2 | 62.0.9 / 63.0.2 / 64.1.3 | FG7 (>=7.0.17) + Gradle 9.3.1–9.5.0, no mappings line | n/a |
-| 26.2 | 65.1.3 / 65.1.0 | FG 7.0.40 + Gradle 9.5.0 | n/a |
+"Forge" is the version the branch compiles against, which is also the declared minimum unless noted; "latest" is the
+newest Forge for that Minecraft version at research time. "official" = Mojang names without Parchment.
+
+| MC | Forge (latest) | Plugin + Gradle | Mappings | Branch / folder |
+|---|---|---|---|---|
+| 1.16.3 | 34.1.42 | Architectury Loom 1.17.493 + Gradle 9.5.1, jar remapped to SRG (in progress) | official | `mc/1.16.3` `forge/` |
+| 1.16.4 | - (35.1.37) | not built separately; whether the 1.16.5 jar covers 1.16.4 is being checked on `mc/1.16.5` | - | - |
+| 1.16.5 | 36.2.42 | Architectury Loom 1.17.493 + Gradle 9.5.1, jar remapped to SRG (in progress) | official | `mc/1.16.5` `forge/` |
+| 1.17.1 | 37.1.1 | ModDevGradle Legacy 2.0.147 + Gradle 8.14.5, reobfuscated to SRG | Parchment 2021.12.12 | `mc/1.17.1` `forge/` |
+| 1.18 | 38.0.17 | MDG Legacy 2.0.147 + Gradle 8.14.5 | official (no Parchment for 1.18) | `mc/1.18.1` `forge-1.18/` |
+| 1.18.1 | 39.1.2 | MDG Legacy 2.0.147 + Gradle 8.14.5 | Parchment 2022.03.06 | `mc/1.18.1` `forge/` |
+| 1.18.2 | 40.3.12 | MDG Legacy 2.0.147 + Gradle 8.14.5 | Parchment 2022.11.06 | `mc/1.18.2` `forge/` |
+| 1.19 / 1.19.1 | 41.1.0 (also run on 42.0.9, the latest for 1.19.1) | MDG Legacy 2.0.147 + Gradle 8.14.5 | official | `mc/1.19.2` `forge-1.19/` |
+| 1.19.2 | 43.5.2 | MDG Legacy 2.0.147 + Gradle 8.14.5 | Parchment 2022.11.27 | `mc/1.19.2` `forge/` |
+| 1.20.1 | 47.1.3 (47.4.23; 47.1.3 keeps the jar loadable on NeoForge 1.20.1, see below) | MDG Legacy 2.0.147 + Gradle 8.14.5 | Parchment 2023.09.03 | `mc/1.20.1` `forge/` |
+| 1.20.4 | 49.2.9 | ForgeGradle 6.0.54 + Gradle 8.12.1, reobfuscated to SRG (MDG Legacy 2.0.147 did not work for 1.20.4) | official | `mc/1.20.4` `forge/` |
+| 1.21 | 51.0.33 (the only one) | ForgeGradle 7.0.40 + Gradle 9.3.1 with `jopt-simple` forced to 5.0.4 (see Gotchas; no reobf since 1.20.6) | official | `mc/1.21.1` `forge-1.21/` |
+| 1.21.1 | 52.1.2 (52.1.16; 52.1.2 is the first with `AddGuiOverlayLayersEvent`) | FG 7.0.40 + Gradle 9.3.1 | official | `mc/1.21.1` `forge/` |
+| 1.21.4 / 1.21.5 | 54.1.5 / 55.0.24 (54.1.18 / 55.1.14) | FG 7.0.40 + Gradle 9.3.1 | official | `forge/` |
+| 1.21.8 / 1.21.10 | 58.1.22 / 60.1.15 | FG 7.0.40 + Gradle 9.3.1 | official | `forge/` |
+| 1.21.11 | 61.2.1 | FG 7.0.40 + Gradle 9.5.0 | official | `mc/1.21.11` `forge/` |
+| 26.1 / 26.1.1 / 26.1.2 | 64.1.3, minimum 62.0.9 (one jar for all three) | FG 7.0.40 + Gradle 9.5.0, no mappings line | n/a | `mc/26.1.2` `forge/` |
+| 26.2 | 65.1.3 | FG 7.0.40 + Gradle 9.5.0, no mappings line | n/a | `mc/26.2` `forge/` |
+
+Forge game test support differs: Forge 37 (1.17.1) has no game test server launch target and Forge 38 (1.18) no game
+test integration at all (`net.minecraftforge.gametest` and the game test server start with Forge 39), and Forge 55
+(1.21.5) has a game test launch target that starts a plain dedicated server. On those, `runSmokeServer` starts a
+dedicated dev server and the harness runs the scenarios itself as vanilla test functions (`ForgeSmokeServerTests` on
+`mc/1.17.1`, `SmokeServerRunner` on `forge-1.18/` and `mc/1.21.5`); see each branch's `TESTING.md`.
 
 ### NeoForge
 
@@ -91,17 +108,22 @@ ModDevGradle 2.0.147, Gradle 9.2.1 (26.x needs Gradle >=9.1, Java 25; NeoForge n
 - 1.20.1: `net.neoforged:forge:1.20.1-47.1.106` (NeoForge's 1.20.1 build is a fork of the Forge jar
   itself — ship the Forge jar for this version, see the merge note below).
 - 1.20.4: 20.4.251 (Java 17, metadata in `META-INF/mods.toml`).
-- 1.21: 21.0.167. 1.21.1: 21.1.251. 1.21.4: 21.4.157. 1.21.5: 21.5.98. 1.21.8: 21.8.54.
-  1.21.10: 21.10.64. 1.21.11: 21.11.45.
+- 1.21: 21.0.167 (the `mc/1.21.1` jar is compiled against 21.1.251 and declares 21.0.167 as its minimum, run on
+  both). 1.21.1: 21.1.251. 1.21.4: 21.4.157. 1.21.5: 21.5.98. 1.21.8: 21.8.54. 1.21.10: 21.10.64. 1.21.11: 21.11.45.
 - 26.1 / 26.1.1: beta-only releases (26.1.0.19-beta / 26.1.1.15-beta). 26.1.2: 26.1.2.109.
   26.2: 26.2.0.88.
+- Parchment in the NeoForge builds: 2024.04.14 (1.20.4), 2024.11.17 (1.21.1), 2025.03.23 (1.21.4), 2025.06.15
+  (1.21.5), 2025.09.14 (1.21.8), 2025.10.12 (1.21.10), 2025.12.20 (1.21.11); none for 26.x.
 
 ### Fabric
 
-Fabric Loader 0.19.5 across every version. Loom 1.18.2 needs Gradle >=9.7 on JDK 25 (use Gradle
-9.8.0); fall back to Loom 1.17.21 on JDK 21 with Gradle >=9.5 for older Minecraft versions.
+Fabric Loader 0.19.5 across every version (`mc/1.21.1` still declares its old floor 0.18.6). Loom 1.18.2 needs
+Gradle >=9.7 on JDK 25 (use Gradle 9.8.0); fall back to Loom 1.17.21 on JDK 21 with Gradle >=9.5 for older Minecraft
+versions.
 
-- Up to 1.21.11: plugin `net.fabricmc.fabric-loom-remap`, `mappings loom.officialMojangMappings()`.
+- 1.16.3 to 1.21.11: Loom 1.17.21 + Gradle 9.5.1, `mappings loom.officialMojangMappings()`, also for the Java 8
+  builds of 1.16.x. Plugin id `fabric-loom` on 1.16.3–1.21.10, `net.fabricmc.fabric-loom-remap` on 1.21.11; Loom
+  1.17.21 accepts both.
 - 26.x: plugin `net.fabricmc.fabric-loom` (no `-remap` suffix), no mappings block at all — plain
   `implementation`/`compileOnly` dependencies, and the build's own output task is `jar`, not
   `remapJar`.
@@ -111,6 +133,11 @@ Fabric Loader 0.19.5 across every version. Loom 1.18.2 needs Gradle >=9.7 on JDK
   1.20.1 `0.92.12+1.20.1`; 1.20.4 `0.97.3+1.20.4`; 1.21 `0.102.0+1.21`; 1.21.1 `0.116.17+1.21.1`;
   1.21.4 `0.119.4`; 1.21.5 `0.128.2`; 1.21.8 `0.136.1`; 1.21.10 `0.138.4`; 1.21.11 `0.141.6`;
   26.1.x `0.155.3+26.1.2` (tagged for 26.1, 26.1.1, and 26.1.2 alike); 26.2 `0.161.0+26.2`.
+- Fabric API's mod id: the builds up to 0.58.x (1.16.x–1.18.1, 1.19, 1.19.1) are the mod `fabric`; the 0.77.0 builds
+  (1.18.2, 1.19.2) and later are `fabric-api` and also provide `fabric`. So `fabric.mod.json` depends on `fabric` on
+  1.16.3–1.18.1 and on `mc/1.19.2` (whose jar also runs on 1.19 and 1.19.1: `"fabric": ">=0.58.0"`), and on
+  `fabric-api` from 1.18.2 on. The declared floor (`fabric_api_version_min`) is the oldest Fabric API the jar ran with
+  (e.g. 0.44.0 on `mc/1.18.1`; Fabric API up to 0.46.3+1.18 still accepts Minecraft 1.18).
 - Fabric API `ClientWorldEvents` (used by the Fabric build since 1.21.1) exists only from Fabric API 0.108.0+1.21.1
   (`fabric-lifecycle-events-v1` 2.5.0); every `+1.21.1` build declares Minecraft `>=1.21 <1.21.2`, so it also runs on
   1.21, while the newest `+1.21` build (0.102.0) lacks it and the client crashed with `NoClassDefFoundError`. Declare
@@ -128,12 +155,18 @@ rendering replaced them — see `docs/ARCHITECTURE.md`).
 Based on an API diff between adjacent versions; always confirm with a runtime test (`runClient`)
 before relying on a merge, not just a successful compile.
 
-- **1.16.4 + 1.16.5**: merge (compile against Forge 35.1.37, range `[1.16.4,1.16.5]`; the Fabric
-  API diff between them is trivial). 1.16.3 stays a separate branch.
-- **1.18 + 1.18.1**: merge on Fabric; on Forge only if the branch doesn't use the permission API
-  that changed between them. 1.18.2 is always separate (introduces `TagKey`/`Holder`).
-- **1.19.1 + 1.19.2**: merge. Adding plain 1.19 to that merge is possible (the only difference is
-  chat signing) but needs a runtime test to confirm before doing it.
+- **1.16.4 + 1.16.5**: research verdict was a merge (the Fabric API diff between them is trivial); `mc/1.16.5`
+  currently declares 1.16.5 only and the runtime check on 1.16.4 is still in progress. 1.16.3 is a separate branch.
+- **1.18 + 1.18.1**: merged on Fabric (the 1.18.1 jar ran on 1.18 with Fabric API 0.44.0; `>=1.18 <=1.18.1`). Not
+  merged on Forge: the Forge 1.18.1 jar does not load on Forge 38 ("needs language provider javafml:39 or above"),
+  and Sophisticated Backpacks 1.18-3.12.1 still keeps the classes later split off into Sophisticated Core under
+  `net.p3pp3rf1y.sophisticatedbackpacks`, so 1.18 has its own `forge-1.18/` folder on `mc/1.18.1` (the integration
+  classes with the old imports as overrides). 1.18.2 is always separate (introduces `TagKey`/`Holder`).
+- **1.19 + 1.19.1 + 1.19.2**: merged on Fabric (smoke-tested on 1.19 and 1.19.1 with Fabric API 0.58.x; depends on
+  `fabric >=0.58.0`, see the Fabric section). Not merged on Forge: next to Sophisticated Backpacks 1.19-3.18.9 / Core
+  1.19-0.4.10 (the last builds for 1.19 and 1.19.1) the Forge 1.19.2 jar cannot create its Building Upgrade items
+  (Core 0.4.10 lacks `IUpgradeCountLimitConfig`, upgrade groups and has other `UpgradeItemBase` signatures), so 1.19
+  and 1.19.1 share a `forge-1.19/` folder on `mc/1.19.2` (`[1.19,1.19.1]`, run on Forge 41.1.0 and 42.0.9).
 - **1.21 + 1.21.1**: merged on `mc/1.21.1` for Fabric and NeoForge, verified by running the 1.21.1 release jars
   with the smoke harness in a 1.21 runtime (Fabric API 0.108.0+1.21.1; NeoForge 21.0.167 with Sophisticated Backpacks
   1.21-3.20.26 / Core 1.21-0.7.13, all `sb.*` checks passing except the Curios one, as no Curios build exists for
@@ -151,8 +184,9 @@ before relying on a merge, not just a successful compile.
   1.20.3 separately).
 - **NeoForge 1.20.1 runs Forge 1.20.1 jars** — ship the Forge build for `mc/1.20.1`'s NeoForge
   column rather than maintaining a separate NeoForge target (compile against Forge 47.1.3 for
-  cross-compat), which is why the support matrix in `README.md` lists NeoForge as unsupported and
-  Forge as "the jar also runs on NeoForge 1.20.1" for that branch.
+  cross-compat), which is why the support matrix in `README.md` has no NeoForge jar for 1.20.1 and lists the
+  Forge jar as "also runs on NeoForge 1.20.1". Verified with `runSmokeServer` on NeoForge 1.20.1-47.1.106 (the
+  latest NeoForge 1.20.1): 9/9 including every `sb.*` check; the client was not started on NeoForge.
 
 ## API breaks relevant to a building mod
 
@@ -198,8 +232,20 @@ full changelog of every vanilla or loader change in that version.
 
 ## Gotchas
 
-- Gradle 8.4 (ForgeGradle 6) cannot run on JDK 21 — set the Gradle JVM to JDK 17 explicitly even if
-  the project itself targets Java 8. FG6 does not work at all with Gradle 9.
+- Gradle 8.4 cannot run on JDK 21 (it needs a JDK 17 Gradle JVM). ForgeGradle 6.0.54 on Gradle 8.12.1 runs on JDK 21
+  (`mc/1.20.4`). FG6 does not work at all with Gradle 9.
+- ModDevGradle Legacy 2.0.147 + Gradle 8.14.5 builds every Forge version from 1.17.1 to 1.20.1 on the branches
+  (1.17.1, 1.18, 1.18.1, 1.18.2, 1.19, 1.19.2, 1.20.1). It did not work for Forge 1.20.4, which uses ForgeGradle
+  6.0.54 + Gradle 8.12.1 instead. MDG Legacy skips recompiling Minecraft when the environment variable `CI=true`
+  (GitHub Actions) and then keeps Forge's jar signatures on remapped classes, so unit tests fail on CI only
+  ("SHA-256 digest error for ...IForgePlayer.class"): every MDG Legacy build sets
+  `legacyForge { enable { ...; disableRecompilation = false } }` (see `forge/build.gradle` on `mc/1.20.1`); check
+  once locally with `CI=true`.
+- A `<loader>-<mc>/` folder that compiles a copy of `../<loader>/src` without its own overrides must decide the
+  exclusion when the copy runs (an exclude spec plus the override folder as an input of the `Sync` task, see
+  `forge-1.18/build.gradle` on `mc/1.18.1`). A list computed while configuring is kept by the configuration cache
+  (on in the MDG Legacy and ForgeGradle 7 folders) when an override folder such as `src/smoketest/java` is created
+  later, and the override and its original are then both compiled ("duplicate class").
 - Forge 51 (1.21) dev runs stop with "Module jopt.simple not found, required by cpw.mods.modlauncher": its
   `bootstrap-api` 2.1.3 pulls in jopt-simple 6.0-alpha-3 (module `joptsimple`). Force 5.0.4 in `build.gradle`
   (`configurations.configureEach { resolutionStrategy.force 'net.sf.jopt-simple:jopt-simple:5.0.4' }`); the same
@@ -214,7 +260,7 @@ full changelog of every vanilla or loader change in that version.
   shared fatjar mid-write. The first FG7 configuration on a clean machine takes 6–8 minutes; that's
   expected, not a hang.
 - The official Forge MDKs are stale (don't reflect the recommended toolchain) for 1.16.3, 1.16.4,
-  and 1.17.1–1.19.1 — copy the 1.16.5 or 1.18.2 template's build.gradle instead of trusting the
+  and 1.17.1–1.19.1 — copy the `forge/build.gradle` of the nearest ported branch instead of trusting the
   MDK's own.
 - FG7 build.gradle syntax differs from FG6:
   `implementation minecraft.dependency('net.minecraftforge:forge:...')`, repositories via
@@ -226,8 +272,12 @@ full changelog of every vanilla or loader change in that version.
   `compileOnly fg.deobf(...)` for the dependency itself.
 - CurseMaven dependency configuration differs per toolchain: Loom-remap uses `modCompileOnly`;
   Loom 26.x uses plain `compileOnly`; ModDevGradle uses `compileOnly`; MDG Legacy uses
-  `modCompileOnly`; FG6 uses `compileOnly fg.deobf(...)`; FG7 uses plain `compileOnly`.
-- ModDevGradle Legacy does **not** support pre-1.17 — use FG6 for every 1.16.x branch.
+  `modCompileOnly`; Architectury Loom uses `modCompileOnly`; FG6 uses `compileOnly fg.deobf(...)`; FG7 uses plain
+  `compileOnly`.
+- ModDevGradle Legacy does **not** support pre-1.17. The 1.16.x branches use Architectury Loom 1.17.493 (Gradle
+  9.5.1) instead of ForgeGradle 6: ForgeGradle's `official` mappings for 1.16.5 keep the MCP class names
+  (`net.minecraft.util.ResourceLocation`, ...), while `common/` is written against the Mojang class names that Fabric
+  and every later Forge use. Architectury Loom maps Forge 1.16.x to the Mojang names and remaps the jar to SRG names.
 - Forge before 1.18.2 has no jar-in-jar mechanism; shade a dependency instead of relying on
   jar-in-jar if a branch that old needs to embed one.
 

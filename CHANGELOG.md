@@ -3,20 +3,108 @@
 One section per mod version. Every version before 4.3.0 shipped only for Minecraft 1.21.1
 (NeoForge + Fabric); full unabridged patch notes for those live in `docs/history/PATCH_NOTES_*.md`.
 Starting with 4.3.0, the mod is multi-version: each Minecraft version lives on its own `mc/<version>`
-branch, with its own `changelog/` and its own jar version where the branches diverge — see that
-branch's `changelog/` for version-specific detail beyond what's summarised here, and
-`README.md`'s support matrix for what's released, in progress, or planned.
+branch with its own `changelog/PATCH_NOTES_<version>.md`, which lists what differs on that Minecraft
+version. This file summarises them; `README.md`'s support matrix lists every jar with its Minecraft
+range, minimum loader version and Sophisticated Backpacks support.
 
-## 4.3.0 — multi-version restructuring
+## 4.3.0 — multi-version
 
-`main` became the multi-version **hub**: it no longer holds game code directly. The 1.21.1
-NeoForge + Fabric code that used to live at the repository root moved to branch `mc/1.21.1` (with
-full history), gained a `common/` + platform-services split (`sophisticated.building.platform`)
-shared by every loader, and a `forge/` build was added alongside it. `main` now holds only the
-docs, changelog, upstream-jar manifest, and scripts that tie the per-version branches together —
-see `docs/ARCHITECTURE.md` for the common/platform-services split and `docs/PORTING.md` for how a
-version branch is built and ported. No gameplay change in this version; it is purely the
-repository restructuring that every later per-Minecraft-version release builds on.
+4.3.0 brings the mod to every Minecraft version from 1.17.1 to 26.2 that has a Sophisticated Backpacks
+release, on Fabric, NeoForge and Forge where the loader exists for that version (Minecraft 1.16.3 and
+1.16.5 are still in progress). The features are those of 4.2.1 on every version; where an older or newer
+Minecraft lacks an API, the branch uses the closest equivalent and its patch notes say so (for example
+item data in NBT before 1.20.5, vanilla tool classes instead of tool item tags on 1.19, no in-game config
+screen on Forge and on NeoForge 20.4).
+
+### Minecraft versions and loaders
+
+* 1.21.4, 1.21.5, 1.21.8, 1.21.10, 1.21.11, 26.2: Fabric, NeoForge and Forge. Sophisticated Backpacks
+  integration on NeoForge.
+* 26.1, 26.1.1, 26.1.2 (branch `mc/26.1.2`): one Fabric jar and one Forge jar for all three; NeoForge for
+  26.1.2 only, because NeoForge 26.1 and 26.1.1 were only released as betas. Backpacks integration on
+  NeoForge.
+* 1.21 and 1.21.1 (branch `mc/1.21.1`): the Fabric and NeoForge jars now also run on 1.21. Forge is new:
+  one jar for 1.21.1 and a separate jar for 1.21 (`forge-1.21/`), because Forge 51 cannot load the 1.21.1
+  jar. Backpacks integration on NeoForge (1.21 and 1.21.1) and Fabric (1.21.1; the Fabric port has no 1.21
+  build).
+* 1.20.4: Fabric, NeoForge and Forge. Backpacks integration on Fabric and NeoForge.
+* 1.20.1: Fabric and Forge; the Forge jar also runs on NeoForge 1.20.1 (server smoke test on 1.20.1-47.1.106), so
+  there is no separate NeoForge jar. Backpacks integration on both.
+* 1.19, 1.19.1, 1.19.2: one Fabric jar for all three; Forge has a jar for 1.19.2 and one for 1.19 and
+  1.19.1 (`forge-1.19/`), because the Backpacks/Core builds for 1.19 and 1.19.1 have an older API.
+  Backpacks integration on Forge and on Fabric 1.19.2 (the Fabric port exists for 1.19.2 only).
+* 1.18.2: Fabric and Forge. Backpacks integration on Forge.
+* 1.18 and 1.18.1: one Fabric jar for both; Forge has a jar for 1.18.1 and one for 1.18 (`forge-1.18/`),
+  because Sophisticated Backpacks for 1.18 keeps everything in its own package (no Sophisticated Core, other
+  class names). Backpacks integration on Forge.
+* 1.17.1: Fabric and Forge. Backpacks integration on Forge.
+
+Where Sophisticated Backpacks has no build for a loader and Minecraft version, the jar has no backpack
+integration: the Building Upgrade items are placeholders without recipes, and everything else works as
+usual. Jar names now include the Minecraft version: `sophisticatedbuilding-<loader>-<minecraft>-4.3.0.jar`
+(before: `sophisticatedbuilding-<loader>-<version>.jar`). Declared minimum loader, Fabric API and
+Sophisticated Backpacks/Core versions are the versions the jar was run with, not wildcards.
+
+### Changes on Minecraft 1.21.1 compared with 4.2.1
+
+* Loader-neutral code and assets are compiled once from a shared `common/` source tree into every
+  loader's jar; jars are about 0.9 MB instead of about 3 MB.
+* The mod no longer bundles Flywheel/Ponder. The rendering helpers for ghost block previews and
+  outlines are included directly (Catnip, MIT, attribution in the jar); there is no dependency on
+  Flywheel, Ponder, Catnip or Create any more.
+* Fabric: the four decompress recipes use the ids `decompress_compressed_*` (a recipe book unlock of the
+  old ids is reset; the recipes craft the same).
+* NeoForge: the Building Upgrade state and the backpack tool list are re-sent to the client every 10
+  ticks, not only while holding a building block or a Building Upgrade backpack. The Omega bag and
+  randomizer bag menus close as soon as the bag leaves both hands, as on Fabric.
+* Backpack count packets ignore unknown items instead of failing, on both loaders.
+* Fabric: Minecraft 1.21 or 1.21.1 (4.2.1 declared 1.21.1 and every later 1.21.x, never tested there);
+  Fabric API 0.108.0 or newer is required (older builds lack `ClientWorldEvents` and the client crashed at
+  start); built against Fabric Loader 0.19.5, still requires 0.18.6.
+* NeoForge: Minecraft 1.21 or 1.21.1, NeoForge 21.0.167 or newer; Sophisticated Backpacks 3.20.26 / Core
+  0.7.13 or newer (the last 1.21 builds) are accepted.
+
+### Fixes
+
+Bugs that 4.2.1 (Minecraft 1.21.1) had, fixed on every branch:
+
+* Fabric: a build-mode click that cancels the vanilla block placement now resends the held slot to the
+  client. Before, a player holding exactly the blocks a build needed (for example one block plus a
+  backpack with a Building Upgrade) lost the held block on the client side and the build was cancelled.
+* The Omega bag screen no longer allocates a native buffer per weight badge per frame.
+* When the Sophisticated Backpacks scan cannot link against the installed Backpacks build, the warning
+  now includes the cause.
+
+Found while porting, fixed before any release of the affected jar:
+
+* Forge: the mod's data pack was listed as incompatible (`pack.mcmeta` without the right
+  `supported_formats`); every Forge jar now declares the pack formats of its Minecraft version
+  (1.21.5 needed its own).
+* NeoForge 1.20.4: in singleplayer, multi-block builds placed nothing. NeoForge 20.2-20.4 passes payload
+  objects through the in-memory connection without encoding them, so the server received the client's
+  live block set, which the client cleared on its next tick; the mod now sends a decoded copy.
+* Fabric 1.19.2: the client crashed without Sophisticated Backpacks installed
+  (`IllegalAccessError` on `RenderType.create`; Fabric API 0.77 does not widen it); an
+  access widener opens it, as on the Fabric jars for 1.17.1 to 1.18.2.
+* Forge 26.1 and 26.1.1: `AbstractMethodError` at runtime; the 26.1.2 Forge jar now runs on all three.
+
+### Build, CI and testing
+
+* `main` is now the hub (docs, this changelog, upstream-jar manifest, scripts, `templates/branch/`); game
+  code lives on the `mc/<version>` branches, each with one standalone Gradle build per loader folder (see
+  `docs/ARCHITECTURE.md` and `docs/PORTING.md`).
+* Every branch has the same CI workflow (GitHub Actions: build, unit tests, Fabric GameTests, headless
+  smoke server), `build-all.ps1` (always `--no-daemon`) and `release.ps1`, synced from `templates/branch/`.
+* In-game smoke test harness on every branch and loader (`runSmokeServer`, `runSmokeClient`): building,
+  undo/redo, survival rules and, where Sophisticated Backpacks exists, `sb.*` checks with real backpacks
+  (supply from the Building Upgrade, disabled upgrade, tier cap, HUD count sync, Tool Swapper, worn
+  backpack). `mc/1.21.1` also checks the randomizer bag screens, the player settings screen and the
+  Backpacks upgrade settings tab. Dev-only; never in the release jars.
+* `scripts/test-all-versions.ps1` runs build, unit tests, GameTests, servers and the smoke harness for
+  every branch and loader; several instances can run in parallel (per-version locks, one shared game
+  window lock, `-SmokeTasks`, `-MergeReports`). See `docs/TESTING.md`.
+* ModDevGradle Legacy builds (Forge 1.17.1-1.20.1) always recompile Minecraft, also on CI: without it,
+  unit tests failed on CI only with a signature error for Forge's signed classes.
 
 ## 4.2.1
 
