@@ -1,0 +1,250 @@
+plugins {
+    // Architectury Loom, as in ../forge (see there): Mojang class names in the dev environment, SRG names in the jar.
+    id 'dev.architectury.loom' version '1.17.493'
+    id 'java-library'
+    id 'idea'
+}
+
+apply from: '../gradle/smoketest.gradle'
+
+version = mod_version
+group = mod_group
+
+base {
+    archivesName = "${mod_id}-forge-${forge_minecraft_version}"
+}
+
+java {
+    // Minecraft 1.16.4 runs on Java 8 (Mojang ships Java 8 with it), so mods target Java 8.
+    toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
+    withSourcesJar()
+}
+
+// The loader-neutral code and assets in ../common are compiled and packaged into this jar.
+def commonDir = file('../common')
+
+// The Forge jar for Minecraft 1.16.4 (Forge 35, Sophisticated Backpacks 1.16.4-3.0.0.289). It is the Forge 1.16.5 build
+// (../forge) with the classes that Backpacks build cannot run replaced: every file of ../forge/src/<set> (and of
+// ../common/src/smoketestBackpacks, the backpack fixture of the smoke harness) is compiled from a copy, except those that
+// src/<set> of this folder overrides under the same path (see README.md). A Sync task makes the copy, so the shared
+// sources are compiled exactly once per source set and an override can never be shadowed by its original.
+def forgeDir = file('../forge')
+// Leaves out every file that src/<set>/<kind> of this folder has under the same path. Decided when the copy runs (the
+// overrides are inputs of the copy), so adding or removing an override needs no reconfiguration.
+def excludeOverrides = { CopySpec spec, String set, String kind ->
+    def own = file("src/${set}/${kind}")
+    spec.exclude { FileTreeElement element -> !element.directory && new File(own, element.relativePath.pathString).exists() }
+}
+def sharedSources = { File baseDir, String set, String kind ->
+    return tasks.register("shared${baseDir.name.capitalize()}${set.capitalize()}${kind.capitalize()}", Sync) {
+        from("${baseDir}/src/${set}/${kind}") { excludeOverrides(it, set, kind) }
+        inputs.files(fileTree("src/${set}/${kind}")).withPropertyName('overrides')
+        into layout.buildDirectory.dir("generated/shared/${baseDir.name}/${set}/${kind}")
+    }
+}
+
+sourceSets {
+    main {
+        java.srcDir "${commonDir}/src/main/java"
+        java.srcDir sharedSources(forgeDir, 'main', 'java')
+        resources.srcDir "${commonDir}/src/main/resources"
+        resources.srcDir sharedSources(forgeDir, 'main', 'resources')
+    }
+    test {
+        java.srcDir "${commonDir}/src/test/java"
+    }
+    // In-game smoke test harness (runSmokeClient / runSmokeServer, see TESTING.md): loader-neutral scenarios from
+    // ../common/src/smoketest, the Sophisticated Backpacks fixture from ../common/src/smoketestBackpacks and the
+    // Forge glue from ../forge/src/smoketest, each with this folder's overrides. Its own mod
+    // ("sophisticatedbuilding_smoketest", META-INF/mods.toml), loaded only by the smoke runs, never packaged.
+    smoketest {
+        java.srcDir "${commonDir}/src/smoketest/java"
+        java.srcDir sharedSources(commonDir, 'smoketestBackpacks', 'java')
+        java.srcDir sharedSources(forgeDir, 'smoketest', 'java')
+        resources.srcDir "${commonDir}/src/smoketest/resources"
+        resources.srcDir sharedSources(commonDir, 'smoketestBackpacks', 'resources')
+        resources.srcDir sharedSources(forgeDir, 'smoketest', 'resources')
+        compileClasspath += main.compileClasspath + main.output
+        runtimeClasspath += main.runtimeClasspath + main.output
+    }
+}
+// The overrides themselves: src/main and src/smoketest are the source sets' default folders; the fixture overrides too
+sourceSets.smoketest.java.srcDir 'src/smoketestBackpacks/java'
+sourceSets.smoketest.resources.srcDir 'src/smoketestBackpacks/resources'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'CurseMaven'
+        url = 'https://www.cursemaven.com'
+        content { includeGroup 'curse.maven' }
+    }
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
+}
+
+// mod* configurations of the smoke source set (Curios in its runtime only)
+loom.createRemapConfigurations(sourceSets.smoketest)
+
+// Forge 35 (the last Forge for Minecraft 1.16.4) ships modlauncher 8.0.9, which cannot load a single class on Java 8u321
+// and later (NoSuchMethodError: sun.security.util.ManifestEntryVerifier.<init>(Manifest)); every Java 8 that Gradle
+// provisions today is newer. modlauncher 8.1.3 (the fix Forge 36.2.26 took for 1.16.5) is API compatible and handles
+// both JDK variants, so the dev runs use it. Players are not affected by this build setting: the Minecraft launcher runs
+// 1.16.4 on its bundled Java 8u51, and a dedicated Forge 1.16.4 server needs a Java 8 older than 8u321 (see README).
+configurations.configureEach {
+    resolutionStrategy.force 'cpw.mods:modlauncher:8.1.3'
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${forge_minecraft_version}"
+    mappings loom.officialMojangMappings()
+    forge "net.minecraftforge:forge:${forge_minecraft_version}-${forge_version}"
+
+    // Sophisticated Backpacks 1.16.4: compiled against, and present in the dev runs (same version, see gradle.properties)
+    // so runClient/runServer start with the backpack integration active. Optional for players.
+    modCompileOnly "curse.maven:${sophisticatedbackpacks_cf}"
+    modLocalRuntime "curse.maven:${sophisticatedbackpacks_cf}"
+    modCompileOnly "maven.modrinth:curios:${curios_modrinth}"
+    modSmoketestRuntimeOnly "maven.modrinth:curios:${curios_modrinth}"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// FML's MOD_CLASSES for a run: which resource and class directories form which mod (resources first: FML reads
+// META-INF/mods.toml from the first directory of a mod). The smoke runs list the harness mod next to the mod itself;
+// every other run gets Loom's value (only the mod, from loom.mods below).
+def modClasses = { Map<String, SourceSet> mods ->
+    mods.collectMany { name, sourceSet ->
+        ([sourceSet.output.resourcesDir] + sourceSet.output.classesDirs.files).collect { "${name}%%${it.absolutePath}" }
+    }.join(File.pathSeparator)
+}
+
+loom {
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+            programArg '--nogui'
+        }
+        // Smoke test harness (see TESTING.md): a real client creates a fresh superflat world, runs the client
+        // scenarios, writes <smoketestOut>/smoketest-result.json and exits. gradlew runSmokeClient -PsmoketestOut=<dir>
+        smokeClient {
+            client()
+            configName = 'Smoke Test Client'
+            runDir 'build/smoketest/client-run'
+            source sourceSets.smoketest
+            vmArg '-Dsophisticatedbuilding.smoketest.mode=client'
+            environmentVariable 'MOD_CLASSES', modClasses([(mod_id): sourceSets.main, sophisticatedbuilding_smoketest: sourceSets.smoketest])
+            vmArg "-Dsophisticatedbuilding.smoketest.out=${smoketestOutDir('client')}"
+        }
+        // Headless: a dedicated server on a fresh superflat world runs the server scenarios (Minecraft 1.16.4 has no
+        // game test framework, see ServerTestRunner) and writes the same JSON. gradlew runSmokeServer -PsmoketestOut=<dir>
+        smokeServer {
+            server()
+            configName = 'Smoke Test Server'
+            runDir 'build/smoketest/server-run'
+            programArg '--nogui'
+            source sourceSets.smoketest
+            vmArg '-Dsophisticatedbuilding.smoketest.mode=server'
+            environmentVariable 'MOD_CLASSES', modClasses([(mod_id): sourceSets.main, sophisticatedbuilding_smoketest: sourceSets.smoketest])
+            vmArg "-Dsophisticatedbuilding.smoketest.out=${smoketestOutDir('server')}"
+        }
+    }
+}
+
+// The smoke runs pass or fail on the result file they write (shared logic in ../gradle/smoketest.gradle)
+tasks.named('runSmokeClient') { verifySmokeRun(it, smoketestOutDir('client')) }
+tasks.named('runSmokeServer') { verifySmokeRun(it, smoketestOutDir('server')) }
+// The smoke server is a plain dedicated server: every run starts on a fresh superflat world on its own port (other dev
+// servers may run at the same time; ../forge uses 25731), with the EULA of this dev-only server accepted.
+def smokeServerDir = file('build/smoketest/server-run')
+tasks.named('runSmokeServer') {
+    doFirst {
+        new File(smokeServerDir, 'world').deleteDir()
+        smokeServerDir.mkdirs()
+        // The level type without namespace and no generator-settings: default superflat layers (see ../forge)
+        new File(smokeServerDir, 'server.properties').text = 'level-type=flat\n' +
+                'server-port=25735\n'
+        new File(smokeServerDir, 'eula.txt').text = 'eula=true\n'
+    }
+}
+
+// Expands the mod metadata templates (META-INF/mods.toml and pack.mcmeta): ../forge/src/main/templates, except those
+// this folder's src/main/templates overrides. A missing property will result in an error.
+var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    var replaceProperties = [
+            minecraft_version_range             : forge_minecraft_version_range,
+            forge_version_range                 : forge_version_range,
+            forge_loader_version_range          : forge_loader_version_range,
+            sophisticatedbackpacks_version_range: sophisticatedbackpacks_version_range,
+            mod_id                              : mod_id,
+            mod_name                            : mod_name,
+            mod_license                         : mod_license,
+            mod_version                         : mod_version,
+            mod_authors                         : mod_authors,
+            mod_description                     : mod_description
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from('src/main/templates')
+    from("${forgeDir}/src/main/templates") { excludeOverrides(it, 'main', 'templates') }
+    inputs.files(fileTree('src/main/templates')).withPropertyName('overrides')
+    into 'build/generated/sources/modMetadata'
+}
+// Include the output of "generateModMetadata" as an input directory for the build.
+sourceSets.main.resources.srcDir generateModMetadata
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    // No options.release: the Java 8 toolchain compiles with JDK 8's javac, which has no --release flag (JDK 9+).
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+}
+
+// ../common must stay loader-neutral: loader APIs are only reached through the platform services.
+tasks.register('checkCommonIsLoaderNeutral') {
+    def sources = fileTree("${commonDir}/src/main/java") { include '**/*.java' }
+    inputs.files sources
+    doLast {
+        def forbidden = ~/^\s*import\s+(static\s+)?(net\.fabricmc|net\.neoforged|net\.minecraftforge|net\.p3pp3rf1y|net\.createmod|dev\.engine_room)\./
+        def offenders = sources.files.collectMany { file ->
+            file.readLines('UTF-8').findAll { it =~ forbidden }.collect { "${file.path}: ${it.trim()}" }
+        }
+        if (!offenders.isEmpty()) {
+            throw new GradleException("common/ must not import loader or optional-mod APIs:\n" + offenders.join('\n'))
+        }
+    }
+}
+
+// build compiles the smoke harness (so it cannot rot) but never runs it; that is runSmokeClient / runSmokeServer's job.
+tasks.named('check') {
+    dependsOn tasks.named('checkCommonIsLoaderNeutral'), tasks.named('smoketestClasses')
+}
+
+// Resolved while configuring
+def licenseFileName = "LICENSE_${mod_id}.txt"
+tasks.named('jar', Jar) {
+    from(file('../LICENSE.txt')) {
+        rename { licenseFileName }
+    }
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}
