@@ -65,6 +65,8 @@ minecraft {
                 workingDir = layout.projectDirectory.dir('build/smoketest/client-run')
                 systemProperty 'sophisticatedbuilding.smoketest.mode', 'client'
                 systemProperty 'sophisticatedbuilding.smoketest.out', smoketestOutDir('client').absolutePath
+                // Harness mixin (SmokeWindowMixin): the window is created without taking the focus
+                args "--mixin.config=sophisticatedbuilding_smoketest.mixins.json"
             }
         }
 
@@ -134,7 +136,10 @@ sourceSets.main.resources.srcDir generateModMetadata
 
 // The smoke runs under the task names every loader build uses; they pass or fail on the result file they write (shared
 // logic in ../gradle/smoketest.gradle)
-tasks.matching { it.name == 'runSmoketestClient' }.configureEach { verifySmokeRun(it, smoketestOutDir('client')) }
+tasks.matching { it.name == 'runSmoketestClient' }.configureEach {
+    verifySmokeRun(it, smoketestOutDir('client'))
+    disableEarlyWindow(it, file('build/smoketest/client-run'))
+}
 tasks.matching { it.name == 'runSmoketestGameTestServer' }.configureEach { verifySmokeRun(it, smoketestOutDir('server')) }
 tasks.register('runSmokeClient') {
     group = 'Slime Launcher'

@@ -15,3 +15,7 @@ description='''In-game smoke test harness of Sophisticated Building.'''
     versionRange="[0,)"
     ordering="AFTER"
     side="BOTH"
+
+# Smoke client only: the game window is created without taking the focus (SmokeWindowMixin)
+[[mixins]]
+config="sophisticatedbuilding_smoketest.mixins.json"
