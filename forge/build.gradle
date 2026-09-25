@@ -120,6 +120,21 @@ tasks.matching { it.name == 'runSmokeClient' }.configureEach {
     disableEarlyWindow(it, file('build/smoketest/client-run'))
 }
 tasks.matching { it.name == 'runSmokeServer' }.configureEach { verifySmokeRun(it, smoketestOutDir('server')) }
+// Forge 49's game test server creates its world from server.properties (default: normal terrain), so the test
+// structures at y -60 sat in caves and aquifers (water once flowed into server.merge_undo_refund's snow position).
+// Every run starts on a fresh superflat world, like the vanilla game test server on the other loaders (and as on
+// mc/1.20.1 Forge).
+def smokeServerDir = file('build/smoketest/server-run')
+tasks.matching { it.name == 'runSmokeServer' }.configureEach {
+    doFirst {
+        new File(smokeServerDir, 'world').deleteDir()
+        smokeServerDir.mkdirs()
+        // The vanilla default superflat layers (without them the server logs an ERROR and uses the same default)
+        new File(smokeServerDir, 'server.properties').text = 'level-type=minecraft\\:flat\n' +
+                'generator-settings={"layers":[{"block":"minecraft:bedrock","height":1},{"block":"minecraft:dirt","height":2},' +
+                '{"block":"minecraft:grass_block","height":1}],"biome":"minecraft:plains"}\n'
+    }
+}
 
 dependencies {
     // The unit tests exercise vanilla types (BlockPos, ...): testImplementation extends implementation, so Minecraft

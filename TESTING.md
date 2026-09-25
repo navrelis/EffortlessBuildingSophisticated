@@ -275,6 +275,8 @@ Since R2 (player settings editor, bag title fit) the two checks also use:
   runs after `compileJava`, as on 1.21.1/1.21.4. Verified: `gradlew build` Fabric 104 tests, NeoForge and Forge 90;
   Fabric `runGametest` "All 25 required tests passed" (24 + the Porting Lib self test); `runSmokeServer` Fabric 11 (1
   skip: `server.refused_place_not_charged`, no place event), NeoForge 11/11, Forge 5/5. One Forge server run failed
-  `server.merge_undo_refund` once with flowing water in the snow position (the game test server's flat world at a random
-  position; not reproduced in the next run, no mod error); treated as an environment flake. `runSmokeClient` pending
+  `server.merge_undo_refund` with flowing water in the snow position: Forge 49's game test server creates its world
+  from `server.properties` (normal terrain, `level.dat` generator `minecraft:noise`), so the test structures at y -60
+  sat in caves and aquifers. `runSmokeServer` now starts every run on a fresh superflat world, as the Forge 1.20.1
+  build already did (harness-only, no mod change); Forge 5/5 again on the flat world. `runSmokeClient` pending
   (no game clients until the lead allows them).
