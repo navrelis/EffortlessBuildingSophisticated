@@ -149,6 +149,7 @@ to the packets' server handlers.
 | `server.undo_redo` | Undo/redo packets restore the inventory counts |
 | `server.merge_undo_refund` | Survival merges (+1 snow layer, +1 sea pickle; no candles before Minecraft 1.17) cost one item each; undo puts both blocks back without mining and gives the items back, redo charges them again |
 | `server.refused_place_not_charged` | Forge: the block place event refuses 2 of a 5 block line (as a protection mod would): only the 3 placed planks are charged and undo gives back exactly those. Skipped on Fabric (no place event; the server test `ChargeGameTest` covers refused placements) |
+| `server.request_limits` | A crafted request the server must refuse with the survival power level limits (a start 60 blocks above the player, a line whose clicks are 20 blocks apart): nothing placed or charged; a normal 5 block line right after is placed |
 | `sb.upgrade_supplies_blocks`, `sb.disabled_upgrade_ignored`, `sb.tier_cap`, `sb.tool_swapper_tools`, `sb.worn_backpack_chest`, `sb.worn_backpack` | Forge only: as on the client, server side (`sb.tool_swapper_tools` skipped, see above) |
 | `server.no_mod_errors` | As on the client |
 
@@ -250,6 +251,26 @@ loader version:
 | `fabric/` | 104/104 | 24/24 | 5 (4 passed, 1 skipped: `server.refused_place_not_charged`, no place event on Fabric) | not run yet (clients on hold) |
 | `forge/` | 90/90 | - | 11 (10 passed, 1 skipped: `sb.tool_swapper_tools`) | not run yet (clients on hold) |
 
+### Round 3 (R3, 5.0.1 fixes, 2026-09-25, headless)
+
+Ported from `mc/1.21.1` (d8ab383..48261e8): Fabric player data saved with the player, server checks of build requests
+(`validateRequest`) with the common config limits synced to the client (`CommonConfigSyncPacket`), Fabric player break
+events, array cap, offhand bag filter, material cost, Activate Previous Build Mode history, translated texts
+(`LangKeysTest`). Differences from 1.21.1, all from the game or loader version:
+
+- Fabric API 0.25 has no `ServerPlayerEvents.COPY_FROM`: `ServerPlayerMixin` copies the player data at the end of
+  `ServerPlayer#restoreFrom` (where COPY_FROM fires in later Fabric API versions).
+- No Common Protection API for Minecraft 1.16 (it needs Java 17): Fabric placements ask no claim mod, breaks fire Fabric
+  API's player break events as on 1.21.1; the server test for a refused placement is left out.
+- `Player#blockInteractionRange` (1.20.5+) is the vanilla 1.16 range: 5 in creative, 4.5 otherwise.
+- The material cost server test uses sea pickles (no candles before 1.17); the new server tests run on the 1.16.3 server
+  test runner (`@ServerTest`).
+
+| Folder | `gradlew build` (unit tests) | Server tests | `runSmokeServer` | `-PsmokeNoSb=true` |
+|---|---|---|---|---|
+| `fabric/` | 117/117 | 37/37 | 6 (5 passed, 1 skipped: `server.refused_place_not_charged`) | 6 (5 passed, 1 skipped) |
+| `forge/` | 103/103 | - | 12 (11 passed, 1 skipped: `sb.tool_swapper_tools`) | 6/6 |
+
 ### Results (2026-09-25)
 
 | Folder | Runtime | `gradlew build` (unit tests) | Server tests | `runSmokeServer` | `runSmokeClient` |
@@ -274,6 +295,6 @@ Trinkets), leaves the backpack fixture (every file under a `smoketestBackpacks` 
 and passes `-Dsophisticatedbuilding.smoketest.noSb=true` to the run.
 The `sb.*` scenarios do not run: `SmokeServer` registers them only when the backpack fixture is present (a registered one would report "skipped", or fail if the backpack integration were active anyway).
 `server.place_line_survival`, `server.undo_redo`, `server.merge_undo_refund`, `server.refused_place_not_charged`
-(skipped on Fabric: no place event there) and `server.no_mod_errors` must pass. The main code still compiles against
+(skipped on Fabric: no place event there), `server.request_limits` and `server.no_mod_errors` must pass. The main code still compiles against
 Sophisticated Backpacks (compile-only), so only the runtime changes. On the hub,
 `scripts/test-all-versions.ps1 -SmokeTasks runSmokeServerNoSb` runs it for every loader folder with the integration.
