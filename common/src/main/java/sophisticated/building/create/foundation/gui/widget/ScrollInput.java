@@ -120,7 +120,7 @@ public class ScrollInput extends AbstractSimiWidget {
 	public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
 		if (!this.visible || !this.isHovered) return false; //Added
 
-		// 1.20.1 only reports the vertical mouse wheel
+		// 1.19.2 only reports the vertical mouse wheel
 		double scroll = delta;
 		if (scroll == 0) return false;
 		

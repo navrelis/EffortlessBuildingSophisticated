@@ -92,7 +92,7 @@ public final class ModErrorLogCapture {
     }
 
     private static final class CaptureAppender extends AbstractAppender {
-        // The constructor without properties: the Forge 1.20.1 dev classpath compiles against an older log4j-core
+        // The constructor without properties: the Forge 1.19.2 dev classpath compiles against an older log4j-core
         @SuppressWarnings("deprecation")
         CaptureAppender() {
             super("SophisticatedBuildingSmokeCapture", null, null, true);

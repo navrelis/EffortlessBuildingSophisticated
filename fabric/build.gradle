@@ -231,10 +231,11 @@ loom {
 // The smoke runs pass or fail on the result file they write (shared logic in ../gradle/smoketest.gradle)
 tasks.named('runSmokeClient') { verifySmokeRun(it, smoketestOutDir('client')) }
 tasks.named('runSmokeServer') { verifySmokeRun(it, smoketestOutDir('server')) }
-// Trinkets 3.7.2, the last one for 1.20.1, was built with Loom 0.11: its client mixin ClickableWidgetMixin shadows
-// AbstractWidget's field by its Yarn name ("hovered"), which a Mojang-mapped dev client cannot resolve (the client
-// crashes at startup; players run the intermediary jar and are not affected). So the client smoke run leaves Trinkets
-// and its Cardinal Components out and reports sb.worn_backpack as skipped; runSmokeServer covers it with Trinkets.
+// Trinkets 3.4.2, the last one for 1.19.2, was built with Loom 0.11 like 3.7.2 of the 1.20.1 branch, whose client
+// mixin ClickableWidgetMixin shadows AbstractWidget's field by its Yarn name ("hovered"), which a Mojang-mapped dev
+// client cannot resolve (the client crashes at startup; players run the intermediary jar and are not affected). 3.4.2
+// has the same mixin, so the client smoke run leaves Trinkets and its Cardinal Components out and reports
+// sb.worn_backpack as skipped; runSmokeServer covers it with Trinkets.
 tasks.named('runSmokeClient', JavaExec) {
     classpath = classpath.filter { file -> !file.name.startsWith('trinkets') && !file.name.startsWith('cardinal-components') }
 }

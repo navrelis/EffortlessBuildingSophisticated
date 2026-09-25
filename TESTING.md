@@ -1,10 +1,10 @@
-# Testing Sophisticated Building 1.20.1
+# Testing Sophisticated Building 1.19 - 1.19.2
 
 Three layers, from fast to real:
 
 | Layer | Command (in a loader folder) | What it proves |
 |---|---|---|
-| Unit tests | `gradlew build` | Pure logic in `common/src/test` (77 tests on Fabric incl. its config tests, 65 on Forge) |
+| Unit tests | `gradlew build` | Pure logic in `common/src/test` (77 tests on Fabric incl. its config tests, 65 on each Forge folder) |
 | Fabric GameTests | `gradlew runGametest` | 17 server-side building rules (`fabric/src/gametest`) |
 | **In-game smoke tests** | `gradlew runSmokeClient` / `gradlew runSmokeServer` | The mod works in a real game on this loader, including the Sophisticated Backpacks (SB) integration |
 
@@ -18,7 +18,8 @@ cd fabric   && gradlew runSmokeClient -PsmoketestOut=<absolute dir> --no-daemon
 cd fabric   && gradlew runSmokeServer -PsmoketestOut=<absolute dir> --no-daemon
 ```
 
-Same for `forge`. Without `-PsmoketestOut` the result goes to `<loader>/build/smoketest/client` or `.../server`.
+Same for `forge` and `forge-1.19`. Without `-PsmoketestOut` the result goes to `<loader>/build/smoketest/client` or
+`.../server`.
 
 - **runSmokeClient** starts a real client: muted, moved to a secondary monitor if there is one, and deaf to real
   keyboard and mouse input (its GLFW input callbacks are removed; the harness does not need them), so clicking into the
@@ -29,9 +30,10 @@ Same for `forge`. Without `-PsmoketestOut` the result goes to `<loader>/build/sm
   into its `options.txt` beforehand also silences the title screen before the harness mutes the game.
 - **runSmokeServer** is headless (no GPU needed, for CI): a game test server runs the server scenarios with fake
   survival players and real backpacks, writes the same result file and exits. On Forge the task starts every run on a
-  fresh superflat world (it writes the game directory's `server.properties` and deletes the old world): Forge 1.20.1's
-  game test server takes its world from `server.properties`, and with the default normal terrain the test structures
-  at y -60 sat in caves, where falling gravel could fill them (one flaky `sb.worn_backpack` in the first runs).
+  fresh superflat world (it writes the game directory's `server.properties` and deletes the old world): Forge's
+  game test server (found on 1.20.1) takes its world from `server.properties`, and with the default normal terrain
+  the test structures at y -60 sat in caves, where falling gravel could fill them (one flaky `sb.worn_backpack` in
+  the first runs).
 
 The game exits by itself in every case: after the scenarios, on a failure screen, on a crash (a JVM shutdown hook
 writes a failing `harness.completed` check), and after the internal watchdog (5 min,
@@ -58,12 +60,12 @@ deleted when the task starts.
 - A skipped check has `"passed": true`, `"skipped": true` and a detail starting with `SKIPPED:`.
 - Checks named `sb.*` are Sophisticated Backpacks checks. A loader build that ships the SB integration
   (`META-INF/services/sophisticated.building.platform.services.IBackpackIntegration`) must report passing `sb.*` checks;
-  on 1.20.1 both Fabric and Forge do.
+  on this branch fabric, forge and forge-1.19 do.
 - The file is rewritten after every check (atomically), so a crash or a kill still leaves the checks done so far.
 
 ## Scenarios
 
-### Client (`runSmokeClient`, both loaders)
+### Client (`runSmokeClient`, every loader folder)
 
 Every step goes through the path a player uses: clicks are real key mapping presses (the mod's `ClientEvents` mouse
 handling calls `BuilderChain`, and vanilla's own interaction runs next to it, as for a player), build modes are picked
@@ -91,7 +93,7 @@ server world.
 | `sb.worn_backpack` | The backpack worn in an accessory slot supplies a line: Curios `back` (Forge), Trinkets `chest/back` (Fabric server run). Skipped with the reason if no accessory mod is in the runtime: the Fabric client run has none, see "Adopting" item 5 |
 | `client.no_mod_errors` | No ERROR line from the mod's loggers and no WARN/ERROR carrying an exception thrown from the mod's code during the whole run |
 
-### Server (`runSmokeServer`, both loaders)
+### Server (`runSmokeServer`, every loader folder)
 
 Game tests with a fake survival player (Fabric API `FakePlayer`, Forge `FakePlayerFactory`). The block sets are
 written with the packets' `write` methods and read back with their `FriendlyByteBuf` constructors, exactly what
@@ -105,7 +107,7 @@ arrives from a client, and handed to the packets' server handlers.
 | `server.no_mod_errors` | As on the client |
 
 Game tests of other mods in the runtime are not checks: they are only logged when they pass; if one fails, the run
-fails with a `server.foreign_game_test` check (on 1.20.1 no other mod in the dev runtime registers one).
+fails with a `server.foreign_game_test` check (on this branch no other mod in the dev runtime registers one).
 
 ## Layout
 
@@ -140,70 +142,105 @@ Loader glue per build:
 | Source set wiring | Loom runs `smokeClient`/`smokeServer` (`source sourceSets.smoketest`) | MDG Legacy runs `smokeClient`/`smokeServer` (`loadedMods` main + harness); SB and Curios through remapping configurations (`modLocalRuntime`, `modSmoketestLocalRuntime`) |
 | Client tick hook | `ClientTickEvents.END_CLIENT_TICK` | `TickEvent.ClientTickEvent`, phase `END` |
 | Game tests | `FabricGameTest`, `EMPTY_STRUCTURE` | `@GameTestHolder`, template `smoketest_empty` |
-| Fake player | Fabric API `FakePlayer` | `FakePlayerFactory` |
+| Fake player | `VanillaFakePlayers` (Fabric API 0.77 has no fake player) | `FakePlayerFactory` |
 | Held key in screens | nothing | `ForgeSmokeClientPlatform` (key conflict context) |
-| Accessory slot | Trinkets 3.7.2 + Cardinal Components 5.2.2 (smoke server run only) | Curios 5.14.1 (smoke runtime only) |
+| Accessory slot | Trinkets 3.4.2 + Cardinal Components 5.0.2 (smoke server run only) | Curios 1.19.2-5.1.6.4 (smoke runtime only) |
 
 ## Adopting the harness in another Minecraft version (port)
 
 1. Copy `gradle/smoketest.gradle`, `common/src/smoketest`, `common/src/smoketestBackpacks` (if that version has SB)
    and `<loader>/src/smoketest` from this branch (the closest older one), and the `smoketest` source set, run and
    `check` wiring from each `<loader>/build.gradle` (search for "smoke").
-2. Compile (`gradlew smoketestClasses`). What was adapted from 1.21.1 via 1.20.4 to 1.20.1, and what older versions
-   may need:
+2. Compile (`gradlew smoketestClasses`). What was adapted from 1.21.1 via 1.20.4 and 1.20.1 to 1.19.2, and what older
+   versions may need:
    - Java 17: no `List#getFirst/getLast` (`get(0)`, `get(size() - 1)`).
    - Packets: no `StreamCodec`; `ServerScenarios#roundTrip` writes with the payload's `write(FriendlyByteBuf)` and
-     reads with its `FriendlyByteBuf` constructor. 1.20.1 has no `CustomPacketPayload`: the payloads are the mod's
-     `ModPayload`.
-   - `VanillaFakePlayers` (a vanilla server player for loaders without a fake player API) is gone: it needs
-     `CommonListenerCookie` (1.20.2+), and both 1.20.1 loaders have a fake player API.
-   - World creation: `WorldOpenFlows#createFreshLevel(name, settings, options, dimensions)` has no screen argument
-     in 1.20.1.
+     reads with its `FriendlyByteBuf` constructor. Before 1.20.2 there is no `CustomPacketPayload`: the payloads are
+     the mod's `ModPayload`.
+   - Fake players: Fabric API 0.77 (1.19.2) has no `FakePlayer`, so `common/.../server/VanillaFakePlayers` is back in
+     its 1.19 form (`new ServerPlayer(server, level, profile, null)`, a `ServerGamePacketListenerImpl` whose
+     `send(Packet)` drops everything; only that overload is overridden, the one with a listener has another parameter
+     type in 1.19 than in 1.19.1+). Forge keeps `FakePlayerFactory`.
+   - `GameTestHelper` has no `assertTrue` in 1.19.2: `ServerScenarios` (and the Fabric game tests' `GameTestSupport`)
+     have their own that throws `GameTestAssertException`.
+   - World creation: `WorldOpenFlows#createFreshLevel(name, settings, registryAccess, worldGenSettings)` with
+     `RegistryAccess.builtinCopy().freeze()`, the flat preset's `createWorldGenSettings(seed, false, false)` and
+     `DataPackConfig.DEFAULT` in `LevelSettings` (the demo world of 1.19.2's title screen does the same).
+   - Muting: `Options#setSoundCategoryVolume` (no `OptionInstance` for sound sources before 1.19.3). Widgets have public
+     `x`/`y` fields (`getX()` is 1.19.3+).
    - `ModErrorLogCapture`'s appender uses the `AbstractAppender(name, filter, layout, ignoreExceptions)` constructor:
-     the Forge 1.20.1 dev compile classpath has a log4j-core without `Property.EMPTY_ARRAY` and the properties
-     constructor.
+     the Forge dev compile classpath (1.19.2 as 1.20.1) has a log4j-core without `Property.EMPTY_ARRAY` and the
+     properties constructor.
    - Game test template folder `data/<ns>/structures/` (plural before 1.21) and the NBT `DataVersion` of
-     `smoketest_empty.nbt` (3465 = 1.20.1; 3700 on 1.20.4, 3955 on 1.21.1).
-   - Forge 1.20.1 / MDG Legacy: `META-INF/mods.toml` with `mandatory=` dependencies, a `pack.mcmeta` (pack format
-     15), `TickEvent.ClientTickEvent` with a phase, the no-argument `@Mod` constructor; mod dependencies are SRG-named
-     and go through MDG Legacy's remapping configurations; Curios 5 returns a capability `LazyOptional` from
-     `getCuriosInventory` (`resolve()` to an `Optional`).
+     `smoketest_empty.nbt` (3120 = 1.19.2; 3465 on 1.20.1, 3700 on 1.20.4, 3955 on 1.21.1). The 1.19 and 1.19.1 runs
+     load the 3120 template without complaint.
+   - Forge / MDG Legacy: `META-INF/mods.toml` with `mandatory=` dependencies, a `pack.mcmeta` (pack format 9 with
+     `forge:resource_pack_format` 9 and `forge:data_pack_format` 10 on 1.19.x), `TickEvent.ClientTickEvent` with a
+     phase, the no-argument `@Mod` constructor; mod dependencies are SRG-named and go through MDG Legacy's remapping
+     configurations; Curios 5.1 returns a capability `LazyOptional` from
+     `CuriosApi.getCuriosHelper().getCuriosHandler` (`resolve()` to an `Optional`).
    - SB fixture: the wrapper lookup differs per loader (`BackpackWrapperLookup.get(stack)` on the Fabric port, the
      `CapabilityBackpackWrapper` capability on Forge; both `LazyOptional`s), so the fixture resolves it by
      reflection; `new ResourceLocation(ns, path)`; the Fabric port's inventory only takes items through the Fabric
      Transfer API, so the fixture puts the contents into empty slots with `setStackInSlot` (both loaders have it)
-     instead of `insertItem`.
-   - Trinkets for 1.20.1 is 3.7.2 with Cardinal Components 5.2.2, group `dev.onyxstudios.cardinal-components-api`
-     (renamed `org.ladysnake.cardinal-components-api` in 6.x); both from the same Mavens as on 1.21.1.
-   - Unchanged and working as on 1.20.4: `LevelSettings`, `WorldDataConfiguration`, `WorldPresets.FLAT`,
-     `GlobalTestReporter`/`TestReporter`, `Screenshot.takeScreenshot`, `KeyMapping.set/click`, `Minecraft#submit`, the
-     `RadialMenu` / `ModifiersScreen` field names, Fabric `FakePlayer`, Forge `FakePlayerFactory`,
-     `GameTestHolder`/`PrefixGameTestTemplate`.
+     instead of `insertItem`. The same fixture compiles and passes against Sophisticated Backpacks 1.19-3.18.9 /
+     Core 1.19-0.4.10 (`forge-1.19`).
+   - Trinkets for 1.19.2 is 3.4.2 (only on the Modrinth maven: `maven.modrinth:trinkets:3.4.2`) with Cardinal
+     Components 5.0.2, group `dev.onyxstudios.cardinal-components-api`.
+   - Unchanged and working as on 1.20.1: `GlobalTestReporter`/`TestReporter`, `Screenshot.takeScreenshot`,
+     `KeyMapping.set/click`, `Minecraft#submit`, the `RadialMenu` / `ModifiersScreen` field names, Forge
+     `FakePlayerFactory`, `GameTestHolder`/`PrefixGameTestTemplate`.
 3. Run `runSmokeServer` first (headless), then `runSmokeClient`.
 4. Fabric: when a mod dependency (here Trinkets) is added to a build whose Loom remap cache already holds the
    Sophisticated Backpacks jar, that cached jar keeps its calls into the new dependency in intermediary names
    (`TrinketInventory.method_5439`), which fails with `NoSuchMethodError` in the dev runs (the mod logs "Could not link
    SophisticatedBackpacks' PlayerInventoryProvider.runOnBackpacks", `sb.worn_backpack` fails). Delete
    `fabric/.gradle/loom-cache/remapped_mods` (or run once with `--refresh-dependencies`); a fresh clone is not affected.
-5. Fabric 1.20.1: Trinkets 3.7.2 was built with Loom 0.11, and its client mixin `ClickableWidgetMixin` shadows
-   `AbstractWidget`'s field by its Yarn name (`hovered`), which the Mojang-mapped dev client cannot resolve: the client
-   crashes at startup (players run the intermediary jar and are not affected; Trinkets 3.8.1 for 1.20.4 is built with
-   Loom 1.4 and has the intermediary name). `fabric/build.gradle` therefore leaves Trinkets and Cardinal Components out
-   of the `runSmokeClient` classpath; the client reports `sb.worn_backpack` as skipped, `runSmokeServer` (no client
-   mixins) runs it with Trinkets.
+5. Fabric: Trinkets 3.4.2 (like 3.7.2 of 1.20.1) was built with Loom 0.11, and its client mixin `ClickableWidgetMixin`
+   shadows `AbstractWidget`'s field by its Yarn name (`hovered`), which the Mojang-mapped dev client cannot resolve
+   (seen on 1.20.1: the client crashes at startup; players run the intermediary jar and are not affected).
+   `fabric/build.gradle` therefore leaves Trinkets and Cardinal Components out of the `runSmokeClient` classpath; the
+   client reports `sb.worn_backpack` as skipped, `runSmokeServer` (no client mixins) runs it with Trinkets.
+6. Fabric: the dev Minecraft jar gets the transitive access wideners of every mod dependency, here Porting Lib's
+   (nested in Sophisticated Core). Code that needs such a widening compiles and runs in the dev runs but crashes for
+   players without that mod. Check once with a build that has only Minecraft and Fabric API (no SB) on its classpath;
+   that is how `RenderType.create` was found (see below).
 
-## Findings of the first runs (1.20.1)
+## Findings of the first runs (1.19.2)
 
-- Forge: the recipes that need Sophisticated Backpacks carried only Fabric and NeoForge 20.4 load conditions; Forge
-  1.20.1 reads `conditions` with `forge:mod_loaded`. Added, so a Forge server without SB loads the recipes without
-  errors (checked with a dev server without SB).
-- Forge: Forge 1.20.1's game test server built a normal-terrain world, see `runSmokeServer` above.
-- Fabric: the held-slot resend of 1.21.1 (`FabricCommonEvents`, a player holding exactly the blocks a build needs lost
-  the held block client side) is ported; `sb.upgrade_supplies_blocks`, `sb.tier_cap` and `sb.worn_backpack_chest`
-  pass with it.
-- Forge sends every payload encoded (a `SimpleChannel` message is written to a buffer when it is sent, also in
-  singleplayer), so the unencoded in-memory payload problem of NeoForge 1.20.4 does not exist here.
-- The Fabric SB port rescans Trinkets slots for backpacks only every 100 ticks: a backpack put into a Trinkets slot
-  supplies blocks after up to 5 s (the scenarios wait for it).
-- The same Forge harness also passes `runSmokeServer` on NeoForge 1.20.1-47.1.106 (9/9, all `sb.*`), with
-  `legacyForge { enable { neoForgeVersion = "1.20.1-47.1.106" } }` in place of the Forge version.
+- Fabric: `RenderType.create` (with the sort flags) and `RenderType.CompositeState` are private/protected in vanilla
+  1.19.2 and Fabric API 0.77 does not widen them (its 1.20+ builds do). In the dev runs only Porting Lib's transitive
+  access widener (nested in Sophisticated Core) did, so every smoke run with SB passed, while the release jar in a
+  1.19.2 runtime without SB crashed with `IllegalAccessError` at `OutlineRenderTypes.<clinit>` on the first world
+  render (found in the Minecraft 1.19 check below). Fixed with the mod's own access widener; a compile of the Fabric
+  sources (without the SB integration classes) against Minecraft + Fabric API only is clean, and the release jar
+  without SB passes `runSmokeClient` 10/10 and `runSmokeServer` 3/3 on 1.19.2.
+- Fabric game tests: vanilla's `PlayerList#placeNewPlayer` needs the profile cache, which the 1.19.2 game test server
+  does not have (every test failed with "gameProfileCache is null"): `GameTestSupport` adds its player to the level
+  instead.
+- The Forge client reports the data packs of Sophisticated Backpacks and Core 1.19.x as `TOO_OLD` (their pack format);
+  they load anyway, the mod's own pack is compatible.
+
+## Minecraft 1.19 and 1.19.1
+
+The release jars were run in dev runtimes of the older versions (scratch builds under `local/pb3-119x`, git-ignored:
+the smoke harness compiled against that version, the release jar on the runtime classpath instead of the sources, the
+Sophisticated Backpacks builds of that version where they exist):
+
+| Jar | Runtime | runSmokeServer | runSmokeClient |
+|---|---|---|---|
+| `forge-1.19` | Forge 41.1.0 (1.19), SB 1.19-3.18.9.661 + Core 1.19-0.4.10.87, Curios | 9/9 incl. 6 `sb.*` | 17/17 incl. 7 `sb.*` |
+| `forge-1.19` | Forge 42.0.9 (1.19.1), same SB/Core/Curios | 9/9 incl. 6 `sb.*` | - |
+| `forge` (1.19.2), ranges widened | Forge 42.0.9 (1.19.1), SB 1.19 | 4/9: the Building Upgrade items cannot be created against Core 0.4.10 (`NoClassDefFoundError: IUpgradeCountLimitConfig`), 5 `sb.*` fail | - |
+| `fabric` | Fabric API 0.58.0+1.19 (1.19), no SB (no Fabric port) | 3/3 | 10/10 |
+| `fabric` | Fabric API 0.58.5+1.19.1 (1.19.1), no SB | 3/3 | - |
+| `fabric` | Fabric API 0.77.0+1.19.2 (1.19.2), no SB | 3/3 | 10/10 |
+
+Hence the two Forge jars and one Fabric jar. The Fabric jar needed two changes for 1.19 and 1.19.1: the dependency on
+the mod id `fabric` (the Fabric API builds for those versions are not `fabric-api` yet) and the access widener above
+(the 1.19 client crashed without it). Both Fabric client runs used jars whose classes are identical to the release
+jar except two unused `GuiGraphics` scissor methods and one language key that were removed/added afterwards (their
+metadata differed only in the Minecraft and Fabric API lines); the server runs used the final release jar. The Forge
+1.19 real server (installer 41.1.0, only the `forge-1.19` jar and SB/Core 1.19 in `mods`) and the Forge 1.19.2 real
+server (installer 43.5.2, only the `forge` jar and SB/Core 1.19.2) reach "Done" with the backpack integration
+registered and no error from the mod.
