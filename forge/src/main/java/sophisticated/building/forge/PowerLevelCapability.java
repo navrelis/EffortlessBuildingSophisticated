@@ -33,7 +33,7 @@ public final class PowerLevelCapability {
     private PowerLevelCapability() {
     }
 
-    /** Mod bus listener (Forge 1.18.2 has no {@code @AutoRegisterCapability}). */
+    /** Mod bus listener (Forge 1.17.1 has no {@code @AutoRegisterCapability}). */
     public static void register(RegisterCapabilitiesEvent event) {
         event.register(Data.class);
     }

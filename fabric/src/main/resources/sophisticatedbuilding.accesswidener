@@ -1,12 +1,12 @@
 accessWidener v1 named
-# Minecraft 1.18.1 keeps the composite render type factory private (public from 1.19); the ghost block, outline and
-# build preview render types (common/, same code as on the newer branches) are built with it. Forge 1.18.1 opens the
+# Minecraft 1.17.1 keeps the composite render type factory private (public from 1.19); the ghost block, outline and
+# build preview render types (common/, same code as on the newer branches) are built with it. Forge 1.17.1 opens the
 # same members with its own access transformer.
 accessible class net/minecraft/client/renderer/RenderType$CompositeState
 accessible class net/minecraft/client/renderer/RenderType$CompositeRenderType
 accessible method net/minecraft/client/renderer/RenderType create (Ljava/lang/String;Lcom/mojang/blaze3d/vertex/VertexFormat;Lcom/mojang/blaze3d/vertex/VertexFormat$Mode;IZZLnet/minecraft/client/renderer/RenderType$CompositeState;)Lnet/minecraft/client/renderer/RenderType$CompositeRenderType;
 
-# Menu type and menu screen registration (Fabric API 0.46 for 1.18.1 predates the transitive access wideners that open
+# Menu type and menu screen registration (Fabric API 0.46 for 1.17.1 predates the transitive access wideners that open
 # them from Fabric API 0.5x on; the other branches get them from there).
 accessible class net/minecraft/world/inventory/MenuType$MenuSupplier
 accessible method net/minecraft/world/inventory/MenuType <init> (Lnet/minecraft/world/inventory/MenuType$MenuSupplier;)V

@@ -150,12 +150,12 @@ tasks.named('runSmokeServer') {
     doFirst {
         new File(smokeServerDir, 'world').deleteDir()
         smokeServerDir.mkdirs()
-        // The vanilla default superflat layers (1.17.1 flat settings also need the structures field: without it the
-        // server logs an ERROR and uses the same default)
+        // 1.17.1 names the level type without namespace ("minecraft:flat" silently falls back to normal terrain). It
+        // cannot parse any flat generator-settings from server.properties (vanilla bug: WorldGenSettings logs the ERROR
+        // "Not a registry ops"), and then uses the default superflat layers (bedrock, 2 dirt, grass), which are the ones
+        // the other branches write here.
         new File(smokeServerDir, 'server.properties').text = 'level-type=flat\n' +
-                'server-port=25731\n' +
-                'generator-settings={"structures":{"structures":{}},"layers":[{"block":"minecraft:bedrock","height":1},' +
-                '{"block":"minecraft:dirt","height":2},{"block":"minecraft:grass_block","height":1}],"biome":"minecraft:plains"}\n'
+                'server-port=25731\n'
         new File(smokeServerDir, 'eula.txt').text = 'eula=true\n'
     }
 }

@@ -28,7 +28,7 @@ public class SophisticatedBuildingForgeClient {
         modEventBus.addListener(SophisticatedBuildingForgeClient::onClientSetup);
     }
 
-    /** Forge 1.18.2 registers HUD overlays and key mappings in client setup (no registration events yet). */
+    /** Forge 1.17.1 registers HUD overlays and key mappings in client setup (no registration events yet). */
     private static void registerGuiOverlays() {
         MaterialCostOverlay overlay = new MaterialCostOverlay();
         OverlayRegistry.registerOverlayAbove(ForgeIngameGui.CROSSHAIR_ELEMENT, "Sophisticated Building material cost",
