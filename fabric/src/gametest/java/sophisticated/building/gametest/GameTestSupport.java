@@ -8,9 +8,11 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
+import net.minecraft.util.thread.ReentrantBlockableEventLoop;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -50,7 +52,13 @@ public final class GameTestSupport {
         ServerPlayer player = new ServerPlayer(server, level, profile, cookie.clientInformation());
         Connection connection = new Connection(PacketFlow.SERVERBOUND);
         new EmbeddedChannel(connection);
-        server.getPlayerList().placeNewPlayer(connection, player, cookie);
+        // placeNewPlayer waits (ServerLevel.waitForChunkAndEntities) until the entities of the chunks around the
+        // spawn are loaded, and a chunk's entity load is requested by a task of the chunk main-thread executor. That
+        // wait runs the chunk executor only while MinecraftServer#haveTime(): in a game test (inside the server tick)
+        // that turns false once the tick is over its time budget, e.g. when the spawn chunks still have to be loaded
+        // on a busy machine, and the server then waits forever. Inside a server task (doRunTask) haveTime() is true.
+        ReentrantBlockableEventLoop<TickTask> serverLoop = server;
+        serverLoop.doRunTask(new TickTask(server.getTickCount(), () -> server.getPlayerList().placeNewPlayer(connection, player, cookie)));
         player.setGameMode(gameType);
         player.getInventory().clearContent();
         player.getInventory().setSelectedSlot(0);
