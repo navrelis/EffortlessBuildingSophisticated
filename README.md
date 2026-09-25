@@ -63,8 +63,9 @@ Forge 51, the only Forge for Minecraft 1.21, cannot load the Forge 1.21.1 jar, s
 jar (`sophisticatedbuilding-forge-1.21-4.3.0.jar`, Minecraft `[1.21]`, Forge `[51.0.33,)`). It compiles `../forge/src`
 (main and smoketest), `../forge/src/main/templates` and `../common` as they are, except the files its own `src/` has
 under the same path: a `Sync` task copies `../forge/src/<set>/<kind>` without those into
-`build/generated/sharedForge`, so every shared file is compiled once and an override replaces its original. The
-overrides, everything Forge 51 lacks:
+`build/generated/sharedForge`, so every shared file is compiled once and an override replaces its original (the
+exclusion is decided when the copy runs, so an added override needs no reconfiguration, also with the configuration
+cache). The overrides, everything Forge 51 lacks:
 
 * `SophisticatedBuildingForge`: a no-argument mod constructor with `FMLJavaModLoadingContext.get()` and
   `ModLoadingContext.get().registerConfig` (constructor injection of `FMLJavaModLoadingContext` is Forge 52+).

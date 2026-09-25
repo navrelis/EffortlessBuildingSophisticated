@@ -24,17 +24,20 @@ def commonDir = file('../common')
 
 // The Forge jar for Minecraft 1.21 (Forge 51). It is the Forge 1.21.1 build (../forge) with the few classes Forge 51
 // cannot run replaced: every file of ../forge/src/<set> is compiled from a copy, except those that src/<set> of this
-// folder overrides under the same path (see forgeOverrides below and README.md). A Sync task makes the copy, so the
+// folder overrides under the same path (see excludeOverrides below and README.md). A Sync task makes the copy, so the
 // shared sources are compiled exactly once per source set and an override can never be shadowed by its original.
 def forgeDir = file('../forge')
-def forgeOverrides = { String set, String kind ->
+// Leaves out every file that src/<set>/<kind> of this folder has under the same path. Decided when the copy runs (the
+// overrides are inputs of the copy): a list made while configuring stays stale in the configuration cache when a
+// src/<set>/<kind> folder is created, and the override and its original are then both compiled ("duplicate class").
+def excludeOverrides = { CopySpec spec, String set, String kind ->
     def own = file("src/${set}/${kind}")
-    return own.directory ? fileTree(own).files.collect { own.toPath().relativize(it.toPath()).toString().replace('\\', '/') } : []
+    spec.exclude { FileTreeElement element -> !element.directory && new File(own, element.relativePath.pathString).exists() }
 }
 def sharedForgeSources = { String set, String kind ->
-    def excluded = forgeOverrides(set, kind)
     return tasks.register("sharedForge${set.capitalize()}${kind.capitalize()}", Sync) {
-        from("${forgeDir}/src/${set}/${kind}") { exclude excluded }
+        from("${forgeDir}/src/${set}/${kind}") { excludeOverrides(it, set, kind) }
+        inputs.files(fileTree("src/${set}/${kind}")).withPropertyName('overrides')
         into layout.buildDirectory.dir("generated/sharedForge/${set}/${kind}")
     }
 }
