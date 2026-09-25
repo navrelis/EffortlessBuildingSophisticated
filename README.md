@@ -56,7 +56,7 @@ smoke-tests every version branch and loader.
 ## Support matrix
 
 One row per jar. Each branch builds its jars from its loader folders and keeps them in `<folder>/release/`. Jar names
-are `sophisticatedbuilding-<loader>-<minecraft>-4.3.0.jar`. The Minecraft range, the minimum loader version and the
+are `sophisticatedbuilding-<loader>-<minecraft>-<mod version>.jar` (5.0.0). The Minecraft range, the minimum loader version and the
 optional Sophisticated Backpacks (SB) range are the ones declared in the jar's metadata (`fabric.mod.json`,
 `META-INF/mods.toml` or `META-INF/neoforge.mods.toml`). Every declared version was run with the in-game smoke harness
 (see `docs/TESTING.md` and the branch's `TESTING.md`).
@@ -73,7 +73,8 @@ SB mean the official builds.
 | | `neoforge` | 26.2 | NeoForge 26.2.0.88 | yes (Backpacks 3.26.2+, Core 1.5.0+) |
 | | `forge` | 26.2 | Forge 65.1.3 | - |
 | `mc/26.1.2` | `fabric` | 26.1, 26.1.1, 26.1.2 | Fabric Loader 0.19.5, Fabric API 0.155.3 | - |
-| | `neoforge` | 26.1.2 only (NeoForge 26.1 and 26.1.1 were beta-only) | NeoForge 26.1.2.109 | yes (Backpacks 3.26.2+, Core 1.5.0+) |
+| | `neoforge` | 26.1.2 | NeoForge 26.1.2.109 | yes (Backpacks 3.26.2+, Core 1.5.0+) |
+| | `neoforge-26.1` | 26.1, 26.1.1 (NeoForge only ever published beta builds for them) | NeoForge 26.1.0.19-beta | yes (Backpacks 3.25.48+, Core 1.4.26 only: 1.4.27 needs NeoForge 26.1.2) |
 | | `forge` | 26.1, 26.1.1, 26.1.2 | Forge 62.0.9 | - |
 | `mc/1.21.11` | `fabric` | 1.21.11 | Fabric Loader 0.19.5, Fabric API 0.141.6 | - |
 | | `neoforge` | 1.21.11 | NeoForge 21.11.45 | yes (Backpacks 3.26.2+, Core 1.5.0+) |
@@ -99,6 +100,8 @@ SB mean the official builds.
 | | `forge` | 1.20.4 | Forge 49.2.9 | - |
 | `mc/1.20.1` | `fabric` | 1.20.1 | Fabric Loader 0.19.5, Fabric API 0.92.12 | yes |
 | | `forge` | 1.20.1; the same jar also runs on NeoForge 1.20.1 (server smoke test on 1.20.1-47.1.106) | Forge 47.1.3 | yes (Backpacks 3.26.3+, Core 1.5.1+), also on NeoForge 1.20.1 |
+| `mc/1.19.4` | `fabric` | 1.19.4 | Fabric Loader 0.19.5, Fabric API 0.87.2 | yes (Fabric port beta builds: Backpacks 3.19.5 build 105, Core 0.5.109) |
+| | `forge` | 1.19.4 | Forge 45.4.5 | - |
 | `mc/1.19.2` | `fabric` | 1.19, 1.19.1, 1.19.2 | Fabric Loader 0.19.5, Fabric API 0.58.0 (mod id `fabric`) | yes on 1.19.2 (the Fabric port exists for 1.19.2 only) |
 | | `forge` | 1.19.2 | Forge 43.5.2 | yes (Backpacks 1.19.2-3.20.2.1035+, Core 1.19.2-0.6.4.730+) |
 | | `forge-1.19` | 1.19, 1.19.1 | Forge 41.1.0 | yes (Backpacks 1.19-3.18.9.661+, Core 1.19-0.4.10.87+, 1.19 builds only) |
@@ -116,12 +119,13 @@ SB mean the official builds.
 | | `forge` | 1.16.3 | Forge 34.1.42 | yes (Backpacks 1.16.4-1.0.0.94+, the build tagged for 1.16.3; it has no Tool Swapper, so mass breaking never takes tools from backpacks) |
 
 There is no NeoForge jar for Minecraft 1.20.1 and older (NeoForge 1.20.1 loads the Forge jar, see above; NeoForge
-does not exist before 1.20.1). Minecraft versions not listed (1.19.3, 1.19.4, 1.20, 1.20.2, 1.20.3, 1.20.5, 1.20.6,
-1.21.2, 1.21.3, 1.21.6, 1.21.7, 1.21.9) are not targeted: Sophisticated Backpacks has no release (non-beta) build for
-them, see `upstream/README.md`.
+does not exist before 1.20.1). Minecraft versions not listed (1.19.3, 1.20, 1.20.2, 1.20.3, 1.20.5, 1.20.6, 1.21.2, 1.21.3, 1.21.6,
+1.21.7, 1.21.9) are not targeted: Sophisticated Backpacks has no release (non-beta) build for them, see
+`upstream/README.md`. 1.19.4 is the exception: only the Fabric port has builds for it (beta builds), and the Fabric jar
+integrates them.
 
 See `docs/PORTING.md` for the toolchain of each branch and the API breaks between versions, and each branch's
-`README.md` and `changelog/PATCH_NOTES_4.3.0.md` for its differences to `mc/1.21.1`.
+`README.md` and `changelog/PATCH_NOTES_<mod version>.md` for its differences to `mc/1.21.1`.
 
 ## Repository layout (main / hub)
 
