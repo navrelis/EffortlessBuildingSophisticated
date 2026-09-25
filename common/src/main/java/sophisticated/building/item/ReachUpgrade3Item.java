@@ -1,9 +1,8 @@
 package sophisticated.building.item;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -40,7 +39,7 @@ public class ReachUpgrade3Item extends Item {
 				if (!world.isClientSide) {
 					powerLevel.increasePowerLevel();
 					AttachmentHandler.setPowerLevel(player, powerLevel);
-					SophisticatedBuilding.log(player, "Upgraded power level to " + powerLevel.getPowerLevel());
+					SophisticatedBuilding.log(player, new TranslatableComponent("sophisticatedbuilding.message.power_level_upgraded", powerLevel.getPowerLevel()));
 
 					stack.shrink(1);
 
@@ -51,14 +50,14 @@ public class ReachUpgrade3Item extends Item {
 				return InteractionResultHolder.sidedSuccess(stack, world.isClientSide());
 			} else if (currentLevel < 2) {
 				if (!world.isClientSide) {
-					if (currentLevel == 0) SophisticatedBuilding.log(player, "Use Reach Upgrade 1 and 2 first.");
-					if (currentLevel == 1) SophisticatedBuilding.log(player, "Use Reach Upgrade 2 first.");
+					if (currentLevel == 0) SophisticatedBuilding.log(player, new TranslatableComponent("sophisticatedbuilding.message.reach_upgrade_needs_1_and_2"));
+					if (currentLevel == 1) SophisticatedBuilding.log(player, new TranslatableComponent("sophisticatedbuilding.message.reach_upgrade_needs_2"));
 
 					world.playSound((Player) null, player.blockPosition(), SoundEvents.ARMOR_EQUIP_LEATHER, SoundSource.PLAYERS, 1f, 1f);
 				}
 			} else if (currentLevel > 2) {
 				if (!world.isClientSide) {
-					SophisticatedBuilding.log(player, "Already used this upgrade! Current power level is " + powerLevel.getPowerLevel() + ".");
+					SophisticatedBuilding.log(player, new TranslatableComponent("sophisticatedbuilding.message.reach_upgrade_already_used", powerLevel.getPowerLevel()));
 
 					world.playSound((Player) null, player.blockPosition(), SoundEvents.ARMOR_EQUIP_LEATHER, SoundSource.PLAYERS, 1f, 1f);
 				}
@@ -70,8 +69,8 @@ public class ReachUpgrade3Item extends Item {
 
 	@Override
 	public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag tooltipFlag) {
-		tooltip.add(new TextComponent(ChatFormatting.GRAY + "Consume to increase reach to " + ChatFormatting.BLUE + CommonConfig.reach.level3.get()));
-		tooltip.add(new TextComponent(ChatFormatting.GRAY + "Previous upgrades need to be consumed first"));
+		tooltip.add(new TranslatableComponent("item.sophisticatedbuilding.reach_upgrade.tooltip", CommonConfig.reach.level3.get()));
+		tooltip.add(new TranslatableComponent("item.sophisticatedbuilding.reach_upgrade.tooltip.previous"));
 	}
 
 }

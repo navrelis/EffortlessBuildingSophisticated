@@ -4,8 +4,8 @@ Three layers, from fast to real:
 
 | Layer | Command (in a loader folder) | What it proves |
 |---|---|---|
-| Unit tests | `gradlew build` | Pure logic in `common/src/test` (104 tests on Fabric incl. its config tests, 90 on Forge) |
-| Fabric GameTests | `gradlew runGametest` | 24 server-side building rules (`fabric/src/gametest`) |
+| Unit tests | `gradlew build` | Pure logic in `common/src/test` (117 tests on Fabric incl. its config tests, 103 on Forge) |
+| Fabric GameTests | `gradlew runGametest` | 37 server-side building rules (`fabric/src/gametest`) |
 | **In-game smoke tests** | `gradlew runSmokeClient` / `gradlew runSmokeServer` | The mod works in a real game on this loader, on Forge including the Sophisticated Backpacks (SB) integration |
 
 `gradlew build` compiles the smoke harness (so it cannot rot) but never runs it. The harness is dev-only: it lives in
@@ -127,10 +127,11 @@ what arrives from a client, and handed to the packets' server handlers.
 | `server.undo_redo` | Undo/redo packets restore the inventory counts |
 | `server.merge_undo_refund` | Survival merges (+1 snow layer, +1 candle) cost one item each; undo puts both blocks back without mining and gives the items back, redo charges them again |
 | `server.refused_place_not_charged` | The loader's block place event refuses 2 of a 5 block line (as a protection mod would): only the 3 placed planks are charged and undo gives back exactly those. Skipped on Fabric (no place event; `ChargeGameTest` covers refused placements) |
+| `server.request_limits` | A survival player's build requests over the power level limits (start 60 blocks away, a 20 block extent over the 8 blocks per axis) are refused, nothing placed or charged; a normal 5 block line after them is placed |
 | `sb.upgrade_supplies_blocks`, `sb.disabled_upgrade_ignored`, `sb.tier_cap`, `sb.tool_swapper_tools`, `sb.worn_backpack_chest`, `sb.worn_backpack` | Forge only: as on the client, server side |
 | `server.no_mod_errors` | As on the client |
 
-Fabric reports 5 checks (1 of them skipped: `server.refused_place_not_charged`), Forge 11.
+Fabric reports 6 checks (1 of them skipped: `server.refused_place_not_charged`), Forge 12.
 Game tests of other mods in the runtime are not checks: they are only logged when they pass; if one fails, the run
 fails with a `server.foreign_game_test` check (on 1.17.1 no other mod in the dev runtime registers one; the Forge smoke
 server only runs the harness's own tests).
@@ -291,6 +292,19 @@ R2 of mc/1.21.1 (`fb10ef2..766d18f`) adds `client.mini_block_preview`, `client.d
   `server.refused_place_not_charged` skipped: no place event). Differences to 1.21.1: Forge 37's
   `ForgeConfigSpec.ConfigValue` has no `getDefault()` (the adapter keeps the defined default); no pink petals (1.20+)
   among the merges; the Player Settings screen draws its own background and tooltips (see the README).
+- R3 (5.0.1 fixes of `mc/1.21.1` d8ab383..48261e8), ported via mc/1.18.x (same common code): Fabric per-player data
+  saved with the player (`PlayerDataMixin`, `ServerPlayerEvents.COPY_FROM`), server checks of build requests with the
+  common config synced to the client (`CommonConfigSyncPacket` as a `ModPayload` with `writeVarIntArray`/
+  `readVarIntArray`), array limit, Fabric break events, offhand bag filter, material cost list, previous build mode,
+  translatable texts (`LangKeysTest`). Differences as on 1.18.x: `new TranslatableComponent(...)`, the start reach uses
+  the vanilla reach 5 (creative) / 4.5, `PowerLevel#serializeNBT()` without a registry provider, tooltips with the
+  `Level` signature, the Omega bag's Reset button is `new Button(...)`, GameTests without `ClientInformation`. On 1.17.1
+  also: no Common Protection API (its only 1.x release needs Java 17; Minecraft 1.17.1 runs on Java 16), so claim mods
+  are reached through Fabric API's player break events only, and `ProtectionEventsGameTest` has only its break-event
+  test (37 GameTests instead of 38); the Fabric mixin config uses `JAVA_16`; the Forge smoke runner lists
+  `server_request_limits` in its `scenarios()` map. Found on the way, as on 1.18.x: Forge 37's `FakePlayer` answers
+  `position()`/`blockPosition()` with the origin, so the server's reach check takes the player's coordinates
+  (`getX/getY/getZ`) and the smoke players are moved with the five-argument `moveTo`.
 
 ## Standalone run without Sophisticated Backpacks
 
@@ -302,6 +316,6 @@ Trinkets), leaves the backpack fixture (every file under a `smoketestBackpacks` 
 and passes `-Dsophisticatedbuilding.smoketest.noSb=true` to the run.
 The `sb.*` scenarios report "skipped" (and fail instead if the backpack integration is active anyway).
 `server.place_line_survival`, `server.undo_redo`, `server.merge_undo_refund`, `server.refused_place_not_charged`
-(skipped on Fabric: no place event there) and `server.no_mod_errors` must pass. The main code still compiles against
+(skipped on Fabric: no place event there), `server.request_limits` and `server.no_mod_errors` must pass. The main code still compiles against
 Sophisticated Backpacks (compile-only), so only the runtime changes. On the hub,
 `scripts/test-all-versions.ps1 -SmokeTasks runSmokeServerNoSb` runs it for every loader folder with the integration.

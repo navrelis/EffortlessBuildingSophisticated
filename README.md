@@ -124,9 +124,9 @@ Each loader folder has its own Gradle wrapper (Fabric: Gradle 9.5.1, Forge: Grad
 the mod is compiled for and run on Java 16 (toolchain, downloaded by the Foojay resolver if missing).
 
 ```
-cd fabric && ./gradlew build          # jar in fabric/build/libs, runs common + Fabric unit tests (104)
-cd fabric && ./gradlew runGametest    # 24 in-world GameTests (not part of build)
-cd forge  && ./gradlew build          # reobfuscated jar in forge/build/libs, runs the common unit tests (90)
+cd fabric && ./gradlew build          # jar in fabric/build/libs, runs common + Fabric unit tests (117)
+cd fabric && ./gradlew runGametest    # 37 in-world GameTests (not part of build)
+cd forge  && ./gradlew build          # reobfuscated jar in forge/build/libs, runs the common unit tests (103)
 ./build-all.ps1                       # both, stops at the first failure
 ```
 

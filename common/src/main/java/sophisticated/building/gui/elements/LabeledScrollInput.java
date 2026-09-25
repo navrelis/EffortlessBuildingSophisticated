@@ -6,7 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import sophisticated.building.create.foundation.gui.widget.Label;
 import sophisticated.building.create.foundation.gui.widget.ScrollInput;
 import sophisticated.building.create.foundation.utility.Components;
@@ -29,7 +29,7 @@ import org.lwjgl.glfw.GLFW;
 public class LabeledScrollInput extends ScrollInput {
     protected Label label;
     protected final Component controlScrollsSlowerText = Lang.translateDirect("gui.scrollInput.controlScrollsSlower");
-    protected final Component keyboardControlsText = new TextComponent("Arrow keys / +/- to adjust").withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY);
+    protected final Component keyboardControlsText = new TranslatableComponent("sophisticatedbuilding.gui.scroll_input.keyboard").withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY);
     protected boolean controlScrollsSlower;
     protected boolean focused = false;
     
