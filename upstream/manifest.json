@@ -66,6 +66,32 @@
     },
     {
       "loader": "fabric",
+      "mc": "1.19.4",
+      "releaseType": "beta",
+      "note": "Added by hand: CurseForge has only beta files for this pair (update-manifest.ps1 picks RELEASE files only and keeps this entry). Newest matching pair, both 'build.105'; the newer Core 0.5.110 '-local' build (file 7125531) was not used.",
+      "backpacks": {
+        "project": 979322,
+        "fileId": 5450746,
+        "fileName": "sophisticatedbackpacks-3.19.5+mc1.19.4-SNAPSHOT-build.105.jar",
+        "releaseDate": "2024-06-20T17:15:13Z",
+        "size": 2114048,
+        "sha1": "ceb8dae0e78a8147e1665777d167285674a747cc",
+        "requiresCore": ">=0.5.109+mc1.19.4-SNAPSHOT-build.105"
+      },
+      "core": {
+        "project": 979317,
+        "fileId": 5450726,
+        "fileName": "sophisticatedcore-0.5.109+mc1.19.4-SNAPSHOT-build.105.jar",
+        "size": 2034142,
+        "sha1": "1a112937a42577c22a93ac55622d6b251c1c0530"
+      },
+      "curseMaven": {
+        "backpacks": "curse.maven:sophisticated-backpacks-unofficial-fabric-port-979322:5450746",
+        "core": "curse.maven:sophisticated-core-unofficial-fabric-port-979317:5450726"
+      }
+    },
+    {
+      "loader": "fabric",
       "mc": "1.20.1",
       "backpacks": {
         "project": 979322,
@@ -682,7 +708,7 @@
       "loader": "fabric",
       "mc": "1.19.4",
       "project": 979322,
-      "reason": "no RELEASE file for this pair; only ['beta'] available"
+      "reason": "no RELEASE file for this pair; only ['beta'] available (the newest beta pair is listed under entries by hand, see its note)"
     }
   ],
   "warnings": [
