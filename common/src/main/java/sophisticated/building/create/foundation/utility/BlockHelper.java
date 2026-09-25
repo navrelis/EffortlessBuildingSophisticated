@@ -149,6 +149,8 @@ public class BlockHelper {
 				BlockState blockstate = world.getBlockState(pos.below());
 				if (blockstate.blocksMotion() || blockstate.liquid())
 					world.setBlockAndUpdate(pos, Blocks.WATER.defaultBlockState());
+				if (player != null)
+					Services.BLOCK_EVENTS.afterBlockBroken(world, pos, state, blockEntity, player);
 				return false;
 			}
 
@@ -156,6 +158,8 @@ public class BlockHelper {
 		}
 
 		world.setBlockAndUpdate(pos, fluidState.createLegacyBlock());
+		if (player != null)
+			Services.BLOCK_EVENTS.afterBlockBroken(world, pos, state, blockEntity, player);
 		return true;
 	}
 
