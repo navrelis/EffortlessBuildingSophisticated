@@ -76,9 +76,9 @@ newest Forge for that Minecraft version at research time. "official" = Mojang na
 
 | MC | Forge (latest) | Plugin + Gradle | Mappings | Branch / folder |
 |---|---|---|---|---|
-| 1.16.3 | 34.1.42 | Architectury Loom 1.17.493 + Gradle 9.5.1, jar remapped to SRG (in progress) | official | `mc/1.16.3` `forge/` |
-| 1.16.4 | - (35.1.37) | not built separately; whether the 1.16.5 jar covers 1.16.4 is being checked on `mc/1.16.5` | - | - |
-| 1.16.5 | 36.2.42 | Architectury Loom 1.17.493 + Gradle 9.5.1, jar remapped to SRG (in progress) | official | `mc/1.16.5` `forge/` |
+| 1.16.3 | 34.1.42 (the last one) | Architectury Loom 1.17.493 + Gradle 9.5.1, jar remapped to SRG; dev runs force modlauncher 8.1.3 (see Gotchas) | official | `mc/1.16.3` `forge/` |
+| 1.16.4 | 35.1.37 (the last one) | Architectury Loom 1.17.493 + Gradle 9.5.1, jar remapped to SRG; dev runs force modlauncher 8.1.3 | official | `mc/1.16.5` `forge-1.16.4/` |
+| 1.16.5 | 36.2.42 | Architectury Loom 1.17.493 + Gradle 9.5.1, jar remapped to SRG; dev client needs `fixDevMinecraft` (see Gotchas) | official | `mc/1.16.5` `forge/` |
 | 1.17.1 | 37.1.1 | ModDevGradle Legacy 2.0.147 + Gradle 8.14.5, reobfuscated to SRG | Parchment 2021.12.12 | `mc/1.17.1` `forge/` |
 | 1.18 | 38.0.17 | MDG Legacy 2.0.147 + Gradle 8.14.5 | official (no Parchment for 1.18) | `mc/1.18.1` `forge-1.18/` |
 | 1.18.1 | 39.1.2 | MDG Legacy 2.0.147 + Gradle 8.14.5 | Parchment 2022.03.06 | `mc/1.18.1` `forge/` |
@@ -132,7 +132,7 @@ versions.
   1.18.2 `0.77.0+1.18.2`; 1.19 `0.58.0+1.19`; 1.19.1 `0.58.5+1.19.1`; 1.19.2 `0.77.0+1.19.2`;
   1.20.1 `0.92.12+1.20.1`; 1.20.4 `0.97.3+1.20.4`; 1.21 `0.102.0+1.21`; 1.21.1 `0.116.17+1.21.1`;
   1.21.4 `0.119.4`; 1.21.5 `0.128.2`; 1.21.8 `0.136.1`; 1.21.10 `0.138.4`; 1.21.11 `0.141.6`;
-  26.1.x `0.155.3+26.1.2` (tagged for 26.1, 26.1.1, and 26.1.2 alike); 26.2 `0.161.0+26.2`.
+  26.1.x `0.155.3+26.1.2` (tagged for 26.1, 26.1.1, and 26.1.2 alike); 26.2 `0.161.0+26.2`. The `mc/1.16.5` Fabric jar requires 0.42.0+1.16 also on 1.16.4 (it declares `~1.16.2`).
 - Fabric API's mod id: the builds up to 0.58.x (1.16.x–1.18.1, 1.19, 1.19.1) are the mod `fabric`; the 0.77.0 builds
   (1.18.2, 1.19.2) and later are `fabric-api` and also provide `fabric`. So `fabric.mod.json` depends on `fabric` on
   1.16.3–1.18.1 and on `mc/1.19.2` (whose jar also runs on 1.19 and 1.19.1: `"fabric": ">=0.58.0"`), and on
@@ -155,8 +155,14 @@ rendering replaced them — see `docs/ARCHITECTURE.md`).
 Based on an API diff between adjacent versions; always confirm with a runtime test (`runClient`)
 before relying on a merge, not just a successful compile.
 
-- **1.16.4 + 1.16.5**: research verdict was a merge (the Fabric API diff between them is trivial); `mc/1.16.5`
-  currently declares 1.16.5 only and the runtime check on 1.16.4 is still in progress. 1.16.3 is a separate branch.
+- **1.16.4 + 1.16.5**: merged on Fabric (`mc/1.16.5`: `>=1.16.4 <=1.16.5`; the 1.16.5 jar compiled against 1.16.4
+  passes its unit tests, server tests and smoke runs there, and every intermediary name it uses exists in 1.16.4's
+  mappings; Fabric API 0.42.0+1.16 declares Minecraft `~1.16.2` and runs on 1.16.4). Not merged on Forge: the 1.16.5
+  jar loads on Forge 35 but is not binary compatible with Sophisticated Backpacks 1.16.4-3.0.0.289 (static
+  `PlayerInventoryProvider.runOnBackpacks` without a slot identifier, a "swap tools" switch instead of
+  `ToolSwapMode`), so 1.16.4 has its own `forge-1.16.4/` folder on `mc/1.16.5` (overrides for the backpack scan and
+  the Tool Swapper integration). 1.16.3 is a separate branch (`mc/1.16.3`), whose Sophisticated Backpacks build
+  (1.16.4-1.0.0.94) has no Tool Swapper and no upgrade slot checks.
 - **1.18 + 1.18.1**: merged on Fabric (the 1.18.1 jar ran on 1.18 with Fabric API 0.44.0; `>=1.18 <=1.18.1`). Not
   merged on Forge: the Forge 1.18.1 jar does not load on Forge 38 ("needs language provider javafml:39 or above"),
   and Sophisticated Backpacks 1.18-3.12.1 still keeps the classes later split off into Sophisticated Core under
@@ -285,6 +291,22 @@ full changelog of every vanilla or loader change in that version.
   9.5.1) instead of ForgeGradle 6: ForgeGradle's `official` mappings for 1.16.5 keep the MCP class names
   (`net.minecraft.util.ResourceLocation`, ...), while `common/` is written against the Mojang class names that Fabric
   and every later Forge use. Architectury Loom maps Forge 1.16.x to the Mojang names and remaps the jar to SRG names.
+- Forge 36.2 (1.16.5) dev client with Architectury Loom: Forge 36.2 moved `Transformation#compose`/`inverse` into
+  default methods of `IForgeTransformationMatrix`, which Loom renames, so vanilla `BlockMath` keeps calling them under
+  their SRG names and every dev client crashed while baking models (`NoSuchMethodError: Transformation.func_227987_b_`).
+  `forge/build.gradle` on `mc/1.16.5` gives `runClient`/`runSmokeClient` a copy of Loom's named Minecraft jar in which
+  `BlockMath` calls `compose`/`inverse` (task `fixDevMinecraft`, dev runtime only; the mod jar and a real Forge are
+  not affected). Forge 34/35 keep the methods in the class and need no fix.
+- Forge 34 and 35 (1.16.3, 1.16.4) ship modlauncher 8.0.x, which cannot load a single class on Java 8u321 or newer
+  (`NoSuchMethodError: sun.security.util.ManifestEntryVerifier.<init>`, with or without any mod). Their dev runs force
+  modlauncher 8.1.3 (the version Forge 36.2 uses; API compatible), so they work on the Java 8 the foojay resolver
+  provisions. A real Forge 1.16.3/1.16.4 server needs a Java 8 older than 8u321 (tested with 8u202), or modlauncher
+  8.1.3 in its `libraries/`; the Minecraft launcher runs 1.16.x on its bundled Java 8u51, so clients are fine.
+  Forge 36.2.42 (1.16.5) already has modlauncher 8.1.3 and was run on Java 8u504.
+- Minecraft 1.16.x ships its game test framework stripped and neither loader has a game test API for it: the 17 Fabric
+  game tests run as server tests (`@ServerTest` on `ServerTestHelper`, run by `ServerTestRunner` in
+  `common/src/smoketest/.../servertest` on a dedicated dev server), and `runGametest` checks the JUnit report they
+  write (`<testcase name time/>`, no classname). The smoke servers use the same runner.
 - Forge before 1.18.2 has no jar-in-jar mechanism; shade a dependency instead of relying on
   jar-in-jar if a branch that old needs to embed one.
 

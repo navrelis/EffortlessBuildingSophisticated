@@ -22,7 +22,8 @@ neoforge/          standalone NeoForge (ModDevGradle) Gradle build, where applic
 forge/             standalone Forge Gradle build (ForgeGradle, ModDevGradle Legacy or Architectury Loom,
                    depending on the Minecraft version — see docs/PORTING.md)
 <loader>-<mc>/     extra build for an older Minecraft version the main jar of that loader cannot run on
-                   (forge-1.21/ on mc/1.21.1, forge-1.19/ on mc/1.19.2, forge-1.18/ on mc/1.18.1)
+                   (forge-1.21/ on mc/1.21.1, forge-1.19/ on mc/1.19.2, forge-1.18/ on mc/1.18.1,
+                   forge-1.16.4/ on mc/1.16.5)
 <folder>/release/  built jars for that branch
 ```
 
@@ -108,29 +109,16 @@ SB mean the official builds.
 | | `forge-1.18` | 1.18 | Forge 38.0.17 | yes (Backpacks 1.18-3.12.1+, before the Core split) |
 | `mc/1.17.1` | `fabric` | 1.17.1 | Fabric Loader 0.19.5, Fabric API 0.46.1 (mod id `fabric`) | - |
 | | `forge` | 1.17.1 | Forge 37.1.1 | yes (Backpacks 1.17.1-3.12.3+) |
+| `mc/1.16.5` | `fabric` | 1.16.4, 1.16.5 | Fabric Loader 0.19.5, Fabric API 0.42.0 (mod id `fabric`) | - |
+| | `forge` | 1.16.5 | Forge 36.2.42 | yes (Backpacks 1.16.5-3.15.20+; no separate Sophisticated Core on 1.16.x) |
+| | `forge-1.16.4` | 1.16.4 | Forge 35.1.37 | yes (Backpacks 1.16.4 builds from 1.16.4-3.0.0.289) |
+| `mc/1.16.3` | `fabric` | 1.16.3 | Fabric Loader 0.19.5, Fabric API 0.25.0 (mod id `fabric`) | - |
+| | `forge` | 1.16.3 | Forge 34.1.42 | yes (Backpacks 1.16.4-1.0.0.94+, the build tagged for 1.16.3; it has no Tool Swapper, so mass breaking never takes tools from backpacks) |
 
 There is no NeoForge jar for Minecraft 1.20.1 and older (NeoForge 1.20.1 loads the Forge jar, see above; NeoForge
 does not exist before 1.20.1). Minecraft versions not listed (1.19.3, 1.19.4, 1.20, 1.20.2, 1.20.3, 1.20.5, 1.20.6,
 1.21.2, 1.21.3, 1.21.6, 1.21.7, 1.21.9) are not targeted: Sophisticated Backpacks has no release (non-beta) build for
 them, see `upstream/README.md`.
-
-### In progress
-
-The two Minecraft 1.16 branches are not finished yet; their rows are filled in when they land.
-
-<!-- BEGIN mc/1.16.5 row (in progress; replace with the final jars, ranges and SB columns when the branch lands) -->
-| Branch | Folder | Minecraft | Requires (minimum) | SB |
-|---|---|---|---|---|
-| `mc/1.16.5` | `fabric` | in progress (1.16.5; 1.16.4 being checked) | in progress | - |
-| | `forge` | in progress (1.16.5; 1.16.4 being checked) | in progress | in progress (official Forge build) |
-<!-- END mc/1.16.5 row -->
-
-<!-- BEGIN mc/1.16.3 row (in progress; replace with the final jars, ranges and SB columns when the branch lands) -->
-| Branch | Folder | Minecraft | Requires (minimum) | SB |
-|---|---|---|---|---|
-| `mc/1.16.3` | `fabric` | in progress (1.16.3) | in progress | - |
-| | `forge` | in progress (1.16.3) | in progress | in progress (official Forge build; its 1.16.3 build has no Tool Swapper) |
-<!-- END mc/1.16.3 row -->
 
 See `docs/PORTING.md` for the toolchain of each branch and the API breaks between versions, and each branch's
 `README.md` and `changelog/PATCH_NOTES_4.3.0.md` for its differences to `mc/1.21.1`.

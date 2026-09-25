@@ -9,12 +9,12 @@ range, minimum loader version and Sophisticated Backpacks support.
 
 ## 4.3.0 — multi-version
 
-4.3.0 brings the mod to every Minecraft version from 1.17.1 to 26.2 that has a Sophisticated Backpacks
-release, on Fabric, NeoForge and Forge where the loader exists for that version (Minecraft 1.16.3 and
-1.16.5 are still in progress). The features are those of 4.2.1 on every version; where an older or newer
-Minecraft lacks an API, the branch uses the closest equivalent and its patch notes say so (for example
-item data in NBT before 1.20.5, vanilla tool classes instead of tool item tags on 1.19, no in-game config
-screen on Forge and on NeoForge 20.4).
+4.3.0 brings the mod to every Minecraft version from 1.16.3 to 26.2 that has a Sophisticated Backpacks
+release, on Fabric, NeoForge and Forge where the loader exists for that version. The features are those of
+4.2.1 on every version; where an older or newer Minecraft lacks an API or content, the branch uses the closest
+equivalent and its patch notes say so (for example item data in NBT before 1.20.5, vanilla tool classes instead
+of tool item tags on 1.19, no in-game config screen on Forge and on NeoForge 20.4, blackstone and prismarine
+crystals instead of deepslate and amethyst in recipes on 1.16.x).
 
 ### Minecraft versions and loaders
 
@@ -38,6 +38,17 @@ screen on Forge and on NeoForge 20.4).
   because Sophisticated Backpacks for 1.18 keeps everything in its own package (no Sophisticated Core, other
   class names). Backpacks integration on Forge.
 * 1.17.1: Fabric and Forge. Backpacks integration on Forge.
+* 1.16.4 and 1.16.5 (branch `mc/1.16.5`, Java 8): one Fabric jar for both; Forge has a jar for 1.16.5 and one
+  for 1.16.4 (`forge-1.16.4/`), because the last Sophisticated Backpacks build for 1.16.4 (3.0.0.289) has another
+  backpack scan and Tool Swapper API. Backpacks integration on Forge (Sophisticated Backpacks 1.16.x has no
+  separate Core and no upgrade count limits; the Building Upgrade itself allows one per backpack).
+* 1.16.3 (Java 8): Fabric and Forge. Backpacks integration on Forge with Sophisticated Backpacks 1.16.4-1.0.0.94,
+  the build for 1.16.3, which has no Tool Swapper (mass breaking never takes tools from backpacks) and no
+  upgrade slot checks.
+* Forge 1.16.3 and 1.16.4 (Forge 34 and 35) do not start at all on Java 8u321 or newer (their modlauncher fails
+  with `NoSuchMethodError: sun.security.util.ManifestEntryVerifier.<init>`, with or without this mod): a
+  dedicated server needs an older Java 8 (the Minecraft launcher's own Java 8 is fine). Forge 1.16.5 (36.2.42) is
+  not affected.
 
 Where Sophisticated Backpacks has no build for a loader and Minecraft version, the jar has no backpack
 integration: the Building Upgrade items are placeholders without recipes, and everything else works as
