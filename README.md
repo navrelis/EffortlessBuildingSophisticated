@@ -125,8 +125,9 @@ and has other `UpgradeItemBase`/`IUpgradeItem` signatures). So `forge-1.19/` bui
 (`sophisticatedbuilding-forge-1.19-4.3.0.jar`, Minecraft `[1.19,1.19.1]`, Forge `[41.1.0,)`, compiled against Forge
 41.1.0). It compiles `../forge/src` (main and smoketest), `../forge/src/main/templates` and `../common` as they are,
 except the files its own `src/` has under the same path: a `Sync` task copies `../forge/src/<set>/<kind>` without those
-into `build/generated/sharedForge`, so every shared file is compiled once and an override replaces its original. The
-overrides:
+into `build/generated/sharedForge`, so every shared file is compiled once and an override replaces its original (the
+exclusion is decided when the copy runs, so an added override needs no reconfiguration, also with the configuration
+cache). The overrides:
 
 * `item/upgrade/BuildingUpgradeItem`: `UpgradeItemBase(CreativeModeTab)`, the 1.19 `canAddUpgradeTo` /
   `canRemoveUpgradeFrom` / `canSwapUpgradeFor` signatures. Core 1.19 has no upgrade groups or count limits, so the
