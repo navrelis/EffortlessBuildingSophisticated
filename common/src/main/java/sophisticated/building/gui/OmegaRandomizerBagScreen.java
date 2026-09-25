@@ -83,6 +83,7 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		super.render(guiGraphics, mouseX, mouseY, partialTicks);
 		this.renderTooltip(guiGraphics, mouseX, mouseY);
+		BagTitle.renderTooltip(guiGraphics, this.font, this.title, leftPos, topPos, imageWidth, mouseX, mouseY);
 		
 		// Render weight badges and tooltips
 		renderWeightBadges(guiGraphics, mouseX, mouseY);
@@ -138,7 +139,7 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 
 	@Override
 	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		guiGraphics.drawString(this.font, this.title, 8, 6, 0xFF404040, false);
+		BagTitle.draw(guiGraphics, this.font, this.title, imageWidth, 0xFF404040);
 		guiGraphics.drawString(this.font, this.playerInventoryTitle, 8, imageHeight - 94, 0xFF404040, false);
 	}
 

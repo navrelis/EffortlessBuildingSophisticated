@@ -14,6 +14,7 @@ public final class ReplaceRules {
 		PLACE,   // place over air or a replaceable block (grass, water, snow layer...), no mining
 		BREAK,   // mine the current block, place nothing
 		REPLACE, // survival: pay the item, mine the current block, then place
+		UNMERGE, // undo of a merge: set the old state again without mining, survival gets the merged item back
 		SKIP     // leave the entry alone, nothing mined or consumed
 	}
 
@@ -43,12 +44,15 @@ public final class ReplaceRules {
 	/**
 	 * How to undo one entry, i.e. restore the old state over the current block.
 	 *
-	 * @param oldIsAir   the old state is air, so the current block is broken
-	 * @param oldHasItem the old state has an item that pays for re-placing it
+	 * @param oldIsAir        the old state is air, so the current block is broken
+	 * @param oldHasItem      the old state has an item that pays for re-placing it
+	 * @param currentIsMerged the current state is the old one plus one item (slab to double slab, +1 candle, pickle,
+	 *                        egg, snow layer or petal): the undo of a merge, never mined whatever the replace setting
 	 */
 	public static Action forUndo(boolean survival, boolean oldIsAir, boolean oldHasItem, boolean currentNeedsMining,
-								 boolean sameState, boolean replaceEnabled) {
+								 boolean sameState, boolean replaceEnabled, boolean currentIsMerged) {
 		if (oldIsAir) return Action.BREAK;
+		if (currentIsMerged) return Action.UNMERGE;
 		if (!survival || !currentNeedsMining) return Action.PLACE;
 		//Survival never overwrites for free: without an item to pay with, only mine the current block
 		if (!oldHasItem) return Action.BREAK;
@@ -57,7 +61,7 @@ public final class ReplaceRules {
 	}
 
 	/**
-	 * Items a block state is made of: what breaking it drops, and what re-placing it (undo/redo) costs.
+	 * Items a block state is made of: what breaking it drops, and what placing it costs.
 	 *
 	 * @param doubleSlab the state is a double slab
 	 * @param countValue the value of its count property (candles, pickles, eggs, snow layers, petals), 0 without one
@@ -68,14 +72,25 @@ public final class ReplaceRules {
 	}
 
 	/**
-	 * Items to charge for restoring a state with undo/redo: all the items it is made of, less those of the same block
+	 * Items to charge for placing a state (a build, undo or redo): all the items it is made of, less those of the same block
 	 * that stays in place when it is placed over without mining (so a merge costs one, like vanilla).
 	 *
-	 * @param targetCount item count of the restored state
+	 * @param targetCount item count of the placed state
 	 * @param keptCount   item count of the current block if it is the same block and not mined, else 0
 	 */
 	public static int restoreCost(int targetCount, int keptCount) {
 		return Math.max(0, targetCount - keptCount);
+	}
+
+	/**
+	 * Items given back when a merge is undone ({@link Action#UNMERGE}): what the current state holds more than the old
+	 * one, i.e. exactly the item the merge charged.
+	 *
+	 * @param currentCount item count of the merged state
+	 * @param oldCount     item count of the state before the merge
+	 */
+	public static int unmergeRefund(int currentCount, int oldCount) {
+		return Math.max(0, currentCount - oldCount);
 	}
 
 	/**

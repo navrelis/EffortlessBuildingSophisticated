@@ -29,19 +29,22 @@ public class ClientEvents {
     /** The category of the mod's key mappings (translation key key.category.sophisticatedbuilding.main). */
     public static final KeyMapping.Category KEY_CATEGORY = ClientServices.CLIENT.createKeyCategory(SophisticatedBuilding.asResource("main"));
     public static KeyMapping[] keyBindings;
+    /** Index of the "Open player settings" key in {@link #keyBindings} (unbound by default). */
+    public static final int PLAYER_SETTINGS_KEY = 6;
     public static int ticksInGame = 0;
     private static int placeCooldown = 0;
     private static int breakCooldown = 0;
 
     // Static initializer to set up keybindings
     static {
-        keyBindings = new KeyMapping[6];
+        keyBindings = new KeyMapping[7];
         keyBindings[0] = ClientServices.CLIENT.createKeyMapping("key.sophisticatedbuilding.mode.desc", GLFW.GLFW_KEY_LEFT_ALT, false, KEY_CATEGORY);
         keyBindings[1] = ClientServices.CLIENT.createKeyMapping("key.sophisticatedbuilding.hud.desc", GLFW.GLFW_KEY_KP_ADD, false, KEY_CATEGORY);
         keyBindings[2] = ClientServices.CLIENT.createKeyMapping("key.sophisticatedbuilding.undo.desc", GLFW.GLFW_KEY_Z, true, KEY_CATEGORY);
         keyBindings[3] = ClientServices.CLIENT.createKeyMapping("key.sophisticatedbuilding.redo.desc", GLFW.GLFW_KEY_Y, true, KEY_CATEGORY);
         keyBindings[4] = ClientServices.CLIENT.createKeyMapping("key.sophisticatedbuilding.previous_build_mode.desc", InputConstants.UNKNOWN.getValue(), false, KEY_CATEGORY);
         keyBindings[5] = ClientServices.CLIENT.createKeyMapping("key.sophisticatedbuilding.disable_build_mode_toggle.desc", InputConstants.UNKNOWN.getValue(), false, KEY_CATEGORY);
+        keyBindings[PLAYER_SETTINGS_KEY] = ClientServices.CLIENT.createKeyMapping("key.sophisticatedbuilding.player_settings.desc", InputConstants.UNKNOWN.getValue(), false, KEY_CATEGORY);
     }
 
     public static void onClientTickPre() {
@@ -148,6 +151,11 @@ public class ClientEvents {
         //Disable build mode toggle
         if (keyBindings[5].consumeClick()) {
             ModeOptions.performAction(player, ModeOptions.ActionEnum.DISABLE_BUILD_MODE_TOGGLE);
+        }
+
+        //Player settings
+        if (keyBindings[PLAYER_SETTINGS_KEY].consumeClick()) {
+            ModeOptions.performAction(player, ModeOptions.ActionEnum.OPEN_PLAYER_SETTINGS);
         }
     }
 
