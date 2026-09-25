@@ -117,7 +117,7 @@ In Survival your building power depends on your **power level** (0 to 3); Creati
 - **Max blocks placed at once:** the size of one build (copies from modifiers included); a larger preview is cut off.
 - **Max mirror radius:** how far Mirror and Radial Mirror reach.
 
-You raise your power level by using **Reach Upgrade 1, 2 and 3** in that order (section 8); operators can set it with `/powerlevel` (section 12). The server additionally rejects any single build larger than `Validation.maxBlocksPlacedAtOnce` (10000 blocks) for everyone.
+You raise your power level by using **Reach Upgrade 1, 2 and 3** in that order (section 8); operators can set it with `/powerlevel` (section 12). The server checks every build and break request against these limits itself (reach, blocks per axis, blocks placed at once, and what the modifiers add on top), using its own common config, not the client's; a request outside them is refused or cut down with a message. The server additionally rejects any single build larger than `Validation.maxBlocksPlacedAtOnce` (10000 blocks) for everyone.
 
 ---
 
@@ -229,7 +229,7 @@ Mirrored blocks are flipped too, so stairs and other directional blocks face the
 | Offset X/Y/Z | 0, 0, 0 | Any whole number (an offset of 0, 0, 0 does nothing) |
 | Count | 5 | 1 to 100 copies, added to the original |
 
-The panel shows the array's length (largest offset x count) against your max blocks per axis, for example `0/32`; it turns red when the array is longer. That is a warning only, the copies are still made (the *max blocks placed at once* limit still applies).
+The panel shows the array's length (largest offset x count) against your max blocks per axis, for example `0/32`; it turns red when the array is longer. The server caps the count to fit the limit, so only the copies that fit are built (the *max blocks placed at once* limit still applies on top of that).
 
 ![Array settings](https://media.forgecdn.net/attachments/1975/955/06-array-settings-png.png)
 
@@ -288,7 +288,7 @@ Nothing is free in Survival, and the server checks everything. Players who may n
 - **Multi-item blocks cost all their items:** a double slab costs two slabs, three candles three candles; a merge costs only the item it adds.
 - **Order:** first your backpacks (with an enabled Building Upgrade, up to its tier), then the stack in your hand, then the rest of your inventory.
 - **Items with data keep it:** a named block, a filled shulker box or a Supplementaries sack is placed from that exact stack with its name and contents (main hand first, then offhand, then inventory).
-- **Failed placements are not charged:** if the server does not place a block (a protection mod cancels it on NeoForge or Forge, water plants in the Nether, the block is already there), you keep the item.
+- **Failed placements are not charged:** if the server does not place a block (a protection mod cancels it on NeoForge or Forge, a claim mod refuses it through the Common Protection API on Fabric, water plants in the Nether, the block is already there), you keep the item.
 - With a Building Upgrade active and the same block in your backpack, the **last block in your hand stays**, so your hand never runs empty while the backpack still has more.
 
 ### Mass breaking
@@ -299,7 +299,7 @@ On by default (`SurvivalBreaking.enabled`).
 - Blocks that break instantly (flowers, torches, grass) need no tool. A block without an effective tool that does not require one can be broken with the tool in your main hand; with no tool at all, such blocks are skipped (no bare-hand mass mining).
 - **Unbreakable blocks** are always skipped. **Tools never break:** a tool with 1 use left is not used.
 - **Durability, drops, hunger:** one use per block (Unbreaking, Fortune and Silk Touch work as in vanilla), drops go straight into your inventory, 0.005 exhaustion per block like vanilla mining.
-- **Protected blocks are skipped:** spawn protection (operators excepted), world border, adventure-mode rules and, on NeoForge and Forge, protection mods that cancel the break event.
+- **Protected blocks are skipped:** spawn protection (operators excepted), world border, adventure-mode rules and, on NeoForge and Forge, protection mods that cancel the break event; on Fabric, the mod fires Fabric API's player block break events and, where installed, asks the Common Protection API too, so claim mods that use either are respected.
 - **Mining delay:** the mod adds up the vanilla mining time of every block with its tool and waits that long, at most 2 seconds by default (`maxDelayTicks` = 40). A countdown shows *"Breaking N blocks in X s"* with a progress bar. Before you click, the HUD shows the tools that will be used (with a count each), a barrier icon with the number of blocks that cannot be broken, and the estimated time (`~X s`).
 - If nothing can be broken: *"No suitable tool for the selected blocks (switch to Disable mode for vanilla mining)"*; if some are skipped: *"N Block(s) skipped: no suitable tool"*.
 
@@ -530,7 +530,7 @@ Mouse: **right-click** places / sets points, **left-click** breaks / cancels a p
 
 ## 13. Supported versions and compatibility
 
-One jar per Minecraft version and loader; the file name says both: `sophisticatedbuilding-<loader>-<minecraft>-5.0.0.jar`. Install it on the client **and** the server.
+One jar per Minecraft version and loader; the file name says both: `sophisticatedbuilding-<loader>-<minecraft>-5.0.1.jar`. Install it on the client **and** the server.
 
 | Minecraft | Fabric | NeoForge | Forge | Backpacks integration | Java |
 |---|---|---|---|---|---|
@@ -567,14 +567,13 @@ One jar per Minecraft version and loader; the file name says both: `sophisticate
 
 ### Other mods
 
-- **Protection and claim mods:** on NeoForge and Forge every block the mod places or breaks fires the normal place and break events, so claims and protection mods can refuse them (refused blocks are not charged). On Fabric there is no such standard event; spawn protection, the world border and adventure-mode rules are always respected.
+- **Protection and claim mods:** on NeoForge and Forge every block the mod places or breaks fires the normal place and break events, so claims and protection mods can refuse them (refused blocks are not charged). On Fabric, breaks fire Fabric API's player block break events, so a claim mod listening to them can refuse a break; on Minecraft 1.18 and newer, placements and breaks also ask an installed mod that provides the Common Protection API, so a claim mod that registers a provider is asked for placements too. The Common Protection API needs Java 17, so on the 1.16.x (Java 8) and 1.17.1 (Java 16) Fabric jars only the break event applies; spawn protection, the world border and adventure-mode rules are always respected everywhere.
 - **Storage blocks** (shulker boxes, Supplementaries sacks, ...) keep their contents and name when placed by a build.
 - **Items that use right-click while you hold them** (for example a wrench) are not blocked: the mod only takes over placement while you hold a block item.
 - The mod does not need Create, Flywheel or Ponder; the preview rendering is built in.
 
 ### Known issues
 
-- **Fabric:** your power level and modifier settings are only kept while the server (or your singleplayer game) runs; after a restart they start from level 0 and an empty modifier list. NeoForge and Forge save them with the player.
 - **Forge:** loading a singleplayer world directly with `--quickPlaySingleplayer` can crash with "Can not retrieve LootModifierManager until resources have loaded once" - a Forge bug that also happens without this mod.
 - **Fabric:** the unofficial Sophisticated Backpacks Fabric port logs a harmless `No data fixer registered for` error at start-up.
 

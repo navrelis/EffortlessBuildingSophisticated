@@ -8,6 +8,50 @@ version. This file summarises them; `README.md`'s support matrix lists every jar
 range, minimum loader version and Sophisticated Backpacks support. (4.3.0 was the working name of this
 release while it was built; it was never published, so everything since 4.2.1 is 5.0.0.)
 
+## 5.0.1 — bug fixes on top of 5.0.0
+
+A bug-fix release for all 48 jars of 5.0.0 (1.16.3 to 26.2, Fabric/NeoForge/Forge): nothing to migrate, worlds and
+configs of 5.0.0 load unchanged. Same file names with `5.0.1` in place of `5.0.0`; full per-branch notes are in
+each branch's `changelog/PATCH_NOTES_5.0.1.md`.
+
+### Fixes
+
+* **Server checks of build requests:** the server now checks what a client asks it to build against the player's
+  power level (start within reach, extent within the blocks-per-axis limit, every block within the build mode's
+  reach plus the player's modifiers, more blocks than may be placed at once cut to that limit). A modified client
+  could build anywhere and any amount before.
+* **Common config synced:** the server's power level limits (reach, blocks at once, blocks per axis, mirror radius)
+  are sent to the client on join, so previews and the modifier screen use the server's limits instead of the
+  client's own config file.
+* **Array limit:** the Array modifier builds at most as many copies as the blocks-per-axis limit allows (before,
+  too many copies were only shown in red in the modifier screen); stored array counts and mirror radii are capped
+  to the limits too.
+* **Offhand bag filter:** "filtered by offhand" with a Randomizer Bag in the offhand accepted every block (and air)
+  as soon as the bag held any block; it now accepts only the bag's blocks.
+* **Material cost list:** the HUD list counted a double slab, three candles or four sea pickles as one item; it now
+  counts every item of a block, as the server charges, and so does the red missing-item marking.
+* **"Activate Previous Build Mode"** now returns to the mode actually used before (also modes picked in the radial
+  menu), and "Toggle Disabled / Previous Build Mode" returns to the mode that was active before Disable.
+* **Translations:** the remaining hard-coded English (Reach Upgrade and Randomizer Bag tooltips, Omega bag screen,
+  modifier screen, build hints, radial menu power level, selection size, server messages) is translation keys now.
+  The power level hint no longer tells you to loot power items from dungeons (there are none): it names the Reach
+  Upgrades 1, 2 and 3 and `/powerlevel`. Unused texts, models and textures of items that never existed are removed.
+* **Fabric: player data kept in the world save.** The power level and the mod's per-player data (modifier settings,
+  build state) were kept in memory by UUID on every Fabric branch: lost when the server restarted and carried over
+  from one singleplayer world into the next. They are now saved with the player, like on NeoForge and Forge, and
+  follow the player on respawn.
+* **Fabric: claim and protection mods.** Blocks the mod breaks now fire Fabric API's player block break events on
+  every Fabric branch, so a claim mod listening to them can refuse a break.
+
+### Per-branch differences
+
+* **Common Protection API (optional, Fabric only):** on Fabric 1.18 and newer, placements and breaks also ask an
+  installed mod that provides the Common Protection API before going through, so a claim mod that registers a
+  provider can refuse a placement too (refused placements are not charged). The API needs Java 17, so on the
+  1.16.3, 1.16.4/1.16.5 (Java 8) and 1.17.1 (Java 16) branches only the Fabric API break event applies; placements
+  are not checked against claims on Fabric there (NeoForge and Forge already cover placements through their own
+  place event).
+
 ## 5.0.0 — every Minecraft version from 1.16.3 to 26.2
 
 Sophisticated Building now runs on every Minecraft version that has a Sophisticated Backpacks release, from
