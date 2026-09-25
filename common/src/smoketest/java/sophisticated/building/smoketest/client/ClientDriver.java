@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.MouseHandler;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -16,10 +17,13 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import org.lwjgl.glfw.GLFW;
 import sophisticated.building.platform.ClientServices;
 import sophisticated.building.smoketest.SmokeReport;
 import sophisticated.building.smoketest.SmokeTest;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
@@ -282,6 +286,87 @@ public final class ClientDriver {
 
     public BlockState serverBlock(BlockPos pos) {
         return server(server -> overworld(server).getBlockState(pos));
+    }
+
+    //endregion
+
+    //region Mouse and keyboard in screens
+
+    /**
+     * Moves the mouse pointer to GUI coordinates: what the cursor callback does when the player moves the mouse (the
+     * harness detached it, see ClientWindow). Screens see the pointer from their next frame on (hover state, tooltips).
+     */
+    public void pointAt(double guiX, double guiY) {
+        clientRun(() -> pointNow(guiX, guiY));
+    }
+
+    private void pointNow(double guiX, double guiY) {
+        com.mojang.blaze3d.platform.Window window = mc.getWindow();
+        try {
+            mouseField("xpos").setDouble(mc.mouseHandler, guiX * window.getScreenWidth() / window.getGuiScaledWidth());
+            mouseField("ypos").setDouble(mc.mouseHandler, guiY * window.getScreenHeight() / window.getGuiScaledHeight());
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * A left click at GUI coordinates: moves the pointer there, then presses and releases the button through
+     * MouseHandler, exactly what GLFW's mouse button callback does (loader screen events included).
+     */
+    public void clickAt(double guiX, double guiY) {
+        clientRun(() -> {
+            pointNow(guiX, guiY);
+            mouseButton(GLFW.GLFW_MOUSE_BUTTON_LEFT, GLFW.GLFW_PRESS);
+        });
+        clientRun(() -> mouseButton(GLFW.GLFW_MOUSE_BUTTON_LEFT, GLFW.GLFW_RELEASE));
+    }
+
+    /** Turns the mouse wheel (positive = away from the player) with the pointer at GUI coordinates, through MouseHandler. */
+    public void scrollAt(double guiX, double guiY, double amount) {
+        clientRun(() -> {
+            pointNow(guiX, guiY);
+            try {
+                mouseMethod("onScroll", long.class, double.class, double.class).invoke(mc.mouseHandler, mc.getWindow().getWindow(), 0.0, amount);
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException("MouseHandler#onScroll failed", e);
+            }
+        });
+    }
+
+    /** Presses and releases a keyboard key through KeyboardHandler, what GLFW's key callback does. */
+    public void pressKey(int glfwKey) {
+        int scanCode = GLFW.glfwGetKeyScancode(glfwKey);
+        clientRun(() -> mc.keyboardHandler.keyPress(mc.getWindow().getWindow(), glfwKey, scanCode, GLFW.GLFW_PRESS, 0));
+        clientRun(() -> mc.keyboardHandler.keyPress(mc.getWindow().getWindow(), glfwKey, scanCode, GLFW.GLFW_RELEASE, 0));
+    }
+
+    private void mouseButton(int button, int action) {
+        try {
+            mouseMethod("onPress", long.class, int.class, int.class, int.class).invoke(mc.mouseHandler, mc.getWindow().getWindow(), button, action, 0);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException("MouseHandler#onPress failed", e);
+        }
+    }
+
+    private static Field mouseField(String name) {
+        try {
+            Field field = MouseHandler.class.getDeclaredField(name);
+            field.setAccessible(true);
+            return field;
+        } catch (NoSuchFieldException e) {
+            throw new AssertionError("MouseHandler has no field " + name + " (the harness moves the pointer through it)", e);
+        }
+    }
+
+    private static Method mouseMethod(String name, Class<?>... parameters) {
+        try {
+            Method method = MouseHandler.class.getDeclaredMethod(name, parameters);
+            method.setAccessible(true);
+            return method;
+        } catch (NoSuchMethodException e) {
+            throw new AssertionError("MouseHandler has no method " + name + " (the harness clicks and scrolls through it)", e);
+        }
     }
 
     //endregion
