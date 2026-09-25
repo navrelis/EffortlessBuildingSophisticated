@@ -1,15 +1,13 @@
-# Sophisticated Building Update – 4.3.0
-
-*Draft — lead to confirm before release.*
+# Sophisticated Building Update – 5.0.0
 
 ## Artifacts
 
-* `sophisticatedbuilding-fabric-1.21.1-4.3.0.jar` — Fabric
-* `sophisticatedbuilding-neoforge-1.21.1-4.3.0.jar` — NeoForge
-* `sophisticatedbuilding-forge-1.21.1-4.3.0.jar` — Forge
-* `sophisticatedbuilding-forge-1.21-4.3.0.jar` — Forge for Minecraft 1.21
+* `sophisticatedbuilding-fabric-1.21.1-5.0.0.jar` — Fabric
+* `sophisticatedbuilding-neoforge-1.21.1-5.0.0.jar` — NeoForge
+* `sophisticatedbuilding-forge-1.21.1-5.0.0.jar` — Forge
+* `sophisticatedbuilding-forge-1.21-5.0.0.jar` — Forge for Minecraft 1.21
 
-Jar file names now include the Minecraft version (`sophisticatedbuilding-<loader>-1.21.1-4.3.0.jar`);
+Jar file names now include the Minecraft version (`sophisticatedbuilding-<loader>-1.21.1-5.0.0.jar`);
 previous releases were named `sophisticatedbuilding-<loader>-<version>.jar` without it, e.g.
 `sophisticatedbuilding-fabric-4.2.1.jar`.
 
@@ -24,7 +22,7 @@ Sophisticated Backpacks port; use Fabric API 0.108.0 or newer (its 1.21.1 builds
 ### Forge build for 1.21
 
 Forge for Minecraft 1.21 (Forge 51) lacks APIs the Forge 1.21.1 jar needs, so 1.21 has its own Forge jar,
-`sophisticatedbuilding-forge-1.21-4.3.0.jar` (Forge 51.0.33 or newer), with the same features as the 1.21.1 Forge jar
+`sophisticatedbuilding-forge-1.21-5.0.0.jar` (Forge 51.0.33 or newer), with the same features as the 1.21.1 Forge jar
 and, like it, no Sophisticated Backpacks integration (there is no Sophisticated Backpacks for Forge 1.21). The mod's
 HUD elements (material cost list, build hints, block counts) are drawn on top of the whole vanilla HUD there, since
 Forge 51 has no way to insert them between vanilla's HUD layers.

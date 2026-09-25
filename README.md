@@ -60,7 +60,7 @@ have no Sophisticated Backpacks and no `runClientExported`.
 ### Forge 1.21
 
 Forge 51, the only Forge for Minecraft 1.21, cannot load the Forge 1.21.1 jar, so `forge-1.21/` builds a second Forge
-jar (`sophisticatedbuilding-forge-1.21-4.3.0.jar`, Minecraft `[1.21]`, Forge `[51.0.33,)`). It compiles `../forge/src`
+jar (`sophisticatedbuilding-forge-1.21-5.0.0.jar`, Minecraft `[1.21]`, Forge `[51.0.33,)`). It compiles `../forge/src`
 (main and smoketest), `../forge/src/main/templates` and `../common` as they are, except the files its own `src/` has
 under the same path: a `Sync` task copies `../forge/src/<set>/<kind>` without those into
 `build/generated/sharedForge`, so every shared file is compiled once and an override replaces its original (the
