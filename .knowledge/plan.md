@@ -97,3 +97,15 @@ Agent budget: 9 of 10 spawned; round 2 uses resumed agents only.
 5.0.0 released on CurseForge (48 jars). Round 3 (5.0.1 fixes) on all 17 branches, pushed; 1.19.2/1.20.1/1.20.4 only
 build + unit tests verified. Open: finish verification, 5.0.1 release material, bump, upload (user OK), client runs
 (user go), final run, report, graphify.
+
+## Session 2026-09-26: release 5.0.1
+| ID | Task | Model | Depends | Status |
+|---|---|---|---|---|
+| V3 | mc/1.19.2, 1.20.1, 1.20.4: runGametest, runServer (SB), runSmokeServer + NoSb, Fabric no-SB bytecode check (0 diffs) | lead (runs) | - | done (1.19.2 10 pass, 1.20.1 7, 1.20.4 9; 0 fail; bytecode 0 diffs) |
+| M1 | bump-version.ps1 keeps an existing PATCH_NOTES_<new>.md (no rename; 5.0.0 notes stay), -WhatIf + detached-worktree test | Sonnet | - | done (5b477f6) |
+| M2 | Release texts on main: CHANGELOG.md 5.0.1, release/curseforge-changelog-5.0.1.md, description section 13 "Known issues"; PATCH_NOTES_5.0.1.md on mc/1.21.1 (missing there) | Sonnet | - | done (cace3e5, mc/1.21.1 f788358) |
+| M3 | check-fabric-no-sb-bytecode.ps1: Common Protection API on the classpath (uncommitted from last session) - proven by V3 | lead | V3 | done (bebf6ce; 0 diffs on 1.19.2/1.20.1/1.20.4) |
+| B6 | Bump all 17 branches to 5.0.1, check 48 jars, commit per branch, push | lead (runs script) | V3, M1, M2 | done (17 branches, 48 jars 5.0.1, pushed) |
+| C6 | CurseForge dry run, user OK, upload, tag v5.0.1 | lead | B6 | dry run done (48 files, = 5.0.0 plan); waiting for user OK |
+| K1 | Client smoke runs on every branch (only after "Clients erlaubt") | lead | B6 | blocked (user go) |
+| Z6 | test-all-versions final, report, graphify, memory, push | lead | B6 | open |

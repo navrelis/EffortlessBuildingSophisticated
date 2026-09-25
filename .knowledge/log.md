@@ -146,3 +146,16 @@
 - R3-PORT 1.21.10 2debd9b, 1.21.11 c0e650c, 26.1.2 88c2113 (+neoforge-26.1 on both betas), 26.2 eaefb29 (h5c) pushed: 117/103/103, 39 gametests, smoke all pass with/without SB.
 - R3-PORT 1.18.2 d47f3c1, 1.18.1 86b86de, 1.17.1 aa8f11f (h5e) pushed; 1.17.1 no Common Protection API (Java 16).
 - Session stopped by the user; agents h5d (1.19.2/1.20.1/1.20.4 round 3, committed) and h5c (R6 release material, nothing committed) stopped. Lead verified build + unit tests on the 3 branches and pushed. Handoff written.
+- 2026-09-26 V3 started (lead): test-all-versions gametest,server,smoke(+NoSb) on 1.19.2/1.20.1/1.20.4
+- 2026-09-26 M1 bump-version existing notes -> Sonnet, running
+- 2026-09-26 M2 5.0.1 release texts + 1.21.1 PATCH_NOTES_5.0.1 -> Sonnet, running
+- 2026-09-26 M1 review (lead): accepted, WhatIf 17 branches + detached-worktree test; committed 5b477f6
+- 2026-09-26 M3 (lead): bytecode check 0 diffs on 1.19.2/1.20.1/1.20.4 (352/350/349 classes); committed bebf6ce
+- 2026-09-26 V3 fabric (lead): gametest 38/38 each (1.20.4 +1 Porting Lib test), server SB ok, smoke 12/12 (6 sb.*), NoSb 6/6
+- 2026-09-26 M2 review (lead): 1 correction (CPA reason = Java 17 only; internal 1.21.1 bullet removed), accepted; main cace3e5, mc/1.21.1 f788358
+- 2026-09-26 V3 1.20.1 (lead): 7 pass / 0 fail (fabric+forge incl. NoSb)
+- 2026-09-26 B6 started (lead): bump 5.0.1 on 1.16.3,1.16.5,1.17.1,1.18.1,1.18.2,1.19.4,1.20.1,1.21.1
+- 2026-09-26 V3 done (lead): 1.19.2 10 pass, 1.20.1 7 pass, 1.20.4 9 pass, 0 fail (gametest 38, server SB, smoke 12/12 + NoSb 6/6 per SB loader); docs checked
+- 2026-09-26 B6 batch 1 (lead): 8 branches bumped, 20 jars checked (5.0.1, 335-363 classes, no test classes, no nested jars), committed + pushed
+- 2026-09-26 B6 batch 2 (lead): 9 branches bumped; all 48 jars 5.0.1 (332-364 classes, no test classes, no nested jars); committed + pushed
+- 2026-09-26 C6 dry run (lead): 48 files, ids resolved, slugs ok, changelog 2751 chars; metadata identical to the 5.0.0 plan; waiting for the user's OK
