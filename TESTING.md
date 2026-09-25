@@ -289,7 +289,7 @@ Running Forge 51.0.33 in dev needs `jopt-simple` forced to 5.0.4 (its `bootstrap
 
 ### Forge 1.21 (`forge-1.21/`)
 
-`forge-1.21/` builds `sophisticatedbuilding-forge-1.21-5.0.0.jar` (Minecraft `[1.21]`, Forge `[51.0.33,)`) from
+`forge-1.21/` builds `sophisticatedbuilding-forge-1.21-5.0.1.jar` (Minecraft `[1.21]`, Forge `[51.0.33,)`) from
 `../forge` with the classes Forge 51 cannot run replaced (README.md, "Forge 1.21"). Its smoke runs use the same
 scenarios and check names as `forge/` (no `sb.*`: no Sophisticated Backpacks for Forge 1.21):
 
