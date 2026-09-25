@@ -86,13 +86,11 @@ public class BlockPreviews {
 
 	public void drawLookAtPreview(Player player) {
 		var blocks = SophisticatedBuildingClient.BUILDER_CHAIN.getBlocks();
-		if (blocks.size() == 0) return;
-		
-		if (SophisticatedBuildingClient.BUILD_MODES.getBuildMode() == BuildModeEnum.DISABLED &&
-			blocks.size() == 1) return;
-		if (SophisticatedBuildingClient.BUILDER_CHAIN.getBuildingState() == BuilderChain.BuildingState.IDLE &&
-			ClientConfig.visuals.onlyShowBlockPreviewsWhenBuilding.get() &&
-			blocks.size() == 1) return;
+		if (!PreviewRules.showsLookAtPreview(blocks.size(),
+				SophisticatedBuildingClient.BUILD_MODES.getBuildMode() == BuildModeEnum.DISABLED,
+				SophisticatedBuildingClient.BUILD_SETTINGS.isQuickReplacing(),
+				SophisticatedBuildingClient.BUILDER_CHAIN.getBuildingState() == BuilderChain.BuildingState.IDLE,
+				ClientConfig.visuals.onlyShowBlockPreviewsWhenBuilding.get())) return;
 
 		// Performance optimization: skip getCoordinates() call if we're over the limit
 		// getCoordinates() creates a new HashSet which is expensive for large block sets

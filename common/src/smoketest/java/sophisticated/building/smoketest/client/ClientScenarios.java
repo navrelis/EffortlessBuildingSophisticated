@@ -31,6 +31,7 @@ import sophisticated.building.buildmodifier.Mirror;
 import sophisticated.building.client.ClientBackpackItemCache;
 import sophisticated.building.client.ClientBackpackToolCache;
 import sophisticated.building.client.ClientBuildingUpgradeState;
+import sophisticated.building.create.catnip.outliner.Outliner;
 import sophisticated.building.gui.buildmode.RadialMenu;
 import sophisticated.building.gui.buildmodifier.ModifiersScreen;
 import sophisticated.building.platform.Services;
@@ -39,6 +40,7 @@ import sophisticated.building.smoketest.SmokeReport;
 import sophisticated.building.smoketest.SmokeTest;
 import sophisticated.building.smoketest.backpack.SmokeAccessorySlots;
 import sophisticated.building.smoketest.backpack.SmokeBackpacks;
+import sophisticated.building.systems.BuildSettings;
 import sophisticated.building.systems.BuilderChain;
 import sophisticated.building.utilities.BlockEntry;
 
@@ -97,6 +99,7 @@ final class ClientScenarios {
         check("client.place_line", this::placeLine);
         check("client.break_line", this::breakLine);
         check("client.mirror_modifier", this::mirrorModifier);
+        check("client.disable_quick_replace_preview", this::disableQuickReplacePreview);
         check("client.place_line_survival", this::placeLineSurvival);
         check("client.undo_redo", this::undoRedo);
         check("client.randomizer_bag_screens", gui::randomizerBagScreens);
@@ -383,6 +386,59 @@ final class ClientScenarios {
                 SophisticatedBuildingClient.BUILD_MODIFIERS.save();
             });
         }
+    }
+
+    /**
+     * Disable mode on one block: without Quick Replace vanilla places it (no preview of the mod), with Quick Replace the
+     * mod replaces the block looked at and shows it (ghost block and outline) like the other modes.
+     */
+    private String disableQuickReplacePreview() {
+        BlockPos target = lane(9);
+        giveHotbar(new ItemStack(Items.OAK_PLANKS, 64));
+        placeDirectly(List.of(target), Blocks.STONE);
+        radial.select(BuildModeEnum.DISABLED);
+        try {
+            d.teleport(new Vec3(target.getX() + 0.5, groundY, target.getZ() + 3.5));
+            Vec3 aim = Vec3.atCenterOf(target).add(0, 0.5, 0);
+            d.lookAt(aim);
+
+            // Plain Disable mode: vanilla's click, no outline of the mod (an earlier "single" outline has faded by now)
+            d.clientRun(() -> SophisticatedBuildingClient.BUILD_SETTINGS.setReplaceMode(BuildSettings.ReplaceMode.ONLY_AIR));
+            for (int i = 0; i < 20; i++) {
+                d.aimNow(aim);
+                d.waitTicks(1);
+            }
+            if (d.client(() -> liveOutline(SINGLE_OUTLINE))) {
+                throw new AssertionError("Plain Disable mode shows the mod's single block outline; " + d.client(this::chainState));
+            }
+            d.screenshot("disable_plain");
+
+            d.clientRun(() -> SophisticatedBuildingClient.BUILD_SETTINGS.setReplaceMode(BuildSettings.ReplaceMode.BLOCKS_AND_AIR));
+            try {
+                d.waitUntil("the Quick Replace preview of the stone block looked at", 40, () -> {
+                    d.aimNow(aim);
+                    var blocks = SophisticatedBuildingClient.BUILDER_CHAIN.getBlocks();
+                    return blocks.size() == 1 && target.equals(blocks.firstPos) && liveOutline(SINGLE_OUTLINE);
+                });
+            } catch (AssertionError timeout) {
+                throw new AssertionError(timeout.getMessage() + "; " + d.client(this::chainState));
+            }
+            d.screenshot("disable_quick_replace_preview");
+            return "Disable mode on " + target.toShortString() + ": no outline of the mod without Quick Replace, with Quick Replace "
+                    + "the replaced block's preview and outline are shown";
+        } finally {
+            d.clientRun(() -> SophisticatedBuildingClient.BUILD_SETTINGS.setReplaceMode(BuildSettings.ReplaceMode.ONLY_AIR));
+            radial.select(BuildModeEnum.LINE);
+        }
+    }
+
+    /** The id BlockPreviews gives the outline of a one-block preview. */
+    private static final String SINGLE_OUTLINE = "single";
+
+    /** Client thread: the outline is shown this tick (not fading out). */
+    private static boolean liveOutline(Object id) {
+        var entry = Outliner.getInstance().getOutlines().get(id);
+        return entry != null && !entry.isFading();
     }
 
     //endregion
