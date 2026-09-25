@@ -15,7 +15,7 @@ gradle/shared.properties   mod id, name, version, license, authors, description,
 common/                    loader-neutral code and assets, no build of its own
   src/main/java              mod logic; loader APIs only through sophisticated.building.platform.Services
   src/main/resources         assets (item model definitions in assets/<modid>/items), data (recipes carry Fabric,
-                             NeoForge and Forge load conditions), mixin config (GuiGraphics accessor), GUI stencil shader
+                             NeoForge and Forge load conditions), mixin config (GuiGraphicsExtractor accessor), GUI stencil shader
   src/test/java              unit tests, run by every loader build
   src/smoketest              in-game smoke test harness (dev only, see TESTING.md)
   src/smoketestBackpacks     Sophisticated Backpacks fixture of the harness (NeoForge only)
@@ -125,11 +125,44 @@ Curios 16.0.0+26.2 (NeoForge, compile only and in the smoke runtime).
   - NeoForge and Forge: `VertexConsumer#putBulkData` has no `readExistingColor` flag any more (quads have no
     per-vertex colour array; NeoForge multiplies the quad's baked colours in itself). Forge 61: `KeyMapping`
     constructors take a sort order (0, as vanilla's default).
-* **Minecraft 26.1 (from `mc/26.1.2`):** unobfuscated, Java 25 (Loom's non-remapping `fabric-loom` plugin, no
-  Parchment); `GuiGraphics` is `GuiGraphicsExtractor` and screens and widgets override the `extract*` methods;
-  block models are in `client.renderer.block.dispatch` (`BlockStateModelPart`) and the ghost blocks write their quads
-  with `VertexConsumer#putBakedQuad(pose, quad, QuadInstance)`; pipelines have a `ColorTargetState` and an optional
-  `DepthStencilState`; NeoForge's block break event is `BreakBlockEvent`.
+* **Minecraft 26.1 (26.1.2):**
+  - Unobfuscated game, Java 25: no mappings in any build; Fabric uses the non-remapping Loom plugin (`fabric-loom`,
+    plain `implementation` dependencies, the mod jar comes from `jar`).
+  - `GuiGraphics` is `GuiGraphicsExtractor`: screens and widgets fill it in `extractRenderState` /
+    `extractWidgetRenderState` / `extractContents` (buttons) / `extractContent` (list entries) / `extractLabels` /
+    `extractBackground` instead of `render*`; its draw methods are `text`, `centeredText`, `item`, `itemDecorations`,
+    `outline`, `tooltip` (were `drawString`, `drawCenteredString`, `renderItem`, `renderItemDecorations`,
+    `renderOutline`, `renderTooltip`). The GUI render state moved to `client.renderer.state.gui` and takes elements with
+    `addGuiElement`; the accessor mixin `GuiGraphicsAccessor` now targets `GuiGraphicsExtractor`. The mod's own element
+    and icon classes keep their `render` methods.
+  - Container screens: the image size is final and passed to the constructor (`super(menu, inventory, title, 176,
+    134)`), `renderBg` is gone (the randomizer bags draw their background and missing-item overlay in
+    `extractBackground` after `super`), and vanilla draws the hovered-slot tooltip itself (the bags' own call is gone).
+  - Block models: no `BlockRenderDispatcher`/static `ModelBlockRenderer.renderModel`; the ghost blocks take the model
+    from `ModelManager#getBlockStateModelSet()`, `BlockStateModel`/`BlockStateModelPart` live in
+    `client.renderer.block.dispatch`, `BakedQuad` is a record in `client.resources.model.geometry`, and the quads are
+    written with `VertexConsumer#putBakedQuad(pose, quad, QuadInstance)` (colour, light and overlay in the
+    `QuadInstance`; NeoForge multiplies the baked quad colours in itself). `IClientHelper#putQuad` is gone (the same
+    call on every loader, now in `GhostBlockRenderer`); `collectModelParts` fills a list (`collectParts(random, list)`,
+    NeoForge with `BlockAndTintGetter.EMPTY`, Forge with `ModelData.EMPTY`).
+  - Render pipelines: depth test and depth writes are one optional `DepthStencilState` (the mirror/array lines and
+    planes have none: no depth test, no depth writes, as before), blending is a `ColorTargetState`.
+    `LightTexture.FULL_BRIGHT` is `LightCoordsUtil.FULL_BRIGHT`, `LevelRenderer#getLightCoords`. The vendored Catnip
+    render buffer mirrors vanilla's new fixed buffers (item and block-item sheets; the chest, sign, bed, shield and
+    shulker sheets are gone).
+  - `Player#displayClientMessage(msg, actionBar)` is `sendOverlayMessage` / `sendSystemMessage`; `Level#random` is
+    protected (`getRandom()`); `ClickType` is `ContainerInput`.
+* Fabric API 0.155 uses Mojang's names: `KeyMappingHelper`, `ClientLevelEvents.AFTER_CLIENT_LEVEL_CHANGE`,
+  `LevelRenderEvents.END_MAIN` (`context.poseStack()`), `ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL`,
+  `ServerTickEvents.END_LEVEL_TICK`, `PayloadTypeRegistry.serverboundPlay()`/`clientboundPlay()`.
+* NeoForge 26.1.2: `BlockEvent.BreakEvent` is `event.level.block.BreakBlockEvent` (same use: cancelling it denies the
+  break); the particles are drawn in two passes, the outlines follow the second one
+  (`RenderLevelStageEvent.AfterTranslucentParticles`, was `AfterParticles`).
+* Forge 64: `ModList` is static (`ModList.isLoaded`). The frame pass binds its target in the two-argument
+  `PassDefinition#extracts(bundle, pass)`: Forge 62/63 have only that one (abstract), Forge 64 added a `DeltaTracker`
+  overload that calls it; overriding the new overload failed on Forge 62 with an `AbstractMethodError` (found by the
+  26.1 client run). `pack.mcmeta` declares the Forge 64 MDK's range, `min_format` `[101, 1]` .. `max_format` 101
+  (26.1 to 26.1.2 data packs are 101.1).
 * **Minecraft 26.2:**
   - `MultiBufferSource` and `Tesselator` are gone: nothing is drawn immediately during the level render any more,
     geometry is submitted to the level's `SubmitNodeCollector` while the frame is collected and drawn by the game in
@@ -157,13 +190,15 @@ Curios 16.0.0+26.2 (NeoForge, compile only and in the smoke runtime).
     `LightCoordsUtil.getLightCoords(level, pos)` (was `LevelRenderer#getLightCoords`).
   - Removed the unused world-space icon renderers `AllIcons#render(PoseStack, MultiBufferSource, int)` (both icon
     sets).
+  - Forge 65: `pack.mcmeta` declares the Forge 65 MDK's range, `min_format` `[107, 1]` .. `max_format` 107 (26.2 data
+    packs are 107.1).
 * Fabric: no Sophisticated Backpacks integration (the Building Upgrades are placeholder items, their recipes are not
   loaded). The HUD is registered with `HudElementRegistry.addLast` (Fabric API for 1.21.6+ deprecates
   `HudRenderCallback`). Until 26.1.2 the previews, lines and outlines were drawn at `END_MAIN` (end of the main pass);
   on 26.2 they are submitted at `LevelRenderEvents.COLLECT_SUBMITS` (see above).
 * NeoForge: Sophisticated Backpacks 3.26 (`UpgradeItemBase` takes the item properties). NeoForge 21.8: the power level
   attachment serializer writes a `ValueOutput` (same `powerLevel` key, existing player data keeps loading); one
-  `RenderLevelStageEvent` subclass per stage (`AfterTranslucentBlocks`, `AfterParticles`); client packets go through
+  `RenderLevelStageEvent` subclass per stage (`AfterTranslucentBlocks`, `AfterParticles`; 26.1.2: see above); client packets go through
   `ClientPacketDistributor`; bidirectional payloads register both handlers with `playBidirectional`.
   NeoForge 21.10 replaced the item handler capabilities with the transfer API: the randomizer bags expose their
   container component as `Capabilities.Item.ITEM` (`ItemAccessItemHandler`, was `ComponentItemHandler`), and the mod
@@ -188,7 +223,8 @@ Curios 16.0.0+26.2 (NeoForge, compile only and in the smoke runtime).
 ## Build and test
 
 Each loader folder has its own Gradle wrapper (Fabric: Gradle 9.8.0, NeoForge: Gradle 9.2.1, Forge: Gradle 9.5.0).
-Java 25; run Gradle with a JDK 25 `JAVA_HOME` (Loom 1.18 and ModDevGradle refuse an older Gradle JVM for 26.x).
+Java 25, and Gradle itself must run on a JDK 25 (`JAVA_HOME`): Loom 1.18 and ModDevGradle for 26.x refuse to configure
+on an older JVM (CI: `ci_gradle_jdk=25` in every loader's `gradle.properties`).
 
 ```
 cd fabric   && ./gradlew build          # jar in fabric/build/libs, runs common + Fabric unit tests
