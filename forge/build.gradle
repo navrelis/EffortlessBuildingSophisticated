@@ -129,6 +129,52 @@ loom {
     }
 }
 
+// Dev runtime fix for the clients (runClient, runSmokeClient; not the mod jar): Forge 36.2 moves vanilla's
+// Transformation#compose/inverse into IForgeTransformationMatrix (default methods; the class keeps private
+// composeVanilla/inverseVanilla). Architectury Loom renames the interface's methods to compose/inverse but leaves the two
+// calls in vanilla's BlockMath under their SRG names (func_227985_a_ / func_227987_b_), so every dev client crashes while
+// baking models ("NoSuchMethodError: Transformation.func_227987_b_"). A real Forge runtime is not affected (SRG names
+// on both sides). The client runs therefore get a copy of Loom's named Minecraft jar in which BlockMath calls
+// compose/inverse; FML takes the first jar on the classpath that contains Minecraft.
+def devMinecraftFixDir = layout.buildDirectory.dir('devfix').get().asFile
+def fixDevMinecraft = tasks.register('fixDevMinecraft') {
+    def runtime = sourceSets.main.runtimeClasspath
+    def namedJarPrefix = "forge-${minecraft_version}-${forge_version}-minecraft-merged-${minecraft_version}-"
+    inputs.files(runtime.filter { it.name.startsWith(namedJarPrefix) }).withPropertyName('minecraft')
+    outputs.dir devMinecraftFixDir
+    doLast {
+        File original = runtime.files.find { it.name.startsWith(namedJarPrefix) }
+        if (original == null) {
+            throw new GradleException("Named Minecraft jar (${namedJarPrefix}*) not on the runtime classpath")
+        }
+        def remapper = new org.objectweb.asm.commons.SimpleRemapper([
+                'com/mojang/math/Transformation.func_227985_a_(Lcom/mojang/math/Transformation;)Lcom/mojang/math/Transformation;': 'compose',
+                'com/mojang/math/Transformation.func_227987_b_()Lcom/mojang/math/Transformation;'                                 : 'inverse'
+        ])
+        devMinecraftFixDir.deleteDir()
+        devMinecraftFixDir.mkdirs()
+        new java.util.zip.ZipInputStream(new FileInputStream(original)).withCloseable { input ->
+            new java.util.zip.ZipOutputStream(new FileOutputStream(new File(devMinecraftFixDir, 'minecraft-named-fixed.jar'))).withCloseable { output ->
+                for (def entry = input.nextEntry; entry != null; entry = input.nextEntry) {
+                    byte[] bytes = input.readAllBytes()
+                    if (entry.name == 'net/minecraft/core/BlockMath.class') {
+                        def writer = new org.objectweb.asm.ClassWriter(0)
+                        new org.objectweb.asm.ClassReader(bytes).accept(new org.objectweb.asm.commons.ClassRemapper(writer, remapper), 0)
+                        bytes = writer.toByteArray()
+                    }
+                    output.putNextEntry(new java.util.zip.ZipEntry(entry.name))
+                    output.write(bytes)
+                    output.closeEntry()
+                }
+            }
+        }
+    }
+}
+tasks.matching { it.name in ['runClient', 'runSmokeClient'] }.configureEach { JavaExec run ->
+    run.dependsOn fixDevMinecraft
+    run.classpath = files(new File(devMinecraftFixDir, 'minecraft-named-fixed.jar')) + run.classpath
+}
+
 // The smoke runs pass or fail on the result file they write (shared logic in ../gradle/smoketest.gradle)
 tasks.named('runSmokeClient') { verifySmokeRun(it, smoketestOutDir('client')) }
 tasks.named('runSmokeServer') { verifySmokeRun(it, smoketestOutDir('server')) }

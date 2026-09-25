@@ -119,7 +119,7 @@ public final class ServerTestRunner {
         } catch (ServerTestAssertException e) {
             lastWait = e;
         } catch (Throwable e) {
-            finish(false, describe(e));
+            failWith(e);
             return;
         }
         if (helper.hasSucceeded()) {
@@ -156,7 +156,7 @@ public final class ServerTestRunner {
             finish(false, e.getMessage());
             return;
         } catch (Throwable e) {
-            finish(false, describe(e));
+            failWith(e);
             return;
         }
         if (helper.hasSucceeded()) {
@@ -195,6 +195,12 @@ public final class ServerTestRunner {
         for (Entity entity : level.getEntities((Entity) null, box, entity -> !(entity instanceof Player))) {
             entity.remove();
         }
+    }
+
+    /** An unexpected exception (not an assertion) fails the test; its stack trace goes to the log. */
+    private void failWith(Throwable error) {
+        LOGGER.error("{} threw", current.name(), error);
+        finish(false, describe(error));
     }
 
     private static String describe(Throwable error) {
