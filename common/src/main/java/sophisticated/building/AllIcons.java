@@ -94,7 +94,8 @@ public class AllIcons implements ScreenElement {
     I_TERRAIN_SLOPE = next(),
     I_TERRAIN_FLAT = next(),
     I_TERRAIN_MOUNTAIN = next(),
-    I_TERRAIN_WALL = next();
+    I_TERRAIN_WALL = next(),
+    I_PLAYER_SETTINGS = next();
     
     
     public AllIcons(int x, int y) {

@@ -32,8 +32,14 @@ public class RandomizerBagScreen extends AbstractContainerScreen<RandomizerBagCo
 	}
 
 	@Override
+	public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		super.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
+		BagTitle.renderTooltip(guiGraphics, this.font, this.title, leftPos, topPos, imageWidth, mouseX, mouseY);
+	}
+
+	@Override
 	protected void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
-		guiGraphics.text(this.font, this.title, 8, 6, 0xFF404040, false);
+		BagTitle.draw(guiGraphics, this.font, this.title, imageWidth, 0xFF404040);
 		guiGraphics.text(this.font, this.playerInventoryTitle, 8, imageHeight - 96 + 2, 0xFF404040, false);
 	}
 
