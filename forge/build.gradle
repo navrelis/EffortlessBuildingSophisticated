@@ -98,6 +98,8 @@ legacyForge {
             gameDirectory = file('build/smoketest/client-run')
             systemProperty 'sophisticatedbuilding.smoketest.mode', 'client'
             systemProperty 'sophisticatedbuilding.smoketest.out', smoketestOutDir('client').absolutePath
+            // Harness mixin (SmokeWindowMixin): the window is created without taking the focus
+            programArgument '--mixin.config=sophisticatedbuilding_smoketest.mixins.json'
         }
         // Headless: the game test server runs the server scenarios (fake survival players, real backpacks) and writes
         // the same JSON. gradlew runSmokeServer -PsmoketestOut=<dir>
@@ -134,7 +136,10 @@ legacyForge {
 }
 
 // The smoke runs pass or fail on the result file they write (shared logic in ../gradle/smoketest.gradle)
-tasks.named('runSmokeClient') { verifySmokeRun(it, smoketestOutDir('client')) }
+tasks.named('runSmokeClient') {
+    verifySmokeRun(it, smoketestOutDir('client'))
+    disableEarlyWindow(it, file('build/smoketest/client-run'), 'splashscreen')
+}
 tasks.named('runSmokeServer') { verifySmokeRun(it, smoketestOutDir('server')) }
 // Forge's game test server (1.19.4 as 1.20.1) creates its world from server.properties (default: normal terrain), so
 // the test structures at y -60 sat in caves and gravel could fall into them. Every run starts on a fresh superflat

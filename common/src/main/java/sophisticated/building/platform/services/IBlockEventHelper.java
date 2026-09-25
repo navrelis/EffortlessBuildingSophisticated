@@ -28,8 +28,8 @@ public interface IBlockEventHelper {
      * block snapshots and fires the (multi) place event, reverting the placement when it is cancelled;
      * Fabric just runs the placement.
      *
-     * @return NeoForge: false if a listener cancelled the placement; Fabric: whether the block state
-     * at {@code pos} changed
+     * @return false if a listener cancelled the placement (always true on Fabric, which has no such event); whether
+     * the placement set a block at all is reported by the placement itself
      */
     boolean placeBlock(Player player, Level level, BlockPos pos, Runnable placement);
 

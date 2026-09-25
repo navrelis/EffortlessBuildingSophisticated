@@ -111,11 +111,31 @@ Each loader folder has its own Gradle wrapper (Fabric: Gradle 9.5.1, Forge: Grad
 mod is compiled for and run on Java 17 (toolchain, downloaded by the Foojay resolver if missing).
 
 ```
-cd fabric && ./gradlew build          # jar in fabric/build/libs, runs common + Fabric unit tests (77)
-cd fabric && ./gradlew runGametest    # in-world GameTests (17, not part of build)
-cd forge  && ./gradlew build          # reobfuscated jar in forge/build/libs, runs the common unit tests (65)
+cd fabric && ./gradlew build          # jar in fabric/build/libs, runs common + Fabric unit tests (104)
+cd fabric && ./gradlew runGametest    # in-world GameTests (24, not part of build)
+cd forge  && ./gradlew build          # reobfuscated jar in forge/build/libs, runs the common unit tests (90)
 ./build-all.ps1                       # both, stops at the first failure
 ```
+
+## Player settings (client config)
+
+The Player Settings screen (`gui/buildmode/PlayerSettingsGui`) edits the client config (`ClientConfig`: Visuals and
+Performance). It opens from the radial menu (button above Modifier Settings, action `OPEN_PLAYER_SETTINGS`) and with
+the key "Open Player Settings" (unbound by default, category Sophisticated Building; `ClientEvents.PLAYER_SETTINGS_KEY`).
+Switches are ON/OFF buttons, numbers are sliders over the config ranges (`gui/SliderValues`); changes apply at once,
+"Reset to Defaults" restores them, Done/Escape/the key write the loader's file through `IConfigHelper#save`
+(`config/sophisticatedbuilding-client.json` on Fabric, `config/sophisticatedbuilding-client.toml` on Forge). The radial
+menu's Mini Block Preview toggle writes the same `showMiniBlockPreview` setting. The mini block previews are the small
+ghosts of the new block (`previewScale`) that `BlockPreviews.renderBlockPreviews` draws inside the outline;
+`maxMiniBlockPreviews` caps how many (0 = no limit). On 1.19.4 the screen draws the dimmed world itself and its list
+draws a translucent dark background instead of the vanilla dirt (as the modifier settings list).
+
+## Survival charging and undo (server)
+
+`ServerBlockPlacer` charges the item count of every placed state (`ReplaceRules.restoreCost`: a merge costs one item,
+three candles onto air three), and only for blocks really set (`BlockHelper.placeSchematicBlock` reports it, Forge's
+place event can refuse it; Fabric has none). Undo of a merge (`ReplaceRules.Action.UNMERGE`) puts the old state back
+without mining and gives the merged item back; undo/redo of a block already in the target state counts as done.
 
 ## In-game smoke tests
 

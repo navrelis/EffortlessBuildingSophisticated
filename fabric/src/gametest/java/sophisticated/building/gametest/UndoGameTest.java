@@ -68,6 +68,31 @@ public class UndoGameTest implements FabricGameTest {
                 .thenSucceed();
     }
 
+    //A placed block that is gone by the time of the undo (someone mined it) is already undone: the rest of the set is
+    //undone and the set leaves the undo stack, instead of staying on top of it and failing on every later undo
+    @GameTest(template = EMPTY_STRUCTURE)
+    public void undoOfAnAlreadyRemovedBlockIsDone(GameTestHelper helper) {
+        ServerPlayer player = spawnPlayer(helper, GameType.CREATIVE);
+        try (var config = ConfigScope.baseline()) {
+            BlockPos relA = new BlockPos(2, 1, 3);
+            BlockPos relB = new BlockPos(4, 1, 3);
+            var undo = SophisticatedBuilding.UNDO_REDO;
+            SophisticatedBuilding.SERVER_BLOCK_PLACER.applyBlockSet(player, set(
+                    place(helper.absolutePos(relA), Blocks.STONE.defaultBlockState()),
+                    place(helper.absolutePos(relB), Blocks.STONE.defaultBlockState())));
+            helper.assertBlockPresent(Blocks.STONE, relA);
+            helper.setBlock(relA, Blocks.AIR);
+
+            helper.assertTrue(undo.undo(player), "undo() should find the set");
+            helper.assertBlockPresent(Blocks.AIR, relB);
+            FixedStack<BlockSet> stack = undo.undoStacks.get(player.getUUID());
+            helper.assertTrue(stack.isEmpty(), "The undone set should have left the undo stack");
+        } finally {
+            removePlayer(player);
+        }
+        helper.succeed();
+    }
+
     private static void removeOneSlab(ServerPlayer player) {
         var inventory = player.getInventory();
         for (int i = 0; i < inventory.getContainerSize(); i++) {

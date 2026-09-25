@@ -27,4 +27,14 @@ public final class ForgeSmokeServerTests {
     public static void server_undo_redo(GameTestHelper helper) {
         ServerScenarios.server_undo_redo(helper);
     }
+
+    @GameTest(template = "smoketest_empty", batch = "smoke_merge", timeoutTicks = ServerScenarios.TIMEOUT_TICKS)
+    public static void server_merge_undo_refund(GameTestHelper helper) {
+        ServerScenarios.server_merge_undo_refund(helper);
+    }
+
+    @GameTest(template = "smoketest_empty", batch = "smoke_refused", timeoutTicks = ServerScenarios.TIMEOUT_TICKS)
+    public static void server_refused_place_not_charged(GameTestHelper helper) {
+        ServerScenarios.server_refused_place_not_charged(helper);
+    }
 }

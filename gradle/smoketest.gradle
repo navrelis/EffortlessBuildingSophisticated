@@ -56,3 +56,18 @@ ext.verifySmokeRun = { Task task, File outDir ->
         }
     }
 }
+
+// Forge smoke client: FML's early loading window (Forge 45: the splash screen of EarlyProgressVisualization) is created
+// before any mod code and takes the focus from the user. With splashscreen = false in <game dir>/config/fml.toml
+// (earlyWindowControl on the newer FML) the game creates its window itself, through the Window constructor, where the
+// harness mixin (SmokeWindowMixin) sets GLFW's no-focus hints. Written before every smoke client launch; other
+// settings in the file are kept.
+ext.disableEarlyWindow = { Task task, File gameDir, String key = 'earlyWindowControl' ->
+    task.doFirst {
+        File fmlToml = new File(gameDir, 'config/fml.toml')
+        fmlToml.parentFile.mkdirs()
+        List<String> lines = fmlToml.file ? fmlToml.readLines('UTF-8').findAll { !(it.trim() ==~ /${key}\s*=.*/) } : []
+        lines.add("${key} = false".toString())
+        fmlToml.setText(lines.join('\n') + '\n', 'UTF-8')
+    }
+}
