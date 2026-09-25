@@ -9,10 +9,13 @@
          overrides it.
       2. changelog/PATCH_NOTES_<old>.md -> changelog/PATCH_NOTES_<Version>.md (`git mv`); the old version in it
          becomes the new one (header "Sophisticated Building Update - <Version> (Minecraft <mc>)", jar names), and the
-         "*Draft - lead to confirm before release.*" line is removed.
+         "*Draft - lead to confirm before release.*" line is removed. If PATCH_NOTES_<Version>.md already exists
+         (e.g. hand-written ahead of the bump), it's left as-is except the draft line is still stripped, and
+         PATCH_NOTES_<old>.md is left untouched as history (no rename, no rewrite).
       3. README.md and TESTING.md: the old version becomes the new one (jar names), except on lines that record a
-         test run of a specific old jar (a line naming a SHA-256 or an abbreviated hash "1234abcd..."): those stay as
-         history and are listed.
+         test run of a specific old jar (a line naming a SHA-256 or an abbreviated hash "1234abcd..."), or that name
+         PATCH_NOTES_<old>.md while that file was kept rather than renamed (see 2): those stay as history and are
+         listed.
       4. Unless -NoBuild: builds every loader folder (`gradlew build --no-daemon`, JAVA_HOME = the JDK its
          gradle.properties names in ci_gradle_jdk, resolved as in scripts/test-all-versions.ps1), then runs the
          branch's `release.ps1 -NoBuild`, which checks the version inside each jar, replaces the old jar in
@@ -89,8 +92,19 @@ foreach ($wt in $worktrees) {
         # 2. patch notes
         $oldNotes = Join-Path $dir "changelog/PATCH_NOTES_$old.md"
         $newNotes = Join-Path $dir "changelog/PATCH_NOTES_$Version.md"
-        if (Test-Path -LiteralPath $oldNotes) {
-            if (Test-Path -LiteralPath $newNotes) { throw "$($wt.Name): both PATCH_NOTES_$old.md and PATCH_NOTES_$Version.md exist" }
+        $patchNotesRenamed = $false
+        if (Test-Path -LiteralPath $newNotes) {
+            # Notes for the new version already exist (e.g. hand-written bug-fix notes drafted ahead of the bump):
+            # leave them as-is except stripping the draft marker, and leave the old notes untouched as history.
+            $text = Read-Text $newNotes
+            $draftRemoved = [bool]([regex]::Match($text, '(?m)^\*Draft\b[^\n]*\*\r?\n(\r?\n)?')).Success
+            $new = [regex]::Replace($text, '(?m)^\*Draft\b[^\n]*\*\r?\n(\r?\n)?', '')
+            $historyNote = if (Test-Path -LiteralPath $oldNotes) { ", PATCH_NOTES_$old.md kept as history" } else { '' }
+            $draftNote = if ($draftRemoved) { ' (draft line removed)' } else { '' }
+            $changes += "changelog/PATCH_NOTES_$Version.md exists: kept$historyNote$draftNote"
+            if ($draftRemoved -and $PSCmdlet.ShouldProcess($newNotes, 'remove draft line')) { Write-Text $newNotes $new }
+        } elseif (Test-Path -LiteralPath $oldNotes) {
+            $patchNotesRenamed = $true
             $text = Read-Text $oldNotes
             $count = [regex]::Matches($text, $rx).Count
             $new = [regex]::Replace($text, $rx, $Version)
@@ -102,10 +116,12 @@ foreach ($wt in $worktrees) {
                 Write-Text $newNotes $new
             }
         } else {
-            Write-Warning "$($wt.Name): no changelog/PATCH_NOTES_$old.md"
+            Write-Warning "$($wt.Name): no changelog/PATCH_NOTES_$old.md or PATCH_NOTES_$Version.md"
         }
 
-        # 3. README / TESTING: jar names; lines that record a run of a specific old jar stay
+        # 3. README / TESTING: jar names; lines that record a run of a specific old jar stay, and (when the old
+        # patch notes file was kept rather than renamed, above) lines naming PATCH_NOTES_<old>.md stay too
+        $patchNotesOldRx = 'PATCH_NOTES_' + [regex]::Escape($old) + '(\.md)?\b'
         foreach ($doc in 'README.md', 'TESTING.md') {
             $p = Join-Path $dir $doc
             if (-not (Test-Path -LiteralPath $p)) { continue }
@@ -114,6 +130,7 @@ foreach ($wt in $worktrees) {
             for ($i = 0; $i -lt $lines.Count; $i++) {
                 if ($lines[$i] -notmatch $rx) { continue }
                 if ($lines[$i] -match 'SHA-256|\b[0-9a-f]{8}\.\.\.') { $kept += "   kept (test record) $doc`:$($i + 1): $($lines[$i].Trim())"; continue }
+                if (-not $patchNotesRenamed -and $lines[$i] -match $patchNotesOldRx) { $kept += "   kept (PATCH_NOTES_$old.md kept as history) $doc`:$($i + 1): $($lines[$i].Trim())"; continue }
                 $lines[$i] = [regex]::Replace($lines[$i], $rx, $Version); $replaced++
             }
             if ($replaced -gt 0) {

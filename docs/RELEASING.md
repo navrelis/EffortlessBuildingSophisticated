@@ -34,10 +34,13 @@ the worktrees under `-VersionsDir <dir>`):
 
 1. `mod_version` in `gradle/shared.properties` and in any loader folder's `gradle.properties` that overrides it;
 2. `changelog/PATCH_NOTES_<old>.md` -> `PATCH_NOTES_<v>.md` (`git mv`), the old version in it replaced (header, jar
-   names) and the `*Draft — lead to confirm before release.*` line removed;
+   names) and the `*Draft — lead to confirm before release.*` line removed. If `PATCH_NOTES_<v>.md` already exists
+   (e.g. hand-written bug-fix notes drafted ahead of the bump), it's left as-is except the draft line is still
+   stripped, and `PATCH_NOTES_<old>.md` is left untouched as history — no rename, no rewrite;
 3. `README.md` / `TESTING.md`: the old version replaced (jar names), except on lines that record a test run of one
-   specific old jar (a `SHA-256` or an abbreviated hash `1234abcd...` on the line); those stay as history and the
-   script lists them;
+   specific old jar (a `SHA-256` or an abbreviated hash `1234abcd...` on the line), or that name
+   `PATCH_NOTES_<old>.md` while that file was kept rather than renamed (previous point); those stay as history and
+   the script lists them;
 4. unless `-NoBuild`: `gradlew build --no-daemon` in every loader folder with `JAVA_HOME` = the JDK named by that
    folder's `ci_gradle_jdk` (resolved like `scripts/test-all-versions.ps1`: `SB_JDK_<n>`, `~/.gradle/jdks/*-<n>-*`, the
    default `JAVA_HOME`), then the branch's `release.ps1 -NoBuild`: version check inside every jar, the old jar in
