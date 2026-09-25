@@ -71,6 +71,7 @@ final class ClientScenarios {
 
     private final ClientDriver d;
     private final RadialMenuDriver radial;
+    private final GuiScenarios gui;
     private final SmokeReport report = SmokeReport.get();
 
     /** First air layer above the superflat floor. */
@@ -81,6 +82,7 @@ final class ClientScenarios {
     ClientScenarios(ClientDriver driver) {
         this.d = driver;
         this.radial = new RadialMenuDriver(driver);
+        this.gui = new GuiScenarios(driver);
     }
 
     void runAll() {
@@ -99,6 +101,9 @@ final class ClientScenarios {
         check("client.mirror_modifier", this::mirrorModifier);
         check("client.place_line_survival", this::placeLineSurvival);
         check("client.undo_redo", this::undoRedo);
+        check("client.randomizer_bag_screens", gui::randomizerBagScreens);
+        check("client.player_settings_gui", gui::playerSettingsGui);
+        check("client.modifier_entry_widgets", gui::modifierEntryWidgets);
 
         runBackpackScenarios();
     }
@@ -132,6 +137,8 @@ final class ClientScenarios {
         try {
             d.clientRun(() -> {
                 KeyMapping.releaseAll();
+                // A menu screen is closed like a player closes it, so the server closes the menu too
+                if (d.mc.gui.screen() instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?> && d.mc.player != null) d.mc.player.closeContainer();
                 if (d.mc.gui.screen() != null) d.mc.gui.setScreen(null);
                 SophisticatedBuildingClient.BUILDER_CHAIN.cancel();
             });
@@ -477,6 +484,7 @@ final class ClientScenarios {
         } else {
             check("sb.worn_backpack", () -> wornBackpack(backpacks, "accessory", lane(8)));
         }
+        check("sb.upgrade_settings_tab", () -> gui.upgradeSettingsTab(backpacks));
     }
 
     private static final class BackpackHolder {
