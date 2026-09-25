@@ -85,8 +85,10 @@
     local/test-reports/<timestamp>-<process id>-<random> (unique even for instances started in the same second).
 
 .PARAMETER SmokeTasks
-    Which harness tasks the smoke stage runs: runSmokeServer (headless) and/or runSmokeClient (opens a window).
-    Default: both. -Headless removes runSmokeClient.
+    Which harness tasks the smoke stage runs: runSmokeServer (headless), runSmokeServerNoSb (headless: runSmokeServer
+    -PsmokeNoSb=true, the standalone run without Sophisticated Backpacks/Core for loaders that have the integration;
+    n/a elsewhere) and/or runSmokeClient (opens a window). Default: runSmokeServer and runSmokeClient. -Headless removes
+    runSmokeClient.
 
 .PARAMETER MergeReports
     Merge mode: combine the report.json of these report directories (or report.json files) into one
@@ -285,7 +287,7 @@ if (@($MergeReports).Count -gt 0) {
     exit 0
 }
 
-$validSmokeTasks = @('runSmokeServer', 'runSmokeClient')
+$validSmokeTasks = @('runSmokeServer', 'runSmokeServerNoSb', 'runSmokeClient')
 $invalidSmokeTasks = @($SmokeTasks | Where-Object { $validSmokeTasks -notcontains $_ })
 if ($invalidSmokeTasks.Count -gt 0) {
     Write-Error "Invalid -SmokeTasks value(s): $($invalidSmokeTasks -join ', '). Valid: $($validSmokeTasks -join ', ')."
@@ -747,7 +749,16 @@ function Invoke-SmokeStage {
     $rows = [System.Collections.Generic.List[object]]::new()
 
     foreach ($target in $Targets) {
-        $stageName = "smoke ($target)"
+        # runSmokeServerNoSb = runSmokeServer -PsmokeNoSb=true: the standalone run of a loader with the Sophisticated
+        # Backpacks integration (SB, Core and the accessory mods left out of the runtime, sb.* scenarios skipped)
+        $standalone = $target -eq 'runSmokeServerNoSb'
+        $gradleTask = if ($standalone) { 'runSmokeServer' } else { $target }
+        $stageName = if ($standalone) { 'smoke (runSmokeServer, standalone)' } else { "smoke ($target)" }
+        if ($standalone -and -not $HasSB) {
+            $rows.Add((New-StageResult -Mc $Mc -Loader $LoaderName -Stage $stageName -Result 'n/a' `
+                -Detail 'no Sophisticated Backpacks integration in this loader: its runSmokeServer already runs standalone'))
+            continue
+        }
         if ($WhatIfPreference) {
             $rows.Add((New-StageResult -Mc $Mc -Loader $LoaderName -Stage $stageName -Result 'n/a' -Detail 'skipped (-WhatIf)'))
             continue
@@ -776,7 +787,9 @@ function Invoke-SmokeStage {
         $proc = $null
         $moveJob = $null
         try {
-            $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs @($target, "-PsmoketestOut=$outDir", '--no-daemon', '--stacktrace') -LogPath $logPath -JavaHome $script:LoaderJavaHome
+            $taskArgs = @($gradleTask, "-PsmoketestOut=$outDir", '--no-daemon', '--stacktrace')
+            if ($standalone) { $taskArgs += '-PsmokeNoSb=true' }
+            $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs $taskArgs -LogPath $logPath -JavaHome $script:LoaderJavaHome
             if ($opensWindow) { $moveJob = Start-WindowMoveJob -GameProcessId $proc.Id }
             $wait = Wait-GradleProcess -Process $proc -TimeoutMinutes $TimeoutMinutes -StallMinutes $StallMinutes -WatchPath $logPath `
                 -DumpDir $StageLogDir -DumpPrefix $target
@@ -790,7 +803,7 @@ function Invoke-SmokeStage {
         $sw.Stop()
 
         $logContent = if (Test-Path $logPath) { Get-Content -LiteralPath $logPath -Raw } else { '' }
-        if (Test-GradleTaskMissing -LogContent $logContent -TaskName $target) {
+        if (Test-GradleTaskMissing -LogContent $logContent -TaskName $gradleTask) {
             if ($HasSB) {
                 $rows.Add((New-StageResult -Mc $Mc -Loader $LoaderName -Stage $stageName -Result 'warn' `
                     -Detail "missing harness: SB is available for this loader but no sb.* check has run yet ($target does not exist)" `
@@ -831,7 +844,13 @@ function Invoke-SmokeStage {
             $names = ($failedChecks | Select-Object -First 5 | ForEach-Object { Get-JsonProp -Obj $_ -Name 'name' -Default '?' }) -join ', '
             $problems.Add("$($failedChecks.Count)/$($allChecks.Count) check(s) failed: $names")
         }
-        if ($HasSB) {
+        if ($standalone) {
+            # Nothing of Sophisticated Backpacks may run here: every sb.* check is skipped (or not registered at all)
+            $sbRan = @($sbChecks | Where-Object { -not (Get-JsonProp -Obj $_ -Name 'skipped' -Default $false) })
+            if ($sbRan.Count -gt 0) {
+                $problems.Add("$($sbRan.Count) sb.* check(s) ran in the standalone run (Sophisticated Backpacks still in the runtime?)")
+            }
+        } elseif ($HasSB) {
             if ($sbChecks.Count -eq 0) {
                 $problems.Add('SB is available for this loader but no sb.* check ran ("SB not tested")')
             } else {
@@ -844,7 +863,9 @@ function Invoke-SmokeStage {
         }
 
         $result = if ($problems.Count -eq 0) { 'pass' } else { 'fail' }
-        $detail = if ($problems.Count -eq 0) { "$($allChecks.Count) check(s) passed (sb.*: $($sbChecks.Count))" } else { $problems -join '; ' }
+        $detail = if ($problems.Count -gt 0) { $problems -join '; ' }
+            elseif ($standalone) { "$($allChecks.Count - $sbChecks.Count) building check(s) passed without Sophisticated Backpacks ($($sbChecks.Count) sb.* skipped)" }
+            else { "$($allChecks.Count) check(s) passed (sb.*: $($sbChecks.Count))" }
 
         Copy-IfExists -Path $resultJsonPath -Destination (Join-Path $StageLogDir "$target.smoketest-result.json") | Out-Null
         $screenshots = @(Get-JsonProp -Obj $parsed -Name 'screenshots' -Default @())

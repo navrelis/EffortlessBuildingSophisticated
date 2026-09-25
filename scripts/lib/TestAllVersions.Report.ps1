@@ -187,7 +187,7 @@ function Merge-TestReports {
         }
     }
 
-    $stageRank = @{ 'build' = 0; 'gametest' = 1; 'server' = 2; 'client' = 3; 'smoke (runSmokeServer)' = 4; 'smoke (runSmokeClient)' = 5 }
+    $stageRank = @{ 'build' = 0; 'gametest' = 1; 'server' = 2; 'client' = 3; 'smoke (runSmokeServer)' = 4; 'smoke (runSmokeServer, standalone)' = 5; 'smoke (runSmokeClient)' = 6 }
     $versionKey = { param($mc) ($mc -split '\.' | ForEach-Object { '{0:D4}' -f [int]($_ -replace '\D', '0') }) -join '.' }
     $sortedRows = @($rows.Values | Sort-Object `
         @{ Expression = { & $versionKey $_.mc } }, loader, `

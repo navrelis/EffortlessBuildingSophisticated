@@ -655,6 +655,37 @@ try {
 }
 
 Write-Host ''
+Write-Host 'Standalone smoke variant (-SmokeTasks runSmokeServerNoSb)' -ForegroundColor Cyan
+
+# Test 24: runSmokeServerNoSb is a valid smoke task; a loader without the SB integration gets n/a (its runSmokeServer
+# already is standalone), one with it gets the "smoke (runSmokeServer, standalone)" row (-WhatIf: no Gradle)
+$dir24 = New-TempLogDir
+try {
+    foreach ($loader in 'fabric', 'neoforge') {
+        $ld = Join-Path $dir24 "versions\9.9.9\$loader"
+        New-Item -ItemType Directory -Path $ld -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $ld 'settings.gradle') -Value ''
+        Set-Content -LiteralPath (Join-Path $ld 'gradlew') -Value ''
+        Set-Content -LiteralPath (Join-Path $ld 'gradlew.bat') -Value '@echo off'
+    }
+    $svc = Join-Path $dir24 'versions\9.9.9\neoforge\src\main\resources\META-INF\services'
+    New-Item -ItemType Directory -Path $svc -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $svc 'sophisticated.building.platform.services.IBackpackIntegration') -Value 'x.Y'
+    $report24 = Join-Path $dir24 'report'
+    & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'test-all-versions.ps1') -VersionsDir (Join-Path $dir24 'versions') -Stages smoke `
+        -SmokeTasks 'runSmokeServer,runSmokeServerNoSb' -WhatIf -ReportDir $report24 *> $null
+    Assert-True -Condition ($LASTEXITCODE -eq 0) -Message "-SmokeTasks runSmokeServerNoSb is accepted (exit $LASTEXITCODE)"
+    $rows24 = @((Get-Content -LiteralPath (Join-Path $report24 'report.json') -Raw | ConvertFrom-Json).results)
+    $fabric24 = @($rows24 | Where-Object { $_.loader -eq 'fabric' -and $_.stage -eq 'smoke (runSmokeServer, standalone)' })
+    $neo24 = @($rows24 | Where-Object { $_.loader -eq 'neoforge' -and $_.stage -eq 'smoke (runSmokeServer, standalone)' })
+    Assert-True -Condition ($fabric24.Count -eq 1 -and $fabric24[0].result -eq 'n/a' -and $fabric24[0].detail -match 'no Sophisticated Backpacks integration') -Message 'loader without the SB integration: standalone row n/a'
+    Assert-True -Condition ($neo24.Count -eq 1 -and $neo24[0].detail -eq 'skipped (-WhatIf)') -Message 'loader with the SB integration: standalone row planned'
+    Assert-True -Condition (@($rows24 | Where-Object { $_.stage -eq 'smoke (runSmokeServer)' }).Count -eq 2) -Message 'the normal runSmokeServer rows are still there'
+} finally {
+    Remove-Item -LiteralPath $dir24 -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+Write-Host ''
 Write-Host 'CI template: smoke harness detection (templates/branch/.github/workflows/build.yml, discover job)' -ForegroundColor Cyan
 
 # Test 23: the has_smoke rule of the CI discover job, run with bash exactly as written in the template (the block from

@@ -14,6 +14,7 @@ pwsh scripts/test-all-versions.ps1 -Mc 1.21.1 -Loader fabric,neoforge -Stages bu
 pwsh scripts/test-all-versions.ps1 -Headless -KeepGoing:$false       # no windows, stop at first failure
 pwsh scripts/test-all-versions.ps1 -WhatIf                           # dry run: which stages WOULD run
 pwsh scripts/test-all-versions.ps1 -Mc 1.21.4 -Stages smoke -SmokeTasks runSmokeServer   # only the headless harness
+pwsh scripts/test-all-versions.ps1 -Stages smoke -SmokeTasks runSmokeServerNoSb        # the mod without Sophisticated Backpacks
 pwsh scripts/test-all-versions.ps1 -MergeReports <dir1>,<dir2>      # combine reports into one (see "Parallel runs")
 ```
 
@@ -95,7 +96,12 @@ with at most one game window open machine-wide; never start them while a ForgeGr
    new file under `run/crash-reports` created during the run. Kills the process tree it started (no clean
    "stop" concept for a client).
 
-5. **smoke** - the contract described below for `runSmokeServer`/`runSmokeClient`.
+5. **smoke** - the contract described below for `runSmokeServer`/`runSmokeClient`. `-SmokeTasks runSmokeServerNoSb`
+   adds the standalone run of loaders with the Sophisticated Backpacks integration (row `smoke (runSmokeServer,
+   standalone)`): `gradlew runSmokeServer -PsmokeNoSb=true` with Sophisticated Backpacks, Core, Curios and Trinkets left
+   out of the dev runtime and the backpack fixture left out of the harness (`gradle/smoketest.gradle` on every branch,
+   see its `TESTING.md` "Standalone run without Sophisticated Backpacks"). It passes when every check passed and no
+   `sb.*` check ran unskipped; loaders without the integration report `n/a` (their normal run is already standalone).
 
 ## SB availability
 
