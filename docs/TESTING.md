@@ -52,11 +52,26 @@ with at most one game window open machine-wide; never start them while a ForgeGr
    `<loader>/run/logs/latest.log` (falling back to the Gradle console log). It then checks:
    - no `ERROR`/`Exception` log line mentioning `sophisticatedbuilding` or `sophisticated.building`;
    - **where this (version, loader) ships a Sophisticated Backpacks integration** (see "SB availability"
-     below) - `sophisticatedbackpacks` and `sophisticatedcore` both show up as loaded mods (Fabric Loader's
-     `Loading N mods: \n\t- <modid> <version>` lines, or FML's `Name Version (<modid>)` ModDiscoverer lines) AND
-     `Registered Sophisticated Backpacks upgrade containers` is logged. **Missing SB evidence where SB is
-     expected fails the stage** - this proves the mod actually works with Sophisticated Backpacks in the dev
-     runtime, not just that the server started.
+     below) - `sophisticatedbackpacks` shows up as a loaded mod, and `sophisticatedcore` too where the loader
+     folder's mod metadata declares a dependency on it, AND `Registered Sophisticated Backpacks upgrade
+     containers` is logged in `latest.log`. **Missing SB evidence where SB is expected fails the stage** - this
+     proves the mod actually works with Sophisticated Backpacks in the dev runtime, not just that the server
+     started.
+     - Where the mod list comes from: `run/logs/latest.log`, plus the stage's Gradle console log and
+       `run/logs/debug.log` (only if this run wrote it). Accepted formats (`Test-ModListedInLog`): Fabric
+       Loader's `Loading N mods:` list (`\t- <modid> <version>`), FML's `Name Version (<modid>)` mod list and
+       ` - <modid> (jar(...))` ModList dump (NeoForge 21+), and FML's DEBUG line `Found valid mod file <jar> with
+       {<modid>[,<modid>]} mods - versions {...}`. Forge 36-47 and NeoForge 20.4 print only the last one, and only
+       at DEBUG, so it is in the console and `debug.log` but never in `latest.log` (that is why the check used to
+       fail on 1.20.1/forge and 1.20.4/neoforge although both mods were loaded). A jar can carry several mods:
+       Sophisticated Backpacks 1.18.1 is `{sophisticatedbackpacks,sophisticatedcore}`.
+     - When Core is required (`Test-SbCoreRequired`): iff the loader folder's mod metadata
+       (`src/main/templates` or `src/main/resources`: `META-INF/neoforge.mods.toml`, `META-INF/mods.toml` or
+       `fabric.mod.json`; for a `<loader>-<mc>` folder without its own, the base folder's) declares a
+       `modId="sophisticatedcore"` dependency or has a `"sophisticatedcore"` key. That follows the SB build the
+       folder is made for: SB 1.16.x (`mc/1.16.3`, `mc/1.16.5` incl. `forge-1.16.4`), 1.17.1 and 1.18
+       (`forge-1.18`) have no Core mod and declare none; SB 1.18.1 ships Core inside its jar and 1.18.2 and later
+       have a separate Core mod, and those folders declare it.
    Stops the server by writing `stop` to its stdin (works because the process is launched with
    `RedirectStandardInput`, not through cmd.exe's own `>` file redirection, which would otherwise cut it off
    from a controllable stdin pipe), falling back to killing the process tree it started if that doesn't exit
@@ -88,6 +103,8 @@ Detected exactly the way `common/`'s own `Services.backpacks()` fallback works (
 "Optional integration: Sophisticated Backpacks"): a loader ships Sophisticated Backpacks support iff it
 registers
 `<loader>/src/main/resources/META-INF/services/sophisticated.building.platform.services.IBackpackIntegration`.
+A `<loader>-<mc>` folder (`forge-1.16.4`, `forge-1.18`, `forge-1.19`, `forge-1.21`) compiles its base folder's
+resources, so it ships the base folder's registration (`forge-1.21` has none, like `forge/` on `mc/1.21.1`).
 Every report shows an "SB" column/table per (version, loader) from this same check, independent of whether any
 stage actually ran.
 
@@ -328,8 +345,8 @@ $env:SB_JDK_25 = 'C:\path\to\jdk-25'; pwsh scripts/test-all-versions.ps1 -Mc 26.
 ```
 
 The resolution order, the error cases, the child-only `JAVA_HOME` and the report fields are covered by
-`pwsh scripts/test-all-versions.offline-tests.ps1` (no Gradle, no game; 64 tests, together with the log-pattern,
-window-lock, report-merge and JUnit-parsing tests).
+`pwsh scripts/test-all-versions.offline-tests.ps1` (no Gradle, no game; 81 tests, together with the log-pattern,
+window-lock, report-merge, JUnit-parsing and SB mod-list tests).
 
 ## Process safety
 

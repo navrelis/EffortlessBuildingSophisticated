@@ -370,27 +370,103 @@ function Test-HasGametest {
     return Test-Path (Join-Path $LoaderDir 'src/gametest')
 }
 
-function Test-HasBackpackIntegration {
-    <# SB availability contract: a META-INF/services registration for IBackpackIntegration under this loader's
-       own resources - see docs/ARCHITECTURE.md "Optional integration: Sophisticated Backpacks". #>
+function Get-LoaderSourceDirs {
+    <# The loader folder itself, plus - for a <loader>-<mc> folder such as forge-1.18 or forge-1.16.4 - its base
+       loader folder (../forge): such a folder compiles a copy of the base folder's src/ without the files its own
+       src/ overrides (docs/ARCHITECTURE.md), so its resources and metadata templates come from there unless it has
+       its own. Own folder first. #>
     param([Parameter(Mandatory)][string]$LoaderDir)
-    $svc = Join-Path $LoaderDir 'src/main/resources/META-INF/services/sophisticated.building.platform.services.IBackpackIntegration'
-    return Test-Path -LiteralPath $svc
+    $dirs = @($LoaderDir)
+    $name = Split-Path -Leaf $LoaderDir
+    if ($name -match '^(fabric|forge|neoforge)-\d') {
+        $base = Join-Path (Split-Path -Parent $LoaderDir) $Matches[1]
+        if (Test-Path -LiteralPath $base) { $dirs += $base }
+    }
+    return $dirs
+}
+
+function Test-HasBackpackIntegration {
+    <# SB availability contract: a META-INF/services registration for IBackpackIntegration in this loader's
+       resources - see docs/ARCHITECTURE.md "Optional integration: Sophisticated Backpacks". A <loader>-<mc> folder
+       (forge-1.16.4, forge-1.18, forge-1.19, forge-1.21) ships its base folder's registration (Get-LoaderSourceDirs). #>
+    param([Parameter(Mandatory)][string]$LoaderDir)
+    foreach ($dir in (Get-LoaderSourceDirs -LoaderDir $LoaderDir)) {
+        $svc = Join-Path $dir 'src/main/resources/META-INF/services/sophisticated.building.platform.services.IBackpackIntegration'
+        if (Test-Path -LiteralPath $svc) { return $true }
+    }
+    return $false
+}
+
+function Get-LoaderModMetadataFile {
+    <# The mod metadata source of a loader folder: fabric.mod.json, META-INF/neoforge.mods.toml or META-INF/mods.toml
+       under src/main/templates or src/main/resources, of the folder itself or else of its base folder
+       (Get-LoaderSourceDirs). $null if there is none. #>
+    param([Parameter(Mandatory)][string]$LoaderDir)
+    foreach ($dir in (Get-LoaderSourceDirs -LoaderDir $LoaderDir)) {
+        foreach ($rel in @('src/main/templates/META-INF/neoforge.mods.toml', 'src/main/templates/META-INF/mods.toml',
+                           'src/main/resources/META-INF/neoforge.mods.toml', 'src/main/resources/META-INF/mods.toml',
+                           'src/main/resources/fabric.mod.json')) {
+            $path = Join-Path $dir $rel
+            if (Test-Path -LiteralPath $path) { return $path }
+        }
+    }
+    return $null
+}
+
+function Test-SbCoreRequired {
+    <#
+        Whether the server stage must see a sophisticatedcore mod next to sophisticatedbackpacks: iff the loader
+        folder's mod metadata declares a dependency on sophisticatedcore (a TOML [[dependencies]] entry
+        modId="sophisticatedcore", or a "sophisticatedcore" key in fabric.mod.json). That follows the Sophisticated
+        Backpacks build the folder is made for: SB 1.16.x, 1.17.1 and 1.18 have no Core mod (their metadata declares
+        none, a comment mentioning it does not count), SB 1.18.1 ships sophisticatedcore inside the backpacks jar,
+        1.18.2 and later have a separate Core mod.
+    #>
+    param([Parameter(Mandatory)][string]$LoaderDir)
+    $metadata = Get-LoaderModMetadataFile -LoaderDir $LoaderDir
+    if (-not $metadata) { return $false }
+    $content = Get-Content -LiteralPath $metadata -Raw
+    if ($metadata -like '*.json') {
+        return $content -match '"sophisticatedcore"\s*:'
+    }
+    return $content -match '(?m)^\s*modId\s*=\s*"sophisticatedcore"'
 }
 
 function Test-ModListedInLog {
     <#
-        True if $ModId shows up in the loader's own mod-list log lines. Covers both formats seen on the 1.21.1
-        branch:
+        True if $ModId shows up as a loaded mod in the log text. Formats (all seen in real runs):
           - Fabric Loader: "Loading N mods:" followed by "\t- <modid> <version>" lines
-          - FML (NeoForge/Forge) ModDiscoverer: "Name Version (<modid>)" lines
+          - FML (NeoForge/Forge) ModDiscoverer mod list: "Name Version (<modid>)" lines; the NeoForge/FML ModList
+            dump: " - <modid> (jar(...))" lines
+          - FML ModFileInfo (every Forge from 36 on and NeoForge 20.4, at DEBUG: in run/logs/debug.log and the
+            Gradle console, not in latest.log): "Found valid mod file <file> with {<modid>[,<modid>...]} mods -
+            versions {...}" - one jar can carry several mods (SB 1.18.1: {sophisticatedbackpacks,sophisticatedcore})
     #>
-    param([Parameter(Mandatory)][string]$LogContent, [Parameter(Mandatory)][string]$ModId)
-    if ($LogContent -match "(?m)^\s*-\s*$([regex]::Escape($ModId))\b") { return $true }
-    if ($LogContent -match "\($([regex]::Escape($ModId))\)") { return $true }
+    param([Parameter(Mandatory)][AllowEmptyString()][string]$LogContent, [Parameter(Mandatory)][string]$ModId)
+    $id = [regex]::Escape($ModId)
+    if ($LogContent -match "(?m)^\s*-\s*$id\b") { return $true }
+    if ($LogContent -match "\($id\)") { return $true }
+    if ($LogContent -match "Found valid mod file \S+ with \{([a-z0-9_,\s-]*,\s*)?$id(\s*,[a-z0-9_,\s-]*)?\}") { return $true }
     return $false
 }
 
+function Test-SbModsLoaded {
+    <# The server stage's "SB is loaded" evidence: sophisticatedbackpacks listed, and sophisticatedcore listed when
+       -RequireCore (Test-SbCoreRequired). Returns { Backpacks; Core; CoreRequired; Ok; Problem }. #>
+    param([Parameter(Mandatory)][AllowEmptyString()][string]$LogContent, [bool]$RequireCore = $true)
+    $backpacks = Test-ModListedInLog -LogContent $LogContent -ModId 'sophisticatedbackpacks'
+    $core = Test-ModListedInLog -LogContent $LogContent -ModId 'sophisticatedcore'
+    $missing = @()
+    if (-not $backpacks) { $missing += 'sophisticatedbackpacks' }
+    if ($RequireCore -and -not $core) { $missing += 'sophisticatedcore' }
+    return [pscustomobject]@{
+        Backpacks    = $backpacks
+        Core         = $core
+        CoreRequired = $RequireCore
+        Ok           = ($missing.Count -eq 0)
+        Problem      = if ($missing.Count -gt 0) { "$($missing -join ' and ') not listed as loaded mod(s) in latest.log, debug.log or the console" } else { $null }
+    }
+}
 # ---------------------------------------------------------------------------------------------------------------
 # JUnit XML parsing (build/test-results/test/*.xml and the fabric gametest report).
 # ---------------------------------------------------------------------------------------------------------------

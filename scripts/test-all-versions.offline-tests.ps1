@@ -515,6 +515,79 @@ try {
 }
 
 Write-Host ''
+Write-Host 'Server stage SB evidence (mod list formats, Core only where declared, <loader>-<mc> folders)' -ForegroundColor Cyan
+
+# Trimmed real lines from saved runs (local/test-reports, run/logs/debug.log of the worktrees)
+$neo204Console = @(
+    '[09:17:13] [main/DEBUG] [ne.ne.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file sophisticated-backpacks-422301-5297718.jar with {sophisticatedbackpacks} mods - versions {3.20.6}'
+    '[09:17:13] [main/DEBUG] [ne.ne.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file sophisticated-core-618298-5296142.jar with {sophisticatedcore} mods - versions {0.6.21}'
+) -join "`n"
+$forge201Latest = @(
+    '[25Sept.2026 09:10:39.510] [main/INFO] [mixin/]: Remapping refMap sophisticatedcore.refmap.json using C:\\x\\intermediateToNamed.srg'
+    '[25Sept.2026 09:10:39.532] [main/INFO] [mixin/]: Remapping refMap sophisticatedbackpacks.refmap.json using C:\\x\\intermediateToNamed.srg'
+    '[25Sept.2026 09:17:21.036] [main/INFO] [sophisticated.building.SophisticatedBuilding/]: Registered Sophisticated Backpacks upgrade containers'
+) -join "`n"
+$forge201Console = @(
+    '[09:10:36] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file sophisticated-backpacks-422301-8845923.jar with {sophisticatedbackpacks} mods - versions {3.26.3.2157}'
+    '[09:10:36] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file sophisticated-core-618298-8839328.jar with {sophisticatedcore} mods - versions {1.5.1.2335}'
+) -join "`n"
+$forge181Debug = '[25Sept.2026 01:30:56.230] [main/DEBUG] [net.minecraftforge.fml.loading.moddiscovery.ModFileInfo/LOADING]: Found valid mod file sophisticated-backpacks-422301-3693291.jar with {sophisticatedbackpacks,sophisticatedcore} mods - versions {1.18.1-3.15.15.550,1.18.1-3.15.15.550}'
+$forge163Debug = '[03:02:05] [main/DEBUG] (net.minecraftforge.fml.loading.moddiscovery.ModFileInfo) Found valid mod file sophisticated-backpacks-422301-45afddbf-3142665.jar with {sophisticatedbackpacks} mods - versions {1.16.4-1.0.0.94}'
+$fabricLatest = "[09:09:22] [main/INFO] (FabricLoader) Loading 64 mods:`n`t- sophisticatedbackpacks 1.20.1-3.23.4.5.110`n`t- sophisticatedbuilding 4.3.0`n`t- sophisticatedcore 1.20.1-1.2.7.15.166"
+$neo2110Latest = "`t`tSophisticated Backpacks 3.26.2 (sophisticatedbackpacks)`n - sophisticatedcore (jar(C:/Users/x/.gradle/caches/sophisticated-core-1.21.10-1.5.0.2339.jar))"
+
+# Test 17: formats
+Assert-True -Condition (-not (Test-SbModsLoaded -LogContent $forge201Latest -RequireCore $true).Ok) -Message 'Forge 47 latest.log alone (refmap lines only) is not evidence (the reported false failure)'
+$c17 = Test-SbModsLoaded -LogContent ($forge201Latest + "`n" + $forge201Console) -RequireCore $true
+Assert-True -Condition ($c17.Ok -and $c17.Backpacks -and $c17.Core) -Message 'Forge 47: latest.log + console "Found valid mod file ... with {modid} mods" lines pass'
+Assert-True -Condition (Test-SbModsLoaded -LogContent $neo204Console -RequireCore $true).Ok -Message 'NeoForge 20.4 "[ne.ne.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file" lines pass'
+$c17b = Test-SbModsLoaded -LogContent $forge181Debug -RequireCore $true
+Assert-True -Condition ($c17b.Ok -and $c17b.Core) -Message 'SB 1.18.1: one jar with {sophisticatedbackpacks,sophisticatedcore} counts for both mods'
+Assert-True -Condition (Test-SbModsLoaded -LogContent $forge163Debug -RequireCore $false).Ok -Message 'Forge 34 "(...ModFileInfo) Found valid mod file" line, Core not required: pass'
+Assert-True -Condition (-not (Test-SbModsLoaded -LogContent $forge163Debug -RequireCore $true).Ok) -Message 'the same log fails when Core is required (no silent pass)'
+Assert-True -Condition (Test-SbModsLoaded -LogContent $fabricLatest -RequireCore $true).Ok -Message 'Fabric Loader "Loading N mods" list passes'
+Assert-True -Condition (Test-SbModsLoaded -LogContent $neo2110Latest -RequireCore $true).Ok -Message 'NeoForge 21.10 "Name Version (modid)" and ModList " - modid (jar(" lines pass'
+Assert-True -Condition (-not (Test-ModListedInLog -LogContent 'Found valid mod file x.jar with {sophisticatedcorex} mods' -ModId 'sophisticatedcore')) -Message 'a longer mod id in the braces does not count'
+$c17c = Test-SbModsLoaded -LogContent '' -RequireCore $true
+Assert-True -Condition ($c17c.Problem -match 'sophisticatedbackpacks and sophisticatedcore not listed') -Message "problem text names what is missing ($($c17c.Problem))"
+
+# Test 18: Core required iff the metadata declares the dependency; <loader>-<mc> folders use their base folder
+$dir18 = New-TempLogDir
+try {
+    $mc18 = Join-Path $dir18 'mc'
+    $forge18 = Join-Path $mc18 'forge'
+    New-Item -ItemType Directory -Path (Join-Path $forge18 'src/main/templates/META-INF'), (Join-Path $forge18 'src/main/resources/META-INF/services') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $forge18 'src/main/templates/META-INF/mods.toml') -Value @(
+        '[[dependencies.${mod_id}]]', '    modId="sophisticatedbackpacks"', '    mandatory=false'
+        '# Optional dependency on SophisticatedCore (required by SophisticatedBackpacks)'
+        '[[dependencies.${mod_id}]]', '    modId="sophisticatedcore"', '    mandatory=false')
+    Set-Content -LiteralPath (Join-Path $forge18 'src/main/resources/META-INF/services/sophisticated.building.platform.services.IBackpackIntegration') -Value 'x.Y'
+    $old18 = Join-Path $mc18 'forge-1.18'
+    New-Item -ItemType Directory -Path (Join-Path $old18 'src/main/templates/META-INF') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $old18 'src/main/templates/META-INF/mods.toml') -Value @(
+        '# Its 1.18 build still contains what later became', '# Sophisticated Core (no separate sophisticatedcore mod).'
+        '[[dependencies.${mod_id}]]', '    modId="sophisticatedbackpacks"')
+    $old19 = Join-Path $mc18 'forge-1.19'
+    New-Item -ItemType Directory -Path (Join-Path $old19 'src/main/java') -Force | Out-Null
+    $fabric18 = Join-Path $mc18 'fabric'
+    New-Item -ItemType Directory -Path (Join-Path $fabric18 'src/main/resources') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $fabric18 'src/main/resources/fabric.mod.json') -Value '{ "depends": { "fabric": ">=0.42.0" }, "description": "no sophisticatedcore here" }'
+    $fabric19 = Join-Path $mc18 'fabric-1.19'
+    New-Item -ItemType Directory -Path $fabric19 | Out-Null
+
+    Assert-True -Condition (Test-SbCoreRequired -LoaderDir $forge18) -Message 'modId="sophisticatedcore" dependency -> Core required'
+    Assert-True -Condition (-not (Test-SbCoreRequired -LoaderDir $old18)) -Message 'a comment that mentions sophisticatedcore is no dependency (forge-1.18 template)'
+    Assert-True -Condition ((Test-SbCoreRequired -LoaderDir $old19) -and (Get-LoaderModMetadataFile -LoaderDir $old19) -like '*forge*src*main*templates*mods.toml' -and (Get-LoaderModMetadataFile -LoaderDir $old19) -notlike '*forge-1.19*') -Message 'forge-1.19 without own metadata uses ../forge''s (Core required)'
+    Assert-True -Condition (-not (Test-SbCoreRequired -LoaderDir $fabric18)) -Message 'fabric.mod.json: only a "sophisticatedcore" key counts, not the word in a description'
+    Set-Content -LiteralPath (Join-Path $fabric18 'src/main/resources/fabric.mod.json') -Value '{ "suggests": { "sophisticatedbackpacks": "*", "sophisticatedcore": "*" } }'
+    Assert-True -Condition (Test-SbCoreRequired -LoaderDir $fabric18) -Message 'fabric.mod.json "sophisticatedcore": "*" -> Core required'
+    Assert-True -Condition ((Test-HasBackpackIntegration -LoaderDir $old18) -and (Test-HasBackpackIntegration -LoaderDir $old19)) -Message 'forge-1.18/forge-1.19 ship ../forge''s IBackpackIntegration registration (SB expected)'
+    Assert-True -Condition (-not (Test-HasBackpackIntegration -LoaderDir $fabric18) -and -not (Test-HasBackpackIntegration -LoaderDir $fabric19)) -Message 'no registration in the folder or its base -> no SB'
+} finally {
+    Remove-Item -LiteralPath $dir18 -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+Write-Host ''
 if ($script:TestsFailed -gt 0) {
     Write-Host "$($script:TestsFailed) of $($script:TestsRun) offline test(s) FAILED" -ForegroundColor Red
     exit 1

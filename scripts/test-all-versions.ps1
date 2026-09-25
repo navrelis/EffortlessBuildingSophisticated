@@ -20,8 +20,10 @@
                  for "Done (" in run/logs/latest.log, checks for mod-related ERROR/Exception lines, and - where
                  this (version, loader) ships a Sophisticated Backpacks integration (detected the same way
                  common/ does: a META-INF/services/...IBackpackIntegration registration under the loader's own
-                 resources) - REQUIRES that sophisticatedbackpacks and sophisticatedcore both show up as loaded
-                 mods and that "Registered Sophisticated Backpacks upgrade containers" is logged; missing SB
+                 resources, or its base folder's for a <loader>-<mc> folder) - REQUIRES that sophisticatedbackpacks
+                 (and sophisticatedcore where the loader's mod metadata declares that dependency; SB 1.16.x-1.18 has
+                 no Core mod) show up as loaded mods in latest.log, run/logs/debug.log or the Gradle console, and
+                 that "Registered Sophisticated Backpacks upgrade containers" is logged; missing SB
                  evidence where SB is expected is a stage FAILURE, not just a missing nice-to-have. Stops the
                  server with "stop" on stdin, falling back to killing the process tree it started.
       client   - starts gradlew runClient with a generated Gradle init script that appends
@@ -438,6 +440,7 @@ function Invoke-ServerStage {
     # NOW, before launch, so Wait-ForLogPattern only ever matches against bytes written after this point (see its
     # own comment) - never a stale "Done (" left over from a previous run in the same run dir.
     $logBaseline = Get-LogBaselineLength -Path $latestLog
+    $startedUtc = [DateTime]::UtcNow
     $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs @('runServer', '--no-daemon') -LogPath $logPath -RedirectInput -JavaHome $script:LoaderJavaHome
 
     $doneLine = Wait-ForLogPattern -Path $latestLog -Pattern 'Done \(' -TimeoutMinutes $TimeoutMinutes -Process $proc -BaselineLength $logBaseline
@@ -465,16 +468,30 @@ function Invoke-ServerStage {
     $badLines = @($lines | Where-Object { $_ -match '(ERROR|Exception)' -and $_ -match 'sophisticatedbuilding|sophisticated\.building' })
     $sbLinePresent = $fullLog -match 'Registered Sophisticated Backpacks upgrade containers'
     $sbModsLoaded = $false
+    $sbCheck = $null
     if ($HasSB) {
-        $sbModsLoaded = (Test-ModListedInLog -LogContent $fullLog -ModId 'sophisticatedbackpacks') -and
-                        (Test-ModListedInLog -LogContent $fullLog -ModId 'sophisticatedcore')
+        # Older FML/NeoForge (Forge 36-47, NeoForge 20.4) list the mods only at DEBUG ("Found valid mod file ... with
+        # {modid} mods"), which reaches run/logs/debug.log and the Gradle console but not latest.log: the mod list
+        # evidence is read from all three (debug.log only if this run wrote it; the console log is this run's own).
+        $evidence = [System.Text.StringBuilder]::new($fullLog)
+        foreach ($extra in @($logPath, (Join-Path $runDir 'logs/debug.log'))) {
+            try {
+                if ((Test-Path -LiteralPath $extra) -and (Get-Item -LiteralPath $extra).LastWriteTimeUtc -ge $startedUtc) {
+                    [void]$evidence.AppendLine().Append((Get-Content -LiteralPath $extra -Raw))
+                }
+            } catch {
+                # Still locked or gone: latest.log alone decides.
+            }
+        }
+        $sbCheck = Test-SbModsLoaded -LogContent $evidence.ToString() -RequireCore (Test-SbCoreRequired -LoaderDir $LoaderDir)
+        $sbModsLoaded = $sbCheck.Ok
     }
 
     $problems = [System.Collections.Generic.List[string]]::new()
     if (-not $doneLine) { $problems.Add("server never reached 'Done (' within $TimeoutMinutes min") }
     if ($badLines.Count -gt 0) { $problems.Add("$($badLines.Count) ERROR/Exception line(s) mentioning the mod") }
     if ($HasSB) {
-        if (-not $sbModsLoaded) { $problems.Add('sophisticatedbackpacks/sophisticatedcore not both listed as loaded mods') }
+        if (-not $sbModsLoaded) { $problems.Add($sbCheck.Problem) }
         if (-not $sbLinePresent) { $problems.Add("'Registered Sophisticated Backpacks upgrade containers' missing") }
     } elseif ($sbLinePresent) {
         $problems.Add('unexpected SB registration line on a loader with no SB integration shipped')
@@ -482,7 +499,10 @@ function Invoke-ServerStage {
 
     $result = if ($problems.Count -eq 0) { 'pass' } else { 'fail' }
     $detail = if ($problems.Count -eq 0) {
-        if ($HasSB) { 'reached Done; SB verified (backpacks+core loaded, upgrade containers registered)' } else { 'reached Done; no SB expected' }
+        if ($HasSB) {
+            $coreText = if ($sbCheck.CoreRequired) { 'backpacks+core loaded' } else { 'backpacks loaded (no separate Core for this SB version)' }
+            "reached Done; SB verified ($coreText, upgrade containers registered)"
+        } else { 'reached Done; no SB expected' }
     } else {
         $problems -join '; '
     }
