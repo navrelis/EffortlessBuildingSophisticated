@@ -1,7 +1,9 @@
 package sophisticated.building.gui.elements;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import sophisticated.building.create.foundation.gui.widget.Label;
@@ -48,9 +50,23 @@ public class LabeledScrollInput extends ScrollInput {
     public void doRender(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         super.doRender(guiGraphics, mouseX, mouseY, partialTicks);
 
-        label.setX(getX() + width / 2 - Minecraft.getInstance().font.width(label.text) / 2);
-        label.setY(getY() + height / 2 - Minecraft.getInstance().font.lineHeight / 2);
-        label.render(guiGraphics, mouseX, mouseY, partialTicks);
+        Font font = Minecraft.getInstance().font;
+        int textWidth = label.text == null ? 0 : font.width(label.text);
+        int room = width - 4;
+        if (textWidth <= room) {
+            label.setX(getX() + width / 2 - textWidth / 2);
+            label.setY(getY() + height / 2 - font.lineHeight / 2);
+            label.render(guiGraphics, mouseX, mouseY, partialTicks);
+        } else {
+            // A long number (e.g. a coordinate far from spawn) is drawn smaller instead of running out of the field
+            float scale = room / (float) textWidth;
+            PoseStack pose = guiGraphics.pose();
+            pose.pushPose();
+            pose.translate(getX() + width / 2f, getY() + height / 2f, 0);
+            pose.scale(scale, scale, 1f);
+            guiGraphics.drawString(font, label.text, -textWidth / 2, -font.lineHeight / 2, 0xFFFFFF, true);
+            pose.popPose();
+        }
         
         // Draw focus indicator when focused
         if (focused && visible) {
