@@ -21,6 +21,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
 import net.minecraft.world.phys.Vec3;
+import sophisticated.building.ClientConfig;
 import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuildingClient;
 import sophisticated.building.attachment.AttachmentHandler;
@@ -31,6 +32,9 @@ import sophisticated.building.buildmodifier.Mirror;
 import sophisticated.building.client.ClientBackpackItemCache;
 import sophisticated.building.client.ClientBackpackToolCache;
 import sophisticated.building.client.ClientBuildingUpgradeState;
+import sophisticated.building.create.CreateClient;
+import sophisticated.building.create.catnip.outliner.Outliner;
+import sophisticated.building.create.foundation.utility.ghost.GhostBlocks;
 import sophisticated.building.gui.buildmode.RadialMenu;
 import sophisticated.building.gui.buildmodifier.ModifiersScreen;
 import sophisticated.building.platform.Services;
@@ -39,6 +43,7 @@ import sophisticated.building.smoketest.SmokeReport;
 import sophisticated.building.smoketest.SmokeTest;
 import sophisticated.building.smoketest.backpack.SmokeAccessorySlots;
 import sophisticated.building.smoketest.backpack.SmokeBackpacks;
+import sophisticated.building.systems.BuildSettings;
 import sophisticated.building.systems.BuilderChain;
 import sophisticated.building.utilities.BlockEntry;
 
@@ -49,6 +54,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
@@ -80,7 +86,7 @@ final class ClientScenarios {
     ClientScenarios(ClientDriver driver) {
         this.d = driver;
         this.radial = new RadialMenuDriver(driver);
-        this.gui = new GuiScenarios(driver);
+        this.gui = new GuiScenarios(driver, radial);
     }
 
     void runAll() {
@@ -94,14 +100,17 @@ final class ClientScenarios {
             d.clientRun(() -> SophisticatedBuildingClient.BUILD_MODES.setBuildMode(BuildModeEnum.LINE));
         }
         check("client.buildmode_line_preview", this::linePreview);
+        check("client.mini_block_preview", this::miniBlockPreview);
         check("client.place_line", this::placeLine);
         check("client.break_line", this::breakLine);
         check("client.mirror_modifier", this::mirrorModifier);
+        check("client.disable_quick_replace_preview", this::disableQuickReplacePreview);
         check("client.place_line_survival", this::placeLineSurvival);
         check("client.undo_redo", this::undoRedo);
         check("client.randomizer_bag_screens", gui::randomizerBagScreens);
         check("client.player_settings_gui", gui::playerSettingsGui);
         check("client.modifier_entry_widgets", gui::modifierEntryWidgets);
+        check("client.radial_option_icons", gui::radialOptionIcons);
 
         runBackpackScenarios();
     }
@@ -288,6 +297,65 @@ final class ClientScenarios {
                 + ".." + expected.get(expected.size() - 1).toShortString() + ", state " + preview.state;
     }
 
+    /**
+     * On the line preview of the previous check: the mini block previews (a small ghost of the stone in each outlined
+     * position) are drawn by default, gone with showMiniBlockPreview off, and gone when the line has more blocks than
+     * maxMiniBlockPreviews. Both are client settings of the player settings screen.
+     */
+    private String miniBlockPreview() {
+        if (d.client(SophisticatedBuildingClient.BUILDER_CHAIN::getBuildingState) != BuilderChain.BuildingState.PLACING) {
+            throw new AssertionError("Needs the line preview of client.buildmode_line_preview; " + d.client(this::chainState));
+        }
+        List<BlockPos> line = row(lane(0), LINE_LENGTH);
+        boolean showBefore = d.client(() -> ClientConfig.visuals.showMiniBlockPreview.get());
+        int maxBefore = d.client(() -> ClientConfig.performance.maxMiniBlockPreviews.get());
+        try {
+            int shown = ghostsWith(line, true, 0);
+            d.screenshot("mini_preview_on");
+            int hidden = ghostsWith(line, false, 0);
+            d.screenshot("mini_preview_off");
+            int capped = ghostsWith(line, true, LINE_LENGTH - 1);
+            expectEquals("mini previews with showMiniBlockPreview on (no limit)", LINE_LENGTH, shown);
+            expectEquals("mini previews with showMiniBlockPreview off", 0, hidden);
+            expectEquals("mini previews of " + LINE_LENGTH + " blocks with maxMiniBlockPreviews " + (LINE_LENGTH - 1), 0, capped);
+            return "Line preview: " + shown + " mini block previews by default, " + hidden + " with showMiniBlockPreview off, "
+                    + capped + " with maxMiniBlockPreviews " + (LINE_LENGTH - 1);
+        } finally {
+            d.clientRun(() -> {
+                ClientConfig.visuals.showMiniBlockPreview.set(showBefore);
+                ClientConfig.performance.maxMiniBlockPreviews.set(maxBefore);
+                SophisticatedBuildingClient.BLOCK_PREVIEWS.onConfigChanged();
+            });
+        }
+    }
+
+    /** Sets the two mini preview settings (in memory, like the settings screen before saving) and counts the ghosts. */
+    private int ghostsWith(List<BlockPos> positions, boolean show, int max) {
+        d.clientRun(() -> {
+            ClientConfig.visuals.showMiniBlockPreview.set(show);
+            ClientConfig.performance.maxMiniBlockPreviews.set(max);
+            SophisticatedBuildingClient.BLOCK_PREVIEWS.onConfigChanged();
+        });
+        d.waitTicks(5);
+        return d.client(() -> countGhosts(positions));
+    }
+
+    /** Client thread: ghost blocks shown at these positions (BlockPreviews keys them by position). */
+    private static int countGhosts(List<BlockPos> positions) {
+        try {
+            Field field = GhostBlocks.class.getDeclaredField("ghosts");
+            field.setAccessible(true);
+            Map<?, ?> ghosts = (Map<?, ?>) field.get(CreateClient.GHOST_BLOCKS);
+            int count = 0;
+            for (BlockPos pos : positions) {
+                if (ghosts.containsKey(pos.toShortString())) count++;
+            }
+            return count;
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Cannot read the ghost blocks", e);
+        }
+    }
+
     private String placeLine() {
         BlockPos start = lane(0);
         List<BlockPos> expected = row(start, LINE_LENGTH);
@@ -382,6 +450,59 @@ final class ClientScenarios {
                 SophisticatedBuildingClient.BUILD_MODIFIERS.save();
             });
         }
+    }
+
+    /**
+     * Disable mode on one block: without Quick Replace vanilla places it (no preview of the mod), with Quick Replace the
+     * mod replaces the block looked at and shows it (ghost block and outline) like the other modes.
+     */
+    private String disableQuickReplacePreview() {
+        BlockPos target = lane(9);
+        giveHotbar(new ItemStack(Items.OAK_PLANKS, 64));
+        placeDirectly(List.of(target), Blocks.STONE);
+        radial.select(BuildModeEnum.DISABLED);
+        try {
+            d.teleport(new Vec3(target.getX() + 0.5, groundY, target.getZ() + 3.5));
+            Vec3 aim = Vec3.atCenterOf(target).add(0, 0.5, 0);
+            d.lookAt(aim);
+
+            // Plain Disable mode: vanilla's click, no outline of the mod (an earlier "single" outline has faded by now)
+            d.clientRun(() -> SophisticatedBuildingClient.BUILD_SETTINGS.setReplaceMode(BuildSettings.ReplaceMode.ONLY_AIR));
+            for (int i = 0; i < 20; i++) {
+                d.aimNow(aim);
+                d.waitTicks(1);
+            }
+            if (d.client(() -> liveOutline(SINGLE_OUTLINE))) {
+                throw new AssertionError("Plain Disable mode shows the mod's single block outline; " + d.client(this::chainState));
+            }
+            d.screenshot("disable_plain");
+
+            d.clientRun(() -> SophisticatedBuildingClient.BUILD_SETTINGS.setReplaceMode(BuildSettings.ReplaceMode.BLOCKS_AND_AIR));
+            try {
+                d.waitUntil("the Quick Replace preview of the stone block looked at", 40, () -> {
+                    d.aimNow(aim);
+                    var blocks = SophisticatedBuildingClient.BUILDER_CHAIN.getBlocks();
+                    return blocks.size() == 1 && target.equals(blocks.firstPos) && liveOutline(SINGLE_OUTLINE);
+                });
+            } catch (AssertionError timeout) {
+                throw new AssertionError(timeout.getMessage() + "; " + d.client(this::chainState));
+            }
+            d.screenshot("disable_quick_replace_preview");
+            return "Disable mode on " + target.toShortString() + ": no outline of the mod without Quick Replace, with Quick Replace "
+                    + "the replaced block's preview and outline are shown";
+        } finally {
+            d.clientRun(() -> SophisticatedBuildingClient.BUILD_SETTINGS.setReplaceMode(BuildSettings.ReplaceMode.ONLY_AIR));
+            radial.select(BuildModeEnum.LINE);
+        }
+    }
+
+    /** The id BlockPreviews gives the outline of a one-block preview. */
+    private static final String SINGLE_OUTLINE = "single";
+
+    /** Client thread: the outline is shown this tick (not fading out). */
+    private static boolean liveOutline(Object id) {
+        var entry = Outliner.getInstance().getOutlines().get(id);
+        return entry != null && !entry.isFading();
     }
 
     //endregion

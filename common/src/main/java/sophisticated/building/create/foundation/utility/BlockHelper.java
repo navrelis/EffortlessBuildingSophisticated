@@ -168,7 +168,8 @@ public class BlockHelper {
 				.isEmpty();
 	}
 
-	private static void placeRailWithoutUpdate(Level world, BlockState state, BlockPos target) {
+	// Returns whether the rail changed the block at target
+	private static boolean placeRailWithoutUpdate(Level world, BlockState state, BlockPos target) {
 		LevelChunk chunk = world.getChunkAt(target);
 		int idx = chunk.getSectionIndex(target.getY());
 		LevelChunkSection chunksection = chunk.getSection(idx);
@@ -185,6 +186,7 @@ public class BlockHelper {
 		world.setBlock(target, state, 82);
 		world.neighborChanged(target, world.getBlockState(target.below())
 				.getBlock(), target.below());
+		return old != state;
 	}
 
 	public static CompoundTag prepareBlockEntityData(BlockState blockState, BlockEntity blockEntity) {
@@ -209,10 +211,14 @@ public class BlockHelper {
 	 * same order as vanilla {@code BlockItem.place} (BlockStateTag, BlockEntityTag)
 	 * and {@code setPlacedBy} receives the placer. Without one, no item data is applied (only {@code setPlacedBy}
 	 * sees the stack, which on 1.20.4 still names blocks such as chests).
+	 *
+	 * @return whether the block at {@code target} was set: false if the placement was refused (water in an ultra warm
+	 * dimension, which is not dropped either: the caller did not pay for it) or the state was already there
 	 */
-	public static void placeSchematicBlock(Level world, BlockState state, BlockPos target, ItemStack stack,
-	                                       @Nullable CompoundTag data, @Nullable Player placer) {
+	public static boolean placeSchematicBlock(Level world, BlockState state, BlockPos target, ItemStack stack,
+	                                          @Nullable CompoundTag data, @Nullable Player placer) {
 		BlockEntity existingBlockEntity = world.getBlockEntity(target);
+		BlockState before = world.getBlockState(target);
 		boolean alreadyPlaced = false;
 
 		if (state.hasProperty(BlockStateProperties.EXTENDED))
@@ -238,17 +244,19 @@ public class BlockHelper {
 				world.addParticle(ParticleTypes.LARGE_SMOKE, i + Math.random(), j + Math.random(), k + Math.random(),
 						0.0D, 0.0D, 0.0D);
 			}
-			Block.dropResources(state, world, target);
-			return;
+			return false;
 		}
 
+		boolean placed;
 		if (alreadyPlaced) {
-			// pass
+			placed = world.getBlockState(target) != before;
 		} else if (state.getBlock() instanceof BaseRailBlock) {
-			placeRailWithoutUpdate(world, state, target);
+			placed = placeRailWithoutUpdate(world, state, target);
 		} else {
-			world.setBlock(target, state, 18);
+			placed = world.setBlock(target, state, 18);
 		}
+		if (!placed)
+			return false;
 
 		if (data != null) {
 			BlockEntity blockEntity = world.getBlockEntity(target);
@@ -261,16 +269,17 @@ public class BlockHelper {
 		}
 
 		if (placer != null) {
-			BlockState placed = world.getBlockState(target);
-			if (!placed.is(state.getBlock()))
-				return;
-			state = applyItemData(world, target, placed, stack, placer);
+			BlockState current = world.getBlockState(target);
+			if (!current.is(state.getBlock()))
+				return true;
+			state = applyItemData(world, target, current, stack, placer);
 		}
 
 		try {
 			state.getBlock().setPlacedBy(world, target, state, placer, stack);
 		} catch (Exception e) {
 		}
+		return true;
 	}
 
 	// Data part of vanilla BlockItem.place (1.20.4): BlockStateTag, then BlockEntityTag. The custom name reaches the
