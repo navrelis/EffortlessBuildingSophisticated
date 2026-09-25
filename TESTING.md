@@ -4,7 +4,7 @@ Three layers, from fast to real:
 
 | Layer | Command (in a loader folder) | What it proves |
 |---|---|---|
-| Unit tests | `gradlew build` | Pure logic in `common/src/test` (77 tests on Fabric incl. its config tests, 65 on NeoForge, Forge and Forge 1.21) |
+| Unit tests | `gradlew build` | Pure logic in `common/src/test` (90 tests on Fabric incl. its config tests, 76 on NeoForge, Forge and Forge 1.21) |
 | Fabric GameTests | `gradlew runGametest` | 17 server-side building rules (`fabric/src/gametest`) |
 | **In-game smoke tests** | `gradlew runSmokeClient` / `gradlew runSmokeServer` | The mod works in a real game on this loader, including the Sophisticated Backpacks (SB) integration |
 
@@ -79,8 +79,8 @@ server world.
 | `client.mirror_modifier` | "Add Mirror" in the modifier screen adds a mirror; a 3 block line places 6 blocks (line + mirror image). Screenshots `modifiers_screen`, `mirror_placed` |
 | `client.place_line_survival` | Survival (power level 3 via `/powerlevel`): a 5 block line consumes exactly 5 planks |
 | `client.undo_redo` | Undo removes the 5 blocks and gives the planks back (mined with the axe), redo restores them and charges them again |
-| `client.randomizer_bag_screens` | For each of the 4 bags (randomizer, golden, diamond, omega): sneak + use (looking at the sky) opens its screen class; mouse clicks pick up the stone, drop one into bag slot 0 and put the rest back; Escape closes it (the server closes the menu too); the server's bag holds 1 stone and the player 63; reopening shows the stone in slot 0. Omega: the mouse wheel over slot 0 raises its weight 1 -> 2 and the Reset button sets it back to 1, both checked in the server's bag data. Screenshots `randomizer_bag`, `golden_randomizer_bag`, `diamond_randomizer_bag`, `omega_randomizer_bag`, `omega_randomizer_bag_weights` |
-| `client.player_settings_gui` | `PlayerSettingsGui` opens through the mod's only entry point (`ModeOptions` action `OPEN_PLAYER_SETTINGS`; no key or radial button opens it), renders and closes on Escape. It is a stub: its button and slider are render-only and nothing is stored, so there is no setting to check. Screenshot `player_settings` |
+| `client.randomizer_bag_screens` | For each of the 4 bags (randomizer, golden, diamond, omega): sneak + use (looking at the sky) opens its screen class; mouse clicks pick up the stone, drop one into bag slot 0 and put the rest back; Escape closes it (the server closes the menu too); the server's bag holds 1 stone and the player 63; reopening shows the stone in slot 0. Omega: the mouse wheel over slot 0 raises its weight 1 -> 2 and the Reset button sets it back to 1, both checked in the server's bag data. Screenshots `randomizer_bag`, `golden_randomizer_bag`, `diamond_randomizer_bag`, `omega_randomizer_bag`, `omega_randomizer_bag_weights`. Every bag title fits its texture (`BagTitle`/`TitleFit`: scaled, at most to 0.6, then cut with "..."); a bag renamed in an anvil to a 59 character name shows that name, cut, and the full name as tooltip on hover. Screenshot `renamed_bag_title` |
+| `client.player_settings_gui` | The radial menu's player settings button (above Modifier Settings) opens `PlayerSettingsGui`; a click flips `onlyShowBlockPreviewsWhenBuilding`, a drag sets the Appear Animation slider 5 -> 20 ticks, Done closes it; the loader's client config holds both values in memory and in its file (`config/sophisticatedbuilding-client.json` on Fabric, `.toml` on NeoForge/Forge). The "Open Player Settings" key (unbound by default, bound to F7 for the test) reopens it showing the saved value, Reset to Defaults and the key again restore and save the defaults. Screenshots `radial_player_settings`, `player_settings` |
 | `client.modifier_entry_widgets` | The mod's checkbox and number widgets where a player uses them: in the modifier screen "Add Array" adds an array, a click on the entry's enable checkbox switches it off, the mouse wheel on its Count input raises 5 -> 6, the close button closes the screen, and the server stores the array with these values (`ModifierSettingsPacket`, player data `sophisticatedbuilding:buildModifiers`). Screenshot `modifier_widgets` |
 | `sb.hud_count_synced` | The client caches (`ClientBuildingUpgradeState`, `ClientBackpackItemCache` via `BuildingUpgradeStatePacket` / `BackpackItemCountPacket`) show tier 1 / 32 blocks and the backpack's 64 stone |
 | `sb.upgrade_supplies_blocks` | Holding 1 stone with a tier 1 Building Upgrade backpack: a 5 block line is placed from the backpack (64 -> 59), the held stone stays, the HUD count follows |
@@ -204,6 +204,20 @@ They add about 6 s to a client run on 1.21.1. The calls that depend on the Minec
   `net.p3pp3rf1y.sophisticatedbackpacks.client.gui`; adapt the imports there. The same source compiles against the
   official NeoForge builds and the Fabric port on 1.21.1.
 
+Since R2 (player settings editor, bag title fit) the two checks also use:
+
+- `client.player_settings_gui`: `RadialMenuDriver#hoverLeftButton` (the menu's `buttonDistance` field; the player
+  settings button sits at `-buttonDistance - 52, -39`), `ClientDriver#dragTo` (press and release through `MouseHandler`,
+  the move itself through `Screen#mouseMoved`/`mouseDragged`, because `MouseHandler#handleAccumulatedMovement` only
+  forwards moves for the focused window and the harness window never has focus), `PlayerSettingsGui#settingEntries()`
+  with `SettingEntry#key/widget()` and `NumberEntry#values` (`SliderValues`), the fields `doneButton`/`resetButton`,
+  `AbstractSliderButton` track geometry (`x + 4 .. x + width - 4`), `KeyMapping#setKey` + `KeyMapping.resetMapping()` to
+  bind the unbound key for the test, `ClientConfig` values, and the client config file in `<game dir>/config`:
+  `sophisticatedbuilding-client.json` (Fabric, section `Visuals`) or `sophisticatedbuilding-client.toml` (NeoForge/Forge).
+- `client.randomizer_bag_screens`: `BagTitle.fit`/`availableWidth`/`isHovered` and `TitleFit#drawnWidth` (the screens'
+  own layout), `AbstractContainerScreen#imageWidth` (reflection), `Screen#getTitle`, and the anvil name of an item:
+  `ItemStack#set(DataComponents.CUSTOM_NAME, ...)` (1.20.5+; before: `ItemStack#setHoverName`).
+
 ## Findings of the first runs (1.21.1)
 
 - Fabric: the server cancelled the vanilla placement of a build-mode click but never corrected the client's predicted
@@ -214,13 +228,18 @@ They add about 6 s to a client run on 1.21.1. The calls that depend on the Minec
   (data packs are 48 in 1.21.1). Now `supported_formats: [34, 48]`; checked by `client.mod_data_pack_compatible`.
 - The Fabric SB port rescans Trinkets slots for backpacks only every 100 ticks: a backpack put into a Trinkets slot
   supplies blocks after up to 5 s.
-- GUI checks (H5): every screen works on all four loader builds. `PlayerSettingsGui` is a stub that no key or radial
-  button opens (only `ModeOptions` action `OPEN_PLAYER_SETTINGS`); its button, slider and "Done" are render-only and it
-  saves nothing. The widget classes `GuiCheckBoxFixed`, `GuiNumberField`, `GuiIconButton`, `GuiScrollPane`,
-  `GuiCollapsibleScrollEntry` and `SlotGui` (`gui/elements`) are used by no screen, so no player can reach them; the
-  checkbox and number widgets players do use are the modifier entries' `MiniButton` and `LabeledScrollInput`
-  (`client.modifier_entry_widgets`). Cosmetic: the translated titles of the leather, golden and diamond bags are wider
-  than their GUI texture and run past its right edge.
+- GUI checks (H5): every screen works on all four loader builds. They found `PlayerSettingsGui` to be a stub (no key or
+  radial button opened it, its controls were render-only), six unused widget classes in `gui/elements`, and bag titles
+  wider than their texture. All three were resolved in R2 (below).
+- R2 (player settings, bag titles, dead widgets): `PlayerSettingsGui` is now the editor of the client config (see the
+  README), opened by a radial menu button and the "Open Player Settings" key; the six unused widget classes are
+  deleted; bag titles are scaled to fit, cut with "..." below scale 0.6 with the full title as tooltip, and a renamed
+  bag shows its name. Config audit: every client value is read by the renderer or the build logic, but
+  `showMiniBlockPreview` was read only once at start-up and the radial toggle changed a session copy, so the file and
+  the toggle disagreed; the toggle now writes and saves the config value and the renderer reads it. Verified on all
+  four loader builds: `gradlew build` (Fabric 90 tests, NeoForge/Forge/Forge 1.21 76), Fabric `runGametest` 17/17,
+  `runSmokeServer` 9/9 (Fabric, NeoForge) and 3/3 (Forge, Forge 1.21), `runSmokeClient` 21/21 (Fabric, NeoForge, 8
+  `sb.*`) and 13/13 (Forge, Forge 1.21).
 
 ## Minecraft 1.21 check (one jar for 1.21 and 1.21.1)
 

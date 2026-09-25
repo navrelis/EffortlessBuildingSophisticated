@@ -6,7 +6,7 @@
 
 * `sophisticatedbuilding-fabric-1.21.1-4.3.0.jar` — Fabric
 * `sophisticatedbuilding-neoforge-1.21.1-4.3.0.jar` — NeoForge
-* `sophisticatedbuilding-forge-1.21.1-4.3.0.jar` — Forge *(placeholder — pending confirmation, see below)*
+* `sophisticatedbuilding-forge-1.21.1-4.3.0.jar` — Forge
 * `sophisticatedbuilding-forge-1.21-4.3.0.jar` — Forge for Minecraft 1.21
 
 Jar file names now include the Minecraft version (`sophisticatedbuilding-<loader>-1.21.1-4.3.0.jar`);
@@ -29,11 +29,43 @@ and, like it, no Sophisticated Backpacks integration (there is no Sophisticated 
 HUD elements (material cost list, build hints, block counts) are drawn on top of the whole vanilla HUD there, since
 Forge 51 has no way to insert them between vanilla's HUD layers.
 
-### Forge build for 1.21.1 *(placeholder, lead to confirm)*
+### Forge build for 1.21.1
 
-Sophisticated Building is now available on Forge for 1.21.1. This build has no Sophisticated
-Backpacks integration, since Sophisticated Backpacks has no Forge release for 1.21.1 — Building
-Upgrade items and the backpack tool list are Fabric/NeoForge-only for now.
+Sophisticated Building is now available on Forge for 1.21.1 (Forge 52.1.2 or newer). This build has no Sophisticated
+Backpacks integration, since Sophisticated Backpacks has no Forge release for 1.21.1 — Building Upgrade items and the
+backpack tool list are Fabric/NeoForge-only for now.
+
+### Player Settings screen
+
+The Player Settings screen is now an editor of your client settings (previously it only showed placeholder controls
+that did nothing):
+
+* Visuals: block previews on/off, previews only while building, mini block preview, max block previews, appear and
+  break animation length, preview scale.
+* Performance: preview distance, update throttling, max mini previews.
+
+Switches are ON/OFF buttons, numbers are sliders over the allowed range (whole-number settings move in whole steps;
+the two block limits use a curve so the common values of a few thousand are easy to hit). Every setting has a
+tooltip; changes apply at once, *Reset to Defaults* restores them, *Done* (or Escape) saves them to your client
+config file (`config/sophisticatedbuilding-client.json` on Fabric, `config/sophisticatedbuilding-client.toml` on
+NeoForge and Forge). Open it with the new button in the radial menu (above Modifier Settings) or with the new key
+*Open Player Settings* (unbound by default; set it in Controls, category Sophisticated Building).
+
+## Fixes
+
+* **Fabric:** holding exactly the blocks a build needs (e.g. 1 stone with the rest in a backpack) no longer loses the
+  held block on the client when a build-mode click replaces the vanilla placement; the server now resends the slot,
+  as on NeoForge and Forge.
+* The Omega Randomizer Bag screen no longer allocates a new native buffer for every weight badge on every frame.
+* When the installed Sophisticated Backpacks build cannot be linked for the backpack scan, the warning now names the
+  cause instead of only saying that the scan is disabled.
+* Randomizer bag titles no longer run past the edge of the bag window: a long title is drawn smaller, and a very long
+  one (e.g. a bag renamed in an anvil) is cut with "..." and shown in full when you point at it. Bag windows now show
+  the bag's own name, so a renamed bag shows its new name.
+* The radial menu's *Mini Block Preview* toggle is now saved: it changes the `showMiniBlockPreview` client setting
+  (previously a setting changed in the config file was only read at start-up and the toggle was forgotten on restart).
+* Very long numbers in the modifier settings fields (e.g. coordinates far from spawn) are drawn smaller instead of
+  past the field's edges.
 
 ## Internal restructure
 
