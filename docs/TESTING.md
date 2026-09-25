@@ -369,6 +369,31 @@ row's detail and listed in its `threadDumps` field in `report.json`.
 The first hang caught this way (1.21.8 `runGametest`, see `docs/PORTING.md` "Gotchas") showed the server thread parked in
 `ServerLevel.waitForChunkAndEntities` under `PlayerList.placeNewPlayer`, called by the game tests' own player helper.
 
+## Fabric without Sophisticated Backpacks: bytecode check
+
+Loom applies the transitive access wideners of every mod on the compile classpath to the Minecraft jar a Fabric build
+compiles against. The unofficial Fabric Sophisticated Core port nests Porting Lib, whose wideners make some vanilla
+members public in the dev runtime (e.g. `Screen#font` on 1.19.x). Code that touches such a member compiles to different
+bytecode than against vanilla (for example a direct field access from an inner class instead of a synthetic accessor),
+works in every dev and smoke run (they all have SB) and fails with `IllegalAccessError` for players without Sophisticated
+Backpacks. Found this way: `PlayerSettingsGui`'s rows on mc/1.19.2 and mc/1.19.4 (fixed with a private accessor), and
+earlier `RenderType.create` on mc/1.19.2 (fixed with the mod's own access widener).
+
+```powershell
+pwsh scripts/check-fabric-no-sb-bytecode.ps1 -Mc 1.19.2          # -Clean deletes the scratch build output afterwards
+```
+
+The script compiles the branch's Fabric main sources a second time in `local/no-sb-bytecode/<mc>/` (git-ignored) against
+Minecraft + Fabric Loader + Fabric API only, with the mod's own access widener and without the source files that need
+an optional mod's API (they import `net.p3pp3rf1y`, Porting Lib, Trinkets, Cardinal Components or Curios, plus every file
+that uses one of those classes, by import or from the same package), then compares `javap -c -p` of every class both
+builds produce (constant pool indices removed). Exit 0 = identical, 1 = a class differs (listed) or a build failed. Only
+`RenderType$CompositeState` is widened in the scratch build as well: javac rejects the protected nested class, but it
+is `ACC_PUBLIC` in the class file, so this changes no bytecode. Run it on every Fabric branch whose dev classpath has the
+Fabric SB port after changing `common/` or `fabric/src/main` (results 2026-09-25, classes compared: mc/1.19.2 342, mc/1.19.4 342,
+mc/1.20.1 340, mc/1.20.4 339, mc/1.21.1 336, all identical after the fixes). It needs a `javap` that reads the branch's class
+files (`JAVA_HOME` or `PATH`; JDK 21 for Java 21 branches, a newer JDK for 26.x).
+
 ## Process safety
 
 - Every `gradlew` invocation passes `--no-daemon` and the script never runs `gradlew --stop` - that kills every
