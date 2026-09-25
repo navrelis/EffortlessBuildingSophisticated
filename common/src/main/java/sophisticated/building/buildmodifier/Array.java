@@ -4,8 +4,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
+import sophisticated.building.attachment.AttachmentHandler;
 import sophisticated.building.utilities.BlockEntry;
 import sophisticated.building.utilities.BlockSet;
+import sophisticated.building.utilities.BuildLimits;
 
 public class Array extends BaseModifier {
 
@@ -16,10 +18,13 @@ public class Array extends BaseModifier {
 	public void findCoordinates(BlockSet blocks, Player player) {
 		if (!enabled || offset.getX() == 0 && offset.getY() == 0 && offset.getZ() == 0) return;
 
+		//The array's extent (largest offset times count) stays within the blocks-per-axis limit of the power level
+		int largestOffset = Math.max(Math.max(Math.abs(offset.getX()), Math.abs(offset.getY())), Math.abs(offset.getZ()));
+		int copies = BuildLimits.arrayCount(count, largestOffset, AttachmentHandler.getMaxBlocksPerAxis(player, false));
 		BlockSet originalBlocks = new BlockSet(blocks);
 		for (BlockEntry blockEntry : originalBlocks) {
 			BlockPos pos = blockEntry.blockPos;
-			for (int i = 0; i < count; i++) {
+			for (int i = 0; i < copies; i++) {
 				pos = pos.offset(offset);
 				if (blocks.containsKey(pos)) continue;
 

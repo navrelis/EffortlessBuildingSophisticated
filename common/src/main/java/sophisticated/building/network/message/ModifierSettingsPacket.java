@@ -6,9 +6,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.SophisticatedBuilding;
+import sophisticated.building.attachment.AttachmentHandler;
 import sophisticated.building.SophisticatedBuildingClient;
 import sophisticated.building.network.ModPayload;
 import sophisticated.building.platform.Services;
+import sophisticated.building.utilities.ModifierLimits;
 
 /**
  * Sync build modifiers between server and client, for saving and loading.
@@ -16,7 +18,7 @@ import sophisticated.building.platform.Services;
 public final class ModifierSettingsPacket implements ModPayload {
 	public static final ResourceLocation ID = SophisticatedBuilding.asResource("modifier_settings");
 	// Key of the modifier settings in the per-player data (see IPlatformHelper.getPersistentData)
-	private static final String DATA_KEY = SophisticatedBuilding.MODID + ":buildModifiers";
+	public static final String DATA_KEY = SophisticatedBuilding.MODID + ":buildModifiers";
 
 	private final CompoundTag modifiersTag;
 
@@ -50,7 +52,11 @@ public final class ModifierSettingsPacket implements ModPayload {
 		public static void handleServer(final ModifierSettingsPacket packet, final Player sender) {
 			if (sender instanceof ServerPlayer) {
 				ServerPlayer player = (ServerPlayer) sender;
-				Services.PLATFORM.getPersistentData(player).put(DATA_KEY, packet.modifiersTag().copy());
+				//Stored capped to the player's limits (arrays within the blocks per axis, mirrors within the radius), as the
+				//client builds with them; the server's request checks rely on these settings
+				CompoundTag capped = ModifierLimits.cap(packet.modifiersTag().copy(), AttachmentHandler.getMaxBlocksPerAxis(player, false),
+						AttachmentHandler.getMaxMirrorRadius(player, false));
+				Services.PLATFORM.getPersistentData(player).put(DATA_KEY, capped);
 			}
 		}
 	}

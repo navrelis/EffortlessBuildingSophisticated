@@ -1,6 +1,7 @@
 package sophisticated.building.gui.elements;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -29,7 +30,7 @@ import org.lwjgl.glfw.GLFW;
 public class LabeledScrollInput extends ScrollInput {
     protected Label label;
     protected final Component controlScrollsSlowerText = Lang.translateDirect("gui.scrollInput.controlScrollsSlower");
-    protected final Component keyboardControlsText = new TextComponent("Arrow keys / +/- to adjust").withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY);
+    protected final Component keyboardControlsText = new TranslatableComponent("sophisticatedbuilding.gui.scroll_input.keyboard").withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY);
     protected boolean controlScrollsSlower;
     protected boolean focused = false;
     

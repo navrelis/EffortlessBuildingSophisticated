@@ -4,6 +4,7 @@
   "package": "sophisticated.building.fabric.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "PlayerDataMixin",
     "PlayerListMixin",
     "ServerPlayerMixin"
   ],

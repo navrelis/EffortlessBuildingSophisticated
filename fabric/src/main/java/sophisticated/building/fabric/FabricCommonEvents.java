@@ -11,7 +11,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
 import sophisticated.building.CommonEvents;
-import sophisticated.building.attachment.AttachmentHandler;
 import sophisticated.building.compatibility.CompatHelper;
 import sophisticated.building.network.message.ServerConfigSyncPacket;
 import sophisticated.building.platform.Services;
@@ -81,9 +80,6 @@ public final class FabricCommonEvents {
 
     /** The player respawned or returned from the End (PlayerList.respawn); newPlayer replaces oldPlayer. */
     public static void onPlayerRespawn(ServerPlayer oldPlayer, ServerPlayer newPlayer) {
-        if (AttachmentHandler.hasPowerLevel(oldPlayer)) {
-            AttachmentHandler.setPowerLevel(newPlayer, AttachmentHandler.getOrCreatePowerLevel(oldPlayer));
-        }
         CommonEvents.onPlayerRespawned(newPlayer);
     }
 

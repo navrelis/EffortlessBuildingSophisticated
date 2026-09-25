@@ -13,20 +13,14 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.attachment.PowerLevel;
+import sophisticated.building.fabric.FabricPlayerData;
 import sophisticated.building.inventory.IItemHandler;
 import sophisticated.building.inventory.ItemStackHandler;
 import sophisticated.building.platform.services.IPlatformHelper;
 
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 public final class FabricPlatformHelper implements IPlatformHelper {
-
-    // Per-player state is kept in memory for the session (it is not saved with the player on Fabric)
-    private static final Map<UUID, PowerLevel> POWER_LEVELS = new ConcurrentHashMap<>();
-    private static final Map<UUID, CompoundTag> PERSISTENT_DATA = new ConcurrentHashMap<>();
 
     @Override
     public String getPlatformName() {
@@ -62,22 +56,22 @@ public final class FabricPlatformHelper implements IPlatformHelper {
 
     @Override
     public PowerLevel getPowerLevel(Player player) {
-        return POWER_LEVELS.computeIfAbsent(player.getUUID(), key -> new PowerLevel());
+        return FabricPlayerData.getOrCreatePowerLevel(player);
     }
 
     @Override
     public void setPowerLevel(Player player, PowerLevel powerLevel) {
-        POWER_LEVELS.put(player.getUUID(), powerLevel);
+        FabricPlayerData.of(player).sophisticatedbuilding$setPowerLevel(powerLevel);
     }
 
     @Override
     public boolean hasPowerLevel(Player player) {
-        return POWER_LEVELS.containsKey(player.getUUID());
+        return FabricPlayerData.of(player).sophisticatedbuilding$getPowerLevel() != null;
     }
 
     @Override
     public CompoundTag getPersistentData(Player player) {
-        return PERSISTENT_DATA.computeIfAbsent(player.getUUID(), key -> new CompoundTag());
+        return FabricPlayerData.of(player).sophisticatedbuilding$getData();
     }
 
     @Override

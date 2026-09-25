@@ -1,6 +1,7 @@
 package sophisticated.building.item;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -275,7 +276,7 @@ public abstract class AbstractRandomizerBagItem extends Item {
 			// No available blocks - notify player
 			if (!player.level.isClientSide) {
 				player.displayClientMessage(
-					new TextComponent("Missing blocks in inventory for randomizer bag!").withStyle(ChatFormatting.RED),
+					new TranslatableComponent("sophisticatedbuilding.message.randomizer_bag_missing_blocks").withStyle(ChatFormatting.RED),
 					true
 				);
 			}
@@ -405,16 +406,16 @@ public abstract class AbstractRandomizerBagItem extends Item {
 
 	@Override
 	public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag tooltipFlag) {
-		tooltip.add(new TextComponent(ChatFormatting.GRAY + "Put blocks in bag as " + ChatFormatting.YELLOW + "templates"));
-		tooltip.add(new TextComponent(ChatFormatting.GRAY + "Blocks are consumed from " + ChatFormatting.GREEN + "inventory"));
-		tooltip.add(new TextComponent(""));
-		tooltip.add(new TextComponent(ChatFormatting.BLUE + "Rightclick" + ChatFormatting.GRAY + " to place a random block"));
-		tooltip.add(new TextComponent(ChatFormatting.BLUE + "Sneak + rightclick" + ChatFormatting.GRAY + " to open inventory"));
+		tooltip.add(new TranslatableComponent("item.sophisticatedbuilding.randomizer_bag.tooltip.templates"));
+		tooltip.add(new TranslatableComponent("item.sophisticatedbuilding.randomizer_bag.tooltip.consumed"));
+		tooltip.add(TextComponent.EMPTY);
+		tooltip.add(new TranslatableComponent("item.sophisticatedbuilding.randomizer_bag.tooltip.place"));
+		tooltip.add(new TranslatableComponent("item.sophisticatedbuilding.randomizer_bag.tooltip.open"));
 		
 		// Add special tooltip for Omega bag
 		if (this instanceof OmegaRandomizerBagItem) {
-			tooltip.add(new TextComponent(""));
-			tooltip.add(new TextComponent(ChatFormatting.GOLD + "Scroll wheel" + ChatFormatting.GRAY + " on slots to adjust weight"));
+			tooltip.add(TextComponent.EMPTY);
+			tooltip.add(new TranslatableComponent("item.sophisticatedbuilding.randomizer_bag.tooltip.weights"));
 		}
 	}
 	

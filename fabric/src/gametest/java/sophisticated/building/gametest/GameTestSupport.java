@@ -16,6 +16,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import sophisticated.building.ServerConfig;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.config.ConfigValue;
@@ -56,6 +57,9 @@ public final class GameTestSupport {
         new EmbeddedChannel(connection);
         player.connection = new ServerGamePacketListenerImpl(server, connection, player);
         level.addNewPlayer(player);
+        // At the test structure, like a player building there (the server checks the reach of build requests)
+        BlockPos standAt = helper.absolutePos(BlockPos.ZERO);
+        player.moveTo(standAt.getX() + 3.5, standAt.getY() + 1, standAt.getZ() + 3.5, 0, 0);
         player.setGameMode(gameType);
         player.inventory.clearContent();
         player.inventory.selected = 0;

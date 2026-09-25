@@ -1,6 +1,7 @@
 package sophisticated.building.gui.buildmodifier;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import sophisticated.building.client.gui.GuiGraphics;
@@ -21,14 +22,14 @@ public class ArrayEntry extends BaseModifierEntry<Array> {
 	protected ScrollInput countInput;
 
 	public ArrayEntry(ModifiersScreen screen, BaseModifier array) {
-		super(screen, (Array) array, new TextComponent("Array"), AllGuiTextures.ARRAY_ENTRY);
+		super(screen, (Array) array, new TranslatableComponent("sophisticatedbuilding.gui.modifier.array"), AllGuiTextures.ARRAY_ENTRY);
 
 		offsetInputs.clear();
 
 		for (int i = 0; i < 3; i++) {
 			final int index = i;
 			ScrollInput scrollInput = new LabeledScrollInput(0, 0, 18, 18)
-				.titled(new TextComponent(i == 0 ? "X Offset" : i == 1 ? "Y Offset" : "Z Offset"))
+				.titled(new TranslatableComponent(i == 0 ? "sophisticatedbuilding.gui.modifier.x_offset" : i == 1 ? "sophisticatedbuilding.gui.modifier.y_offset" : "sophisticatedbuilding.gui.modifier.z_offset"))
 				.calling(value -> {
 					modifier.offset = MathHelper.with(modifier.offset, index, value);
 					onValueChanged();
@@ -40,7 +41,7 @@ public class ArrayEntry extends BaseModifierEntry<Array> {
 
 		countInput = new LabeledScrollInput(0, 0, 18, 18)
 			.withRange(1, 100)
-			.titled(new TextComponent("Count"))
+			.titled(new TranslatableComponent("sophisticatedbuilding.gui.modifier.count"))
 			.calling(value -> {
 				modifier.count = value;
 				onValueChanged();

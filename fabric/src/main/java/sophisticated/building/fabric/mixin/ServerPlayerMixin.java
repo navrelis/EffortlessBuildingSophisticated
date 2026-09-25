@@ -10,11 +10,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import sophisticated.building.fabric.FabricCommonEvents;
+import sophisticated.building.fabric.FabricPlayerData;
 
 /**
  * Dimension changes on Minecraft 1.16.3, where Fabric API 0.25.0 has no ServerEntityWorldChangeEvents (see
  * {@link FabricCommonEvents}): through a portal (changeDimension) or a cross-dimension teleport (teleportTo), like
- * AFTER_PLAYER_CHANGE_WORLD of later Fabric API versions. Fired only when the player's level really changed.
+ * AFTER_PLAYER_CHANGE_WORLD of later Fabric API versions. Fired only when the player's level really changed. Also the
+ * player data copy of ServerPlayerEvents.COPY_FROM (restoreFrom).
  */
 @Mixin(ServerPlayer.class)
 public abstract class ServerPlayerMixin {
@@ -40,6 +42,13 @@ public abstract class ServerPlayerMixin {
     @Inject(method = "teleportTo(Lnet/minecraft/server/level/ServerLevel;DDDFF)V", at = @At("RETURN"))
     private void sophisticatedbuilding$afterTeleport(ServerLevel destination, double x, double y, double z, float yRot, float xRot, CallbackInfo ci) {
         sophisticatedbuilding$fireIfLevelChanged();
+    }
+
+    // Death, respawn and leaving the End build a new player object from the old one (PlayerList.respawn calls this):
+    // it takes over the mod's data, where ServerPlayerEvents.COPY_FROM of later Fabric API versions fires
+    @Inject(method = "restoreFrom", at = @At("TAIL"))
+    private void sophisticatedbuilding$afterRestoreFrom(ServerPlayer oldPlayer, boolean alive, CallbackInfo ci) {
+        FabricPlayerData.copy(oldPlayer, self());
     }
 
     @Unique

@@ -21,6 +21,7 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.Arrays;
 import java.util.Collections;
+import javax.annotation.Nullable;
 import java.util.List;
 
 //Common
@@ -57,6 +58,14 @@ public class BlockUtilities {
             }
         }
         return steps == 1;
+    }
+
+    //Items placing target over existing costs, as the server charges it: all items of the state, less those of the same
+    //block that stays in place (a merge costs the one added item; see ReplaceRules.restoreCost)
+    public static int placementCost(@Nullable BlockState existing, @Nullable BlockState target) {
+        if (target == null) return 1;
+        boolean kept = existing != null && existing.is(target.getBlock());
+        return ReplaceRules.restoreCost(itemCountForState(target), kept ? itemCountForState(existing) : 0);
     }
 
     //Items the state is made of: 2 for a double slab, the count for candles, pickles, eggs, snow layers and petals, else 1

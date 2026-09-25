@@ -1,6 +1,7 @@
 package sophisticated.building.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.network.chat.TranslatableComponent;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -99,15 +100,9 @@ public class RenderHandler {
 		drawRandomizerBagHUD(guiGraphics);
 	}
 
-	private static final ChatFormatting highlightColor = ChatFormatting.DARK_AQUA;
-	private static final ChatFormatting normalColor = ChatFormatting.WHITE;
-	private static final Component placingText = new TextComponent(
-			normalColor + "Left-click to " + highlightColor + "cancel, " +
-			normalColor + "Right-click to " + highlightColor + "place");
+	private static final Component placingText = new TranslatableComponent("sophisticatedbuilding.hud.placing_hint");
 
-	private static final Component breakingText = new TextComponent(
-			normalColor + "Left-click to " + highlightColor + "break, " +
-			normalColor + "Right-click to " + highlightColor + "cancel");
+	private static final Component breakingText = new TranslatableComponent("sophisticatedbuilding.hud.breaking_hint");
 
 	private static void renderSubText(GuiGraphics guiGraphics) {
 		BuilderChain.BuildingState state = SophisticatedBuildingClient.BUILDER_CHAIN.getBuildingState();
