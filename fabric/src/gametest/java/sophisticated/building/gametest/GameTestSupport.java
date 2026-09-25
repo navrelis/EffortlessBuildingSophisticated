@@ -42,7 +42,7 @@ public final class GameTestSupport {
     /**
      * A real {@link ServerPlayer} on a fake connection, in the given game mode, added to the test level. Vanilla's
      * {@code makeMockPlayer} is not a ServerPlayer (skips the adventure check and the packets the mod sends), and
-     * Minecraft 1.17.1 has no {@code makeMockServerPlayerInLevel}. The player is not put into the player list: 1.17.1's
+     * Minecraft 1.16.3 has no {@code makeMockServerPlayerInLevel}. The player is not put into the player list: 1.16.3's
      * {@code PlayerList#placeNewPlayer} needs the profile cache, which the game test server does not have.
      */
     public static ServerPlayer spawnPlayer(ServerTestHelper helper, GameType gameType) {

@@ -8,7 +8,7 @@ import sophisticated.building.smoketest.server.SmokeServer;
 
 /**
  * Fabric glue of the smoke harness (both sides): on the dedicated server of runSmokeServer {@link SmokeServer} runs the
- * server scenarios once the server has started (Fabric API 0.42 for 1.16.5 has no game test API).
+ * server scenarios once the server has started (Fabric API 0.25 for 1.16.3 has no game test API).
  */
 public final class FabricSmokeTest implements ModInitializer {
     @Override

@@ -58,8 +58,8 @@ This release reorganizes the mod internally; there is no change to how it plays.
 
 ## Behaviour notes
 
-* **Fabric:** the four decompress recipes (compressed cobblestone/dirt/sand/deepslate back to
-  9× the base block) use the ids `decompress_compressed_*`.
+* The four decompress recipes (compressed cobblestone/dirt/sand/deepslate back to 9× the base
+  block) use the ids `decompress_compressed_*`.
 * The Building Upgrade state is re-sent to the client every 10 ticks.
 * The Omega bag and randomizer bag menus close as soon as the bag leaves both hands.
 * Backpack count packets ignore unknown items instead of erroring.
@@ -88,3 +88,6 @@ This release reorganizes the mod internally; there is no change to how it plays.
   Run the server on an older Java 8 (tested with 8u202).
 * **Forge:** the `ERROR` line "No data fixer registered for" at server start comes from Sophisticated Backpacks
   1.16.4-1.0.0.94, not from this mod; it is logged with and without Sophisticated Building installed.
+* The `ERROR` line "No key layers in MapLike[{}]; ... Not a registry ops" when a dedicated server
+  creates a superflat world from `server.properties` comes from Minecraft 1.16.x itself, not from
+  this mod; the server then uses the default superflat layers.

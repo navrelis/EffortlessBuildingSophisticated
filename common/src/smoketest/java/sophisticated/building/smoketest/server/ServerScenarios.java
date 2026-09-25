@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 /**
- * Server smoke scenarios as server test bodies ({@link ServerTestHelper}, the Minecraft 1.16.5 stand-in for vanilla's
+ * Server smoke scenarios as server test bodies ({@link ServerTestHelper}, the Minecraft 1.16.3 stand-in for vanilla's
  * game test helper, loader-neutral). A survival server player without a client sends exactly what the client sends: the
  * block sets are written with the packets' write methods, read back with their FriendlyByteBuf constructors (encoded and
  * decoded like on the wire) and handed to the packets' server handlers. {@link SmokeServer} runs one test per method,

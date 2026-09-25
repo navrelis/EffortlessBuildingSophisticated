@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 /**
  * Marks a server test method ({@code void name(ServerTestHelper helper)}), the counterpart of vanilla's
- * {@code @GameTest} of Minecraft 1.17+, which Minecraft 1.16.5 ships without. The tests of a class run one after the
+ * {@code @GameTest} of Minecraft 1.17+, which Minecraft 1.16.3 ships without. The tests of a class run one after the
  * other in an empty area of a dedicated server, see {@link ServerTestRunner}.
  */
 @Retention(RetentionPolicy.RUNTIME)

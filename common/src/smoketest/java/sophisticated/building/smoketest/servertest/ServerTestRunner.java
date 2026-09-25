@@ -26,7 +26,7 @@ import java.util.Locale;
 import java.util.function.Consumer;
 
 /**
- * Runs server tests on a running server, the part of vanilla's game test framework that Minecraft 1.16.5 lacks (it
+ * Runs server tests on a running server, the part of vanilla's game test framework that Minecraft 1.16.3 lacks (it
  * ships the framework's classes stripped, and neither loader has a game test API for it). Unlike vanilla, the tests run
  * one after the other, all in the same area near the world spawn, which is emptied before every test: air from the
  * origin layer up, stone below. A test passes when it calls {@link ServerTestHelper#succeed()} (directly or as the last
@@ -119,7 +119,7 @@ public final class ServerTestRunner {
         } catch (ServerTestAssertException e) {
             lastWait = e;
         } catch (Throwable e) {
-            finish(false, describe(e));
+            failWith(e);
             return;
         }
         if (helper.hasSucceeded()) {
@@ -156,7 +156,7 @@ public final class ServerTestRunner {
             finish(false, e.getMessage());
             return;
         } catch (Throwable e) {
-            finish(false, describe(e));
+            failWith(e);
             return;
         }
         if (helper.hasSucceeded()) {
@@ -195,6 +195,12 @@ public final class ServerTestRunner {
         for (Entity entity : level.getEntities((Entity) null, box, entity -> !(entity instanceof Player))) {
             entity.remove();
         }
+    }
+
+    /** An unexpected exception (not an assertion) fails the test; its stack trace goes to the log. */
+    private void failWith(Throwable error) {
+        LOGGER.error("{} threw", current.name(), error);
+        finish(false, describe(error));
     }
 
     private static String describe(Throwable error) {

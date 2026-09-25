@@ -27,7 +27,7 @@ public abstract class AbstractSimiScreen extends Screen {
 	protected int windowXOffset, windowYOffset;
 	protected int guiLeft, guiTop;
 
-	// Minecraft 1.16.5's Screen only renders its buttons (AbstractWidgets); every renderable widget of this screen (buttons
+	// Minecraft 1.16.3's Screen only renders its buttons (AbstractWidgets); every renderable widget of this screen (buttons
 	// and lists) is rendered from this list instead, in the order it was added, like the renderables of Minecraft 1.17+
 	private final List<Widget> renderables = new ArrayList<>();
 

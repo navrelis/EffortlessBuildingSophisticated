@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Render types of the outliner. Adapted from Catnip ({@code sophisticated.building.create.catnip.render.PonderRenderTypes},
- * MIT License, Copyright (c) 2022 The Create Team, see LICENSE_Ponder.txt); the fluid type is removed. Minecraft 1.16.5
+ * MIT License, Copyright (c) 2022 The Create Team, see LICENSE_Ponder.txt); the fluid type is removed. Minecraft 1.16.3
  * has no core shaders: the states of its entity solid / entity translucent (cull) render types stand in for the
  * entity shaders of Minecraft 1.17+.
  */

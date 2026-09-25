@@ -1,7 +1,7 @@
 plugins {
-    // Architectury Loom, not ForgeGradle: ForgeGradle's "official" mappings for Minecraft 1.16.5 keep the MCP class names
+    // Architectury Loom, not ForgeGradle: ForgeGradle's "official" mappings for Minecraft 1.16.x keep the MCP class names
     // (net.minecraft.util.ResourceLocation, ...), while ../common is written against the Mojang class names that Fabric
-    // 1.16.5 and every later Forge use. Architectury Loom maps Forge 1.16.5 to the full Mojang names and reobfuscates the
+    // 1.16.x and every later Forge use. Architectury Loom maps Forge 1.16.3 to the full Mojang names and reobfuscates the
     // jar to SRG names (remapJar) for players.
     id 'dev.architectury.loom' version '1.17.493'
     id 'java-library'
@@ -142,7 +142,8 @@ loom {
 tasks.named('runSmokeClient') { verifySmokeRun(it, smoketestOutDir('client')) }
 tasks.named('runSmokeServer') { verifySmokeRun(it, smoketestOutDir('server')) }
 // The smoke server is a plain dedicated server: every run starts on a fresh superflat world on its own port (other dev
-// servers may run at the same time), with the EULA of this dev-only server accepted.
+// servers may run at the same time: 25737 here, 25738/25739 in ../fabric, 25731-25735 on mc/1.16.5), with the EULA
+// of this dev-only server accepted.
 def smokeServerDir = file('build/smoketest/server-run')
 tasks.named('runSmokeServer') {
     doFirst {
@@ -152,7 +153,7 @@ tasks.named('runSmokeServer') {
         // generator-settings: the server then uses the default superflat layers (bedrock, 2 dirt, grass), which are the
         // ones the other branches write here.
         new File(smokeServerDir, 'server.properties').text = 'level-type=flat\n' +
-                'server-port=25734\n'
+                'server-port=25737\n'
         new File(smokeServerDir, 'eula.txt').text = 'eula=true\n'
     }
 }
@@ -162,7 +163,7 @@ tasks.named('runSmokeServer') {
 // A missing property will result in an error. Properties are expanded using ${} Groovy notation.
 var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
     var replaceProperties = [
-            minecraft_version_range   : minecraft_version_range,
+            minecraft_version_range   : forge_minecraft_version_range,
             forge_version_range       : forge_version_range,
             forge_loader_version_range: forge_loader_version_range,
             mod_id                    : mod_id,

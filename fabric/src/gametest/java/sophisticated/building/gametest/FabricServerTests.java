@@ -20,8 +20,8 @@ import java.util.List;
 
 /**
  * Runs the {@code @ServerTest}s of the classes listed under the "sophisticatedbuilding-servertest" entrypoint of this
- * source set's fabric.mod.json on the dedicated server of {@code gradlew runGametest}. Fabric API 0.42 for Minecraft
- * 1.16.5 has no game test API (and the game ships its game test framework stripped), so the tests run through
+ * source set's fabric.mod.json on the dedicated server of {@code gradlew runGametest}. Fabric API 0.25 for Minecraft
+ * 1.16.3 has no game test API (and the game ships its game test framework stripped), so the tests run through
  * {@link ServerTestRunner}; the result is a JUnit report like the one Fabric API writes on the newer branches
  * ({@code -Dsophisticatedbuilding.gametest.report=<file>}), which the Gradle task checks, and the server stops.
  */

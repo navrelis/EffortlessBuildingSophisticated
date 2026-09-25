@@ -11,7 +11,7 @@ import sophisticated.building.smoketest.server.SmokeServer;
 /**
  * Forge glue of the smoke harness (mod "sophisticatedbuilding_smoketest", only loaded by runSmokeClient /
  * runSmokeServer). On the dedicated server of runSmokeServer {@link SmokeServer} runs the server scenarios once the
- * server has started (Forge 1.16.5 has no game test server).
+ * server has started (Forge 1.16.3 has no game test server).
  */
 @Mod(SmokeTest.MOD_ID)
 public final class ForgeSmokeTest {

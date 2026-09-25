@@ -89,7 +89,7 @@ public class ForgeCommonEvents {
 		Player original = event.getOriginal();
 		Player clone = event.getPlayer();
 
-		// Copy the power level from the original player to the clone, on both death and return from the End (Forge 1.16.5
+		// Copy the power level from the original player to the clone, on both death and return from the End (Forge 1.16.3
 		// keeps the original's capabilities valid during the event, no revive needed)
 		if (PowerLevelCapability.has(original)) {
 			PowerLevelCapability.set(clone, PowerLevelCapability.get(original));

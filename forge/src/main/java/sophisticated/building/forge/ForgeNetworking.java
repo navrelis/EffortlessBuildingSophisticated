@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
- * Sends the payloads of {@link PacketHandler} over one Forge {@link SimpleChannel}. Forge 1.16.5 identifies the
+ * Sends the payloads of {@link PacketHandler} over one Forge {@link SimpleChannel}. Forge 1.16.3 identifies the
  * messages of a channel by their class, so every payload travels in one {@link Message}, which writes the payload's
  * id before its body; the receiving side reads it with the payload's reader and runs the handler of its direction
  * (a payload type in both lists is bidirectional). The handlers run on the main thread with the context player; when
@@ -57,7 +57,7 @@ public final class ForgeNetworking {
 	private static void handle(Message message, Supplier<NetworkEvent.Context> contextSupplier) {
 		NetworkEvent.Context context = contextSupplier.get();
 		boolean serverSide = context.getDirection().getReceptionSide().isServer();
-		// Forge 1.16.5 has no consumerMainThread: the handler moves itself to the main thread
+		// Forge 1.16.3 has no consumerMainThread: the handler moves itself to the main thread
 		context.enqueueWork(() -> {
 			// Only the handler of the receiving side's direction runs; a payload sent the wrong way is dropped
 			find(serverSide ? PacketHandler.SERVERBOUND : PacketHandler.CLIENTBOUND, message.payload().id()).ifPresent(payload -> {

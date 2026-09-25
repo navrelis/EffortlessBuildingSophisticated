@@ -31,7 +31,7 @@ sourceSets {
         java.srcDir "${commonDir}/src/test/java"
     }
     // In-game smoke test harness (runSmokeClient / runSmokeServer, see TESTING.md): loader-neutral scenarios from
-    // ../common/src/smoketest and the Fabric glue from src/smoketest. No Sophisticated Backpacks on Fabric 1.17.1, so no
+    // ../common/src/smoketest and the Fabric glue from src/smoketest. No Sophisticated Backpacks on Fabric 1.16.3, so no
     // backpack fixture (../common/src/smoketestBackpacks) and no Trinkets. Own fabric.mod.json (mod
     // "sophisticatedbuilding_smoketest"); only loaded by the smoke runs, never packaged into the mod jar.
     smoketest {
@@ -40,7 +40,7 @@ sourceSets {
         compileClasspath += main.compileClasspath + main.output
         runtimeClasspath += main.runtimeClasspath + main.output
     }
-    // In-world tests of the server-side building rules. Fabric API 0.42 for 1.16.5 has no game test API, so they are
+    // In-world tests of the server-side building rules. Fabric API 0.25 for 1.16.3 has no game test API, so they are
     // server tests run by the smoke harness' ServerTestRunner (../common/src/smoketest). Own fabric.mod.json listing the
     // test classes; only loaded by the gametest run, never packaged into the mod jar.
     gametest {
@@ -82,7 +82,7 @@ loom {
     interfaceInjection {
         enableDependencyInterfaceInjection = false
     }
-    // Opens what Minecraft 1.17.1 keeps private and common/ uses (see the file)
+    // Opens what Minecraft 1.16.3 keeps private and common/ uses (see the file)
     accessWidenerPath = file('src/main/resources/sophisticatedbuilding.accesswidener')
     mixin {
         defaultRefmapName.set("${mod_id}.refmap.json")
@@ -123,7 +123,7 @@ loom {
             vmArg "-Dsophisticatedbuilding.smoketest.out=${smoketestOutDir('client')}"
         }
         // Headless: a dedicated server on a fresh superflat world runs the server scenarios (fake survival players,
-        // Minecraft 1.16.5 has no game test framework, see ServerTestRunner) and writes the same JSON.
+        // Minecraft 1.16.3 has no game test framework, see ServerTestRunner) and writes the same JSON.
         // gradlew runSmokeServer -PsmoketestOut=<dir>
         smokeServer {
             server()
@@ -142,7 +142,8 @@ tasks.named('runSmokeServer') { verifySmokeRun(it, smoketestOutDir('server')) }
 
 // runSmokeServer and runGametest start plain dedicated servers: every run starts on a fresh superflat world (level type
 // without namespace, the default layers: bedrock, 2 dirt, grass) on its own port (other dev servers may run at the same
-// time), with the EULA of these dev-only servers accepted.
+// time: 25738/25739 here, 25737 in ../forge, 25731-25735 on mc/1.16.5), with the EULA of these dev-only servers
+// accepted.
 def prepareTestServer = { File dir, int port ->
     new File(dir, 'world').deleteDir()
     dir.mkdirs()
@@ -151,7 +152,7 @@ def prepareTestServer = { File dir, int port ->
 }
 def smokeServerDir = file('build/smoketest/server-run')
 tasks.named('runSmokeServer') {
-    doFirst { prepareTestServer(smokeServerDir, 25735) }
+    doFirst { prepareTestServer(smokeServerDir, 25738) }
 }
 def gametestDir = file('build/gametest')
 tasks.named('runGametest') {
@@ -159,7 +160,7 @@ tasks.named('runGametest') {
     timeout = java.time.Duration.ofMinutes(15)
     doFirst {
         gametestReport.delete()
-        prepareTestServer(gametestDir, 25736)
+        prepareTestServer(gametestDir, 25739)
     }
     doLast {
         if (!gametestReport.file) {
@@ -176,6 +177,16 @@ tasks.named('runGametest') {
     }
 }
 
+// fabric.mod.json takes a version predicate, not the Maven range of shared.properties:
+// [1.16.4,1.16.5] -> ">=1.16.4 <=1.16.5", [1.16.5] -> "1.16.5"
+def fabricVersionPredicate = { String range ->
+    def single = range =~ /^\[([^,\]]+)\]$/
+    if (single.matches()) return single.group(1)
+    def closed = range =~ /^\[([^,\]]+),([^,\]]+)\]$/
+    if (closed.matches()) return ">=${closed.group(1)} <=${closed.group(2)}"
+    throw new GradleException("minecraft_version_range ${range} has no fabric.mod.json equivalent here")
+}
+
 processResources {
     var expandProps = [
             version                  : project.version,
@@ -184,7 +195,7 @@ processResources {
             mod_description          : mod_description,
             mod_authors              : mod_authors,
             mod_license              : mod_license,
-            minecraft_version        : minecraft_version,
+            minecraft_dependency     : fabricVersionPredicate(minecraft_version_range),
             fabric_loader_version_min: fabric_loader_version_min,
             fabric_api_version_min   : fabric_api_version_min,
             java_version             : java_version
@@ -194,7 +205,7 @@ processResources {
     filesMatching('fabric.mod.json') {
         expand expandProps
     }
-    // The Building Upgrade recipes need Sophisticated Backpacks, which Fabric 1.16.5 does not have; Fabric API 0.42 has no
+    // The Building Upgrade recipes need Sophisticated Backpacks, which Fabric 1.16.3 does not have; Fabric API 0.25 has no
     // resource conditions to skip them (the other branches use fabric:load_conditions), so they are left out of the jar
     exclude 'data/sophisticatedbuilding/recipes/building_upgrade_*.json'
 }

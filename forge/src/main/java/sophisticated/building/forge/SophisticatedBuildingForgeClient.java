@@ -30,7 +30,7 @@ public class SophisticatedBuildingForgeClient {
     }
 
     /**
-     * Forge 1.16.5 has no HUD overlay registry: the material cost overlay is drawn right after the crosshair, where the
+     * Forge 1.16.3 has no HUD overlay registry: the material cost overlay is drawn right after the crosshair, where the
      * newer Forge versions register it (above the crosshair element).
      */
     private static void registerGuiOverlays() {

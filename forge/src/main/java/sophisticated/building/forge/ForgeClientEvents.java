@@ -63,7 +63,7 @@ public class ForgeClientEvents {
 
     @SubscribeEvent
     public static void onRenderLevel(RenderWorldLastEvent event) {
-        // Forge 1.16.5 has no render stages (RenderLevelStageEvent arrives with Forge 40 for 1.18.2): once the whole
+        // Forge 1.16.3 has no render stages (RenderLevelStageEvent arrives with Forge 40 for 1.18.2): once the whole
         // level is drawn, first the block previews, mirror/array lines and ghost blocks, then the outlines, in the same
         // order as the stages on the other loaders.
         RenderHandler.onRenderWorld(event.getMatrixStack());
@@ -72,7 +72,7 @@ public class ForgeClientEvents {
 
     @SubscribeEvent
     public static void onRenderGui(RenderGameOverlayEvent.Post event) {
-        // Once per frame, after the whole HUD (Forge 1.16.5 also posts this event for single HUD elements)
+        // Once per frame, after the whole HUD (Forge 1.16.3 also posts this event for single HUD elements)
         if (event.getType() == RenderGameOverlayEvent.ElementType.ALL) {
             RenderHandler.onRenderGui(new GuiGraphics(event.getMatrixStack()));
         }

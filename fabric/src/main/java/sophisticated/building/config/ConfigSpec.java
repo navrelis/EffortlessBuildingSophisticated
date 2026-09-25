@@ -66,7 +66,7 @@ public final class ConfigSpec {
     private LoadResult load(String json, boolean syncOnly) {
         JsonObject root;
         try {
-            // Minecraft 1.17.1 ships Gson 2.8.0, which has no static JsonParser.parseString
+            // Minecraft 1.16.3 ships Gson 2.8.0, which has no static JsonParser.parseString
             JsonElement parsed = new JsonParser().parse(json);
             if (!parsed.isJsonObject()) {
                 throw new JsonParseException("top level is not a JSON object");

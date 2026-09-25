@@ -18,9 +18,9 @@ import java.util.List;
 
 /**
  * The subset of Minecraft 1.20's {@code GuiGraphics} the mod's screens, widgets and HUD use, implemented with the
- * Minecraft 1.16.5 GUI API ({@link GuiComponent}'s static helpers on a {@link PoseStack}, the fixed-function
+ * Minecraft 1.16.3 GUI API ({@link GuiComponent}'s static helpers on a {@link PoseStack}, the fixed-function
  * model-view matrix for items). Same method names, parameters and results as the 1.20 class, so the GUI code stays the
- * same as on the newer branches; vanilla render callbacks (which still take a {@link PoseStack} in 1.16.5) wrap their
+ * same as on the newer branches; vanilla render callbacks (which still take a {@link PoseStack} in 1.16.3) wrap their
  * stack with {@link #GuiGraphics(PoseStack)}.
  */
 public final class GuiGraphics {
@@ -38,7 +38,7 @@ public final class GuiGraphics {
     }
 
     /**
-     * The fixed-function state of Minecraft 1.16.5 that stands in for the position-color shader of 1.17+ (as
+     * The fixed-function state of Minecraft 1.16.3 that stands in for the position-color shader of 1.17+ (as
      * {@link GuiComponent}'s gradient fill sets it): untextured, smooth-shaded vertex colors, no alpha test. Undo with
      * {@link #endPositionColor()} after the buffer was drawn.
      */
@@ -195,7 +195,7 @@ public final class GuiGraphics {
         drawString(font, sequence, x - font.width(sequence) / 2, y, color);
     }
 
-    /** The item at the pose's position (1.16.5's item renderer draws with the fixed-function model-view matrix). */
+    /** The item at the pose's position (1.16.3's item renderer draws with the fixed-function model-view matrix). */
     public void renderItem(ItemStack stack, int x, int y) {
         withPoseAsModelView(() -> minecraft.getItemRenderer().renderAndDecorateFakeItem(stack, x, y));
     }

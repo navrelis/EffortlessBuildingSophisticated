@@ -75,7 +75,7 @@ public final class ServerTestHelper {
         throw new ServerTestAssertException(message);
     }
 
-    /** "x, y, z" like {@code BlockPos.toShortString()}, which is client only in Minecraft 1.16.5. */
+    /** "x, y, z" like {@code BlockPos.toShortString()}, which is client only in Minecraft 1.16.3. */
     public static String shortString(BlockPos pos) {
         return pos.getX() + ", " + pos.getY() + ", " + pos.getZ();
     }

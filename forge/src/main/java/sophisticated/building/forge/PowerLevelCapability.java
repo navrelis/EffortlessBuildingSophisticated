@@ -34,7 +34,7 @@ public final class PowerLevelCapability {
     }
 
     /**
-     * Registers the capability type, from common setup (Forge 1.16.5 has no {@code RegisterCapabilitiesEvent}). The
+     * Registers the capability type, from common setup (Forge 1.16.3 has no {@code RegisterCapabilitiesEvent}). The
      * storage is unused: the provider serializes the power level itself.
      */
     public static void register() {

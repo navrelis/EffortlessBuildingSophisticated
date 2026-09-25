@@ -5,7 +5,7 @@ import net.minecraft.world.item.Item;
 
 public class TagDependentIngredientItem extends Item {
 
-	// Minecraft 1.17.1 has no TagKey (1.18.2+): the tag object itself holds the bound values
+	// Minecraft 1.16.3 has no TagKey (1.18.2+): the tag object itself holds the bound values
 	private Tag<Item> tag;
 
 	public TagDependentIngredientItem(Properties properties, Tag<Item> tag) {

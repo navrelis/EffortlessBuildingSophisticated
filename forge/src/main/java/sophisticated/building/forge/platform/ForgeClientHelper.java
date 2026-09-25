@@ -58,7 +58,7 @@ public final class ForgeClientHelper implements IClientHelper {
 
     @Override
     public List<BakedQuad> getModelQuads(BakedModel model, BlockState state, Direction side, Random random, RenderType renderType) {
-        // Forge 1.16.5 tells multi-layer models the layer being drawn through this thread's render type
+        // Forge 1.16.3 tells multi-layer models the layer being drawn through this thread's render type
         ForgeHooksClient.setRenderLayer(renderType);
         try {
             return model.getQuads(state, side, random, EmptyModelData.INSTANCE);

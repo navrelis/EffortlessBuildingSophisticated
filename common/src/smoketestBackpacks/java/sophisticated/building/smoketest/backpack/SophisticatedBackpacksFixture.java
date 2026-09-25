@@ -1,6 +1,7 @@
 package sophisticated.building.smoketest.backpack;
 
 import net.minecraft.core.Registry;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -90,13 +91,24 @@ public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
     @Override
     public void setBuildingUpgradeEnabled(ItemStack backpack, boolean enabled) {
         BackpackUpgradeHandler upgrades = wrapper(backpack).getUpgradeHandler();
+        Map.Entry<Integer, IUpgradeWrapper> upgrade = buildingUpgrade(upgrades);
+        ItemStack upgradeStack = upgrade.getValue().getUpgradeStack().copy();
+        upgradeStack.getOrCreateTag().putBoolean(ENABLED_TAG, enabled);
+        upgrades.setStackInSlot(upgrade.getKey(), upgradeStack);
+    }
+
+    /** Reads the upgrade's "enabled" tag (absent = enabled), as BuildingUpgradeWrapper.isEnabled does. */
+    @Override
+    public boolean isBuildingUpgradeEnabled(ItemStack backpack) {
+        CompoundTag tag = buildingUpgrade(wrapper(backpack).getUpgradeHandler()).getValue().getUpgradeStack().getTag();
+        return tag == null || !tag.contains(ENABLED_TAG) || tag.getBoolean(ENABLED_TAG);
+    }
+
+    private static Map.Entry<Integer, IUpgradeWrapper> buildingUpgrade(BackpackUpgradeHandler upgrades) {
         for (Map.Entry<Integer, IUpgradeWrapper> upgrade : upgrades.getSlotWrappers().entrySet()) {
-            ItemStack upgradeStack = upgrade.getValue().getUpgradeStack().copy();
-            ResourceLocation id = Registry.ITEM.getKey(upgradeStack.getItem());
+            ResourceLocation id = Registry.ITEM.getKey(upgrade.getValue().getUpgradeStack().getItem());
             if (id.getNamespace().equals(SophisticatedBuilding.MODID) && id.getPath().startsWith("building_upgrade")) {
-                upgradeStack.getOrCreateTag().putBoolean(ENABLED_TAG, enabled);
-                upgrades.setStackInSlot(upgrade.getKey(), upgradeStack);
-                return;
+                return upgrade;
             }
         }
         throw new IllegalStateException("The backpack has no Building Upgrade");

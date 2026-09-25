@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 
 /**
  * Loader-neutral entry point of the headless server smoke run ({@code runSmokeServer}): a dedicated server on a fresh
- * superflat world runs the {@link ServerScenarios} as server tests (Minecraft 1.16.5 has no game test framework, see
+ * superflat world runs the {@link ServerScenarios} as server tests (Minecraft 1.16.3 has no game test framework, see
  * {@link ServerTestRunner}) and every test becomes a check of the same JSON the client run writes. When all are done the
  * result is written and the server stops; the watchdog covers a hang. The loader glue calls {@link #init} from its mod
  * initialisation, {@link #start} once the server has started and {@link #tick} after every server tick.

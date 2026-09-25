@@ -49,6 +49,9 @@ public interface SmokeBackpacks {
     /** Enables or disables the backpack's Building Upgrade (like its toggle button in the backpack screen). */
     void setBuildingUpgradeEnabled(ItemStack backpack, boolean enabled);
 
+    /** Whether the backpack's Building Upgrade is enabled (what its settings tab toggles). */
+    boolean isBuildingUpgradeEnabled(ItemStack backpack);
+
     /**
      * Puts the backpack into an accessory slot (Curios on NeoForge, Trinkets on Fabric) when such a mod is present.
      *

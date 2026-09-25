@@ -5,7 +5,10 @@ This branch (`mc/1.16.3`) holds Sophisticated Building for Minecraft 1.16.3 on F
 in `common/`, and every loader folder is a standalone Gradle build that compiles `common/` together with its own sources
 into one mod jar. Sophisticated Backpacks exists for Forge 1.16.3 only (the unofficial Fabric port starts at 1.19.2),
 so the Forge jar has the backpack integration and the Fabric jar has none. 1.16.3 stays a branch of its own (1.16.4 and
-1.16.5 share `mc/1.16.5`): its Fabric API, Forge and Sophisticated Backpacks builds are all older than the 1.16.4+ ones.
+1.16.5 share `mc/1.16.5`, which also has a `forge-1.16.4/` folder for Forge 35): its Fabric API, Forge and
+Sophisticated Backpacks builds are all older than the 1.16.4+ ones. That `forge-1.16.4/` folder is not used here: it
+overrides `forge/` for Sophisticated Backpacks 1.16.4-3.0.0.289 (Tool Swapper, the later upgrade API), while `forge/`
+on this branch is already written for the older SB 1.16.4-1.0.0.94 that Minecraft 1.16.3 has.
 
 ## Layout
 
@@ -13,7 +16,7 @@ so the Forge jar has the backpack integration and the Fabric jar has none. 1.16.
 gradle/shared.properties   mod id, name, version, license, authors, description, Minecraft version (read by every loader build)
 common/                    loader-neutral code and assets, no build of its own
   src/main/java              mod logic; loader APIs only through sophisticated.building.platform.Services
-  src/main/resources         assets, data (the Building Upgrade recipes carry Fabric and Forge load conditions), mixin config
+  src/main/resources         assets, data (Building Upgrade recipes: Forge load condition, left out of the Fabric jar), mixin config
   src/test/java              unit tests, run by every loader build
   src/smoketest              in-game smoke test harness and server test runner (dev-only, see TESTING.md);
                              src/smoketestBackpacks: its SB fixture (Forge only)
@@ -38,7 +41,7 @@ The ghost block previews and outlines use the Catnip outliner and GUI widgets ve
 
 | | Fabric | Forge |
 |---|---|---|
-| Minecraft | 1.16.3 (`fabric.mod.json`: exactly 1.16.3) | 1.16.3 (`mods.toml`: `[1.16.3]`) |
+| Minecraft | 1.16.3 (`fabric.mod.json`: exactly 1.16.3, from `minecraft_version_range` in `gradle/shared.properties`) | 1.16.3 (`mods.toml`: `[1.16.3]`, from `forge_minecraft_version_range` in `forge/gradle.properties`) |
 | Java | 8 | 8 |
 | Loader | Fabric Loader 0.19.5 (minimum 0.19.5), Fabric API 0.25.0+build.415-1.16 (the last one for 1.16.3; minimum 0.25.0, mod id `fabric`) | Forge 34.1.42 (the last one for 1.16.3; minimum 34.1.42, `loaderVersion` `[34,)`) |
 | Toolchain | Loom 1.17.21, Gradle 9.5.1, official Mojang mappings | Architectury Loom 1.17.493, Gradle 9.5.1, official Mojang mappings, reobfuscated to SRG names (`remapJar`) |
@@ -49,7 +52,8 @@ The Forge jar was also started on a real Forge 1.16.3 server (installer 34.1.42,
 Backpacks and Curios in `mods/`, Java 8u202): "Registered Sophisticated Backpacks upgrade containers", `Done`; again
 with only this jar and Sophisticated Backpacks, and with this jar alone (no SB: `Done`, no upgrade containers). The
 Fabric jar was started on a real Fabric 1.16.3 server (Fabric Loader 0.19.5, the Fabric API 0.25.0 modules, Java 8):
-`Done`, no errors from the mod.
+`Done`, no errors from the mod. The release jars of the final build (after merging the final `mc/1.16.5`) are byte for
+byte the ones of these runs, and the Forge one was started again with Sophisticated Backpacks: same result.
 
 **Java for Forge 1.16.3:** Forge 34 ships modlauncher 8.0.6, which cannot load a single class on Java 8u321 or newer
 (`NoSuchMethodError: sun.security.util.ManifestEntryVerifier.<init>(Ljava/util/jar/Manifest;)V`, with or without this
@@ -136,7 +140,10 @@ cd forge  && ./gradlew build          # reobfuscated jar in forge/build/libs, ru
 `ServerTestRunner` runs the scenarios) in either loader folder run the in-game smoke scenarios and write
 `<dir>/smoketest-result.json`; the game exits by itself. Forge also runs the Sophisticated Backpacks checks (`sb.*`,
 `sb.tool_swapper_tools` skipped: no Tool Swapper in SB 1.0.0.94); Fabric has no backpack integration on 1.16.3 and runs
-none. The harness is dev-only and never packaged. See [TESTING.md](TESTING.md).
+none. The client runs also drive the GUIs (randomizer bag screens, player settings screen, modifier entry widgets and,
+on Forge, the Building Upgrade's settings tab in the backpack screen): Fabric reports 13 client checks, Forge 21 (one
+skipped); the server runs report 3 (Fabric) and 9 (Forge, one skipped). The harness is dev-only and never packaged.
+See [TESTING.md](TESTING.md).
 
 ## Run
 

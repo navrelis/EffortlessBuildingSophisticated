@@ -40,7 +40,7 @@ public final class CuriosAccessorySlots implements SmokeAccessorySlots {
         return backSlot(player).map(handler -> handler.getStacks().getStackInSlot(0)).orElse(ItemStack.EMPTY);
     }
 
-    // Curios 4 (Forge 1.16.5) hands the inventory out as a capability LazyOptional
+    // Curios 4 (Forge 1.16.3) hands the inventory out as a capability LazyOptional
     private static Optional<ICurioStacksHandler> backSlot(ServerPlayer player) {
         return CuriosApi.getCuriosHelper().getCuriosHandler(player).resolve().flatMap(inventory -> inventory.getStacksHandler(SLOT));
     }

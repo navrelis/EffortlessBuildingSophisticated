@@ -28,7 +28,7 @@ public class StorageDataGameTest {
         stack.setHoverName(new TextComponent(NAME));
         CompoundTag contents = new CompoundTag();
         ContainerHelper.saveAllItems(contents, NonNullList.of(ItemStack.EMPTY, new ItemStack(Items.DIAMOND, 7)));
-        // Minecraft 1.16.5 has no BlockItem.setBlockEntityData: the same "BlockEntityTag" it would write
+        // Minecraft 1.16.3 has no BlockItem.setBlockEntityData: the same "BlockEntityTag" it would write
         stack.addTagElement("BlockEntityTag", contents);
         return stack;
     }
