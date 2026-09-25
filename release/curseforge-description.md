@@ -13,7 +13,7 @@ durability and hunger, and undo refunds exactly what it should. With the optiona
 **[Sophisticated Backpacks](https://www.curseforge.com/minecraft/mc-mods/sophisticated-backpacks)** integration, a
 Building Upgrade feeds your builds straight from your backpacks.
 
-![Radial menu with all build modes](IMAGE: 01-radial-menu.png)
+![Radial menu with all build modes](https://media.forgecdn.net/attachments/1975/950/01-radial-menu-png.png)
 
 ---
 
@@ -111,7 +111,7 @@ build you see:
 - the hint *Left-click to cancel, Right-click to place*,
 - a list of the blocks needed at the left edge of the screen (for example `5x Stone`).
 
-![Line preview with outline, ghost blocks and block count](IMAGE: 02-line-preview.png)
+![Line preview with outline, ghost blocks and block count](https://media.forgecdn.net/attachments/1975/951/02-line-preview-png.png)
 
 The first click must hit a block; clicking into the air starts nothing. Holding the right mouse button repeats the
 click every 4 ticks (every tick with the *Fast* build speed).
@@ -246,7 +246,7 @@ the radius (at least 1), click 3 the maximum height (up to your max blocks per a
 
   Slope and Wall turn to match the direction you look when you build.
 
-![Terrain Mound options in the radial menu](IMAGE: 03-terrain-mound-options.png)
+![Terrain Mound options in the radial menu](https://media.forgecdn.net/attachments/1975/952/03-terrain-mound-options-png.png)
 
 ---
 
@@ -267,7 +267,7 @@ Open it with **Numpad +** (key *Modifier Menu*) or the radial menu button; press
 
 Copies count towards *max blocks placed at once*, and in Survival every copy costs its item.
 
-![Modifier Settings with a mirror](IMAGE: 04-modifier-settings-mirror.png)
+![Modifier Settings with a mirror](https://media.forgecdn.net/attachments/1975/953/04-modifier-settings-mirror-png.png)
 
 ### Mirror
 
@@ -281,7 +281,7 @@ Copies count towards *max blocks placed at once*, and in Survival every copy cos
 
 Mirrored blocks are flipped too, so stairs and other directional blocks face the mirrored way.
 
-![A mirror in the world](IMAGE: 05-mirror-in-world.png)
+![A mirror in the world](https://media.forgecdn.net/attachments/1975/954/05-mirror-in-world-png.png)
 
 ### Array
 
@@ -294,7 +294,7 @@ The panel shows the array's length (largest offset x count) against your max blo
 it turns red when the array is longer. That is a warning only, the copies are still made (the *max blocks placed at
 once* limit still applies).
 
-![Array settings](IMAGE: 06-array-settings.png)
+![Array settings](https://media.forgecdn.net/attachments/1975/955/06-array-settings-png.png)
 
 ### Radial Mirror
 
@@ -331,7 +331,7 @@ Every replace mode except *Replace Only Air* is **Quick Replace**: your click ta
 of the space in front of it. It also works in **Disable** mode, where each right-click replaces the block you look
 at, with a preview of that block.
 
-![Quick Replace preview in Disable mode](IMAGE: 07-quick-replace-preview.png)
+![Quick Replace preview in Disable mode](https://media.forgecdn.net/attachments/1975/956/07-quick-replace-preview-png.png)
 
 ### Protect Tile Entities
 
@@ -448,7 +448,7 @@ On Minecraft 1.16.x (no amethyst) the Diamond and Omega bags use prismarine crys
 10, 15, 20, 30, 40, 50, 65, 80, 90; default 1). A badge shows each weight; pointing at a slot shows *Weight* and the
 resulting *Chance* in percent. **Reset** sets all weights back to 1. The weights are stored on the bag.
 
-![Omega Randomizer Bag with slot weights](IMAGE: 08-omega-bag-weights.png)
+![Omega Randomizer Bag with slot weights](https://media.forgecdn.net/attachments/1975/957/08-omega-bag-weights-png.png)
 
 ### Reach Upgrades
 
@@ -512,7 +512,7 @@ once); those still apply. Anything above the tier limit comes from your inventor
 - **HUD:** the block counts on screen include the blocks in your backpacks (section 10).
 - **Tooltip:** *"Place up to N blocks at once from backpack inventory"*.
 
-![Building Upgrade tab in a backpack](IMAGE: 10-building-upgrade-tab.png)
+![Building Upgrade tab in a backpack](https://media.forgecdn.net/attachments/1975/949/10-building-upgrade-tab-png.png)
 
 ### Tool Swapper
 
@@ -547,7 +547,7 @@ Open it with the button at the top left of the radial menu or the key *Open Play
 Switches are ON/OFF buttons, numbers are sliders (arrow keys move one step). Changes apply at once; **Done** or
 Escape saves them to your client config; **Reset to Defaults** restores all values. Every setting has a tooltip.
 
-![Player Settings screen](IMAGE: 09-player-settings.png)
+![Player Settings screen](https://media.forgecdn.net/attachments/1975/958/09-player-settings-png.png)
 
 | Setting | Default | Range | What it does |
 |---|---|---|---|
