@@ -71,12 +71,17 @@ function Start-GradleProcess {
         ProcessStartInfo.ArgumentList, which lets .NET do Win32 argv quoting/escaping per element - this is
         what makes an already-quoted path (e.g. an --init-script argument with a space in it) come through
         intact instead of getting mangled by hand-rolled string concatenation.
+
+        -JavaHome (from Resolve-LoaderGradleJdk) sets JAVA_HOME for this child process only (its own
+        ProcessStartInfo environment), so gradlew runs Gradle on the JDK the loader folder asks for; this script's
+        own environment and every other process keep theirs. Empty = inherit JAVA_HOME unchanged.
     #>
     param(
         [Parameter(Mandatory)][string]$LoaderDir,
         [Parameter(Mandatory)][string[]]$TaskArgs,
         [Parameter(Mandatory)][string]$LogPath,
-        [switch]$RedirectInput
+        [switch]$RedirectInput,
+        [string]$JavaHome
     )
     $gradlewBat = Join-Path $LoaderDir 'gradlew.bat'
     if (-not (Test-Path $gradlewBat)) {
@@ -89,6 +94,9 @@ function Start-GradleProcess {
     $psi.UseShellExecute = $false
     $psi.CreateNoWindow = $true
     $psi.RedirectStandardInput = [bool]$RedirectInput
+    if ($JavaHome) {
+        $psi.Environment['JAVA_HOME'] = $JavaHome
+    }
     [void]$psi.ArgumentList.Add('/c')
     [void]$psi.ArgumentList.Add($gradlewBat)
     foreach ($a in $TaskArgs) { [void]$psi.ArgumentList.Add($a) }
@@ -217,6 +225,113 @@ function Wait-ForLogPattern {
         Start-Sleep -Seconds $PollSeconds
     }
     return $null
+}
+
+# ---------------------------------------------------------------------------------------------------------------
+# Gradle JDK per loader folder. Each loader folder names the JDK its Gradle needs in gradle.properties
+# (ci_gradle_jdk=<n>, the same key .github/workflows/build.yml reads: 21 up to 1.21.11, 25 for 26.x). Resolution:
+# the environment variable SB_JDK_<n> (a JDK home), then a Gradle-provisioned JDK <GRADLE_USER_HOME or
+# ~/.gradle>/jdks/*-<n>-* (e.g. eclipse_adoptium-25-amd64-windows.2), then the default JAVA_HOME if it is JDK <n>.
+# Nothing found = an error the stage reports; nothing is ever set globally (Start-GradleProcess -JavaHome).
+# ---------------------------------------------------------------------------------------------------------------
+
+function Get-GradleJdkRequirement {
+    <# The ci_gradle_jdk=<n> of <LoaderDir>/gradle.properties as an int, or $null (no file, no key, not a number). #>
+    param([Parameter(Mandatory)][string]$LoaderDir)
+    $props = Join-Path $LoaderDir 'gradle.properties'
+    if (-not (Test-Path -LiteralPath $props)) { return $null }
+    foreach ($line in (Get-Content -LiteralPath $props -ErrorAction SilentlyContinue)) {
+        if ($line -match '^\s*ci_gradle_jdk\s*[=:]\s*(\d+)\s*$') { return [int]$Matches[1] }
+    }
+    return $null
+}
+
+function Test-JavaHome {
+    <# True if $JavaHome is a JDK/JRE home with a java launcher in bin/. #>
+    param([string]$JavaHome)
+    if ([string]::IsNullOrWhiteSpace($JavaHome)) { return $false }
+    return (Test-Path -LiteralPath (Join-Path $JavaHome 'bin/java.exe')) -or (Test-Path -LiteralPath (Join-Path $JavaHome 'bin/java'))
+}
+
+function Get-JavaHomeMajorVersion {
+    <# Major version from <JavaHome>/release (JAVA_VERSION="25.0.2" -> 25, "1.8.0_504" -> 8), or $null if unknown. #>
+    param([string]$JavaHome)
+    if ([string]::IsNullOrWhiteSpace($JavaHome)) { return $null }
+    $release = Join-Path $JavaHome 'release'
+    if (-not (Test-Path -LiteralPath $release)) { return $null }
+    foreach ($line in (Get-Content -LiteralPath $release -ErrorAction SilentlyContinue)) {
+        if ($line -match '^JAVA_VERSION="?1\.(\d+)') { return [int]$Matches[1] }
+        if ($line -match '^JAVA_VERSION="?(\d+)') { return [int]$Matches[1] }
+    }
+    return $null
+}
+
+function Resolve-GradleJdk {
+    <#
+        Finds a JDK <Version> home for Gradle. Returns { Version; JavaHome; Source; Error } - Error is set (and
+        JavaHome $null) when none is found or SB_JDK_<Version> points to something unusable (an explicit override
+        is never silently replaced by another JDK). -OverrideHome / -JdksRoot / -DefaultJavaHome default to the real
+        environment and exist for the offline tests.
+    #>
+    param(
+        [Parameter(Mandatory)][int]$Version,
+        [string]$OverrideHome = [Environment]::GetEnvironmentVariable("SB_JDK_$Version"),
+        [string]$JdksRoot = (Join-Path ($env:GRADLE_USER_HOME ? $env:GRADLE_USER_HOME : (Join-Path $HOME '.gradle')) 'jdks'),
+        [string]$DefaultJavaHome = $env:JAVA_HOME
+    )
+    $found = { param($jdkHome, $source) [pscustomobject]@{ Version = $Version; JavaHome = $jdkHome; Source = $source; Error = $null } }
+    $failed = { param($message) [pscustomobject]@{ Version = $Version; JavaHome = $null; Source = $null; Error = $message } }
+
+    if (-not [string]::IsNullOrWhiteSpace($OverrideHome)) {
+        if (-not (Test-JavaHome -JavaHome $OverrideHome)) {
+            return & $failed "SB_JDK_$Version='$OverrideHome' has no bin/java; point it to a JDK $Version home"
+        }
+        $major = Get-JavaHomeMajorVersion -JavaHome $OverrideHome
+        if ($null -ne $major -and $major -ne $Version) {
+            return & $failed "SB_JDK_$Version='$OverrideHome' is JDK $major, not $Version"
+        }
+        return & $found $OverrideHome "SB_JDK_$Version"
+    }
+
+    if ($JdksRoot -and (Test-Path -LiteralPath $JdksRoot)) {
+        $candidates = @(Get-ChildItem -LiteralPath $JdksRoot -Directory -Filter "*-$Version-*" -ErrorAction SilentlyContinue |
+            Where-Object {
+                $major = Get-JavaHomeMajorVersion -JavaHome $_.FullName
+                (Test-JavaHome -JavaHome $_.FullName) -and ($null -eq $major -or $major -eq $Version)
+            } | Sort-Object Name)
+        if ($candidates.Count -gt 0) {
+            return & $found $candidates[-1].FullName 'Gradle jdks folder'
+        }
+    }
+
+    $defaultMajor = Get-JavaHomeMajorVersion -JavaHome $DefaultJavaHome
+    if ((Test-JavaHome -JavaHome $DefaultJavaHome) -and $defaultMajor -eq $Version) {
+        return & $found $DefaultJavaHome 'default JAVA_HOME'
+    }
+    $defaultText = if ([string]::IsNullOrWhiteSpace($DefaultJavaHome)) { 'not set' } elseif ($null -eq $defaultMajor) { "'$DefaultJavaHome' (version unknown)" } else { "'$DefaultJavaHome' (JDK $defaultMajor)" }
+    return & $failed ("JDK $Version for Gradle not found: SB_JDK_$Version is not set, no JDK $Version under '$JdksRoot' " +
+        "(folder *-$Version-*), default JAVA_HOME $defaultText. Set SB_JDK_$Version to a JDK $Version home.")
+}
+
+function Resolve-LoaderGradleJdk {
+    <# The Gradle JDK for one loader folder: ci_gradle_jdk=<n> -> Resolve-GradleJdk <n>; no ci_gradle_jdk -> the
+       default JAVA_HOME, unchanged (JavaHome $null = inherit). Adds RequiredBy (the gradle.properties path). #>
+    param([Parameter(Mandatory)][string]$LoaderDir, [hashtable]$ResolveArgs = @{})
+    $version = Get-GradleJdkRequirement -LoaderDir $LoaderDir
+    if ($null -eq $version) {
+        return [pscustomobject]@{ Version = $null; JavaHome = $null; Source = 'default JAVA_HOME (no ci_gradle_jdk)'; Error = $null; RequiredBy = $null }
+    }
+    $resolved = Resolve-GradleJdk -Version $version @ResolveArgs
+    $resolved | Add-Member -NotePropertyName RequiredBy -NotePropertyValue (Join-Path $LoaderDir 'gradle.properties')
+    return $resolved
+}
+
+function Format-GradleJdk {
+    <# One line for the console and the report, e.g. "JDK 25: C:\...\eclipse_adoptium-25-amd64-windows.2 (Gradle jdks folder)". #>
+    param([Parameter(Mandatory)]$Jdk)
+    if ($Jdk.Error) { return "JDK $($Jdk.Version): NOT FOUND - $($Jdk.Error)" }
+    if ($null -eq $Jdk.Version) { return "$($Jdk.Source): $($env:JAVA_HOME)" }
+    return "JDK $($Jdk.Version): $($Jdk.JavaHome) ($($Jdk.Source))"
 }
 
 # ---------------------------------------------------------------------------------------------------------------

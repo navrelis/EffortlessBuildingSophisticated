@@ -51,6 +51,14 @@
     the agents use too (.knowledge/port-brief.md "One game window at a time"), so at most one window is open.
     Do not start parallel instances while a ForgeGradle cache is still cold (docs/PORTING.md "Gotchas").
 
+    Gradle JDK: each loader folder's gradle.properties names the JDK its Gradle needs (ci_gradle_jdk=<n>, the key CI
+    reads too: 21 up to 1.21.11, 25 for 26.x). Every Gradle process of that folder gets JAVA_HOME set to a JDK <n>
+    for that child process only (never for this script or anything else): the environment variable SB_JDK_<n> if
+    set (must be a JDK <n> home), else a Gradle-provisioned <GRADLE_USER_HOME or ~/.gradle>/jdks/*-<n>-* folder,
+    else this process's JAVA_HOME if it is JDK <n>. If none is found, every stage of that folder fails with the
+    reason and no Gradle process starts. A folder without ci_gradle_jdk inherits JAVA_HOME. The JDK is printed per
+    stage and recorded per row (gradleJdk) and per folder (gradleJdks, report.md "Gradle JDK").
+
 .PARAMETER Mc
     Restrict the run to these Minecraft versions (must match <VersionsDir>/<mc> folder names). Default: every
     worktree under -VersionsDir.
@@ -334,6 +342,10 @@ Write-Host "test-all-versions: $($branches.Count) version(s), stages: $($Stages 
 # ---------------------------------------------------------------------------------------------------------------
 
 $script:SbGametestCoverage = [System.Collections.Generic.List[object]]::new()
+# Gradle JDK of the loader folder being tested (Resolve-LoaderGradleJdk); every Start-GradleProcess passes it as the
+# child's JAVA_HOME. $null = inherit this process's JAVA_HOME.
+$script:LoaderJavaHome = $null
+$script:GradleJdkUsage = [System.Collections.Generic.List[object]]::new()
 
 function Invoke-BuildStage {
     param([string]$Mc, [string]$LoaderName, [string]$LoaderDir, [string]$StageLogDir, [int]$TimeoutMinutes)
@@ -343,7 +355,7 @@ function Invoke-BuildStage {
     Write-Host "==> [$Mc/$LoaderName] build"
     $logPath = Join-Path $StageLogDir 'build.console.log'
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
-    $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs @('build', '--no-daemon', '--stacktrace') -LogPath $logPath
+    $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs @('build', '--no-daemon', '--stacktrace') -LogPath $logPath -JavaHome $script:LoaderJavaHome
     $wait = Wait-GradleProcess -Process $proc -TimeoutMinutes $TimeoutMinutes
     $sw.Stop()
 
@@ -372,7 +384,7 @@ function Invoke-GametestStage {
     Write-Host "==> [$Mc/$LoaderName] gametest"
     $logPath = Join-Path $StageLogDir 'gametest.console.log'
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
-    $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs @('runGametest', '--no-daemon', '--stacktrace') -LogPath $logPath
+    $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs @('runGametest', '--no-daemon', '--stacktrace') -LogPath $logPath -JavaHome $script:LoaderJavaHome
     $wait = Wait-GradleProcess -Process $proc -TimeoutMinutes $TimeoutMinutes
     $sw.Stop()
 
@@ -426,7 +438,7 @@ function Invoke-ServerStage {
     # NOW, before launch, so Wait-ForLogPattern only ever matches against bytes written after this point (see its
     # own comment) - never a stale "Done (" left over from a previous run in the same run dir.
     $logBaseline = Get-LogBaselineLength -Path $latestLog
-    $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs @('runServer', '--no-daemon') -LogPath $logPath -RedirectInput
+    $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs @('runServer', '--no-daemon') -LogPath $logPath -RedirectInput -JavaHome $script:LoaderJavaHome
 
     $doneLine = Wait-ForLogPattern -Path $latestLog -Pattern 'Done \(' -TimeoutMinutes $TimeoutMinutes -Process $proc -BaselineLength $logBaseline
     Start-Sleep -Seconds 3   # let a couple more lines (mod init tail, SB registration) land after "Done ("
@@ -593,7 +605,7 @@ function Invoke-ClientStage {
         # can never match a "logged in with entity id" (or "Loaded N advancements") line left over from an earlier
         # client run in this same run dir, in the window before log4j2 gets around to rotating it away.
         $logBaseline = Get-LogBaselineLength -Path $latestLog
-        $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs $taskArgs -LogPath $logPath
+        $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs $taskArgs -LogPath $logPath -JavaHome $script:LoaderJavaHome
         $moveJob = Start-WindowMoveJob -GameProcessId $proc.Id
 
         # "Loaded N advancements" happens very early in client bootstrap (well before any world join), so it must
@@ -722,7 +734,7 @@ function Invoke-SmokeStage {
         $proc = $null
         $moveJob = $null
         try {
-            $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs @($target, "-PsmoketestOut=$outDir", '--no-daemon', '--stacktrace') -LogPath $logPath
+            $proc = Start-GradleProcess -LoaderDir $LoaderDir -TaskArgs @($target, "-PsmoketestOut=$outDir", '--no-daemon', '--stacktrace') -LogPath $logPath -JavaHome $script:LoaderJavaHome
             if ($opensWindow) { $moveJob = Start-WindowMoveJob -GameProcessId $proc.Id }
             $wait = Wait-GradleProcess -Process $proc -TimeoutMinutes $TimeoutMinutes
         } finally {
@@ -839,16 +851,35 @@ try {
             $stageLogDir = Join-Path $ReportDir "$mcName/$loaderName"
             New-Item -ItemType Directory -Path $stageLogDir -Force -WhatIf:$false | Out-Null
 
+            # Gradle runs on the JDK this loader folder asks for (ci_gradle_jdk in its gradle.properties), set as
+            # JAVA_HOME of each Gradle child process only
+            $gradleJdk = Resolve-LoaderGradleJdk -LoaderDir $loaderDir
+            $gradleJdkText = Format-GradleJdk -Jdk $gradleJdk
+            $script:LoaderJavaHome = $gradleJdk.JavaHome
+            $script:GradleJdkUsage.Add([pscustomobject]@{
+                mc = $mcName; loader = $loaderName; requested = $gradleJdk.Version; javaHome = $gradleJdk.JavaHome
+                source = $gradleJdk.Source; error = $gradleJdk.Error
+            })
+
             foreach ($stage in $Stages) {
                 if ($stopRequested) { break }
-                $stageResults = switch ($stage) {
-                    'build'    { @(Invoke-BuildStage -Mc $mcName -LoaderName $loaderName -LoaderDir $loaderDir -StageLogDir $stageLogDir -TimeoutMinutes $TimeoutMinutes) }
-                    'gametest' { @(Invoke-GametestStage -Mc $mcName -LoaderName $loaderName -LoaderDir $loaderDir -StageLogDir $stageLogDir -TimeoutMinutes $TimeoutMinutes -HasGametest $hasGametest) }
-                    'server'   { @(Invoke-ServerStage -Mc $mcName -LoaderName $loaderName -LoaderDir $loaderDir -StageLogDir $stageLogDir -TimeoutMinutes $TimeoutMinutes -HasSB $hasSB) }
-                    'client'   { @(Invoke-ClientStage -Mc $mcName -LoaderName $loaderName -LoaderDir $loaderDir -StageLogDir $stageLogDir -TimeoutMinutes $TimeoutMinutes -ReportDir $ReportDir) }
-                    'smoke'    { @(Invoke-SmokeStage -Mc $mcName -LoaderName $loaderName -LoaderDir $loaderDir -StageLogDir $stageLogDir -TimeoutMinutes $TimeoutMinutes -HasSB $hasSB -Targets $SmokeTasks) }
+                Write-Host ("  [{0}/{1}] {2}: Gradle on {3}" -f $mcName, $loaderName, $stage, $gradleJdkText) -ForegroundColor ($gradleJdk.Error ? 'Red' : 'DarkGray')
+                if ($gradleJdk.Error -and -not $WhatIfPreference) {
+                    # No Gradle run without the requested JDK: every stage of this loader folder fails with the reason
+                    $stageResults = @(New-StageResult -Mc $mcName -Loader $loaderName -Stage $stage -Result 'fail' `
+                        -Detail "ci_gradle_jdk=$($gradleJdk.Version) in $($gradleJdk.RequiredBy): $($gradleJdk.Error)")
+                } else {
+                    $stageResults = switch ($stage) {
+                        'build'    { @(Invoke-BuildStage -Mc $mcName -LoaderName $loaderName -LoaderDir $loaderDir -StageLogDir $stageLogDir -TimeoutMinutes $TimeoutMinutes) }
+                        'gametest' { @(Invoke-GametestStage -Mc $mcName -LoaderName $loaderName -LoaderDir $loaderDir -StageLogDir $stageLogDir -TimeoutMinutes $TimeoutMinutes -HasGametest $hasGametest) }
+                        'server'   { @(Invoke-ServerStage -Mc $mcName -LoaderName $loaderName -LoaderDir $loaderDir -StageLogDir $stageLogDir -TimeoutMinutes $TimeoutMinutes -HasSB $hasSB) }
+                        'client'   { @(Invoke-ClientStage -Mc $mcName -LoaderName $loaderName -LoaderDir $loaderDir -StageLogDir $stageLogDir -TimeoutMinutes $TimeoutMinutes -ReportDir $ReportDir) }
+                        'smoke'    { @(Invoke-SmokeStage -Mc $mcName -LoaderName $loaderName -LoaderDir $loaderDir -StageLogDir $stageLogDir -TimeoutMinutes $TimeoutMinutes -HasSB $hasSB -Targets $SmokeTasks) }
+                    }
                 }
                 foreach ($row in $stageResults) {
+                    # Every row records the Gradle JDK its stage ran with (report.json; report.md has a table per loader)
+                    $row | Add-Member -NotePropertyName gradleJdk -NotePropertyValue $gradleJdkText -Force
                     $results.Add($row)
                     $color = switch ($row.result) { 'pass' { 'Green' } 'fail' { 'Red' } 'warn' { 'Yellow' } default { 'Gray' } }
                     Write-Host ("    {0,-10} {1}" -f $row.result, $row.detail) -ForegroundColor $color
@@ -896,7 +927,7 @@ $reportParameters = [ordered]@{
     whatIf          = [bool]$WhatIfPreference
 }
 $reportObj = New-TestReport -ReportDir $ReportDir -VersionsDir $VersionsDir -Parameters $reportParameters `
-    -SbAvailability $sbAvailability -SbGametestCoverage $script:SbGametestCoverage -Results $results
+    -SbAvailability $sbAvailability -SbGametestCoverage $script:SbGametestCoverage -Results $results -GradleJdks $script:GradleJdkUsage
 $summary = $reportObj.summary
 Write-Host ("Summary: {0} pass, {1} fail, {2} warn, {3} n/a (of {4})" -f $summary.pass, $summary.fail, $summary.warn, $summary.'n/a', $summary.total) -ForegroundColor Cyan
 

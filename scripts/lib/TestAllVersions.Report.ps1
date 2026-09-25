@@ -7,6 +7,16 @@
 
 Set-StrictMode -Version Latest
 
+function Get-ReportValue {
+    <# Property of a report row (a PSCustomObject from a run or from ConvertFrom-Json, or a dictionary), $null when
+       it is missing: strict-mode safe for rows of older reports. #>
+    param($Row, [Parameter(Mandatory)][string]$Name)
+    if ($null -eq $Row) { return $null }
+    if ($Row -is [System.Collections.IDictionary]) { return $Row.Contains($Name) ? $Row[$Name] : $null }
+    $prop = $Row.PSObject.Properties[$Name]
+    return $prop ? $prop.Value : $null
+}
+
 function Get-TestReportSummary {
     param([object[]]$Results)
     $rows = @($Results)
@@ -22,7 +32,8 @@ function Get-TestReportSummary {
 function New-TestReport {
     param(
         [string]$ReportDir, [string]$VersionsDir, $Parameters,
-        [object[]]$SbAvailability, [object[]]$SbGametestCoverage, [object[]]$Results, [string[]]$MergedFrom = @()
+        [object[]]$SbAvailability, [object[]]$SbGametestCoverage, [object[]]$Results, [string[]]$MergedFrom = @(),
+        [object[]]$GradleJdks = @()
     )
     $report = [ordered]@{
         generatedAt        = (Get-Date).ToString('o')
@@ -31,6 +42,7 @@ function New-TestReport {
         parameters         = $Parameters
         sbAvailability     = @($SbAvailability)
         sbGametestCoverage = @($SbGametestCoverage)
+        gradleJdks         = @($GradleJdks)
         results            = @($Results)
         summary            = (Get-TestReportSummary -Results $Results)
     }
@@ -71,6 +83,24 @@ function Write-TestReportFiles {
     [void]$md.AppendLine('|---|---|---|')
     foreach ($row in $Report.sbAvailability) {
         [void]$md.AppendLine("| $($row.mc) | $($row.loader) | $($row.sbAvailable) |")
+    }
+    # Gradle JDK per (version, loader): which JDK each loader folder's Gradle ran on (ci_gradle_jdk). Reports written
+    # before this existed have no gradleJdks key.
+    $gradleJdks = @()
+    if ($Report.Contains('gradleJdks')) { $gradleJdks = @($Report.gradleJdks | Where-Object { $null -ne $_ }) }
+    if ($gradleJdks.Count -gt 0) {
+        [void]$md.AppendLine()
+        [void]$md.AppendLine('## Gradle JDK')
+        [void]$md.AppendLine()
+        [void]$md.AppendLine('| mc | loader | ci_gradle_jdk | JAVA_HOME | source |')
+        [void]$md.AppendLine('|---|---|---|---|---|')
+        foreach ($row in $gradleJdks) {
+            $requested = Get-ReportValue -Row $row -Name 'requested'
+            $err = Get-ReportValue -Row $row -Name 'error'
+            $homeText = if ($err) { "NOT FOUND: $err" } else { "$(Get-ReportValue -Row $row -Name 'javaHome')" }
+            $homeText = $homeText -replace '\|', '\|'
+            [void]$md.AppendLine("| $($row.mc) | $($row.loader) | $(if ($null -ne $requested) { $requested } else { '-' }) | $homeText | $(Get-ReportValue -Row $row -Name 'source') |")
+        }
     }
     [void]$md.AppendLine()
     [void]$md.AppendLine('## Results')
@@ -132,6 +162,7 @@ function Merge-TestReports {
     $rows = [ordered]@{}
     $sb = [ordered]@{}
     $coverage = [ordered]@{}
+    $jdks = [ordered]@{}
     foreach ($entry in $ordered) {
         $params = $entry.Report.PSObject.Properties['parameters']
         $isDryRun = $params -and $params.Value -and $params.Value.PSObject.Properties['whatIf'] -and [bool]$params.Value.whatIf
@@ -151,6 +182,9 @@ function Merge-TestReports {
         foreach ($row in @($entry.Report.sbGametestCoverage)) {
             if ($null -ne $row) { $coverage["$($row.mc)|$($row.loader)|$($row.test)"] = $row }
         }
+        foreach ($row in @(Get-ReportValue -Row $entry.Report -Name 'gradleJdks')) {
+            if ($null -ne $row) { $jdks["$($row.mc)|$($row.loader)"] = $row }
+        }
     }
 
     $stageRank = @{ 'build' = 0; 'gametest' = 1; 'server' = 2; 'client' = 3; 'smoke (runSmokeServer)' = 4; 'smoke (runSmokeClient)' = 5 }
@@ -159,8 +193,9 @@ function Merge-TestReports {
         @{ Expression = { & $versionKey $_.mc } }, loader, `
         @{ Expression = { if ($stageRank.ContainsKey($_.stage)) { $stageRank[$_.stage] } else { 99 } } })
     $sortedSb = @($sb.Values | Sort-Object @{ Expression = { & $versionKey $_.mc } }, loader)
+    $sortedJdks = @($jdks.Values | Sort-Object @{ Expression = { & $versionKey $_.mc } }, loader)
 
     return New-TestReport -ReportDir $ReportDir -VersionsDir '' -Parameters ([ordered]@{ merge = $true }) `
         -SbAvailability $sortedSb -SbGametestCoverage @($coverage.Values) -Results $sortedRows `
-        -MergedFrom @($ordered | ForEach-Object { $_.Source })
+        -MergedFrom @($ordered | ForEach-Object { $_.Source }) -GradleJdks $sortedJdks
 }

@@ -412,6 +412,109 @@ try {
 }
 
 Write-Host ''
+Write-Host 'Gradle JDK per loader folder (ci_gradle_jdk, SB_JDK_<n>, Gradle jdks folder, default JAVA_HOME)' -ForegroundColor Cyan
+
+function New-FakeJdk {
+    <# A directory that looks like a JDK home: bin/java.exe (empty) and, unless -NoRelease, a release file. #>
+    param([string]$Path, [string]$JavaVersion, [switch]$NoRelease, [switch]$NoJava)
+    New-Item -ItemType Directory -Path (Join-Path $Path 'bin') -Force | Out-Null
+    if (-not $NoJava) { Set-Content -LiteralPath (Join-Path $Path 'bin/java.exe') -Value '' }
+    if (-not $NoRelease) { Set-Content -LiteralPath (Join-Path $Path 'release') -Value "IMPLEMENTOR=`"Test`"`nJAVA_VERSION=`"$JavaVersion`"" }
+    return $Path
+}
+
+$dir13 = New-TempLogDir
+try {
+    # Test 13: ci_gradle_jdk from gradle.properties
+    $loaderA = Join-Path $dir13 'loader-a'; New-Item -ItemType Directory -Path $loaderA | Out-Null
+    [System.IO.File]::WriteAllText((Join-Path $loaderA 'gradle.properties'), "# comment`r`nci_gradle_jdk=25`r`norg.gradle.daemon=true`r`n")
+    $loaderB = Join-Path $dir13 'loader-b'; New-Item -ItemType Directory -Path $loaderB | Out-Null
+    Set-Content -LiteralPath (Join-Path $loaderB 'gradle.properties') -Value 'org.gradle.jvmargs=-Xmx3G'
+    $loaderC = Join-Path $dir13 'loader-c'; New-Item -ItemType Directory -Path $loaderC | Out-Null
+    Assert-True -Condition ((Get-GradleJdkRequirement -LoaderDir $loaderA) -eq 25) -Message 'ci_gradle_jdk=25 is read (CRLF file)'
+    Assert-True -Condition ($null -eq (Get-GradleJdkRequirement -LoaderDir $loaderB)) -Message 'no ci_gradle_jdk key -> $null'
+    Assert-True -Condition ($null -eq (Get-GradleJdkRequirement -LoaderDir $loaderC)) -Message 'no gradle.properties -> $null'
+
+    # Test 14: resolution order and errors, against a fake jdks folder
+    $jdks = Join-Path $dir13 'jdks'
+    $jdk21 = New-FakeJdk -Path (Join-Path $jdks 'eclipse_adoptium-21-amd64-windows.2') -JavaVersion '21.0.10'
+    $jdk25 = New-FakeJdk -Path (Join-Path $jdks 'eclipse_adoptium-25-amd64-windows.2') -JavaVersion '25.0.2'
+    New-FakeJdk -Path (Join-Path $jdks 'aaa-25-mislabelled') -JavaVersion '21.0.1' | Out-Null
+    New-FakeJdk -Path (Join-Path $jdks 'zzz-25-no-java') -JavaVersion '25.0.1' -NoJava | Out-Null
+    $jdk8 = New-FakeJdk -Path (Join-Path $dir13 'temurin8') -JavaVersion '1.8.0_504'
+    $jdk17 = New-FakeJdk -Path (Join-Path $dir13 'ms-17') -JavaVersion '17.0.9'
+    $override25 = New-FakeJdk -Path (Join-Path $dir13 'my jdk 25') -JavaVersion '25.0.1'
+    $noRelease = New-FakeJdk -Path (Join-Path $dir13 'custom-no-release') -NoRelease
+
+    Assert-True -Condition ((Get-JavaHomeMajorVersion -JavaHome $jdk8) -eq 8 -and (Get-JavaHomeMajorVersion -JavaHome $jdk25) -eq 25) -Message 'release JAVA_VERSION "1.8.0_504" -> 8, "25.0.2" -> 25'
+
+    $r = Resolve-GradleJdk -Version 25 -OverrideHome '' -JdksRoot $jdks -DefaultJavaHome $jdk21
+    Assert-True -Condition ($r.JavaHome -eq $jdk25 -and $r.Source -eq 'Gradle jdks folder' -and -not $r.Error) -Message "JDK 25 from the jdks folder (not the mislabelled or java-less *-25-* folders): $($r.JavaHome)"
+    $r = Resolve-GradleJdk -Version 25 -OverrideHome $override25 -JdksRoot $jdks -DefaultJavaHome $jdk21
+    Assert-True -Condition ($r.JavaHome -eq $override25 -and $r.Source -eq 'SB_JDK_25') -Message 'SB_JDK_25 wins over the jdks folder (path with a space)'
+    $r = Resolve-GradleJdk -Version 25 -OverrideHome $noRelease -JdksRoot $jdks -DefaultJavaHome $jdk21
+    Assert-True -Condition ($r.JavaHome -eq $noRelease -and -not $r.Error) -Message 'an override without a release file is trusted'
+    $r = Resolve-GradleJdk -Version 25 -OverrideHome (Join-Path $dir13 'missing') -JdksRoot $jdks -DefaultJavaHome $jdk21
+    Assert-True -Condition ($null -eq $r.JavaHome -and $r.Error -match 'SB_JDK_25=.*has no bin/java') -Message 'an override without bin/java is an error, no silent fallback'
+    $r = Resolve-GradleJdk -Version 25 -OverrideHome $jdk21 -JdksRoot $jdks -DefaultJavaHome $jdk21
+    Assert-True -Condition ($null -eq $r.JavaHome -and $r.Error -match 'is JDK 21, not 25') -Message 'an override with the wrong major version is an error'
+    $r = Resolve-GradleJdk -Version 17 -OverrideHome '' -JdksRoot $jdks -DefaultJavaHome $jdk17
+    Assert-True -Condition ($r.JavaHome -eq $jdk17 -and $r.Source -eq 'default JAVA_HOME') -Message 'the default JAVA_HOME is used when it is the requested JDK and nothing else matches'
+    $r = Resolve-GradleJdk -Version 21 -OverrideHome '' -JdksRoot (Join-Path $dir13 'no-such-dir') -DefaultJavaHome $noRelease
+    Assert-True -Condition ($null -eq $r.JavaHome -and $r.Error -match 'version unknown') -Message 'a default JAVA_HOME of unknown version is not assumed to match'
+    $r = Resolve-GradleJdk -Version 11 -OverrideHome '' -JdksRoot $jdks -DefaultJavaHome $jdk21
+    Assert-True -Condition ($null -eq $r.JavaHome -and $r.Error -match 'SB_JDK_11 is not set' -and $r.Error -match '\(JDK 21\)' -and $r.Error -match 'Set SB_JDK_11') -Message "missing JDK: clear error ($($r.Error))"
+    Assert-True -Condition ((Format-GradleJdk -Jdk $r) -match '^JDK 11: NOT FOUND') -Message 'Format-GradleJdk marks a missing JDK'
+
+    $l = Resolve-LoaderGradleJdk -LoaderDir $loaderA -ResolveArgs @{ OverrideHome = ''; JdksRoot = $jdks; DefaultJavaHome = $jdk21 }
+    Assert-True -Condition ($l.Version -eq 25 -and $l.JavaHome -eq $jdk25 -and $l.RequiredBy -like '*loader-a*gradle.properties') -Message 'Resolve-LoaderGradleJdk: ci_gradle_jdk=25 -> the JDK 25 home, RequiredBy = its gradle.properties'
+    Assert-True -Condition ((Format-GradleJdk -Jdk $l) -eq "JDK 25: $jdk25 (Gradle jdks folder)") -Message "Format-GradleJdk: $(Format-GradleJdk -Jdk $l)"
+    $l = Resolve-LoaderGradleJdk -LoaderDir $loaderB -ResolveArgs @{ OverrideHome = ''; JdksRoot = $jdks; DefaultJavaHome = $jdk21 }
+    Assert-True -Condition ($null -eq $l.Version -and $null -eq $l.JavaHome -and -not $l.Error) -Message 'no ci_gradle_jdk: JAVA_HOME inherited unchanged (JavaHome $null)'
+
+    # Test 15: Start-GradleProcess -JavaHome sets JAVA_HOME for the child process only
+    $fakeLoader = Join-Path $dir13 'fake loader'
+    New-Item -ItemType Directory -Path $fakeLoader | Out-Null
+    Set-Content -LiteralPath (Join-Path $fakeLoader 'gradlew.bat') -Value "@echo off`r`necho JAVA_HOME=[%JAVA_HOME%] args=%*" -Encoding ascii
+    $parentJavaHome = $env:JAVA_HOME
+    $log15 = Join-Path $dir13 'child.log'
+    $p15 = Start-GradleProcess -LoaderDir $fakeLoader -TaskArgs @('build', '--no-daemon') -LogPath $log15 -JavaHome $jdk25
+    $w15 = Wait-GradleProcess -Process $p15 -TimeoutMinutes 1
+    $out15 = Get-Content -LiteralPath $log15 -Raw
+    Assert-True -Condition ($w15.ExitCode -eq 0 -and $out15.Contains("JAVA_HOME=[$jdk25]") -and $out15 -match 'args=build --no-daemon') -Message "the child sees JAVA_HOME=$jdk25"
+    Assert-True -Condition ($env:JAVA_HOME -eq $parentJavaHome) -Message 'this process''s own JAVA_HOME is unchanged'
+    $log15b = Join-Path $dir13 'child-inherit.log'
+    $p15b = Start-GradleProcess -LoaderDir $fakeLoader -TaskArgs @('build') -LogPath $log15b
+    Wait-GradleProcess -Process $p15b -TimeoutMinutes 1 | Out-Null
+    Assert-True -Condition ((Get-Content -LiteralPath $log15b -Raw).Contains("JAVA_HOME=[$parentJavaHome]")) -Message 'without -JavaHome the child inherits JAVA_HOME'
+    Assert-True -Condition ($script:TrackedProcesses.Count -eq 0) -Message 'both fake Gradle processes were untracked after their wait'
+
+    # Test 16: report.md "Gradle JDK" table; merging a report without gradleJdks (older script) with one that has it
+    $rep16 = Join-Path $dir13 'report-new'
+    $report16 = New-TestReport -ReportDir $rep16 -VersionsDir 'versions' -Parameters ([ordered]@{ stages = @('build') }) `
+        -SbAvailability @() -SbGametestCoverage @() -Results @(
+            (New-StageResult -Mc '26.2' -Loader 'forge' -Stage 'build' -Result 'pass' -Detail 'ok')
+        ) -GradleJdks @(
+            [pscustomobject]@{ mc = '26.2'; loader = 'forge'; requested = 25; javaHome = $jdk25; source = 'Gradle jdks folder'; error = $null },
+            [pscustomobject]@{ mc = '26.2'; loader = 'fabric'; requested = 25; javaHome = $null; source = $null; error = 'JDK 25 for Gradle not found' }
+        )
+    Write-TestReportFiles -Report $report16 -ReportDir $rep16 | Out-Null
+    $md16 = Get-Content -LiteralPath (Join-Path $rep16 'report.md') -Raw
+    Assert-True -Condition ($md16 -match '## Gradle JDK' -and $md16.Contains("| 26.2 | forge | 25 | $jdk25 | Gradle jdks folder |") -and $md16 -match '\| 26\.2 \| fabric \| 25 \| NOT FOUND: JDK 25') -Message 'report.md lists the Gradle JDK per loader folder, a missing one as NOT FOUND'
+    $rep16old = Join-Path $dir13 'report-old'
+    New-Item -ItemType Directory -Path $rep16old | Out-Null
+    ([ordered]@{ generatedAt = (Get-Date).AddHours(-1).ToString('o'); reportDir = $rep16old; versionsDir = 'versions'
+        parameters = [ordered]@{ stages = @('build') }; sbAvailability = @(); sbGametestCoverage = @()
+        results = @([ordered]@{ mc = '1.21.1'; loader = 'fabric'; stage = 'build'; result = 'pass'; detail = 'ok'; durationSeconds = 1; logPath = '' })
+        summary = [ordered]@{ pass = 1; fail = 0; warn = 0; 'n/a' = 0; total = 1 } }) |
+        ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $rep16old 'report.json') -Encoding utf8
+    $merged16 = Merge-TestReports -ReportPaths @($rep16old, $rep16) -ReportDir (Join-Path $dir13 'merged')
+    Assert-True -Condition (@($merged16.results).Count -eq 2 -and @($merged16.gradleJdks).Count -eq 2) -Message 'merge accepts a report without gradleJdks and keeps the other report''s JDK rows'
+} finally {
+    Remove-Item -LiteralPath $dir13 -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+Write-Host ''
 if ($script:TestsFailed -gt 0) {
     Write-Host "$($script:TestsFailed) of $($script:TestsRun) offline test(s) FAILED" -ForegroundColor Red
     exit 1

@@ -295,6 +295,42 @@ report wins for a duplicate key (a re-run replaces the earlier result), rows of 
 real run has, every row gets its `source` directory, and the summary is recomputed. It exits 1 if a merged row
 failed.
 
+## Gradle JDK per loader folder
+
+Gradle does not run on one JDK for every branch: each loader folder's `gradle.properties` names the JDK its Gradle
+needs in `ci_gradle_jdk=<n>` (the key the CI workflow reads too): 21 on every branch up to `mc/1.21.11`, 25 on
+`mc/26.1.2` and `mc/26.2` (Loom 1.18 and the 26.x toolchains need Gradle on JDK 25). The script resolves it once per
+loader folder (`Resolve-LoaderGradleJdk` in `scripts/lib/TestAllVersions.Common.ps1`) and sets `JAVA_HOME` in the
+environment of each Gradle child process only (`Start-GradleProcess -JavaHome`); its own environment, the shell's
+and every other process keep theirs. Resolution order for `ci_gradle_jdk=<n>`:
+
+1. the environment variable `SB_JDK_<n>` (e.g. `SB_JDK_25`): a JDK home with `bin/java`. It is an explicit choice, so
+   a path without `bin/java` or with another major version (read from its `release` file) is an error, never
+   silently replaced by another JDK;
+2. a Gradle-provisioned JDK under `<GRADLE_USER_HOME or ~/.gradle>/jdks/*-<n>-*` with `bin/java` and a matching
+   `release` file (e.g. `eclipse_adoptium-25-amd64-windows.2`; the foojay toolchain resolver of the branches puts
+   them there), the last one by name if several match;
+3. this process's `JAVA_HOME`, if its `release` file says JDK `<n>`.
+
+If none matches, no Gradle process starts for that folder: every requested stage fails with
+`ci_gradle_jdk=<n> in <folder>/gradle.properties: JDK <n> for Gradle not found: ...` (what was tried and
+`Set SB_JDK_<n> to a JDK <n> home`). A folder without `ci_gradle_jdk` inherits `JAVA_HOME` unchanged. The console
+prints the JDK before every stage (`[26.2/forge] build: Gradle on JDK 25: C:\...\eclipse_adoptium-25-amd64-windows.2
+(Gradle jdks folder)`), every row in `report.json` has a `gradleJdk` field, and `report.json` `gradleJdks` /
+`report.md` "Gradle JDK" list the version, `JAVA_HOME` and source per (version, loader).
+
+Running the 26.x branches needs nothing special when a JDK 25 is in `~/.gradle/jdks` (a first 26.x build through
+Gradle's toolchain provisioning puts one there); otherwise point `SB_JDK_25` at one for that command only:
+
+```powershell
+pwsh scripts/test-all-versions.ps1 -Mc 26.1.2,26.2 -Stages build,gametest,server,smoke -SmokeTasks runSmokeServer -ReportDir local/test-reports/final-26
+$env:SB_JDK_25 = 'C:\path\to\jdk-25'; pwsh scripts/test-all-versions.ps1 -Mc 26.1.2,26.2 ...; Remove-Item Env:SB_JDK_25
+```
+
+The resolution order, the error cases, the child-only `JAVA_HOME` and the report fields are covered by
+`pwsh scripts/test-all-versions.offline-tests.ps1` (no Gradle, no game; 64 tests, together with the log-pattern,
+window-lock, report-merge and JUnit-parsing tests).
+
 ## Process safety
 
 - Every `gradlew` invocation passes `--no-daemon` and the script never runs `gradlew --stop` - that kills every
