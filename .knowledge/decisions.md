@@ -29,3 +29,10 @@
 - Vendored the needed Catnip classes (MIT) instead of the 1.21.11 fallback renderer. Reason: the fallback draws opaque ghosts without checkerboard faces; vendoring keeps the 4.2.1 look with no runtime dependency.
 - Declared minimum loader versions = oldest version the code was actually run on. Reason: an untested low floor becomes a NoSuchMethodError crash for players.
 - One canonical copy of per-branch infra (CI workflow, release.ps1, build-all.ps1) in templates/branch on main, copied by scripts/sync-branch-infra.ps1. Reason: 16 branches would otherwise drift.
+
+## Session 2026-09-25, round 2 (user: "finish PlayerSettingsGui, fix randomizer bag, fix all bugs, all versions")
+- PlayerSettingsGui becomes the in-game editor of the existing client config (Visuals + Performance: preview toggles, preview scale, appear/break animation length, render distance, limits, throttling). Reason: its "shader type/speed" controls had no feature behind them (no shader exists since the Create stack was dropped); the client config is the real per-player setting set. Opened from the radial menu (existing OPEN_PLAYER_SETTINGS action) and a keybinding (unbound by default, like other optional keys). Saves to the loader's client config file (Fabric JSON, Forge/NeoForge TOML) on Done/close.
+- Randomizer bag titles: scaled down to fit the texture width (min scale), below that ellipsis + full title as tooltip. Reason: keeps the full name readable in every language and for renamed bags.
+- The 6 unused widget classes in gui/elements are deleted on every branch. Reason: dead code, no screen uses them.
+- The three bugs 4.2.1 left unchanged are fixed: snow-layer merge undo refunds the layer; a failed normal placement is not charged; Disable mode + Quick Replace on a single block shows its preview outline. Reason: user asked to fix all bugs.
+- Order: reference on mc/1.21.1 (GUI + gameplay in parallel worktrees, lead merges), then ports per branch by the agents that did H5, then a full test-all-versions run.

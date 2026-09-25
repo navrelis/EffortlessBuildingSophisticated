@@ -81,3 +81,14 @@ Agents commit locally, the lead reviews and pushes. After that: final all-versio
 
 ## Status 2026-09-25 end
 All 16 branches done, pushed, CI green; final all-versions run 196 pass / 0 fail. Open: user decision on original-code findings; load-only Fabric GameTest hangs. See handoff.md.
+
+## Round 2 (2026-09-25, user: finish PlayerSettingsGui, fix bag titles, fix all bugs, all versions)
+| ID | Task | Agent | Status |
+|---|---|---|---|
+| R2-GUI | 1.21.1 reference: PlayerSettingsGui = client config editor (radial + key), bag title fit, delete 6 dead widgets, harness checks, patch notes fixes section | h5b (resumed) in versions/1.21.1 | in progress |
+| R2-PLAY | 1.21.1 reference: snow-merge undo refund, no charge for failed placements, Disable+QuickReplace single-block outline, dupe/loss audit | b6 (resumed) in local/wt/r2play-1.21.1 (branch wip/r2play-1.21.1) | in progress |
+| d1e | Fabric GameTest hang under load: reproduce, thread dumps, root cause, fix | d1 (resumed) in versions/1.21.8, 1.18.2, 1.21.10 | in progress |
+| h5d2 | NeoForge 1.20.1 client with the Forge 1.20.1 jar | h5d (resumed) in versions/1.20.1 | in progress |
+| R2-PORT | port R2-GUI + R2-PLAY to the 15 other branches (h5b/h5c/h5d/h5e/pb7/pb8 groups) | resumed agents | open |
+| R2-Z | full test-all-versions run, report, push | lead | open |
+Agent budget: 9 of 10 spawned; round 2 uses resumed agents only.
