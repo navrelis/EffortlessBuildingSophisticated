@@ -122,6 +122,8 @@ loom {
             vmArg '-Dsophisticatedbuilding.smoketest.mode=client'
             environmentVariable 'MOD_CLASSES', modClasses([(mod_id): sourceSets.main, sophisticatedbuilding_smoketest: sourceSets.smoketest])
             vmArg "-Dsophisticatedbuilding.smoketest.out=${smoketestOutDir('client')}"
+            // Harness mixin (SmokeWindowMixin): the window is created without taking the focus
+            programArg '--mixin.config=sophisticatedbuilding_smoketest.mixins.json'
         }
         // Headless: a dedicated server on a fresh superflat world runs the server scenarios (Minecraft 1.16.3 has no
         // game test framework, see ServerTestRunner) and writes the same JSON. gradlew runSmokeServer -PsmoketestOut=<dir>
@@ -139,7 +141,11 @@ loom {
 }
 
 // The smoke runs pass or fail on the result file they write (shared logic in ../gradle/smoketest.gradle)
-tasks.named('runSmokeClient') { verifySmokeRun(it, smoketestOutDir('client')) }
+tasks.named('runSmokeClient') {
+    verifySmokeRun(it, smoketestOutDir('client'))
+    // Forge 34: the early progress window is switched off by fml.toml's splashscreen key
+    disableEarlyWindow(it, file('build/smoketest/client-run'), 'splashscreen')
+}
 tasks.named('runSmokeServer') { verifySmokeRun(it, smoketestOutDir('server')) }
 // The smoke server is a plain dedicated server: every run starts on a fresh superflat world on its own port (other dev
 // servers may run at the same time: 25737 here, 25738/25739 in ../fabric, 25731-25735 on mc/1.16.5), with the EULA
