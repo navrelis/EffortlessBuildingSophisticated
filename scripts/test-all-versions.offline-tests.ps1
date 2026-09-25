@@ -655,6 +655,46 @@ try {
 }
 
 Write-Host ''
+Write-Host 'CI template: smoke harness detection (templates/branch/.github/workflows/build.yml, discover job)' -ForegroundColor Cyan
+
+# Test 23: the has_smoke rule of the CI discover job, run with bash exactly as written in the template (the block from
+# "smoke=false" up to the jq line), against fixture loader folders
+$gitBash = @('C:\Program Files\Git\bin\bash.exe', 'C:\Program Files (x86)\Git\bin\bash.exe') | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+$workflow = Get-Content -LiteralPath (Join-Path $PSScriptRoot '../templates/branch/.github/workflows/build.yml') -Raw
+$ruleMatch = [regex]::Match($workflow, '(?ms)^[ \t]*smoke=false\r?\n.*?(?=^[ \t]*loaders=\$\(jq)')
+Assert-True -Condition $ruleMatch.Success -Message 'the smoke detection block is found in the CI template'
+if (-not $gitBash) {
+    Write-Host '  SKIP running the CI rule: Git for Windows bash not found' -ForegroundColor Yellow
+} elseif ($ruleMatch.Success) {
+    $dir23 = New-TempLogDir
+    try {
+        $rule = ($ruleMatch.Value -split "`r?`n" | ForEach-Object { $_.Trim() }) -join "`n"
+        $fixtures = [ordered]@{
+            'forge'         = @{ SmokeDir = $true;  Gradle = "tasks.named('runSmokeServer') { verifySmokeRun(it, smoketestOutDir('server')) }" }
+            'neoforge-26.1' = @{ SmokeDir = $false; Gradle = "    runs {`n        smokeServer {`n            server()`n        }`n    }" }
+            'forge-1.21'    = @{ SmokeDir = $false; Gradle = "tasks.register('runSmokeServer') {`n    dependsOn 'runSmoketestGameTestServer'`n}" }
+            'fabric-old'    = @{ SmokeDir = $false; Gradle = "// In-game smoke test harness (runSmokeClient / runSmokeServer, see TESTING.md)`n * runSmokeServer in a doc comment`napply plugin: 'java'" }
+            'plain'         = @{ SmokeDir = $false; Gradle = "apply plugin: 'java'" }
+        }
+        foreach ($name in $fixtures.Keys) {
+            $dir = Join-Path $dir23 $name
+            New-Item -ItemType Directory -Path $dir | Out-Null
+            if ($fixtures[$name].SmokeDir) { New-Item -ItemType Directory -Path (Join-Path $dir 'src/smoketest') -Force | Out-Null }
+            [System.IO.File]::WriteAllText((Join-Path $dir 'build.gradle'), $fixtures[$name].Gradle + "`n")
+        }
+        $script23 = Join-Path $dir23 'rule.sh'
+        [System.IO.File]::WriteAllText($script23, "set -euo pipefail`ncd `"`$1`"`nloader=`"`$2`"`n$rule`necho `"`$smoke`"`n")
+        $expected = @{ 'forge' = 'true'; 'neoforge-26.1' = 'true'; 'forge-1.21' = 'true'; 'fabric-old' = 'false'; 'plain' = 'false' }
+        foreach ($name in $fixtures.Keys) {
+            $out = (& $gitBash $script23 $dir23 $name 2>&1 | Out-String).Trim()
+            Assert-True -Condition ($out -eq $expected[$name]) -Message "has_smoke for '$name' = $($expected[$name]) (got '$out')"
+        }
+    } finally {
+        Remove-Item -LiteralPath $dir23 -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
+Write-Host ''
 if ($script:TestsFailed -gt 0) {
     Write-Host "$($script:TestsFailed) of $($script:TestsRun) offline test(s) FAILED" -ForegroundColor Red
     exit 1

@@ -164,13 +164,18 @@ harness must provide - because `test-all-versions.ps1`'s smoke stage and CI's `d
 a `src/smoketest` folder, with nothing branch-specific to change once a branch adds it.
 
 CI runs the headless half of this contract on every push/PR: the `discover` job's loader matrix adds
-`has_smoke` (true iff `<loader>/src/smoketest` exists), and the `build` job then runs
+`has_smoke` (true iff `<loader>/src/smoketest` exists, or `<loader>/build.gradle` wires the smoke server run itself: a
+non-comment line naming `runSmokeServer` or the `smokeServer` run - that covers a `<loader>-<mc>` folder that compiles
+`../<loader>/src/smoketest` without overriding any of it, such as `neoforge-26.1` on `mc/26.1.2`), and the `build` job
+then runs
 `gradlew runSmokeServer -PsmoketestOut=<dir> --no-daemon --stacktrace` for loaders where it's true - only
 `runSmokeServer`, since `runSmokeClient` opens a window a CI runner doesn't have. The result JSON and its log
 are uploaded as the `<loader>-smoketest` workflow artifact with `if: always()`, so a failing smoke run's
 `smoketest-result.json` (and, per this contract, its checks) is still there to inspect; a failing
-`runSmokeServer` fails the CI job like any other step. A loader without `src/smoketest` skips both the run step
-and the upload step cleanly (`has_smoke` false).
+`runSmokeServer` fails the CI job like any other step. A loader without the harness skips both the run step
+and the upload step cleanly (`has_smoke` false). `test-all-versions.ps1` needs no such detection for `runSmokeServer`: it
+runs the task in every loader folder and reports `n/a` (or `warn` where SB is expected) when Gradle says the task does
+not exist.
 
 - If `<loader>/build.gradle` (or wherever the harness wires it up) defines a Gradle task named
   `runSmokeServer` and/or `runSmokeClient`, the smoke stage runs it as
