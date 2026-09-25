@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * {@link SmokeBackpacks} against the Sophisticated Backpacks API of Minecraft 1.17.1 (only the official Forge build exists;
+ * {@link SmokeBackpacks} against the Sophisticated Backpacks API of Minecraft 1.16.x (only the official Forge build exists;
  * no Sophisticated Core yet, so the wrapper, upgrade wrapper and inventory types live in net.p3pp3rf1y.sophisticatedbackpacks).
  * The wrapper lookup and slot count stay reflective as on the newer branches, where the same class also compiles against
  * the unofficial Fabric port.

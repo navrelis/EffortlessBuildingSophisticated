@@ -182,7 +182,7 @@ final class ClientScenarios {
             rules.getRule(GameRules.RULE_RANDOMTICKING).tryDeserialize("0");
             LevelSettings settings = new LevelSettings(WORLD_NAME, GameType.CREATIVE, false, Difficulty.PEACEFUL, true,
                     rules, DataPackConfig.DEFAULT);
-            // The built-in registries and the generator of 1.17.1's (private) flat world preset
+            // The built-in registries and the generator of the flat world preset
             long seed = 20260924L;
             RegistryAccess.RegistryHolder registryAccess = RegistryAccess.builtin();
             FlatLevelSource generator = new FlatLevelSource(

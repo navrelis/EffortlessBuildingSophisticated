@@ -45,7 +45,7 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
      * @param maxBlocks Maximum blocks that can be placed at once with this upgrade
      */
     public BuildingUpgradeItem(int tier, int maxBlocks) {
-        // Sophisticated Backpacks 1.17.1 creates every upgrade item in its own creative tab (no-arg constructor); the
+        // Sophisticated Backpacks 1.16.x creates every upgrade item in its own creative tab (no-arg constructor); the
         // tab is moved to this mod's in allowdedIn / getCreativeTabs below
         super();
         this.tier = tier;
@@ -88,7 +88,7 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
                 .withStyle(ChatFormatting.DARK_GRAY));
     }
     
-    // Sophisticated Backpacks 1.17.1 has no upgrade count limits or groups (they arrive with Sophisticated Core on
+    // Sophisticated Backpacks 1.16.x has no upgrade count limits or groups (they arrive with Sophisticated Core on
     // 1.18.2): only one building upgrade per backpack, refused the way SB refuses a second battery or tool swapper
     // upgrade. The slot being filled is not known here, so a tier is changed by taking the old upgrade out first.
     @Override
