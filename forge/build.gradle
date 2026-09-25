@@ -145,6 +145,18 @@ tasks.register('runSmokeServer') {
     dependsOn 'runSmoketestGameTestServer'
 }
 
+// merge-source-sets puts the classes and the resources of a source set into one directory, so compileJava and
+// processResources have overlapping outputs. processResources is not incremental: before it runs, Gradle deletes its
+// previous outputs, and after a compileJava restored from the build cache those can include the classes (the jar then
+// had no classes). So processResources is not tracked (it always runs and never deletes anything; stale resources go
+// with clean) and runs after the compile task of its source set.
+sourceSets.configureEach { sourceSet ->
+    tasks.named(sourceSet.processResourcesTaskName) {
+        doNotTrackState('Shares its output directory with the compile task (merge-source-sets)')
+        mustRunAfter tasks.named(sourceSet.compileJavaTaskName)
+    }
+}
+
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.release = java_version as int
