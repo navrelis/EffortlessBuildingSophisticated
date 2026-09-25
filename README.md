@@ -228,15 +228,15 @@ for and run on Java 8 (toolchain, downloaded by the Foojay resolver if missing; 
 builds set no release flag).
 
 ```
-cd fabric       && ./gradlew build        # jar in fabric/build/libs, runs common + Fabric unit tests (104)
-cd fabric       && ./gradlew runGametest  # 24 server tests of the building rules (not part of build)
-cd forge        && ./gradlew build        # reobfuscated jar in forge/build/libs, runs the common unit tests (90)
-cd forge-1.16.4 && ./gradlew build        # the Forge 1.16.4 jar in forge-1.16.4/build/libs, same unit tests (90)
+cd fabric       && ./gradlew build        # jar in fabric/build/libs, runs common + Fabric unit tests (117)
+cd fabric       && ./gradlew runGametest  # 37 server tests of the building rules (not part of build)
+cd forge        && ./gradlew build        # reobfuscated jar in forge/build/libs, runs the common unit tests (103)
+cd forge-1.16.4 && ./gradlew build        # the Forge 1.16.4 jar in forge-1.16.4/build/libs, same unit tests (103)
 ./build-all.ps1                            # every loader folder, stops at the first failure
 ```
 
-Minecraft 1.16.5 ships its game test framework stripped and neither loader has a game test API for it, so the 24
-Fabric game tests of the other branches run as server tests: the same test bodies on `ServerTestHelper` (the subset of
+Minecraft 1.16.5 ships its game test framework stripped and neither loader has a game test API for it, so the Fabric
+game tests of the other branches run as server tests: the same test bodies on `ServerTestHelper` (the subset of
 vanilla's `GameTestHelper` they use) and `@ServerTest`, run one after the other by `ServerTestRunner`
 (`common/src/smoketest/.../servertest`) on a dedicated dev server with a fresh superflat world; `runGametest` checks the
 JUnit report it writes. See TESTING.md.

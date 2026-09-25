@@ -4,8 +4,8 @@ Three layers, from fast to real:
 
 | Layer | Command (in a loader folder) | What it proves |
 |---|---|---|
-| Unit tests | `gradlew build` | Pure logic in `common/src/test` (104 tests on Fabric incl. its config tests, 90 on `forge/` and `forge-1.16.4/`) |
-| Fabric server tests | `gradlew runGametest` | 24 server-side building rules (`fabric/src/gametest`, the game tests of the other branches) |
+| Unit tests | `gradlew build` | Pure logic in `common/src/test` (117 tests on Fabric incl. its config tests, 103 on `forge/` and `forge-1.16.4/`) |
+| Fabric server tests | `gradlew runGametest` | 37 server-side building rules (`fabric/src/gametest`, the game tests of the other branches) |
 | **In-game smoke tests** | `gradlew runSmokeClient` / `gradlew runSmokeServer` | The mod works in a real game on this loader, on Forge including the Sophisticated Backpacks (SB) integration |
 
 `gradlew build` compiles the smoke harness and the server tests (so they cannot rot) but never runs them. The harness is
@@ -37,7 +37,7 @@ uses the default superflat layers.
 
 `runGametest` (Fabric) runs every `@ServerTest` of the classes listed under the `sophisticatedbuilding-servertest`
 entrypoint of `fabric/src/gametest/resources/fabric.mod.json` (`FabricServerTests`), writes
-`fabric/build/gametest/junit.xml`, logs `All 24 required tests passed :)` and stops the server; the task prints every
+`fabric/build/gametest/junit.xml`, logs `All 37 required tests passed :)` and stops the server; the task prints every
 test and fails unless all passed. The test names are `<class>.<method>` in lower case, as vanilla names game tests.
 
 ## Running the smoke tests
@@ -139,9 +139,10 @@ Fabric reports 16 checks (the `client.*` ones), `forge/` and `forge-1.16.4/` 24 
 
 ### Server (`runSmokeServer`, both loaders)
 
-Server tests with a fake survival player (Forge 36 `FakePlayerFactory`; on Fabric, whose API 0.42 has no fake player,
-and on Forge 35 (`forge-1.16.4/`), whose fake player has no connection, `VanillaFakePlayers`: a vanilla `ServerPlayer`
-outside the player list whose connection drops every packet). The block
+Server tests with a fake survival player standing at the test structure (the server checks the reach of build
+requests): `VanillaFakePlayers`, a vanilla `ServerPlayer` outside the player list whose connection drops every packet, on
+every loader (Fabric API 0.42 has no fake player, Forge 35's `FakePlayer` has no connection, and Forge 36's reports its
+position as the world origin, which the reach check refuses). The block
 sets are written with the packets' `write` methods and read back with their `FriendlyByteBuf` constructors, exactly
 what arrives from a client, and handed to the packets' server handlers.
 
@@ -150,11 +151,12 @@ what arrives from a client, and handed to the packets' server handlers.
 | `server.place_line_survival` | 5 planks placed and consumed |
 | `server.undo_redo` | Undo/redo packets restore the inventory counts |
 | `server.merge_undo_refund` | Survival merges (+1 snow layer, +1 sea pickle; 1.16 has no candles) cost one item each; undo puts both blocks back without mining and gives the items back, redo charges them again |
+| `server.request_limits` | Crafted requests the server must refuse with the survival power level 0 limits: a start 60 blocks above the player and a line whose clicks are 20 blocks apart (8 per axis); nothing placed or charged, a normal line right after is placed |
 | `server.refused_place_not_charged` | The loader's block place event refuses 2 of a 5 block line (as a protection mod would): only the 3 placed planks are charged and undo gives back exactly those. Skipped on Fabric (no place event; `ChargeGameTest` covers refused placements) |
 | `sb.upgrade_supplies_blocks`, `sb.disabled_upgrade_ignored`, `sb.tier_cap`, `sb.tool_swapper_tools`, `sb.worn_backpack_chest`, `sb.worn_backpack` | Forge only (where the SB fixture exists): as on the client, server side |
 | `server.no_mod_errors` | As on the client |
 
-Fabric reports 5 checks (1 skipped), `forge/` and `forge-1.16.4/` 11 each.
+Fabric reports 6 checks (1 skipped), `forge/` and `forge-1.16.4/` 12 each (6 each with `-PsmokeNoSb=true`).
 
 ## Layout
 
@@ -186,7 +188,7 @@ Loader glue per build:
 | Source set wiring | Loom runs `smokeClient`/`smokeServer` (`source sourceSets.smoketest`); no SB fixture | Architectury Loom runs `smokeClient`/`smokeServer` (`source sourceSets.smoketest`) with their own FML `MOD_CLASSES` (main + harness, resources first); SB through `modLocalRuntime`, Curios through `modSmoketestRuntimeOnly` |
 | Server scenarios | `ServerLifecycleEvents.SERVER_STARTED` -> `SmokeServer.start`, `ServerTickEvents.END_SERVER_TICK` -> `SmokeServer.tick` | `FMLServerStartedEvent` -> `SmokeServer.start`, `TickEvent.ServerTickEvent` (END) -> `SmokeServer.tick` |
 | Client tick hook | `ClientTickEvents.END_CLIENT_TICK` | `TickEvent.ClientTickEvent`, phase `END` |
-| Fake player | `VanillaFakePlayers` (Fabric API 0.42 has none) | `FakePlayerFactory` (`forge-1.16.4/`: `VanillaFakePlayers`, Forge 35 fake players have no connection) |
+| Fake player | `VanillaFakePlayers` (Fabric API 0.42 has none) | `VanillaFakePlayers` (Forge 36's `FakePlayer` reports the world origin as its position, Forge 35's has no connection) |
 | Held key in screens | nothing | `ForgeSmokeClientPlatform` (key conflict context) |
 | Accessory slot | none (no SB) | Curios 1.16.5-4.1.0.0 (smoke runtime only) |
 
@@ -276,6 +278,26 @@ Errors from others: "No key layers ... Not a registry ops" (vanilla, flat world 
   each).
 - Clients (`runSmokeClient`, 16 / 24 checks) not run yet: the lead holds them until the cursor-safe harness is on every
   branch.
+
+### R3 (5.0.1 fixes; port of mc/1.21.1 d8ab383..48261e8)
+
+- 1.16.5 specifics: Fabric per-player data through a mixin into `Player#addAdditionalSaveData/readAdditionalSaveData`
+  (Java 8 mixin config) and Fabric API 0.42's `ServerPlayerEvents.COPY_FROM` (present in its fabric-entity-events-v1);
+  `PowerLevel#serializeNBT()` without a registry provider; Fabric breaks fire `PlayerBlockBreakEvents`, but there is no
+  Common Protection API for 1.16 (Java 17+), so `FabricProtection`, the CPA dependency and the placement case of
+  `ProtectionEventsGameTest` do not exist here; the start reach uses vanilla's 4.5 (survival) / 5 (creative) blocks
+  (`Player#blockInteractionRange` is 1.20.5+); `CommonConfigSyncPacket` writes a var-int array (at most 64 values) instead
+  of the 1.20.5+ list codec; `ModifierLimits` uses if/else (no switch arrows) and tag id 10 (`Tag.TAG_COMPOUND` is 1.17+);
+  translatable texts through `TranslatableComponent`; `LangKeysTest` without Java 9+ APIs; material cost and merge tests
+  with sea pickles (no candles).
+- The Forge smoke server now uses `VanillaFakePlayers` on `forge/` too: Forge 36's `FakePlayer` overrides
+  `blockPosition()`/`position()` to the world origin, so the new reach check refused every scenario (11 of 12 failed).
+- Headless results: unit tests Fabric 117, `forge/` and `forge-1.16.4/` 103 (incl. `LangKeysTest`); Fabric
+  `runGametest` "All 37 required tests passed" (24 + 13: PlayerData 3, ServerLimits 5, ProtectionEvents 1, ArrayLimit 2,
+  OffhandBagFilter 1, MaterialCost 1; the reference's 38th, the Common Protection API placement, has no 1.16 equivalent);
+  `runSmokeServer` Fabric 6 (1 skipped), `forge/` and `forge-1.16.4/` 12/12, with `-PsmokeNoSb=true` Fabric 6 (1
+  skipped), `forge/` and `forge-1.16.4/` 6/6. The Fabric jar (player data mixin remapped to intermediary) starts on a real
+  Fabric 1.16.5 server.
 
 ## Minecraft 1.16.4 check
 
