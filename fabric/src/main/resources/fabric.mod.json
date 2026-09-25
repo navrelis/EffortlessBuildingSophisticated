@@ -18,7 +18,8 @@
     ]
   },
   "mixins": [
-    "sophisticatedbuilding.mixins.json"
+    "sophisticatedbuilding.mixins.json",
+    "sophisticatedbuilding.fabric.mixins.json"
   ],
   "accessWidener": "sophisticatedbuilding.accesswidener",
   "depends": {

@@ -31,7 +31,7 @@ public class MirrorEntry extends BaseModifierEntry<Mirror> {
 	protected DecimalFormat df = new DecimalFormat("#.#");
 	
 	public MirrorEntry(ModifiersScreen screen, BaseModifier mirror) {
-		super(screen, (Mirror) mirror, Component.literal("Mirror"), AllGuiTextures.MIRROR_ENTRY);
+		super(screen, (Mirror) mirror, Component.translatable("sophisticatedbuilding.gui.modifier.mirror"), AllGuiTextures.MIRROR_ENTRY);
 		
 		positionInputs = new Vector<>();
 		axisButtons = new Vector<>();
@@ -42,7 +42,7 @@ public class MirrorEntry extends BaseModifierEntry<Mirror> {
 			final int index = i;
 			var scrollInput = new LabeledScrollInput(0, 0, 36, 18)
 				.showControlScrollsSlowerTooltip()
-				.titled(Component.literal(i == 0 ? "X Position" : i == 1 ? "Y Position" : "Z Position"))
+				.titled(Component.translatable(i == 0 ? "sophisticatedbuilding.gui.modifier.x_position" : i == 1 ? "sophisticatedbuilding.gui.modifier.y_position" : "sophisticatedbuilding.gui.modifier.z_position"))
 				.format(integer -> Component.literal(df.format(integer / 2.0)))
 				.withStepFunction(stepContext -> stepContext.shift ? 20 : stepContext.control ? 1 : 2)
 				.calling(value -> {
@@ -60,7 +60,7 @@ public class MirrorEntry extends BaseModifierEntry<Mirror> {
 				modifier.position = Vec3.atLowerCornerOf(Minecraft.getInstance().player.blockPosition());
 				onValueChanged();
 			});
-		playerPositionButton.setToolTip(Components.literal("Set to player position"));
+		playerPositionButton.setToolTip(Components.translatable("sophisticatedbuilding.gui.modifier.player_position"));
 		listeners.add(playerPositionButton);
 		
 		//Toggle offset button
@@ -101,8 +101,8 @@ public class MirrorEntry extends BaseModifierEntry<Mirror> {
 		radiusInput = new LabeledScrollInput(0, 0, 27, 18)
 			.withRange(0, AttachmentHandler.getMaxMirrorRadius(Minecraft.getInstance().player, false))
 			.titled(Minecraft.getInstance().player.isCreative() ?
-					Component.literal("Radius") :
-					Component.literal("Radius. Use Reach Upgrade items to increase maximum."))
+					Component.translatable("sophisticatedbuilding.gui.modifier.radius") :
+					Component.translatable("sophisticatedbuilding.gui.modifier.radius_upgrade"))
 			.calling(value -> {
 				modifier.radius = value;
 				onValueChanged();
@@ -192,11 +192,11 @@ public class MirrorEntry extends BaseModifierEntry<Mirror> {
 		//Toggle offset button
 		if (modifier.position.x == Math.floor(modifier.position.x)) {
 			toggleOffsetButton.setIcon(AllIcons.I_BLOCK_CENTER);
-			toggleOffsetButton.setToolTip(Components.literal("Set position to center of block, for uneven numbered builds."));
+			toggleOffsetButton.setToolTip(Components.translatable("sophisticatedbuilding.gui.modifier.block_center"));
 		}
 		else {
 			toggleOffsetButton.setIcon(AllIcons.I_BLOCK_CORNER);
-			toggleOffsetButton.setToolTip(Components.literal("Set position to corner of block, for even numbered builds."));
+			toggleOffsetButton.setToolTip(Components.translatable("sophisticatedbuilding.gui.modifier.block_corner"));
 		}
 		
 		//Axis buttons
@@ -213,21 +213,21 @@ public class MirrorEntry extends BaseModifierEntry<Mirror> {
 		//Show lines button
 		if (modifier.drawLines) {
 			showLinesButton.setIcon(AllIcons.I_SHOW_LINES);
-			showLinesButton.setToolTip(Components.literal("Show mirror lines"));
+			showLinesButton.setToolTip(Components.translatable("sophisticatedbuilding.gui.modifier.show_lines"));
 		}
 		else {
 			showLinesButton.setIcon(AllIcons.I_HIDE_LINES);
-			showLinesButton.setToolTip(Components.literal("Show mirror lines"));
+			showLinesButton.setToolTip(Components.translatable("sophisticatedbuilding.gui.modifier.show_lines"));
 		}
 		
 		//Show areas button
 		if (modifier.drawPlanes) {
 			showAreasButton.setIcon(AllIcons.I_SHOW_AREAS);
-			showAreasButton.setToolTip(Components.literal("Show mirror areas"));
+			showAreasButton.setToolTip(Components.translatable("sophisticatedbuilding.gui.modifier.show_areas"));
 		}
 		else {
 			showAreasButton.setIcon(AllIcons.I_HIDE_AREAS);
-			showAreasButton.setToolTip(Components.literal("Show mirror areas"));
+			showAreasButton.setToolTip(Components.translatable("sophisticatedbuilding.gui.modifier.show_areas"));
 		}
 	}
 }

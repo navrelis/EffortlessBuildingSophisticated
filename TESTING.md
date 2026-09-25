@@ -4,8 +4,8 @@ Three layers, from fast to real:
 
 | Layer | Command (in a loader folder) | What it proves |
 |---|---|---|
-| Unit tests | `gradlew build` | Pure logic in `common/src/test` (104 tests on Fabric incl. its config tests, 90 on Forge) |
-| Fabric GameTests | `gradlew runGametest` | 24 server-side building rules (`fabric/src/gametest`) |
+| Unit tests | `gradlew build` | Pure logic in `common/src/test` (117 tests on Fabric incl. its config tests, 103 on Forge) |
+| Fabric GameTests | `gradlew runGametest` | 38 server-side building rules (`fabric/src/gametest`) |
 | **In-game smoke tests** | `gradlew runSmokeClient` / `gradlew runSmokeServer` | The mod works in a real game on this loader, on Fabric including the Sophisticated Backpacks (SB) integration |
 
 `gradlew build` compiles the smoke harness (so it cannot rot) but never runs it. The harness is dev-only: it lives in
@@ -121,10 +121,11 @@ arrives from a client, and handed to the packets' server handlers.
 | `server.undo_redo` | Undo/redo packets restore the inventory counts |
 | `server.merge_undo_refund` | Survival merges (+1 snow layer, +1 candle) cost one item each; undo puts both blocks back without mining and gives the items back, redo charges them again |
 | `server.refused_place_not_charged` | The loader's block place event refuses 2 of a 5 block line (as a protection mod would): only the 3 placed planks are charged and undo gives back exactly those. Skipped on Fabric (no place event; `ChargeGameTest` covers refused placements) |
+| `server.request_limits` | A survival player's build requests over the power level limits (start 60 blocks away, a 20 block extent over the 8 blocks per axis) are refused, nothing placed or charged; a normal 5 block line after them is placed |
 | `sb.upgrade_supplies_blocks`, `sb.disabled_upgrade_ignored`, `sb.tier_cap`, `sb.tool_swapper_tools`, `sb.worn_backpack_chest`, `sb.worn_backpack` | As on the client, server side |
 | `server.no_mod_errors` | As on the client |
 
-Fabric reports 11 checks (6 `sb.*`; `server.refused_place_not_charged` skipped), Forge 5.
+Fabric reports 12 checks (6 `sb.*`; `server.refused_place_not_charged` skipped), Forge 6.
 
 Game tests of other mods in the runtime are not checks: they are only logged when they pass; if one fails, the run
 fails with a `server.foreign_game_test` check (on this branch no other mod in the dev runtime registers one).
@@ -261,7 +262,28 @@ the `mc/1.21.1` one with these 1.19.4 differences:
   `setTooltipForNextRenderPass(Tooltip, DefaultTooltipPositioner, true)` and `AbstractSliderButton` are the same as on
   1.21.1. Forge 45's `ForgeConfigSpec.ConfigValue#set/getDefault` and `ForgeConfigSpec#save()` exist.
 
-### Results (2026-09-25)
+- R3 (5.0.1 fixes of `mc/1.21.1` d8ab383..48261e8): Fabric per-player data saved with the player (`PlayerDataMixin`,
+  `ServerPlayerEvents.COPY_FROM`), server checks of build requests with the common config synced to the client
+  (`CommonConfigSyncPacket` as a `ModPayload` with `writeVarIntArray`/`readVarIntArray`), array limit, Fabric break
+  events and Common Protection API 1.0.0, offhand bag filter, material cost list, previous build mode, translatable
+  texts (`LangKeysTest`). 1.19.4 differences: the start reach uses the vanilla reach 5 (creative) / 4.5 (no
+  `Player#blockInteractionRange` before 1.20.5); `PowerLevel#serializeNBT()` without a registry provider; item tooltips
+  keep the `Level` signature; the GameTests build their players without `ClientInformation` and use
+  `helper.assertTrue(!...)` (no `assertFalse`). Found on the way: the new Fabric mixin config was copied with
+  `compatibilityLevel` `JAVA_21`, which the Java 17 runtime refuses (every Fabric start failed; now `JAVA_17`); the
+  smoke players are moved with the five-argument `moveTo`, because `ServerPlayer#moveTo(x, y, z)` teleports through the
+  connection and Forge 45's fake player ignores that (all Forge line scenarios were refused as out of reach); the new
+  Forge test uses the template `smoketest_empty`. `scripts/check-fabric-no-sb-bytecode.ps1 -Mc 1.19.4`: 350 classes
+  compared, 0 differ.
+
+### Results (5.0.1 fixes, 2026-09-25)
+
+| Folder | `gradlew build` (unit tests) | Game tests | `runSmokeServer` | `runSmokeServer -PsmokeNoSb=true` | `runSmokeClient` |
+|---|---|---|---|---|---|
+| `fabric/` | 117/117 | 38/38 | 12 (11 passed, 1 skipped; 6 `sb.*`) | 12 (5 passed, 7 skipped) | pending (no clients) |
+| `forge/` | 103/103 | - | 6/6 | 6/6 | pending (no clients) |
+
+### Results of the port and R2 (2026-09-25)
 
 | Folder | Runtime | `gradlew build` (unit tests) | Game tests | `runSmokeServer` | `runSmokeClient` |
 |---|---|---|---|---|---|
