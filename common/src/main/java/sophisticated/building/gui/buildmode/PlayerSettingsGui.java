@@ -2,6 +2,7 @@ package sophisticated.building.gui.buildmode;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import com.mojang.blaze3d.vertex.PoseStack;
 import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
@@ -156,6 +157,15 @@ public class PlayerSettingsGui extends Screen {
 		return false;
 	}
 
+	/**
+	 * The font for the rows. Screen#font is protected: the rows (inner classes) reach it through this method, because a
+	 * direct access from them compiles to a plain field access when another mod's access widener (Porting Lib, nested
+	 * in the Fabric Sophisticated Core port) makes the field public in the dev runtime, which fails without that mod.
+	 */
+	private Font rowFont() {
+		return font;
+	}
+
 	//region Rows
 
 	/** The scrolling list of setting rows (same frame as the modifier settings list). */
@@ -210,6 +220,7 @@ public class PlayerSettingsGui extends Screen {
 
 		@Override
 		public void render(PoseStack poseStack, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean hovering, float partialTicks) {
+			Font font = rowFont();
 			GuiGraphics guiGraphics = new GuiGraphics(poseStack);
 			guiGraphics.drawCenteredString(font, text, left + width / 2, top + (height - font.lineHeight) / 2 + 1, 0xFFFFAA00);
 		}
@@ -249,6 +260,7 @@ public class PlayerSettingsGui extends Screen {
 
 		@Override
 		public void render(PoseStack poseStack, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean hovering, float partialTicks) {
+			Font font = rowFont();
 			GuiGraphics guiGraphics = new GuiGraphics(poseStack);
 			AbstractWidget widget = widget();
 			int controlWidth = controlWidth(width);
