@@ -17,6 +17,9 @@
       "sophisticated.building.smoketest.fabric.FabricSmokeServerTests"
     ]
   },
+  "mixins": [
+    "sophisticatedbuilding_smoketest.mixins.json"
+  ],
   "depends": {
     "sophisticatedbuilding": "*",
     "fabric-api": "*"
