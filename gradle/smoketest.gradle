@@ -70,3 +70,36 @@ ext.disableEarlyWindow = { Task task, File gameDir, String key = 'earlyWindowCon
         fmlToml.setText(lines.join('\n') + '\n', 'UTF-8')
     }
 }
+
+// Standalone smoke run: gradlew runSmokeServer -PsmokeNoSb=true --no-daemon (loader folders with the Sophisticated
+// Backpacks integration). Proves the mod works without Sophisticated Backpacks/Core: the dev runtime gets none of the
+// optional mods (every dependency of the localRuntime / modLocalRuntime / smoketestLocalRuntime /
+// modSmoketestLocalRuntime / modSmoketestRuntimeOnly configurations is dropped: Sophisticated Backpacks and Core, their
+// Fabric port libraries, Curios, Trinkets), the backpack fixture (every file under a smoketestBackpacks folder) is not
+// compiled into the smoke source set, and the smoke runs get -Dsophisticatedbuilding.smoketest.noSb=true, which makes
+// the sb.* scenarios report "skipped" (or fail when the backpack integration is active anyway). The building
+// scenarios (server.place_line_survival, server.undo_redo, server.merge_undo_refund, server.refused_place_not_charged,
+// server.no_mod_errors) run as usual. See TESTING.md.
+ext.smokeNoSb = (project.findProperty('smokeNoSb') ?: 'false').toString().toBoolean()
+if (smokeNoSb) {
+    def optionalRuntime = ['localRuntime', 'modLocalRuntime', 'smoketestLocalRuntime', 'modSmoketestLocalRuntime', 'modSmoketestRuntimeOnly']
+    configurations.configureEach { Configuration configuration ->
+        if (configuration.name in optionalRuntime) {
+            configuration.withDependencies { DependencySet dependencies -> dependencies.clear() }
+        }
+    }
+    plugins.withId('java') {
+        sourceSets.configureEach { SourceSet sourceSet ->
+            if (sourceSet.name == 'smoketest') {
+                def fixture = { FileTreeElement element -> element.file.path.replace('\\', '/').contains('/smoketestBackpacks/') }
+                sourceSet.java.exclude(fixture)
+                sourceSet.resources.exclude(fixture)
+            }
+        }
+    }
+    tasks.withType(JavaExec).configureEach { JavaExec task ->
+        if (task.name.startsWith('runSmoke')) {
+            task.systemProperty 'sophisticatedbuilding.smoketest.noSb', 'true'
+        }
+    }
+}
