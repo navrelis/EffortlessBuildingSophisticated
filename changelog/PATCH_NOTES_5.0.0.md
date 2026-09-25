@@ -1,15 +1,13 @@
-# Sophisticated Building Update – 4.3.0 (Minecraft 1.19 – 1.19.2)
-
-*Draft — lead to confirm before release.*
+# Sophisticated Building Update – 5.0.0 (Minecraft 1.19 – 1.19.2)
 
 ## Artifacts
 
-* `sophisticatedbuilding-fabric-1.19.2-4.3.0.jar` — Fabric, Minecraft 1.19, 1.19.1 and 1.19.2
-* `sophisticatedbuilding-forge-1.19.2-4.3.0.jar` — Forge, Minecraft 1.19.2
-* `sophisticatedbuilding-forge-1.19-4.3.0.jar` — Forge, Minecraft 1.19 and 1.19.1
+* `sophisticatedbuilding-fabric-1.19.2-5.0.0.jar` — Fabric, Minecraft 1.19, 1.19.1 and 1.19.2
+* `sophisticatedbuilding-forge-1.19.2-5.0.0.jar` — Forge, Minecraft 1.19.2
+* `sophisticatedbuilding-forge-1.19-5.0.0.jar` — Forge, Minecraft 1.19 and 1.19.1
 
-Jar file names include the Minecraft version (`sophisticatedbuilding-<loader>-<minecraft>-4.3.0.jar`);
-releases before 4.3.0 were named `sophisticatedbuilding-<loader>-<version>.jar` without it, e.g.
+Jar file names include the Minecraft version (`sophisticatedbuilding-<loader>-<minecraft>-5.0.0.jar`);
+releases before 5.0.0 were named `sophisticatedbuilding-<loader>-<version>.jar` without it, e.g.
 `sophisticatedbuilding-fabric-4.2.1.jar`.
 
 ## New
@@ -118,7 +116,7 @@ This release reorganizes the mod internally; there is no change to how it plays.
   Core 1.19.2-0.6.4.30, CurseForge file 5803819, and Backpacks 1.19.2-3.20.2.22, file 5803830).
   Trinkets 3.4.2 (worn backpacks) was tested on a dedicated server.
 
-### Forge, Minecraft 1.19.2 (`sophisticatedbuilding-forge-1.19.2-4.3.0.jar`)
+### Forge, Minecraft 1.19.2 (`sophisticatedbuilding-forge-1.19.2-5.0.0.jar`)
 
 * Minecraft 1.19.2, Java 17.
 * Forge 43.5.2 or newer (built and tested against 43.5.2).
@@ -126,7 +124,7 @@ This release reorganizes the mod internally; there is no change to how it plays.
   Backpacks 1.19.2-3.20.2.1035 or newer).
 * Curios API (compile-only, worn-backpack fallback scan): 1.19.2-5.1.6.4.
 
-### Forge, Minecraft 1.19 and 1.19.1 (`sophisticatedbuilding-forge-1.19-4.3.0.jar`)
+### Forge, Minecraft 1.19 and 1.19.1 (`sophisticatedbuilding-forge-1.19-5.0.0.jar`)
 
 * Minecraft 1.19 or 1.19.1, Java 17.
 * Forge 41.1.0 or newer (built and tested against 41.1.0; also tested on 42.0.9 for 1.19.1).
