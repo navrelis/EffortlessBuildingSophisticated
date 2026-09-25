@@ -59,6 +59,8 @@ final class ForgeSmokeServerTests {
         scenarios.put("sb_tool_swapper_tools", ServerScenarios::sb_tool_swapper_tools);
         scenarios.put("sb_worn_backpack_chest", ServerScenarios::sb_worn_backpack_chest);
         scenarios.put("sb_worn_backpack", ServerScenarios::sb_worn_backpack);
+        scenarios.put("server_merge_undo_refund", ServerScenarios::server_merge_undo_refund);
+        scenarios.put("server_refused_place_not_charged", ServerScenarios::server_refused_place_not_charged);
         return scenarios;
     }
 

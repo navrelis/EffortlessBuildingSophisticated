@@ -241,12 +241,12 @@ public final class ConfigSpec {
         }
 
         @Override
-        public SimpleConfigValue<Integer> defineInRange(String key, int defaultValue, int min, int max) {
+        public SimpleConfigValue.IntValue defineInRange(String key, int defaultValue, int min, int max) {
             return add(new SimpleConfigValue.IntValue(key, takeComment(), defaultValue, min, max));
         }
 
         @Override
-        public SimpleConfigValue<Double> defineInRange(String key, double defaultValue, double min, double max) {
+        public SimpleConfigValue.DoubleValue defineInRange(String key, double defaultValue, double min, double max) {
             return add(new SimpleConfigValue.DoubleValue(key, takeComment(), defaultValue, min, max));
         }
 

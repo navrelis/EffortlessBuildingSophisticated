@@ -109,6 +109,8 @@ legacyForge {
             gameDirectory = file('build/smoketest/client-run')
             systemProperty 'sophisticatedbuilding.smoketest.mode', 'client'
             systemProperty 'sophisticatedbuilding.smoketest.out', smoketestOutDir('client').absolutePath
+            // Harness mixin (SmokeWindowMixin): the window is created without taking the focus
+            programArgument '--mixin.config=sophisticatedbuilding_smoketest.mixins.json'
         }
         // Headless: a dedicated server runs the server scenarios as vanilla game tests (fake survival players, real
         // backpacks, see ForgeSmokeServerTests: Forge 1.17.1 has no game test server launch target) and writes the same
