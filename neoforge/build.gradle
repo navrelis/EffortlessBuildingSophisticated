@@ -136,7 +136,10 @@ neoForge {
 }
 
 // The smoke runs pass or fail on the result file they write (shared logic in ../gradle/smoketest.gradle)
-tasks.named('runSmokeClient') { verifySmokeRun(it, smoketestOutDir('client')) }
+tasks.named('runSmokeClient') {
+    verifySmokeRun(it, smoketestOutDir('client'))
+    disableEarlyWindow(it, file('build/smoketest/client-run'))
+}
 tasks.named('runSmokeServer') { verifySmokeRun(it, smoketestOutDir('server')) }
 
 // Dependencies present in the dev runs only (not pulled by dependents of this mod).

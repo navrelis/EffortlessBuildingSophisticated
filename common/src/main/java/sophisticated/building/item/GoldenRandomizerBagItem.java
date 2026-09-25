@@ -38,7 +38,8 @@ public class GoldenRandomizerBagItem extends AbstractRandomizerBagItem{
 
         @Override
         public Component getDisplayName() {
-            return Component.translatable("item.sophisticatedbuilding.golden_randomizer_bag");
+            // The bag's name: the item name, or the name the player gave it in an anvil
+            return bag.getHoverName();
         }
 
         @Nullable

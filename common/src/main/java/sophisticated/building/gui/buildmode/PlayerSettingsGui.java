@@ -4,25 +4,53 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.client.gui.components.ContainerObjectSelectionList;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.sounds.SoundEvents;
-import sophisticated.building.SophisticatedBuilding;
+import net.minecraft.util.Mth;
+import org.lwjgl.glfw.GLFW;
+import sophisticated.building.ClientConfig;
+import sophisticated.building.ClientEvents;
+import sophisticated.building.SophisticatedBuildingClient;
+import sophisticated.building.config.ConfigValue;
+import sophisticated.building.config.NumberConfigValue;
+import sophisticated.building.create.catnip.gui.UIRenderHelper;
+import sophisticated.building.create.catnip.theme.Color;
+import sophisticated.building.gui.SliderValues;
+import sophisticated.building.platform.ClientServices;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.DoubleFunction;
 
+/**
+ * The player's own settings: an editor of the client config ({@link ClientConfig} Visuals and Performance). Toggles
+ * for the switches, sliders with the config's ranges for the numbers; every change applies at once, "Done" (or
+ * Escape, or the screen's key) writes the loader's client config file, "Reset to defaults" restores every value.
+ * Opened from the radial menu ({@code OPEN_PLAYER_SETTINGS}) and the "Open player settings" key.
+ */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class PlayerSettingsGui extends Screen {
 
-	protected int left, right, top, bottom;
-	protected boolean showShaderList = false;
-	private Button shaderTypeButton;
-	private ShaderTypeList shaderTypeList;
-	private Button closeButton;
+	private static final String LANG = "sophisticatedbuilding.player_settings.";
+	private static final int ROW_HEIGHT = 24;
+	private static final int TOP = 32;
+	private static final int BOTTOM = 36;
+	private static final int MAX_ROW_WIDTH = 320;
+
+	protected SettingsList list;
+	protected Button resetButton;
+	protected Button doneButton;
+	private final List<SettingEntry<?>> entries = new ArrayList<>();
+	private boolean changed;
 
 	public PlayerSettingsGui() {
 		super(Component.translatable("sophisticatedbuilding.screen.player_settings"));
@@ -30,207 +58,338 @@ public class PlayerSettingsGui extends Screen {
 
 	@Override
 	protected void init() {
-		left = this.width / 2 - 140;
-		right = this.width / 2 + 140;
-		top = this.height / 2 - 100;
-		bottom = this.height / 2 + 100;
+		double scroll = list != null ? list.scrollAmount() : 0;
+		entries.clear();
+		list = new SettingsList(minecraft, width, height - TOP - BOTTOM, TOP, ROW_HEIGHT);
 
-		int yy = top;
-		shaderTypeList = new ShaderTypeList(this.minecraft);
-		addWidget(shaderTypeList);
-		//TODO set selected name
-		Component currentShaderName = ShaderType.DISSOLVE_BLUE.name;
-		shaderTypeButton = Button.builder(currentShaderName, (button) -> showShaderList = !showShaderList)
-				.bounds(right - 180, yy, 180, 20)
-				.build();
-		addRenderableOnly(shaderTypeButton);
+		var visuals = ClientConfig.visuals;
+		var performance = ClientConfig.performance;
+		list.addHeader(Component.translatable(LANG + "visuals"));
+		add(new BooleanEntry("showBlockPreviews", visuals.showBlockPreviews));
+		add(new BooleanEntry("onlyShowBlockPreviewsWhenBuilding", visuals.onlyShowBlockPreviewsWhenBuilding));
+		add(new BooleanEntry("showMiniBlockPreview", visuals.showMiniBlockPreview));
+		add(new IntEntry("maxBlockPreviews", visuals.maxBlockPreviews, 64, 3,
+				value -> value == 0 ? Component.translatable(LANG + "value.outline_only") : blocks(value)));
+		add(new IntEntry("appearAnimationLength", visuals.appearAnimationLength, 1, 1, PlayerSettingsGui::ticks));
+		add(new IntEntry("breakAnimationLength", visuals.breakAnimationLength, 1, 1, PlayerSettingsGui::ticks));
+		add(new DoubleEntry("previewScale", visuals.previewScale, 0.05,
+				value -> Component.translatable(LANG + "value.percent", Math.round(value * 100))));
+		list.addHeader(Component.translatable(LANG + "performance"));
+		add(new IntEntry("previewRenderDistance", performance.previewRenderDistance, 8, 1, PlayerSettingsGui::blocks));
+		add(new BooleanEntry("enableUpdateThrottling", performance.enableUpdateThrottling));
+		add(new IntEntry("maxMiniBlockPreviews", performance.maxMiniBlockPreviews, 64, 3,
+				value -> value == 0 ? Component.translatable(LANG + "value.no_limit") : blocks(value)));
+		addRenderableWidget(list);
+		list.setScrollAmount(scroll);
 
-		yy += 50;
-		AbstractSliderButton slider = new SpeedSlider(right - 200, yy, 200, 20, 0.5, 2.0, 1.0);
-		addRenderableOnly(slider);
-
-		closeButton = Button.builder(Component.literal("Done"), (button) -> this.minecraft.player.closeContainer())
-				.bounds(left + 50, bottom - 20, 180, 20)
-				.build();
-		addRenderableOnly(closeButton);
+		int buttonWidth = Math.min(150, (width - 30) / 2);
+		int buttonY = height - BOTTOM + 8;
+		resetButton = addRenderableWidget(Button.builder(Component.translatable(LANG + "reset"), button -> resetToDefaults())
+				.bounds(width / 2 - buttonWidth - 5, buttonY, buttonWidth, 20)
+				.tooltip(Tooltip.create(Component.translatable(LANG + "reset.tooltip")))
+				.build());
+		doneButton = addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> onClose())
+				.bounds(width / 2 + 5, buttonY, buttonWidth, 20)
+				.build());
 	}
 
-	@Override
-	public void tick() {
-		super.tick();
+	private void add(SettingEntry<?> entry) {
+		entries.add(entry);
+		list.addSetting(entry);
 	}
 
-	private static class SpeedSlider extends AbstractSliderButton {
-		private final double min;
-		private final double max;
+	private static Component blocks(double value) {
+		return Component.translatable(LANG + "value.blocks", (int) value);
+	}
 
-		private SpeedSlider(int x, int y, int width, int height, double min, double max, double value) {
-			super(x, y, width, height, Component.empty(), (value - min) / (max - min));
-			this.min = min;
-			this.max = max;
-			updateMessage();
-		}
+	private static Component ticks(double value) {
+		int ticks = (int) value;
+		if (ticks == 0) return CommonComponents.OPTION_OFF;
+		return Component.translatable(LANG + "value.ticks", ticks, String.format("%.2f", ticks / 20.0));
+	}
 
-		@Override
-		protected void updateMessage() {
-			double sliderValue = min + (max - min) * this.value;
-			setMessage(Component.literal(String.format("Speed: %.2f", sliderValue)));
+	/** Sets every value back to its config default (applied at once, saved on Done). */
+	public void resetToDefaults() {
+		for (SettingEntry<?> entry : entries) {
+			entry.reset();
 		}
+		onChanged();
+	}
 
-		@Override
-		protected void applyValue() {
-			// Reserved for future shader speed persistence.
-		}
+	private void onChanged() {
+		changed = true;
+		SophisticatedBuildingClient.BLOCK_PREVIEWS.onConfigChanged();
 	}
 
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		super.render(guiGraphics, mouseX, mouseY, partialTicks);
-
-		int yy = top;
-		guiGraphics.drawString(font, "Shader type", left, yy + 5, 0xFFFFFFFF, false);
-
-		yy += 50;
-		guiGraphics.drawString(font, "Shader speed", left, yy + 5, 0xFFFFFFFF, false);
-
-		if (showShaderList)
-			this.shaderTypeList.render(guiGraphics, mouseX, mouseY, partialTicks);
+		guiGraphics.drawCenteredString(font, title, width / 2, 12, 0xFFFFFFFF);
 	}
 
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
-		super.mouseClicked(mouseX, mouseY, mouseButton);
-		if (showShaderList) {
-			if (!shaderTypeList.isMouseOver(mouseX, mouseY) && !shaderTypeButton.isMouseOver(mouseX, mouseY))
-				showShaderList = false;
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		// The screen's own key closes it again, like the modifier settings key
+		if (keyCode != GLFW.GLFW_KEY_UNKNOWN && ClientServices.CLIENT.matchesKey(ClientEvents.keyBindings[ClientEvents.PLAYER_SETTINGS_KEY], keyCode, scanCode)) {
+			onClose();
+			return true;
 		}
-		return true;
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 
+	/** Called whenever the screen goes away (Done, Escape, its key, another screen): writes the client config file. */
 	@Override
 	public void removed() {
-		ShaderTypeList.ShaderTypeEntry selectedShader = shaderTypeList.getSelected();
-		//TODO save and remove
-	}
-
-	public enum ShaderType {
-		DISSOLVE_BLUE("Dissolve Blue"),
-		DISSOLVE_ORANGE("Dissolve Orange");
-
-		public Component name;
-
-		ShaderType(Component name) {
-			this.name = name;
-		}
-
-		ShaderType(String name) {
-			this.name = Component.literal(name);
+		super.removed();
+		if (changed) {
+			changed = false;
+			ClientConfig.save();
 		}
 	}
 
-	//Inspired by LanguageScreen
-	class ShaderTypeList extends ObjectSelectionList<PlayerSettingsGui.ShaderTypeList.ShaderTypeEntry> {
+	@Override
+	public boolean isPauseScreen() {
+		return false;
+	}
 
-		public ShaderTypeList(Minecraft mcIn) {
-			super(mcIn, 180, 140, top + 20, /*top + 100,*/ 18);
-			this.setX(right - width);
+	//region Rows
 
-			for (int i = 0; i < 40; i++) {
+	/** The scrolling list of setting rows (same frame as the modifier settings list). */
+	protected class SettingsList extends ContainerObjectSelectionList<Row> {
 
-				for (ShaderType shaderType : ShaderType.values()) {
-					ShaderTypeEntry shaderTypeEntry = new ShaderTypeEntry(shaderType);
-					addEntry(shaderTypeEntry);
-					//TODO setSelected to this if appropriate
-				}
+		SettingsList(Minecraft minecraft, int width, int height, int y, int itemHeight) {
+			super(minecraft, width, height, y, itemHeight);
+		}
 
-			}
+		void addHeader(Component text) {
+			addEntry(new HeaderRow(text));
+		}
 
-			if (this.getSelected() != null) {
-				this.centerScrollOn(this.getSelected());
-			}
+		void addSetting(SettingEntry<?> entry) {
+			addEntry(entry);
 		}
 
 		@Override
 		public int getRowWidth() {
-			return width;
-		}
-
-		@Override
-		public void setSelected(PlayerSettingsGui.ShaderTypeList.ShaderTypeEntry selected) {
-			super.setSelected(selected);
-			Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-			SophisticatedBuilding.log("Selected shader " + selected.shaderType.name);
-			shaderTypeButton.setMessage(selected.shaderType.name);
-//            showShaderList = false;
-		}
-
-		@Override
-		public boolean mouseClicked(double mouseX, double mouseY, int pButton) {
-			if (!showShaderList) return false;
-			return super.mouseClicked(mouseX, mouseY, pButton);
-		}
-
-		@Override
-		public boolean mouseReleased(double mouseX, double mouseY, int button) {
-			if (!showShaderList) return false;
-			return super.mouseReleased(mouseX, mouseY, button);
-		}
-
-		@Override
-		public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-			if (!showShaderList) return false;
-			return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
-		}
-
-		@Override
-		public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-			if (!showShaderList) return false;
-			return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
-		}
-
-		@Override
-		public boolean isMouseOver(double mouseX, double mouseY) {
-			if (!showShaderList) return false;
-			return super.isMouseOver(mouseX, mouseY);
-		}
-
-		public boolean isFocused() {
-			return PlayerSettingsGui.this.getFocused() == this;
+			return Math.min(width - 40, MAX_ROW_WIDTH);
 		}
 
 		@Override
 		protected int scrollBarX() {
-			return right - 6;
+			return getRowRight() + 6;
 		}
 
-		public class ShaderTypeEntry extends ObjectSelectionList.Entry<ShaderTypeEntry> {
-			private final ShaderType shaderType;
+		@Override
+		public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+			Color shadow = new Color(0x60_000000);
+			UIRenderHelper.angledGradient(guiGraphics, 90, getX() + width / 2, getY(), width, 5, shadow, Color.TRANSPARENT_BLACK);
+			UIRenderHelper.angledGradient(guiGraphics, -90, getX() + width / 2, getY() + getHeight(), width, 5, shadow, Color.TRANSPARENT_BLACK);
+			super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
+		}
+	}
 
-			public ShaderTypeEntry(ShaderType shaderType) {
-				this.shaderType = shaderType;
+	public abstract static class Row extends ContainerObjectSelectionList.Entry<Row> {
+	}
+
+	protected class HeaderRow extends Row {
+		private final Component text;
+
+		HeaderRow(Component text) {
+			this.text = text;
+		}
+
+		@Override
+		public void render(GuiGraphics guiGraphics, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean hovering, float partialTicks) {
+			guiGraphics.drawCenteredString(font, text, left + width / 2, top + (height - font.lineHeight) / 2 + 1, 0xFFFFAA00);
+		}
+
+		@Override
+		public List<? extends GuiEventListener> children() {
+			return List.of();
+		}
+
+		@Override
+		public List<? extends NarratableEntry> narratables() {
+			return List.of();
+		}
+	}
+
+	/** One setting: its translated label on the left, its control on the right; the label shows the tooltip too. */
+	public abstract class SettingEntry<T> extends Row {
+		public final String key;
+		public final ConfigValue<T> config;
+		protected final Component label;
+		protected final Tooltip tooltip;
+
+		SettingEntry(String key, ConfigValue<T> config) {
+			this.key = key;
+			this.config = config;
+			this.label = Component.translatable(LANG + key);
+			this.tooltip = Tooltip.create(Component.translatable(LANG + key + ".tooltip"));
+		}
+
+		public abstract AbstractWidget widget();
+
+		abstract void reset();
+
+		protected int controlWidth(int rowWidth) {
+			return Math.min(150, rowWidth / 2);
+		}
+
+		@Override
+		public void render(GuiGraphics guiGraphics, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean hovering, float partialTicks) {
+			AbstractWidget widget = widget();
+			int controlWidth = controlWidth(width);
+			widget.setWidth(controlWidth);
+			widget.setX(left + width - controlWidth);
+			widget.setY(top + (height - 20) / 2);
+			widget.render(guiGraphics, mouseX, mouseY, partialTicks);
+
+			int labelWidth = width - controlWidth - 6;
+			int labelY = top + (height - font.lineHeight) / 2 + 1;
+			var text = font.plainSubstrByWidth(label.getString(), labelWidth);
+			guiGraphics.drawString(font, text, left, labelY, 0xFFFFFFFF, false);
+			if (mouseX >= left && mouseX < left + labelWidth && mouseY >= top && mouseY < top + height) {
+				guiGraphics.setTooltipForNextFrame(font, tooltip.toCharSequence(minecraft), mouseX, mouseY);
+			}
+		}
+
+		@Override
+		public List<? extends GuiEventListener> children() {
+			return List.of(widget());
+		}
+
+		@Override
+		public List<? extends NarratableEntry> narratables() {
+			return List.of(widget());
+		}
+	}
+
+	protected class BooleanEntry extends SettingEntry<Boolean> {
+		private final Button button;
+
+		BooleanEntry(String key, ConfigValue<Boolean> config) {
+			super(key, config);
+			button = Button.builder(CommonComponents.optionStatus(config.get()), b -> set(!config.get()))
+					.bounds(0, 0, 150, 20)
+					.tooltip(tooltip)
+					.build();
+		}
+
+		private void set(boolean value) {
+			config.set(value);
+			button.setMessage(CommonComponents.optionStatus(value));
+			onChanged();
+		}
+
+		@Override
+		public AbstractWidget widget() {
+			return button;
+		}
+
+		@Override
+		void reset() {
+			config.set(config.getDefault());
+			button.setMessage(CommonComponents.optionStatus(config.get()));
+		}
+	}
+
+	/** A slider over a number setting's config range; values snap to the step. */
+	public abstract class NumberEntry<T extends Number> extends SettingEntry<T> {
+		public final SliderValues values;
+		private final DoubleFunction<Component> format;
+		private final Slider slider;
+
+		NumberEntry(String key, NumberConfigValue<T> config, double step, double exponent, DoubleFunction<Component> format) {
+			super(key, config);
+			this.values = new SliderValues(config.getMin().doubleValue(), config.getMax().doubleValue(), step, exponent);
+			this.format = format;
+			this.slider = new Slider();
+		}
+
+		protected abstract T toConfig(double value);
+
+		@Override
+		public AbstractWidget widget() {
+			return slider;
+		}
+
+		@Override
+		void reset() {
+			config.set(config.getDefault());
+			slider.show(config.get().doubleValue());
+		}
+
+		protected class Slider extends AbstractSliderButton {
+			Slider() {
+				super(0, 0, 150, 20, Component.empty(), values.positionOf(config.get().doubleValue()));
+				setTooltip(tooltip);
+				updateMessage();
+			}
+
+			void show(double value) {
+				this.value = values.positionOf(value);
+				updateMessage();
 			}
 
 			@Override
-			public void render(GuiGraphics guiGraphics, int itemIndex, int rowTop, int rowLeft, int rowWidth, int rowHeight, int mouseX, int mouseY, boolean hovered, float partialTicks) {
-				if (rowTop + 10 > ShaderTypeList.this.getY() && rowTop + rowHeight - 5 < (ShaderTypeList.this.getY() + ShaderTypeList.this.getHeight()))
-					guiGraphics.drawString(font, shaderType.name, ShaderTypeList.this.getX() + 8, rowTop + 4, 0xFFFFFFFF, false);
+			protected void updateMessage() {
+				setMessage(format.apply(config.get().doubleValue()));
 			}
 
 			@Override
-			public boolean mouseClicked(double p_mouseClicked_1_, double p_mouseClicked_3_, int p_mouseClicked_5_) {
-				if (p_mouseClicked_5_ == 0) {
-					setSelected(this);
-					return true;
-				} else {
-					return false;
+			protected void applyValue() {
+				double snapped = values.valueAt(value);
+				// The knob jumps to the snapped value, so integer settings move in whole steps
+				value = values.positionOf(snapped);
+				if (config.get().doubleValue() != snapped) {
+					config.set(toConfig(snapped));
+					onChanged();
 				}
+				updateMessage();
 			}
 
+			/** Arrow keys move one step (the vanilla slider moves by one pixel, less than a step of a wide range). */
 			@Override
-			public Component getNarration() {
-				return null;
+			public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+				if (keyCode == GLFW.GLFW_KEY_LEFT || keyCode == GLFW.GLFW_KEY_RIGHT) {
+					double current = config.get().doubleValue();
+					double next = values.snap(current + (keyCode == GLFW.GLFW_KEY_LEFT ? -values.step() : values.step()));
+					value = Mth.clamp(values.positionOf(next), 0, 1);
+					applyValue();
+					return true;
+				}
+				return super.keyPressed(keyCode, scanCode, modifiers);
 			}
 		}
 	}
-}
 
+	protected class IntEntry extends NumberEntry<Integer> {
+		IntEntry(String key, NumberConfigValue<Integer> config, int step, double exponent, DoubleFunction<Component> format) {
+			super(key, config, step, exponent, format);
+		}
+
+		@Override
+		protected Integer toConfig(double value) {
+			return (int) Math.round(value);
+		}
+	}
+
+	protected class DoubleEntry extends NumberEntry<Double> {
+		DoubleEntry(String key, NumberConfigValue<Double> config, double step, DoubleFunction<Component> format) {
+			super(key, config, step, 1, format);
+		}
+
+		@Override
+		protected Double toConfig(double value) {
+			return value;
+		}
+	}
+
+	//endregion
+
+	/** The rows, for the smoke test: every setting by its config key. */
+	public List<SettingEntry<?>> settingEntries() {
+		return List.copyOf(entries);
+	}
+}
