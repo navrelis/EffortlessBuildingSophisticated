@@ -114,7 +114,8 @@ Continue Sophisticated Building (repo C:\Users\nikol\Desktop\Coding\EffortlessBu
 navrelis/EffortlessBuildingSophisticated, CurseForge project 1414718). Read .knowledge/handoff.md completely first
 (state, open work, project rules), then requirements.md, decisions.md, plan.md, port-brief.md, docs/TESTING.md and
 docs/RELEASING.md. The scope questions are answered - do not ask them again. Finish and release 5.0.1 in this order:
-1. Verify and push the round-3 (5.0.1) ports of mc/1.19.2, mc/1.20.1, mc/1.20.4 (committed locally, only partly verified).
+1. Finish verifying the round-3 (5.0.1) ports of mc/1.19.2, mc/1.20.1, mc/1.20.4 (pushed; build + unit tests green;
+   GameTests, runSmokeServer (+ -PsmokeNoSb=true) and the Fabric no-SB bytecode check still to run).
 2. Finish the 5.0.1 release material on main (bump script for existing PATCH_NOTES_5.0.1.md, 5.0.1 CurseForge
    changelog, CHANGELOG.md entry, "Known issues" in release/curseforge-description.md).
 3. Bump all 17 branches to 5.0.1 (scripts/bump-version.ps1, ~10 branches in parallel), check the 48 jars, push.
