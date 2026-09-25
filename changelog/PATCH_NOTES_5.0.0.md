@@ -1,14 +1,12 @@
-# Sophisticated Building Update – 4.3.0 (Minecraft 1.17.1)
-
-*Draft — lead to confirm before release.*
+# Sophisticated Building Update – 5.0.0 (Minecraft 1.17.1)
 
 ## Artifacts
 
-* `sophisticatedbuilding-fabric-1.17.1-4.3.0.jar` — Fabric
-* `sophisticatedbuilding-forge-1.17.1-4.3.0.jar` — Forge
+* `sophisticatedbuilding-fabric-1.17.1-5.0.0.jar` — Fabric
+* `sophisticatedbuilding-forge-1.17.1-5.0.0.jar` — Forge
 
-Jar file names include the Minecraft version (`sophisticatedbuilding-<loader>-<minecraft>-4.3.0.jar`);
-releases before 4.3.0 were named `sophisticatedbuilding-<loader>-<version>.jar` without it, e.g.
+Jar file names include the Minecraft version (`sophisticatedbuilding-<loader>-<minecraft>-5.0.0.jar`);
+releases before 5.0.0 were named `sophisticatedbuilding-<loader>-<version>.jar` without it, e.g.
 `sophisticatedbuilding-fabric-4.2.1.jar`.
 
 ## New
