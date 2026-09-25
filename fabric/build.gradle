@@ -14,7 +14,7 @@ base {
 }
 
 java {
-    // Mojang ships Java 17 to end users in 1.19.2, so mods should target Java 17.
+    // Mojang ships Java 17 to end users in 1.19.4, so mods should target Java 17.
     toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
     withSourcesJar()
 }
@@ -83,7 +83,7 @@ repositories {
         }
         filter { includeGroup('maven.modrinth') }
     }
-    // Cardinal Components (Trinkets comes from Modrinth: 3.4.2 is not on the TerraformersMC maven), only in the smoke
+    // Cardinal Components (Trinkets comes from Modrinth, as on the 1.19.2 branch), only in the smoke
     // runs (worn backpack in a Trinkets slot, sb.worn_backpack)
     exclusiveContent {
         forRepository {
@@ -98,10 +98,10 @@ repositories {
 }
 
 // The Sophisticated Core and Backpacks jars nest (META-INF/jars) the Porting Lib modules they were built with
-// (2.1.1305+1.19.2), Forge Config API Port, MixinExtras and Team Reborn Energy. Their types are part of the public API
-// and both need them at runtime, but Loom does not expose a dependency's nested jars, so they are extracted from the
-// resolved jars into build/sophisticatedcore-nested, one jar per mod id (a module nested at several levels or in both
-// jars is extracted once).
+// (2.1.2+1.19.4), Forge Config API Port, MixinExtras, Team Reborn Energy and Cardinal Components. Their types are part
+// of the public API and both need them at runtime, but Loom does not expose a dependency's nested jars, so they are
+// extracted from the resolved jars into build/sophisticatedcore-nested, one jar per mod id (a module nested at several
+// levels or in both jars is extracted once).
 def extractNestedJars
 extractNestedJars = { File jar, File into, Map<String, File> found ->
     new java.util.zip.ZipFile(jar).withCloseable { zip ->
@@ -231,11 +231,11 @@ loom {
 // The smoke runs pass or fail on the result file they write (shared logic in ../gradle/smoketest.gradle)
 tasks.named('runSmokeClient') { verifySmokeRun(it, smoketestOutDir('client')) }
 tasks.named('runSmokeServer') { verifySmokeRun(it, smoketestOutDir('server')) }
-// Trinkets 3.4.2, the last one for 1.19.2, was built with Loom 0.11 like 3.7.2 of the 1.20.1 branch, whose client
-// mixin ClickableWidgetMixin shadows AbstractWidget's field by its Yarn name ("hovered"), which a Mojang-mapped dev
-// client cannot resolve (the client crashes at startup; players run the intermediary jar and are not affected). 3.4.2
-// has the same mixin, so the client smoke run leaves Trinkets and its Cardinal Components out and reports
-// sb.worn_backpack as skipped; runSmokeServer covers it with Trinkets.
+// Trinkets 3.6.0 (1.19.4) was built with Loom 0.11 like 3.4.2 (1.19.2) and 3.7.2 (1.20.1): its client mixin
+// ClickableWidgetMixin shadows AbstractWidget's field by its Yarn name ("hovered"), which a Mojang-mapped dev client
+// cannot resolve (the client crashes at startup; players run the intermediary jar and are not affected). So the client
+// smoke run leaves Trinkets and its Cardinal Components out and reports sb.worn_backpack as skipped; runSmokeServer
+// covers it with Trinkets.
 tasks.named('runSmokeClient', JavaExec) {
     classpath = classpath.filter { file -> !file.name.startsWith('trinkets') && !file.name.startsWith('cardinal-components') }
 }

@@ -66,7 +66,7 @@ public abstract class AbstractRandomizerBagItem extends Item {
 	}
 
 	public AbstractRandomizerBagItem() {
-		super(new Item.Properties().stacksTo(1).tab(SophisticatedBuilding.CREATIVE_TAB));
+		super(new Item.Properties().stacksTo(1));
 	}
 
 	public abstract int getInventorySize();

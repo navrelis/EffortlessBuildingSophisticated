@@ -46,8 +46,10 @@ public class BreakToolHelper {
 		if (stack.isEmpty()) {
 			return false;
 		}
-		// Minecraft 1.19.2 has no tool item tags (pickaxes, axes, ...): the vanilla tool classes decide
-		return stack.getItem() instanceof DiggerItem || stack.getItem() instanceof ShearsItem;
+		if (stack.getItem() instanceof DiggerItem || stack.getItem() instanceof ShearsItem) {
+			return true;
+		}
+		return stack.is(ItemTags.PICKAXES) || stack.is(ItemTags.AXES) || stack.is(ItemTags.SHOVELS) || stack.is(ItemTags.HOES);
 	}
 
 	public static List<ToolSlot> collectCandidates(Player player) {

@@ -70,7 +70,7 @@ public class RadialMirror extends BaseModifier {
 			}
 
 			Vec3 relNewVec = relStartVec.yRot((float) curAngle);
-			BlockPos newBlockPos = new BlockPos(position.add(relNewVec));
+			BlockPos newBlockPos = BlockPos.containing(position.add(relNewVec));
 
 			if (blocks.containsKey(newBlockPos)) continue;
 

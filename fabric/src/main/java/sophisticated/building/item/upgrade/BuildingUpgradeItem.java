@@ -2,44 +2,26 @@ package sophisticated.building.item.upgrade;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeSlotChangeResult;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeCountLimitConfig;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeGroup;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
-import sophisticated.building.SophisticatedBuilding;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Set;
 
 public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper> {
     public static final UpgradeType<BuildingUpgradeWrapper> TYPE = new UpgradeType<>(BuildingUpgradeWrapper::new);
-    public static final UpgradeGroup UPGRADE_GROUP = new UpgradeGroup("building_upgrades",
-            TranslationHelper.INSTANCE.translUpgradeGroup("building_upgrades"));
-
-    private static final IUpgradeCountLimitConfig LIMIT_CONFIG = new IUpgradeCountLimitConfig() {
-        @Override
-        public int getMaxUpgradesPerStorage(String storageType, @Nullable ResourceLocation upgradeRegistryName) {
-            return 1;
-        }
-
-        @Override
-        public int getMaxUpgradesInGroupPerStorage(String storageType, UpgradeGroup upgradeGroup) {
-            return 1;
-        }
-    };
 
     private final int tier;
     private final int maxBlocks;
 
     public BuildingUpgradeItem(int tier, int maxBlocks) {
-        super(SophisticatedBuilding.CREATIVE_TAB, LIMIT_CONFIG);
         this.tier = tier;
         this.maxBlocks = maxBlocks;
     }
@@ -57,28 +39,6 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
         return TYPE;
     }
 
-    // Sophisticated Core 1.19.2 has no upgrade conflict definitions: the group limit of 1 keeps building upgrades
-    // exclusive (a second one is refused, swapping tiers stays possible, see canSwapUpgradeFor)
-    @Override
-    public UpgradeGroup getUpgradeGroup() {
-        return UPGRADE_GROUP;
-    }
-
-    @Override
-    public int getUpgradesPerStorage(String storageType) {
-        return 1;
-    }
-
-    @Override
-    public int getUpgradesInGroupPerStorage(String storageType) {
-        return 1;
-    }
-
-    @Override
-    public Component getName() {
-        return Component.translatable(getDescriptionId());
-    }
-
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flagIn) {
         tooltip.add(Component.translatable("item.sophisticatedbuilding.building_upgrade.tooltip", maxBlocks)
@@ -91,8 +51,17 @@ public class BuildingUpgradeItem extends UpgradeItemBase<BuildingUpgradeWrapper>
                 .withStyle(ChatFormatting.DARK_GRAY));
     }
 
+    /**
+     * Only one building upgrade per backpack. Sophisticated Core 1.19.4 (0.5.109) has no upgrade groups, count limits
+     * or conflict definitions, so the upgrade checks the backpack's installed upgrades itself: while one is installed,
+     * another one is refused (swapping tiers in its slot stays possible, see canSwapUpgradeFor).
+     */
     @Override
     public UpgradeSlotChangeResult canAddUpgradeTo(IStorageWrapper storageWrapper, ItemStack upgradeStack, boolean firstLevelStorage, boolean isClientSide) {
+        if (!storageWrapper.getUpgradeHandler().getTypeWrappers(TYPE).isEmpty()) {
+            return new UpgradeSlotChangeResult.Fail(TranslationHelper.INSTANCE.translError("add.building_upgrade_conflict"),
+                    Set.of(), Set.of(), Set.of());
+        }
         return super.canAddUpgradeTo(storageWrapper, upgradeStack, firstLevelStorage, isClientSide);
     }
 

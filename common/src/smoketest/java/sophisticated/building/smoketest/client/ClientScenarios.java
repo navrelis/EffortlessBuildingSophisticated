@@ -3,8 +3,7 @@ package sophisticated.building.smoketest.client;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
-import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
@@ -15,11 +14,11 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.LevelSettings;
-import net.minecraft.world.level.DataPackConfig;
+import net.minecraft.world.level.WorldDataConfiguration;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.level.levelgen.WorldGenSettings;
+import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
 import net.minecraft.world.phys.Vec3;
 import sophisticated.building.ClientEvents;
@@ -165,13 +164,10 @@ final class ClientScenarios {
             rules.getRule(GameRules.RULE_DOMOBSPAWNING).set(false, null);
             rules.getRule(GameRules.RULE_RANDOMTICKING).set(0, null);
             LevelSettings settings = new LevelSettings(WORLD_NAME, GameType.CREATIVE, false, Difficulty.PEACEFUL, true,
-                    rules, DataPackConfig.DEFAULT);
-            // As the demo world of 1.19.2's title screen: the built-in registries and the flat preset's generator
-            RegistryAccess registryAccess = RegistryAccess.builtinCopy().freeze();
-            WorldGenSettings worldGen = registryAccess.registryOrThrow(Registry.WORLD_PRESET_REGISTRY)
-                    .getHolderOrThrow(WorldPresets.FLAT).value().createWorldGenSettings(20260924L, false, false);
+                    rules, WorldDataConfiguration.DEFAULT);
             // Creating the world blocks this task until the integrated server runs; the harness keeps polling below
-            d.mc.execute(() -> d.mc.createWorldOpenFlows().createFreshLevel(WORLD_NAME, settings, registryAccess, worldGen));
+            d.mc.execute(() -> d.mc.createWorldOpenFlows().createFreshLevel(WORLD_NAME, settings, new WorldOptions(20260924L, false, false),
+                    registries -> registries.registryOrThrow(Registries.WORLD_PRESET).getHolderOrThrow(WorldPresets.FLAT).value().createWorldDimensions()));
         });
         d.waitUntilRealtime("the new world to load", 300, () -> {
             failOnErrorScreen();
@@ -336,7 +332,7 @@ final class ClientScenarios {
         int before = d.client(() -> SophisticatedBuildingClient.BUILD_MODIFIERS.getModifierSettingsList().size());
         d.clientRun(() -> {
             AbstractWidget addMirror = widget((ModifiersScreen) d.mc.screen, "addMirrorButton");
-            d.mc.screen.mouseClicked(addMirror.x + addMirror.getWidth() / 2.0, addMirror.y + addMirror.getHeight() / 2.0, 0);
+            d.mc.screen.mouseClicked(addMirror.getX() + addMirror.getWidth() / 2.0, addMirror.getY() + addMirror.getHeight() / 2.0, 0);
         });
         Mirror mirror = d.client(() -> {
             List<BaseModifier> list = SophisticatedBuildingClient.BUILD_MODIFIERS.getModifierSettingsList();

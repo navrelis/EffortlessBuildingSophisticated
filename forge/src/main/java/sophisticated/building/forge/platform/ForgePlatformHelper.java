@@ -1,13 +1,16 @@
 package sophisticated.building.forge.platform;
 
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.event.CreativeModeTabEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.FMLEnvironment;
@@ -21,17 +24,23 @@ import sophisticated.building.inventory.IItemHandler;
 import sophisticated.building.inventory.ItemStackHandler;
 import sophisticated.building.platform.services.IPlatformHelper;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public final class ForgePlatformHelper implements IPlatformHelper {
 
-    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registry.ITEM_REGISTRY, SophisticatedBuilding.MODID);
-    private static final DeferredRegister<MenuType<?>> CONTAINERS = DeferredRegister.create(Registry.MENU_REGISTRY, SophisticatedBuilding.MODID);
+    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registries.ITEM, SophisticatedBuilding.MODID);
+    private static final DeferredRegister<MenuType<?>> CONTAINERS = DeferredRegister.create(Registries.MENU, SophisticatedBuilding.MODID);
 
-    /** Registers the deferred registers filled by {@code SophisticatedBuilding}'s initialisation. */
+    private static final List<Consumer<CreativeModeTabEvent.Register>> CREATIVE_TABS = new ArrayList<>();
+
+    /** Registers the deferred registers and creative tabs filled by {@code SophisticatedBuilding}'s initialisation. */
     public static void registerDeferredRegisters(IEventBus modEventBus) {
         ITEMS.register(modEventBus);
         CONTAINERS.register(modEventBus);
+        modEventBus.addListener((CreativeModeTabEvent.Register event) -> CREATIVE_TABS.forEach(tab -> tab.accept(event)));
     }
 
     @Override
@@ -66,18 +75,16 @@ public final class ForgePlatformHelper implements IPlatformHelper {
 
     @Override
     public <T extends AbstractContainerMenu> Supplier<MenuType<T>> registerMenu(String path, MenuType.MenuSupplier<T> factory) {
-        return CONTAINERS.register(path, () -> new MenuType<>(factory));
+        return CONTAINERS.register(path, () -> new MenuType<>(factory, FeatureFlags.REGISTRY.allFlags()));
     }
 
     @Override
-    public CreativeModeTab createCreativeTab(String path, Supplier<ItemStack> icon) {
-        // Forge's label constructor appends the tab to the vanilla tab array
-        return new CreativeModeTab(SophisticatedBuilding.MODID + "." + path) {
-            @Override
-            public ItemStack makeIcon() {
-                return icon.get();
-            }
-        };
+    public Supplier<CreativeModeTab> registerCreativeTab(String path, Consumer<CreativeModeTab.Builder> tab) {
+        // Forge 45 creates creative tabs in CreativeModeTabEvent.Register (no tab registry before Minecraft 1.20)
+        CreativeModeTab[] registered = new CreativeModeTab[1];
+        CREATIVE_TABS.add(event -> registered[0] = event.registerCreativeModeTab(SophisticatedBuilding.asResource(path),
+                builder -> tab.accept(builder.title(Component.translatable("itemGroup." + SophisticatedBuilding.MODID + "." + path)))));
+        return () -> registered[0];
     }
 
     @Override

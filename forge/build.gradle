@@ -14,7 +14,7 @@ base {
 }
 
 java {
-    // Mojang ships Java 17 to end users in 1.19.2, so mods should target Java 17.
+    // Mojang ships Java 17 to end users in 1.19.4, so mods should target Java 17.
     toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
     withSourcesJar()
 }
@@ -35,37 +35,17 @@ sourceSets {
     exportedStub {
     }
     // In-game smoke test harness (runSmokeClient / runSmokeServer, see TESTING.md): loader-neutral scenarios from
-    // ../common/src/smoketest, the Sophisticated Backpacks fixture from ../common/src/smoketestBackpacks and the
-    // Forge glue from src/smoketest. Its own mod ("sophisticatedbuilding_smoketest", META-INF/mods.toml), loaded only by
-    // the smoke runs, never packaged into the mod jar.
+    // ../common/src/smoketest and the Forge glue from src/smoketest. No Sophisticated Backpacks for Forge 1.19.4, so no
+    // backpack fixture (../common/src/smoketestBackpacks) and no Curios. Its own mod ("sophisticatedbuilding_smoketest",
+    // META-INF/mods.toml), loaded only by the smoke runs, never packaged into the mod jar.
     smoketest {
-        java.srcDirs "${commonDir}/src/smoketest/java", "${commonDir}/src/smoketestBackpacks/java"
-        resources.srcDirs "${commonDir}/src/smoketest/resources", "${commonDir}/src/smoketestBackpacks/resources"
+        java.srcDir "${commonDir}/src/smoketest/java"
+        resources.srcDir "${commonDir}/src/smoketest/resources"
         compileClasspath += main.output
         runtimeClasspath += main.output
     }
 }
 
-repositories {
-    exclusiveContent {
-        forRepository {
-            maven {
-                name = 'CurseMaven'
-                url = 'https://www.cursemaven.com'
-            }
-        }
-        filter { includeGroup('curse.maven') }
-    }
-    exclusiveContent {
-        forRepository {
-            maven {
-                name = 'Modrinth'
-                url = 'https://api.modrinth.com/maven'
-            }
-        }
-        filter { includeGroup('maven.modrinth') }
-    }
-}
 
 legacyForge {
     enable {
@@ -156,7 +136,7 @@ legacyForge {
 // The smoke runs pass or fail on the result file they write (shared logic in ../gradle/smoketest.gradle)
 tasks.named('runSmokeClient') { verifySmokeRun(it, smoketestOutDir('client')) }
 tasks.named('runSmokeServer') { verifySmokeRun(it, smoketestOutDir('server')) }
-// Forge's game test server (1.19.2 as 1.20.1) creates its world from server.properties (default: normal terrain), so
+// Forge's game test server (1.19.4 as 1.20.1) creates its world from server.properties (default: normal terrain), so
 // the test structures at y -60 sat in caves and gravel could fall into them. Every run starts on a fresh superflat
 // world, like the vanilla game test server on the other loaders.
 def smokeServerDir = file('build/smoketest/server-run')
@@ -171,32 +151,13 @@ tasks.named('runSmokeServer') {
     }
 }
 
-// Dependencies present in the dev runs only (not pulled by dependents of this mod).
+// The smoke harness compiles and runs against everything main does
 configurations {
-    localRuntime
-    runtimeClasspath.extendsFrom localRuntime
-    // The smoke harness compiles and runs against everything main does, plus Curios in its runtime (worn backpack
-    // in a Curios slot, sb.worn_backpack)
     smoketestCompileOnly.extendsFrom compileOnly
     smoketestImplementation.extendsFrom implementation
-    smoketestLocalRuntime
-    smoketestRuntimeClasspath.extendsFrom localRuntime, smoketestLocalRuntime
 }
-// Forge 1.19.2 mods are published with SRG names: the mod* configurations remap them to the dev names
-// (modLocalRuntime and modSmoketestLocalRuntime like the built-in modCompileOnly)
-obfuscation.createRemappingConfiguration(configurations.localRuntime)
-obfuscation.createRemappingConfiguration(configurations.smoketestLocalRuntime)
 
 dependencies {
-    // Sophisticated Core/Backpacks: compiled against, and present in the dev runs (same versions, see
-    // gradle.properties) so runClient/runServer start with the backpack integration active. Optional for players.
-    modCompileOnly "curse.maven:${sophisticatedcore_cf}"
-    modCompileOnly "curse.maven:${sophisticatedbackpacks_cf}"
-    modLocalRuntime "curse.maven:${sophisticatedcore_cf}"
-    modLocalRuntime "curse.maven:${sophisticatedbackpacks_cf}"
-    modCompileOnly "maven.modrinth:curios:${curios_version}"
-    modSmoketestLocalRuntime "maven.modrinth:curios:${curios_version}"
-
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
@@ -209,8 +170,6 @@ var generateModMetadata = tasks.register('generateModMetadata', ProcessResources
             minecraft_version_range             : forge_minecraft_version_range,
             forge_version_range                 : forge_version_range,
             forge_loader_version_range          : forge_loader_version_range,
-            sophisticatedbackpacks_version_range: sophisticatedbackpacks_version_range,
-            sophisticatedcore_version_range     : sophisticatedcore_version_range,
             mod_id                              : mod_id,
             mod_name                            : mod_name,
             mod_license                         : mod_license,

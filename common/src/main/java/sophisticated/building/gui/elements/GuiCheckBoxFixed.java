@@ -19,7 +19,7 @@ public class GuiCheckBoxFixed extends Button {
 
 	public GuiCheckBoxFixed(int xPos, int yPos, String displayString, boolean isChecked) {
 		super(xPos, yPos, Minecraft.getInstance().font.width(displayString) + 2 + 11, 11, Component.literal(displayString), b -> {
-		});
+		}, DEFAULT_NARRATION);
 		this.isChecked = isChecked;
 		this.boxWidth = 11;
 		this.height = 11;
@@ -27,10 +27,10 @@ public class GuiCheckBoxFixed extends Button {
 	}
 
 	@Override
-	public void renderButton(PoseStack poseStack, int mouseX, int mouseY, float partial) {
+	public void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partial) {
 		GuiGraphics guiGraphics = new GuiGraphics(poseStack);
 		// The disabled button texture, nine-sliced like vanilla buttons (the widget/button_disabled sprite of 1.20.2+)
-		guiGraphics.blitNineSliced(WIDGETS_LOCATION, this.x, this.y, this.boxWidth, this.height, 20, 4, 200, 20, 0, 46);
+		guiGraphics.blitNineSliced(WIDGETS_LOCATION, this.getX(), this.getY(), this.boxWidth, this.height, 20, 4, 200, 20, 0, 46);
 		int color = 14737632;
 
 		if (!this.active) {
@@ -40,9 +40,9 @@ public class GuiCheckBoxFixed extends Button {
 		Font font = Minecraft.getInstance().font;
 
 		if (this.isChecked)
-			guiGraphics.drawCenteredString(font, "x", this.x + this.boxWidth / 2 + 1, this.y + 1, 14737632);
+			guiGraphics.drawCenteredString(font, "x", this.getX() + this.boxWidth / 2 + 1, this.getY() + 1, 14737632);
 
-		guiGraphics.drawString(font, getMessage(), this.x + this.boxWidth + 2, this.y + 2, color, false);
+		guiGraphics.drawString(font, getMessage(), this.getX() + this.boxWidth + 2, this.getY() + 2, color, false);
 	}
 
 	@Override

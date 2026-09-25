@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.util.RandomSource;
-import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import sophisticated.building.create.foundation.render.RenderTypes;
 
@@ -19,12 +19,12 @@ public class PartialItemModelRenderer {
 	private final RandomSource random = RandomSource.create();
 
 	private ItemStack stack;
-	private TransformType transformType;
+	private ItemDisplayContext transformType;
 	private PoseStack ms;
 	private MultiBufferSource buffer;
 	private int overlay;
 
-	public static PartialItemModelRenderer of(ItemStack stack, TransformType transformType,
+	public static PartialItemModelRenderer of(ItemStack stack, ItemDisplayContext transformType,
 		PoseStack ms, MultiBufferSource buffer, int overlay) {
 		PartialItemModelRenderer instance = INSTANCE;
 		instance.stack = stack;
@@ -62,7 +62,7 @@ public class PartialItemModelRenderer {
 			VertexConsumer vc = ItemRenderer.getFoilBufferDirect(buffer, type, true, stack.hasFoil());
 			renderBakedItemModel(model, light, ms, vc);
 		} else {
-			Minecraft.getInstance().getItemRenderer().renderStatic(stack, transformType, light, overlay, ms, buffer, 0);
+			Minecraft.getInstance().getItemRenderer().renderStatic(stack, transformType, light, overlay, ms, buffer, null, 0);
 		}
 
 		ms.popPose();

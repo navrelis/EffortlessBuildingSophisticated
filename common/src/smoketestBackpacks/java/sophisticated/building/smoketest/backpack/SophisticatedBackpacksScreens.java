@@ -2,7 +2,6 @@ package sophisticated.building.smoketest.backpack;
 
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.SettingsTabControl;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ToggleButton;
@@ -10,12 +9,11 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.WidgetBase;
 import sophisticated.building.client.gui.BuildingUpgradeSettingsTab;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Method;
 import java.util.Optional;
 
 /**
- * {@link SmokeBackpackScreens} against the Sophisticated Core GUI API (Forge 1.19.2 and 1.19, and the Fabric port for
- * 1.19.2): the storage screen's upgrade settings tab control holds one tab per upgrade; a tab's first
+ * {@link SmokeBackpackScreens} against the Sophisticated Core GUI API (the Fabric port for 1.19.4, Core 0.5.109; the same
+ * on the newer builds): the storage screen's upgrade settings tab control holds one tab per upgrade; a tab's first
  * button is its icon (opens and closes it), the mod's {@link BuildingUpgradeSettingsTab} adds the enable toggle.
  */
 public final class SophisticatedBackpacksScreens implements SmokeBackpackScreens {
@@ -33,22 +31,8 @@ public final class SophisticatedBackpacksScreens implements SmokeBackpackScreens
 
     @Override
     public boolean isBuildingTabOpen(Screen screen) {
-        return screen instanceof StorageScreenBase<?> storage && openTab(storage.getUpgradeSettingsControl()) instanceof BuildingUpgradeSettingsTab;
-    }
-
-    /**
-     * The open tab, or null. SettingsTabControl#getOpenTab is public from Sophisticated Core 0.6 on (1.19.2) but
-     * protected in Core 0.4 (1.19 and 1.19.1, forge-1.19), so it is called by reflection.
-     */
-    @Nullable
-    private static Object openTab(SettingsTabControl<?, ?> control) {
-        try {
-            Method getOpenTab = SettingsTabControl.class.getDeclaredMethod("getOpenTab");
-            getOpenTab.setAccessible(true);
-            return ((Optional<?>) getOpenTab.invoke(control)).orElse(null);
-        } catch (ReflectiveOperationException e) {
-            throw new IllegalStateException("SettingsTabControl#getOpenTab failed", e);
-        }
+        return screen instanceof StorageScreenBase<?> storage
+                && storage.getUpgradeSettingsControl().getOpenTab().filter(tab -> tab instanceof BuildingUpgradeSettingsTab).isPresent();
     }
 
     @Nullable

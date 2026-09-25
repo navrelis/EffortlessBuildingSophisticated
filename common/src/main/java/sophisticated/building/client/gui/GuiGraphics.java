@@ -15,9 +15,9 @@ import java.util.List;
 
 /**
  * The subset of Minecraft 1.20's {@code GuiGraphics} the mod's screens, widgets and HUD use, implemented with the
- * Minecraft 1.19.2 GUI API ({@link GuiComponent}'s static helpers on a {@link PoseStack}, the model-view stack for
- * items). Same method names, parameters and results as the 1.20 class, so the GUI code stays the same as on the newer
- * branches; vanilla render callbacks (which still take a {@link PoseStack} in 1.19.2) wrap their stack with
+ * Minecraft 1.19.4 GUI API ({@link GuiComponent}'s static helpers on a {@link PoseStack}; the item renderer takes the
+ * stack too). Same method names, parameters and results as the 1.20 class, so the GUI code stays the same as on the newer
+ * branches; vanilla render callbacks (which still take a {@link PoseStack} in 1.19.4) wrap their stack with
  * {@link #GuiGraphics(PoseStack)}.
  */
 public final class GuiGraphics {
@@ -42,7 +42,7 @@ public final class GuiGraphics {
         return minecraft.getWindow().getGuiScaledHeight();
     }
 
-    /** Draws what was batched into the shared buffer source (1.19.2 draws text and fills immediately). */
+    /** Draws what was batched into the shared buffer source (1.19.4 draws text and fills immediately). */
     public void flush() {
         RenderSystem.disableDepthTest();
         minecraft.renderBuffers().bufferSource().endBatch();
@@ -54,7 +54,7 @@ public final class GuiGraphics {
     }
 
     public void fillGradient(int minX, int minY, int maxX, int maxY, int colorFrom, int colorTo) {
-        Gradient.fill(pose, minX, minY, maxX, maxY, colorFrom, colorTo);
+        Gradient.gradient(pose, minX, minY, maxX, maxY, colorFrom, colorTo);
     }
 
     public void renderOutline(int x, int y, int width, int height, int color) {
@@ -158,16 +158,15 @@ public final class GuiGraphics {
         drawString(font, sequence, x - font.width(sequence) / 2, y, color);
     }
 
-    /** The item at the pose's position (1.19.2's item renderer draws with the model-view stack). */
     public void renderItem(ItemStack stack, int x, int y) {
-        withPoseAsModelView(() -> minecraft.getItemRenderer().renderAndDecorateFakeItem(stack, x, y));
+        minecraft.getItemRenderer().renderAndDecorateFakeItem(pose, stack, x, y);
     }
 
     public void renderItemDecorations(Font font, ItemStack stack, int x, int y) {
-        withPoseAsModelView(() -> minecraft.getItemRenderer().renderGuiItemDecorations(font, stack, x, y));
+        minecraft.getItemRenderer().renderGuiItemDecorations(pose, font, stack, x, y);
     }
 
-    /** Needs an open screen, as every caller has (1.19.2 draws tooltips through {@link Screen}). */
+    /** Needs an open screen, as every caller has (1.19.4 draws tooltips through {@link Screen}). */
     public void renderComponentTooltip(Font font, List<Component> lines, int x, int y) {
         Screen screen = minecraft.screen;
         if (screen != null) {
@@ -179,22 +178,9 @@ public final class GuiGraphics {
         renderComponentTooltip(font, List.of(text), x, y);
     }
 
-    private void withPoseAsModelView(Runnable draw) {
-        PoseStack modelView = RenderSystem.getModelViewStack();
-        modelView.pushPose();
-        modelView.mulPoseMatrix(pose.last().pose());
-        RenderSystem.applyModelViewMatrix();
-        try {
-            draw.run();
-        } finally {
-            modelView.popPose();
-            RenderSystem.applyModelViewMatrix();
-        }
-    }
-
     /** Reaches {@link GuiComponent}'s protected gradient fill. */
     private static final class Gradient extends GuiComponent {
-        private static void fill(PoseStack pose, int minX, int minY, int maxX, int maxY, int colorFrom, int colorTo) {
+        private static void gradient(PoseStack pose, int minX, int minY, int maxX, int maxY, int colorFrom, int colorTo) {
             fillGradient(pose, minX, minY, maxX, maxY, colorFrom, colorTo, 0);
         }
     }

@@ -41,14 +41,18 @@ public class PlayerSettingsGui extends Screen {
 		addWidget(shaderTypeList);
 		//TODO set selected name
 		Component currentShaderName = ShaderType.DISSOLVE_BLUE.name;
-		shaderTypeButton = new Button(right - 180, yy, 180, 20, currentShaderName, (button) -> showShaderList = !showShaderList);
+		shaderTypeButton = Button.builder(currentShaderName, (button) -> showShaderList = !showShaderList)
+				.bounds(right - 180, yy, 180, 20)
+				.build();
 		addRenderableOnly(shaderTypeButton);
 
 		yy += 50;
 		AbstractSliderButton slider = new SpeedSlider(right - 200, yy, 200, 20, 0.5, 2.0, 1.0);
 		addRenderableOnly(slider);
 
-		closeButton = new Button(left + 50, bottom - 20, 180, 20, Component.literal("Done"), (button) -> this.minecraft.player.closeContainer());
+		closeButton = Button.builder(Component.literal("Done"), (button) -> this.minecraft.player.closeContainer())
+				.bounds(left + 50, bottom - 20, 180, 20)
+				.build();
 		addRenderableOnly(closeButton);
 	}
 

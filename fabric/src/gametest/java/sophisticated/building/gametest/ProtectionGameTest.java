@@ -39,7 +39,7 @@ public class ProtectionGameTest implements FabricGameTest {
             //A 3x3 border around INSIDE; OUTSIDE is 5 blocks away on both axes
             border.setCenter(inside.getX() + 0.5, inside.getZ() + 0.5);
             border.setSize(3);
-            assertTrue(border.isWithinBounds(inside) && !border.isWithinBounds(outside), "Border setup failed");
+            helper.assertTrue(border.isWithinBounds(inside) && !border.isWithinBounds(outside), "Border setup failed");
 
             SophisticatedBuilding.SERVER_BLOCK_PLACER.applyBlockSet(player, set(
                     place(inside, Blocks.STONE.defaultBlockState()),

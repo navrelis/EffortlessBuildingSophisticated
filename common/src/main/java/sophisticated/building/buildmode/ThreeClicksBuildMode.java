@@ -168,7 +168,7 @@ public abstract class ThreeClicksBuildMode extends BaseBuildMode {
 				}
 			}
 		}
-		return new BlockPos(selected.lineBound);
+		return BlockPos.containing(selected.lineBound);
 	}
 
 //	protected abstract BlockEntry findSecondPos(List<BlockEntry> blocks);
@@ -201,7 +201,7 @@ public abstract class ThreeClicksBuildMode extends BaseBuildMode {
 
 		//Make it from a plane into a line, on y axis only
 		private Vec3 toLongestLine(Vec3 boundVec, BlockPos secondPos) {
-			BlockPos bound = new BlockPos(boundVec);
+			BlockPos bound = BlockPos.containing(boundVec);
 			return new Vec3(secondPos.getX(), bound.getY(), secondPos.getZ());
 		}
 

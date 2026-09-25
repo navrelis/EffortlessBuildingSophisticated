@@ -10,7 +10,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import sophisticated.building.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Widget;
+import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.renderer.GameRenderer;
@@ -22,7 +22,7 @@ import java.util.List;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class SlotGui extends AbstractContainerEventHandler implements Widget {
+public abstract class SlotGui extends AbstractContainerEventHandler implements Renderable {
 	protected final Minecraft minecraft;
 	protected final int itemHeight;
 	protected int width;

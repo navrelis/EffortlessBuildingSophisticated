@@ -1,5 +1,6 @@
 package sophisticated.building.utilities;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -316,7 +317,7 @@ public class InventoryHelper {
 			// Sync new backpack count to client for HUD accuracy
 			if (removed > 0 && player instanceof ServerPlayer serverPlayer) {
 				int newCount = Services.backpacks().countBlockInBackpacksForDisplay(player, new ItemStack(item));
-				var key = net.minecraft.core.Registry.ITEM.getKey(item);
+				var key = BuiltInRegistries.ITEM.getKey(item);
 				if (key != null) {
 					Services.NETWORK.sendToPlayer(serverPlayer,
 						new sophisticated.building.network.message.BackpackItemCountPacket(key, newCount));

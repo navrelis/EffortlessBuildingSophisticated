@@ -66,9 +66,9 @@ public abstract class AbstractSimiWidget extends AbstractWidget implements Ticka
 	@Override
 	public void tick() {}
 
-	// Minecraft 1.19.2 widgets render through renderButton(PoseStack, ...): it hands over to renderWidget as on 1.20
+	// Minecraft 1.19.4 widgets render through renderWidget(PoseStack, ...): it hands over to renderWidget(GuiGraphics, ...) as on 1.20
 	@Override
-	public void renderButton(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+	public void renderWidget(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
 		renderWidget(new GuiGraphics(poseStack), mouseX, mouseY, partialTicks);
 	}
 
@@ -100,29 +100,7 @@ public abstract class AbstractSimiWidget extends AbstractWidget implements Ticka
 	}
 
 	@Override
-	public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
+	public void updateWidgetNarration(NarrationElementOutput pNarrationElementOutput) {
 		defaultButtonNarrationText(pNarrationElementOutput);
-	}
-
-	// Minecraft 1.19.2 widgets have public x/y fields and no accessors: the accessors of 1.19.3+ for the shared code
-
-	public int getX() {
-		return x;
-	}
-
-	public int getY() {
-		return y;
-	}
-
-	public void setX(int x) {
-		this.x = x;
-	}
-
-	public void setY(int y) {
-		this.y = y;
-	}
-
-	public boolean isHovered() {
-		return isHovered;
 	}
 }

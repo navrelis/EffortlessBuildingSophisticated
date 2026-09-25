@@ -1,8 +1,8 @@
 package sophisticated.building;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.core.Registry;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -179,7 +179,7 @@ public final class CommonEvents {
      */
     private static void syncItemCount(ServerPlayer player, Item item) {
         int count = Services.backpacks().countBlockInBackpacksForDisplay(player, new ItemStack(item));
-        Services.NETWORK.sendToPlayer(player, new BackpackItemCountPacket(Registry.ITEM.getKey(item), count));
+        Services.NETWORK.sendToPlayer(player, new BackpackItemCountPacket(BuiltInRegistries.ITEM.getKey(item), count));
     }
 
     private static void syncPeriodicBackpackCounts(ServerPlayer player) {
@@ -219,7 +219,7 @@ public final class CommonEvents {
                 Integer last = lastCounts.get(item);
                 if (last == null || last != count) {
                     lastCounts.put(item, count);
-                    Services.NETWORK.sendToPlayer(player, new BackpackItemCountPacket(Registry.ITEM.getKey(item), count));
+                    Services.NETWORK.sendToPlayer(player, new BackpackItemCountPacket(BuiltInRegistries.ITEM.getKey(item), count));
                 }
             }
 
@@ -249,7 +249,7 @@ public final class CommonEvents {
             for (BreakToolHelper.ToolSlot slot : slots) {
                 ItemStack stack = slot.get().copy();
                 tools.add(stack);
-                fingerprint.add(Registry.ITEM.getKey(stack.getItem()) + "#" + stack.getDamageValue() + "#" + stack.getCount());
+                fingerprint.add(BuiltInRegistries.ITEM.getKey(stack.getItem()) + "#" + stack.getDamageValue() + "#" + stack.getCount());
             }
 
             List<String> last = LAST_BACKPACK_TOOLS.get(player.getUUID());

@@ -5,19 +5,17 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import sophisticated.building.ClientConfig;
 import sophisticated.building.CommonConfig;
 import sophisticated.building.ServerConfig;
 import sophisticated.building.SophisticatedBuilding;
-import sophisticated.building.compatibility.CompatHelper;
 import sophisticated.building.forge.platform.ForgePlatformHelper;
 
 /**
- * Forge entry point. The Sophisticated Backpacks integration is registered as a service and only active when
- * Sophisticated Backpacks is installed.
+ * Forge entry point. Sophisticated Backpacks has no Forge build for Minecraft 1.19.4, so this loader ships no backpack
+ * integration (the Building Upgrades stay placeholder items).
  */
 @Mod(SophisticatedBuilding.MODID)
 public class SophisticatedBuildingForge {
@@ -28,7 +26,6 @@ public class SophisticatedBuildingForge {
         // Fills the deferred registers, which must happen before they are registered to the mod bus.
         SophisticatedBuilding.init();
 
-        modEventBus.addListener(SophisticatedBuildingForge::setup);
         modEventBus.addListener(PowerLevelCapability::register);
 
         ForgePlatformHelper.registerDeferredRegisters(modEventBus);
@@ -41,13 +38,6 @@ public class SophisticatedBuildingForge {
         if (FMLEnvironment.dist.isClient()) {
             context.registerConfig(ModConfig.Type.CLIENT, (ForgeConfigSpec) ClientConfig.spec);
             SophisticatedBuildingForgeClient.onConstructorClient(modEventBus);
-        }
-    }
-
-    public static void setup(final FMLCommonSetupEvent event) {
-        if (CompatHelper.isSophisticatedBackpacksLoaded()) {
-            // Registers the upgrade containers through the integration, so SophisticatedCore is never loaded at class init time
-            event.enqueueWork(SophisticatedBuilding::registerBackpacksUpgradeContainers);
         }
     }
 }

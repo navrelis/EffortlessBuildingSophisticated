@@ -14,9 +14,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector3f;
-import com.mojang.math.Vector4f;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
 import sophisticated.building.platform.services.IClientHelper;
 
 import java.util.List;
@@ -61,19 +61,19 @@ public final class FabricClientHelper implements IClientHelper {
 
     @Override
     public void putQuad(VertexConsumer consumer, PoseStack.Pose pose, BakedQuad quad, float red, float green, float blue, float alpha, int packedLight, int packedOverlay) {
-        // Vanilla putBulkData (1.19.2) always writes alpha 1: the same loop, with the given alpha.
+        // Vanilla putBulkData (1.19.4) always writes alpha 1: the same loop, with the given alpha.
         int[] vertices = quad.getVertices();
         Vec3i direction = quad.getDirection().getNormal();
         Matrix4f matrix = pose.pose();
         Vector3f normal = new Vector3f(direction.getX(), direction.getY(), direction.getZ());
-        normal.transform(pose.normal());
+        normal.mul(pose.normal());
         int vertexSize = DefaultVertexFormat.BLOCK.getIntegerSize();
         Vector4f position = new Vector4f();
         for (int vertex = 0; vertex < vertices.length / vertexSize; vertex++) {
             int offset = vertex * vertexSize;
             position.set(Float.intBitsToFloat(vertices[offset]), Float.intBitsToFloat(vertices[offset + 1]),
                     Float.intBitsToFloat(vertices[offset + 2]), 1.0F);
-            position.transform(matrix);
+            position.mul(matrix);
             consumer.vertex(position.x(), position.y(), position.z(), red, green, blue, alpha,
                     Float.intBitsToFloat(vertices[offset + 4]), Float.intBitsToFloat(vertices[offset + 5]),
                     packedOverlay, packedLight, normal.x(), normal.y(), normal.z());

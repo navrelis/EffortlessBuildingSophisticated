@@ -1,6 +1,6 @@
 package sophisticated.building.integration;
 
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerRegistry;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerType;
@@ -25,7 +25,7 @@ public class SophisticatedBackpacksIntegration {
     public static void registerUpgradeContainers(Item... upgradeItems) {
         UpgradeContainerType<BuildingUpgradeWrapper, BuildingUpgradeContainer> type = getContainerType();
         for (Item item : upgradeItems) {
-            UpgradeContainerRegistry.register(Registry.ITEM.getKey(item), type);
+            UpgradeContainerRegistry.register(BuiltInRegistries.ITEM.getKey(item), type);
         }
     }
 

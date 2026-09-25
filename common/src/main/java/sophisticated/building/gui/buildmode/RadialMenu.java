@@ -522,7 +522,7 @@ public class RadialMenu extends Screen {
 	public static void playRadialMenuSound() {
 		final float volume = 0.1f;
 		if (volume >= 0.0001f) {
-			SimpleSoundInstance sound = new SimpleSoundInstance(SoundEvents.UI_BUTTON_CLICK, SoundSource.MASTER, volume,
+			SimpleSoundInstance sound = new SimpleSoundInstance(SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.MASTER, volume,
 					1.0f, RandomSource.create(), Minecraft.getInstance().player.blockPosition());
 			Minecraft.getInstance().getSoundManager().play(sound);
 		}

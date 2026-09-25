@@ -1,12 +1,11 @@
-# Sophisticated Building Update – 4.3.0 (Minecraft 1.19 – 1.19.2)
+# Sophisticated Building Update – 4.3.0 (Minecraft 1.19.4)
 
 *Draft — lead to confirm before release.*
 
 ## Artifacts
 
-* `sophisticatedbuilding-fabric-1.19.2-4.3.0.jar` — Fabric, Minecraft 1.19, 1.19.1 and 1.19.2
-* `sophisticatedbuilding-forge-1.19.2-4.3.0.jar` — Forge, Minecraft 1.19.2
-* `sophisticatedbuilding-forge-1.19-4.3.0.jar` — Forge, Minecraft 1.19 and 1.19.1
+* `sophisticatedbuilding-fabric-1.19.4-4.3.0.jar` — Fabric, Minecraft 1.19.4
+* `sophisticatedbuilding-forge-1.19.4-4.3.0.jar` — Forge, Minecraft 1.19.4
 
 Jar file names include the Minecraft version (`sophisticatedbuilding-<loader>-<minecraft>-4.3.0.jar`);
 releases before 4.3.0 were named `sophisticatedbuilding-<loader>-<version>.jar` without it, e.g.
@@ -14,24 +13,22 @@ releases before 4.3.0 were named `sophisticatedbuilding-<loader>-<version>.jar` 
 
 ## New
 
-### Minecraft 1.19 – 1.19.2
+### Minecraft 1.19.4
 
-Sophisticated Building is now available for Minecraft 1.19, 1.19.1 and 1.19.2 on Fabric and Forge, with
-the same features as the 1.21.1 build. Forge needs two jars: the Sophisticated Backpacks builds for 1.19
-and 1.19.1 have an older API than the one for 1.19.2. Where 1.19.x works differently:
+Sophisticated Building is now available for Minecraft 1.19.4 on Fabric and Forge, with the same
+features as the 1.21.1 build. Where 1.19.4 works differently:
 
-* Items keep their data in NBT (1.19 has no data components). Storage blocks placed with build
+* **Sophisticated Backpacks integration on Fabric only.** Sophisticated Backpacks has no Forge
+  release for 1.19.4, so on Forge the Building Upgrade items are plain placeholder items (their
+  recipes are not loaded). On Fabric the integration works with the unofficial Fabric port, whose
+  1.19.4 files are beta builds (tested with Backpacks 3.19.5 build 105 and Core 0.5.109 build 105).
+* One Building Upgrade per backpack: Sophisticated Core 0.5.109 (1.19.4) has no upgrade groups or
+  conflict rules, so the upgrade refuses a second one itself; a different tier replaces an installed
+  one after taking the old one out.
+* Items keep their data in NBT (1.19.4 has no data components). Storage blocks placed with build
   modes still keep the contents and custom name of the item stack they were placed from. The
   randomizer bags store their contents in the bag's `Items` tag and the Omega bag its slot weights
   in `SlotWeights`.
-* The creative tab lists the items in registration order (1.19 tabs are filled from the items).
-* The tool check of survival breaking uses the vanilla tool classes (pickaxes, axes, shovels, hoes,
-  shears); Minecraft 1.19 has no tool item tags.
-* One Building Upgrade per backpack is kept through the upgrade group limit (1.19.2) or by the
-  upgrade itself (1.19 / 1.19.1); Sophisticated Core for 1.19.x has no upgrade conflict rules. On
-  1.19 / 1.19.1 a different tier replaces an installed one after taking the old one out.
-* **Fabric:** Sophisticated Backpacks' Fabric port exists for 1.19.2 only; on 1.19 and 1.19.1 the mod
-  runs without the backpack integration.
 * **Forge:** there is no in-game config screen (Forge has no generic one); the config files work as
   on the other loaders.
 * **Forge:** all of the mod's network messages share one channel (`sophisticatedbuilding:main`);
@@ -69,29 +66,17 @@ This release reorganizes the mod internally; there is no change to how it plays.
 
 ### Fabric
 
-* Minecraft 1.19, 1.19.1 or 1.19.2, Java 17.
+* Minecraft 1.19.4, Java 17.
 * Fabric Loader 0.19.5 or newer (built and tested against 0.19.5).
-* Fabric API 0.58.0 or newer (tested with 0.58.0+1.19, 0.58.5+1.19.1 and 0.77.0+1.19.2).
-* Optional (1.19.2 only): Sophisticated Core/Backpacks, unofficial Fabric port for 1.19.2 (tested with
-  Core 1.19.2-0.6.4.30, CurseForge file 5803819, and Backpacks 1.19.2-3.20.2.22, file 5803830).
-  Trinkets 3.4.2 (worn backpacks) was tested on a dedicated server.
+* Fabric API 0.87.2+1.19.4 or newer (built and tested against it, the last Fabric API for 1.19.4).
+* Optional: Sophisticated Core/Backpacks, unofficial Fabric port for 1.19.4 (beta builds; tested
+  with Core 0.5.109+mc1.19.4-SNAPSHOT-build.105, CurseForge file 5450726, and Backpacks
+  3.19.5+mc1.19.4-SNAPSHOT-build.105, file 5450746). Trinkets 3.6.0 (worn backpacks) was tested.
 
-### Forge, Minecraft 1.19.2 (`sophisticatedbuilding-forge-1.19.2-4.3.0.jar`)
+### Forge
 
-* Minecraft 1.19.2, Java 17.
-* Forge 43.5.2 or newer (built and tested against 43.5.2).
-* Optional: Sophisticated Core/Backpacks, official Forge build (Core 1.19.2-0.6.4.730 or newer,
-  Backpacks 1.19.2-3.20.2.1035 or newer).
-* Curios API (compile-only, worn-backpack fallback scan): 1.19.2-5.1.6.4.
-
-### Forge, Minecraft 1.19 and 1.19.1 (`sophisticatedbuilding-forge-1.19-4.3.0.jar`)
-
-* Minecraft 1.19 or 1.19.1, Java 17.
-* Forge 41.1.0 or newer (built and tested against 41.1.0; also tested on 42.0.9 for 1.19.1).
-* Optional: Sophisticated Core/Backpacks, official Forge build for 1.19 (Core 1.19-0.4.10.87,
-  Backpacks 1.19-3.18.9.661, their last 1.19 builds, which also run on 1.19.1).
-* Curios API (compile-only, worn-backpack fallback scan): 1.19.2-5.1.6.4 (also released for 1.19
-  and 1.19.1).
+* Minecraft 1.19.4, Java 17.
+* Forge 45.4.5 or newer (built and tested against 45.4.5, the latest Forge for 1.19.4).
 
 ## Known issues
 

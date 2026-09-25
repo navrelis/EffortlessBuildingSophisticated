@@ -35,7 +35,8 @@ public class BlockUtilities {
 
     //Properties that count the items a block is made of (one more item placed onto the block adds one)
     public static final List<IntegerProperty> COUNT_PROPERTIES = List.of(BlockStateProperties.CANDLES,
-            BlockStateProperties.PICKLES, BlockStateProperties.EGGS, BlockStateProperties.LAYERS);
+            BlockStateProperties.PICKLES, BlockStateProperties.EGGS, BlockStateProperties.LAYERS,
+            BlockStateProperties.FLOWER_AMOUNT);
 
     //True if next adds one item to existing like a vanilla merge: a single slab becomes double, or exactly one count
     //property (candles, pickles, eggs, snow layers, petals) goes up by one; all other properties equal except waterlogged

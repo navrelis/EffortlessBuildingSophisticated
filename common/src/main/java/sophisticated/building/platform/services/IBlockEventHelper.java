@@ -65,7 +65,7 @@ public interface IBlockEventHelper {
      * Places a block that plants itself with custom placement (NeoForge 1.21+ {@code SpecialPlantable}).
      *
      * @return true if the block is such a plantable and was handled; always false on Fabric and on Forge
-     * 1.19.2, which have no such interface
+     * 1.19.4, which have no such interface
      */
     boolean placeSpecialPlantable(Level level, BlockState state, BlockPos pos, ItemStack stack);
 

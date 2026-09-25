@@ -1,11 +1,14 @@
 package sophisticated.building.fabric.platform;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.fabricmc.api.EnvType;
-import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
@@ -20,6 +23,7 @@ import sophisticated.building.platform.services.IPlatformHelper;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public final class FabricPlatformHelper implements IPlatformHelper {
@@ -45,19 +49,24 @@ public final class FabricPlatformHelper implements IPlatformHelper {
 
     @Override
     public <T extends Item> Supplier<T> registerItem(String path, Supplier<T> item) {
-        T registered = Registry.register(Registry.ITEM, SophisticatedBuilding.asResource(path), item.get());
+        T registered = Registry.register(BuiltInRegistries.ITEM, SophisticatedBuilding.asResource(path), item.get());
         return () -> registered;
     }
 
     @Override
     public <T extends AbstractContainerMenu> Supplier<MenuType<T>> registerMenu(String path, MenuType.MenuSupplier<T> factory) {
-        MenuType<T> registered = Registry.register(Registry.MENU, SophisticatedBuilding.asResource(path), new MenuType<>(factory));
+        MenuType<T> registered = Registry.register(BuiltInRegistries.MENU, SophisticatedBuilding.asResource(path), new MenuType<>(factory, FeatureFlags.REGISTRY.allFlags()));
         return () -> registered;
     }
 
     @Override
-    public CreativeModeTab createCreativeTab(String path, Supplier<ItemStack> icon) {
-        return FabricItemGroupBuilder.create(SophisticatedBuilding.asResource(path)).icon(icon).build();
+    public Supplier<CreativeModeTab> registerCreativeTab(String path, Consumer<CreativeModeTab.Builder> tab) {
+        // Fabric API 0.87 (Minecraft 1.19.4, no tab registry yet) adds the tab to the creative inventory when it is built
+        CreativeModeTab.Builder builder = FabricItemGroup.builder(SophisticatedBuilding.asResource(path))
+                .title(Component.translatable("itemGroup." + SophisticatedBuilding.MODID + "." + path));
+        tab.accept(builder);
+        CreativeModeTab built = builder.build();
+        return () -> built;
     }
 
     @Override

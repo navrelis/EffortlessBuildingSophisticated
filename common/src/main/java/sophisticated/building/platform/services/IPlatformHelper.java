@@ -11,6 +11,7 @@ import sophisticated.building.attachment.PowerLevel;
 import sophisticated.building.inventory.IItemHandler;
 
 import javax.annotation.Nullable;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -35,11 +36,12 @@ public interface IPlatformHelper {
     <T extends AbstractContainerMenu> Supplier<MenuType<T>> registerMenu(String path, MenuType.MenuSupplier<T> factory);
 
     /**
-     * Creates the mod's creative tab, titled {@code itemGroup.<mod id>.<path>}. Minecraft 1.19.2 creative tabs are no
-     * registry entries: an item joins one through {@code Item.Properties#tab}, so the tab is created before the items
-     * and lists them in registration order.
+     * Creates the mod's creative tab, titled {@code itemGroup.<mod id>.<path>}, with the icon and items {@code tab} sets
+     * on its builder. Minecraft 1.19.4 builds tabs from a {@code CreativeModeTab.Builder} but has no tab registry yet:
+     * Fabric registers the tab when its builder is built, Forge in its {@code CreativeModeTabEvent.Register}, so the
+     * tab may only be read through the returned supplier after registration.
      */
-    CreativeModeTab createCreativeTab(String path, Supplier<ItemStack> icon);
+    Supplier<CreativeModeTab> registerCreativeTab(String path, Consumer<CreativeModeTab.Builder> tab);
 
     /**
      * The player's power level, created with defaults on first access. On NeoForge this is the saved

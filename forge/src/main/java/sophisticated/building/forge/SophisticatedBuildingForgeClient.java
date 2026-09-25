@@ -12,12 +12,10 @@ import sophisticated.building.ClientEvents;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.client.gui.GuiGraphics;
 import sophisticated.building.client.gui.MaterialCostOverlay;
-import sophisticated.building.compatibility.CompatHelper;
 import sophisticated.building.gui.DiamondRandomizerBagScreen;
 import sophisticated.building.gui.GoldenRandomizerBagScreen;
 import sophisticated.building.gui.OmegaRandomizerBagScreen;
 import sophisticated.building.gui.RandomizerBagScreen;
-import sophisticated.building.platform.Services;
 
 /**
  * Client registrations on the mod event bus.
@@ -43,16 +41,6 @@ public class SophisticatedBuildingForgeClient {
             MenuScreens.register(SophisticatedBuilding.DIAMOND_RANDOMIZER_BAG_CONTAINER.get(), DiamondRandomizerBagScreen::new);
             MenuScreens.register(SophisticatedBuilding.OMEGA_RANDOMIZER_BAG_CONTAINER.get(), OmegaRandomizerBagScreen::new);
         });
-        // Only register upgrade GUI tab if SophisticatedBackpacks is loaded
-        if (CompatHelper.isSophisticatedBackpacksLoaded()) {
-            event.enqueueWork(() -> {
-                try {
-                    Services.backpacks().registerUpgradeTab();
-                } catch (Exception | LinkageError e) {
-                    SophisticatedBuilding.logger.warn("Failed to register building upgrade tab: {}", e.getMessage());
-                }
-            });
-        }
     }
 
     public static void registerKeyMappings(final RegisterKeyMappingsEvent event) {

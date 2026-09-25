@@ -9,6 +9,6 @@ import sophisticated.building.SophisticatedBuilding;
  */
 public class CompressedBlockItem extends Item {
     public CompressedBlockItem() {
-        super(new Item.Properties().stacksTo(64).tab(SophisticatedBuilding.CREATIVE_TAB));
+        super(new Item.Properties().stacksTo(64));
     }
 }

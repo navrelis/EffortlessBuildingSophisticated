@@ -10,7 +10,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix4f;
 
 /**
  * Icon definitions for the mod's GUI.

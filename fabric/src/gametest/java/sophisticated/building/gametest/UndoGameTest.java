@@ -42,24 +42,24 @@ public class UndoGameTest implements FabricGameTest {
                     expectEquals(helper, "oak slabs from breaking the double slab", 2, count(player, Items.OAK_SLAB));
                     expectEquals(helper, "axe damage", 1, player.getInventory().getItem(AXE_SLOT).getDamageValue());
                     FixedStack<BlockSet> stack = undo.undoStacks.get(player.getUUID());
-                    assertTrue(stack != null && !stack.isEmpty(), "The break should be on the undo stack");
+                    helper.assertTrue(stack != null && !stack.isEmpty(), "The break should be on the undo stack");
 
                     //Only one slab: the double slab costs two, so undo fails entirely and the set is pushed
                     //back onto the undo stack instead of being lost
                     removeOneSlab(player);
                     expectEquals(helper, "oak slabs before undo", 1, count(player, Items.OAK_SLAB));
-                    assertTrue(undo.undo(player), "undo() should find the set");
+                    helper.assertTrue(undo.undo(player), "undo() should find the set");
                     helper.assertBlockPresent(Blocks.AIR, REL);
                     expectEquals(helper, "oak slabs after the failed undo", 1, count(player, Items.OAK_SLAB));
-                    assertTrue(!stack.isEmpty(), "The failed undo should stay on the undo stack");
+                    helper.assertTrue(!stack.isEmpty(), "The failed undo should stay on the undo stack");
 
                     //Two slabs: restored as a double slab, both charged
                     player.getInventory().add(new ItemStack(Items.OAK_SLAB, 1));
                     expectEquals(helper, "oak slabs before the second undo", 2, count(player, Items.OAK_SLAB));
-                    assertTrue(undo.undo(player), "undo() should find the retried set");
+                    helper.assertTrue(undo.undo(player), "undo() should find the retried set");
                     expectState(helper, REL, dbl);
                     expectEquals(helper, "oak slabs after the undo", 0, count(player, Items.OAK_SLAB));
-                    assertTrue(stack.isEmpty(), "The undo stack should be empty after the successful undo");
+                    helper.assertTrue(stack.isEmpty(), "The undo stack should be empty after the successful undo");
                 })
                 .thenExecute(() -> {
                     config.close();

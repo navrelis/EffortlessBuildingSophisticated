@@ -1,8 +1,8 @@
 accessWidener v2 named
-# Minecraft 1.19.2: the render types of the previews and outlines (BuildRenderTypes, OutlineRenderTypes, RenderTypes) use
-# RenderType.create with its sort-on-upload flags and RenderType.CompositeState. Fabric API 0.77 does not widen them
-# (its 1.20+ builds do); in the dev runtime only the Porting Lib of Sophisticated Core did, so without Sophisticated
-# Backpacks the client failed with IllegalAccessError on the first world render.
+# Minecraft 1.19.4 (as 1.19.2): the render types of the previews and outlines (BuildRenderTypes, OutlineRenderTypes,
+# RenderTypes) use RenderType.create with its sort-on-upload flags and RenderType.CompositeState. Fabric API 0.87 does
+# not widen them (its 1.20+ builds do); in the dev runtime only the Porting Lib of Sophisticated Core did, so without
+# Sophisticated Backpacks the client failed with IllegalAccessError on the first world render.
 accessible method net/minecraft/client/renderer/RenderType create (Ljava/lang/String;Lcom/mojang/blaze3d/vertex/VertexFormat;Lcom/mojang/blaze3d/vertex/VertexFormat$Mode;IZZLnet/minecraft/client/renderer/RenderType$CompositeState;)Lnet/minecraft/client/renderer/RenderType$CompositeRenderType;
 accessible class net/minecraft/client/renderer/RenderType$CompositeState
 accessible class net/minecraft/client/renderer/RenderType$CompositeRenderType

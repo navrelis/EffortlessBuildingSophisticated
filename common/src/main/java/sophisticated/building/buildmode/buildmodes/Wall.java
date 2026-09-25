@@ -48,7 +48,7 @@ public class Wall extends TwoClicksBuildMode {
 			}
 		}
 
-		return new BlockPos(selected.planeBound);
+		return BlockPos.containing(selected.planeBound);
 	}
 
 	public static List<BlockPos> getWallBlocks(Player player, int x1, int y1, int z1, int x2, int y2, int z2) {

@@ -1,6 +1,6 @@
 package sophisticated.building.smoketest.backpack;
 
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -98,7 +98,7 @@ public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
     private static IUpgradeWrapper buildingUpgradeWrapper(ItemStack backpack) {
         IBackpackWrapper wrapper = wrapper(backpack);
         for (IUpgradeWrapper upgrade : wrapper.getUpgradeHandler().getSlotWrappers().values()) {
-            ResourceLocation id = Registry.ITEM.getKey(upgrade.getUpgradeStack().getItem());
+            ResourceLocation id = BuiltInRegistries.ITEM.getKey(upgrade.getUpgradeStack().getItem());
             if (id.getNamespace().equals(SophisticatedBuilding.MODID) && id.getPath().startsWith("building_upgrade")) {
                 return upgrade;
             }
@@ -109,7 +109,8 @@ public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
     /**
      * The backpack's wrapper, as the mod looks it up: {@code BackpackWrapperLookup.get(stack)} on the Fabric port, the
      * backpack wrapper capability of the stack on Forge. Both return a LazyOptional (Porting Lib's or Forge's) with a
-     * {@code resolve()} to an Optional; resolved by reflection so this class compiles against both loaders.
+     * {@code resolve()} to an Optional (the Fabric port for 1.19.4 returns the Optional itself); resolved by reflection
+     * so this class compiles against both loaders.
      */
     private static IBackpackWrapper wrapper(ItemStack backpack) {
         try {
@@ -123,7 +124,8 @@ public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
                 lazy = ItemStack.class.getMethod("getCapability", Class.forName("net.minecraftforge.common.capabilities.Capability"))
                         .invoke(backpack, capability);
             }
-            Optional<?> wrapper = (Optional<?>) lazy.getClass().getMethod("resolve").invoke(lazy);
+            Optional<?> wrapper = lazy instanceof Optional<?> optional ? optional
+                    : (Optional<?>) lazy.getClass().getMethod("resolve").invoke(lazy);
             return (IBackpackWrapper) wrapper.orElseThrow(() -> new IllegalStateException("No backpack wrapper for " + backpack));
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException(e);
@@ -152,7 +154,7 @@ public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
     }
 
     private static Item item(ResourceLocation id) {
-        Item item = Registry.ITEM.get(id);
+        Item item = BuiltInRegistries.ITEM.get(id);
         if (item == Items.AIR) {
             throw new IllegalStateException("Item " + id + " is not registered");
         }

@@ -259,7 +259,7 @@ public class RenderHandler {
 		String text = String.valueOf(stack.getCount());
 		ms.translate(0.0D, 0.0D, 200.0F);
 		MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(TEXT_BUFFER);
-		font.drawInBatch(text, (float)(x + 19 - 2 - font.width(text)), (float)(y + 6 + 3), missing ? ChatFormatting.RED.getColor() : ChatFormatting.WHITE.getColor(), true, ms.last().pose(), multibuffersource$buffersource, false, 0, 15728880);
+		font.drawInBatch(text, (float)(x + 19 - 2 - font.width(text)), (float)(y + 6 + 3), missing ? ChatFormatting.RED.getColor() : ChatFormatting.WHITE.getColor(), true, ms.last().pose(), multibuffersource$buffersource, Font.DisplayMode.NORMAL, 0, 15728880);
 		multibuffersource$buffersource.endBatch();
 		ms.popPose();
 	}
@@ -407,7 +407,7 @@ public class RenderHandler {
 			color = ChatFormatting.WHITE.getColor();
 		}
 		
-		font.drawInBatch(text, (float)(16 - 2 - font.width(text)), (float)(6 + 3), color, true, ms.last().pose(), multibuffersource, false, 0, 15728880);
+		font.drawInBatch(text, (float)(16 - 2 - font.width(text)), (float)(6 + 3), color, true, ms.last().pose(), multibuffersource, Font.DisplayMode.NORMAL, 0, 15728880);
 		multibuffersource.endBatch();
 		ms.popPose();
 	}

@@ -1,8 +1,8 @@
 package sophisticated.building.utilities;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
@@ -71,7 +71,7 @@ public class BlockEntry {
             invalid = true;
             if (BLOCKS_WITH_PLACEMENT_ERRORS.add(block)) {
                 SophisticatedBuilding.logger.warn("getStateForPlacement of {} threw an exception, marking the entry invalid",
-                        Registry.BLOCK.getKey(block), e);
+                        BuiltInRegistries.BLOCK.getKey(block), e);
             }
             return;
         }
@@ -100,7 +100,7 @@ public class BlockEntry {
         block.newBlockState = buf.readNullable(buffer -> {
             var nbt = buf.readNbt();
             if (nbt == null) return null;
-            return NbtUtils.readBlockState(nbt);
+            return NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), nbt);
         });
         block.item = Item.byId(buf.readInt());
         return block;

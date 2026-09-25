@@ -4,7 +4,7 @@ import java.util.function.UnaryOperator;
 
 import javax.annotation.Nonnull;
 
-import com.mojang.math.Vector3f;
+import org.joml.Vector3f;
 
 import com.google.common.hash.Hashing;
 

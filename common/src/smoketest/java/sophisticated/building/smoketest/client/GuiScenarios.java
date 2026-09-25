@@ -25,7 +25,6 @@ import sophisticated.building.buildmode.ModeOptions;
 import sophisticated.building.buildmodifier.Array;
 import sophisticated.building.buildmodifier.BaseModifier;
 import sophisticated.building.client.ClientBuildingUpgradeState;
-import sophisticated.building.create.foundation.gui.widget.AbstractSimiWidget;
 import sophisticated.building.gui.DiamondRandomizerBagScreen;
 import sophisticated.building.gui.GoldenRandomizerBagScreen;
 import sophisticated.building.gui.OmegaRandomizerBagScreen;
@@ -137,7 +136,7 @@ final class GuiScenarios {
         Point reset = d.client(() -> {
             for (GuiEventListener child : d.mc.screen.children()) {
                 if (child instanceof Button button && button.getMessage().getString().equals("Reset")) {
-                    return new Point(button.x + button.getWidth() / 2.0, button.y + button.getHeight() / 2.0);
+                    return new Point(button.getX() + button.getWidth() / 2.0, button.getY() + button.getHeight() / 2.0);
                 }
             }
             throw new AssertionError("The Omega bag screen has no Reset button");
@@ -220,9 +219,9 @@ final class GuiScenarios {
         try {
             BaseModifierEntry<?> entry = d.client(() -> arrayEntry(array));
             AbstractWidget enable = d.client(() -> widget(entry, "enableButton", AbstractWidget.class));
-            AbstractSimiWidget count = d.client(() -> widget(entry, "countInput", AbstractSimiWidget.class));
+            AbstractWidget count = d.client(() -> widget(entry, "countInput", AbstractWidget.class));
             // The list lays its entries out while rendering
-            d.waitUntil("the array entry to be laid out", 40, () -> enable.x > 0 && count.y > 0);
+            d.waitUntil("the array entry to be laid out", 40, () -> enable.getX() > 0 && count.getY() > 0);
 
             boolean enabledBefore = d.client(() -> array.enabled);
             Point checkbox = d.client(() -> center(enable));
@@ -394,7 +393,7 @@ final class GuiScenarios {
     }
 
     private static Point center(AbstractWidget widget) {
-        return new Point(widget.x + widget.getWidth() / 2.0, widget.y + widget.getHeight() / 2.0);
+        return new Point(widget.getX() + widget.getWidth() / 2.0, widget.getY() + widget.getHeight() / 2.0);
     }
 
     /** A field of the object or one of its superclasses (screens keep their widgets in protected fields). */

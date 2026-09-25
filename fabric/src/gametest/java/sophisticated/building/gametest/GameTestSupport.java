@@ -3,7 +3,6 @@ package sophisticated.building.gametest;
 import com.mojang.authlib.GameProfile;
 import io.netty.channel.embedded.EmbeddedChannel;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.PacketFlow;
@@ -47,9 +46,9 @@ public final class GameTestSupport {
         ServerLevel level = helper.getLevel();
         MinecraftServer server = level.getServer();
         GameProfile profile = new GameProfile(UUID.randomUUID(), "sb-gametest");
-        ServerPlayer player = new ServerPlayer(server, level, profile, null);
+        ServerPlayer player = new ServerPlayer(server, level, profile);
         // The embedded channel activates the connection and swallows what the server sends. Not placed through the
-        // player list as on 1.20+: the 1.19.2 game test server has no profile cache, which placeNewPlayer needs.
+        // player list as on 1.20+ (kept from 1.19.2, whose game test server has no profile cache for placeNewPlayer).
         Connection connection = new Connection(PacketFlow.SERVERBOUND);
         new EmbeddedChannel(connection);
         new ServerGamePacketListenerImpl(server, connection, player);
@@ -160,21 +159,14 @@ public final class GameTestSupport {
 
     //region Assertions
 
-    /** GameTestHelper#assertTrue of 1.20+: Minecraft 1.19.2's helper has none. */
-    public static void assertTrue(boolean condition, String message) {
-        if (!condition) {
-            throw new GameTestAssertException(message);
-        }
-    }
-
     public static void expectEquals(GameTestHelper helper, String what, Object expected, Object actual) {
-        assertTrue(expected == null ? actual == null : expected.equals(actual),
+        helper.assertTrue(expected == null ? actual == null : expected.equals(actual),
                 what + ": expected " + expected + " but was " + actual);
     }
 
     public static void expectState(GameTestHelper helper, BlockPos relativePos, BlockState expected) {
         BlockState actual = helper.getBlockState(relativePos);
-        assertTrue(actual == expected, "Block at " + relativePos + ": expected " + expected + " but was " + actual);
+        helper.assertTrue(actual == expected, "Block at " + relativePos + ": expected " + expected + " but was " + actual);
     }
 
     //endregion

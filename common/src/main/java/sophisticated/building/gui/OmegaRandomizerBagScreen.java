@@ -58,7 +58,9 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 		// Add reset weights button to the right of the GUI
 		int buttonX = leftPos + imageWidth + 4;
 		int buttonY = topPos + 4;
-		resetWeightsButton = new Button(buttonX, buttonY, 40, 16, Component.literal("Reset"), this::onResetWeightsPressed);
+		resetWeightsButton = Button.builder(Component.literal("Reset"), this::onResetWeightsPressed)
+				.bounds(buttonX, buttonY, 40, 16)
+				.build();
 		this.addRenderableWidget(resetWeightsButton);
 	}
 	
@@ -261,7 +263,7 @@ public class OmegaRandomizerBagScreen extends AbstractContainerScreen<OmegaRando
 			RenderSystem.enableDepthTest();
 			
 			MultiBufferSource.BufferSource buffer = MultiBufferSource.immediate(WEIGHT_BADGE_BUFFER);
-			font.drawInBatch(weightText, badgeX, badgeY, color, true, ms.last().pose(), buffer, false, 0, 15728880);
+			font.drawInBatch(weightText, badgeX, badgeY, color, true, ms.last().pose(), buffer, Font.DisplayMode.NORMAL, 0, 15728880);
 			buffer.endBatch();
 			
 			ms.popPose();

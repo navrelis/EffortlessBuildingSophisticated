@@ -1,6 +1,6 @@
 package sophisticated.building.item.upgrade;
 
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -173,7 +173,7 @@ public class BuildingUpgradeHelper {
         if (!simulate && totalExtracted > 0 && player instanceof ServerPlayer serverPlayer) {
             int remaining = countBlockInBackpacksForDisplay(player, blockItem);
             Services.NETWORK.sendToPlayer(serverPlayer, new BackpackItemCountPacket(
-                    Registry.ITEM.getKey(blockItem.getItem()),
+                    BuiltInRegistries.ITEM.getKey(blockItem.getItem()),
                     remaining
             ));
         }
