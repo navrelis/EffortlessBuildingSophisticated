@@ -1,6 +1,7 @@
 package sophisticated.building.systems;
 
-import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -10,20 +11,25 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.ServerConfig;
+import sophisticated.building.attachment.AttachmentHandler;
 import sophisticated.building.inventory.ItemHandlerHelper;
 import sophisticated.building.network.message.BreakCountdownPacket;
+import sophisticated.building.network.message.ModifierSettingsPacket;
 import sophisticated.building.utilities.BlockEntry;
 import sophisticated.building.utilities.BlockPlacerHelper;
 import sophisticated.building.utilities.BlockSet;
 import sophisticated.building.utilities.BlockUtilities;
 import sophisticated.building.utilities.BreakToolHelper;
+import sophisticated.building.utilities.BuildLimits;
 import sophisticated.building.utilities.InventoryHelper;
+import sophisticated.building.utilities.ModifierLimits;
 import sophisticated.building.utilities.PlacementTemplates;
 import sophisticated.building.utilities.ReplaceRules;
 import sophisticated.building.utilities.ToolSelector;
 import sophisticated.building.platform.Services;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -44,6 +50,7 @@ public class ServerBlockPlacer {
         resolveSkipFirst(player, blocks);
         if (!checkAndNotifyAllowedToUseMod(player)) return;
         if (!validateBlockSet(player, blocks)) return;
+        if (!validateRequest(player, blocks)) return;
 
         if (!player.isCreative() && ServerConfig.survivalReplace.enabled.get()) {
             placeTime = scheduleReplaceMining(player, blocks, placeTime);
@@ -147,17 +154,19 @@ public class ServerBlockPlacer {
     public void breakBlocks(Player player, BlockSet blocks) {
         resolveSkipFirst(player, blocks);
         if (player.isCreative()) {
+            if (blocks.isEmpty() || !validateRequest(player, blocks)) return;
             applyBlockSet(player, blocks);
             return;
         }
 
         if (!ServerConfig.survivalBreaking.enabled.get()) {
-            SophisticatedBuilding.log(player, ChatFormatting.RED + "Survival breaking is disabled on this server.", true);
+            SophisticatedBuilding.message(player, true, "sophisticatedbuilding.message.survival_breaking_disabled");
             return;
         }
 
         if (!checkAndNotifyAllowedToUseMod(player)) return;
         if (!validateBlockSet(player, blocks)) return;
+        if (!validateRequest(player, blocks)) return;
 
         List<BreakToolHelper.ToolSlot> candidates = BreakToolHelper.collectCandidates(player);
         int totalTicks = 0;
@@ -443,12 +452,12 @@ public class ServerBlockPlacer {
     private boolean checkAndNotifyAllowedToUseMod(Player player) {
 
         if (!player.abilities.mayBuild) {
-            SophisticatedBuilding.log(player, ChatFormatting.RED + "You are not allowed to build.");
+            SophisticatedBuilding.message(player, false, "sophisticatedbuilding.message.not_allowed_to_build");
             return false;
         }
 
         if (!isAllowedToUseMod(player)) {
-            SophisticatedBuilding.log(player, ChatFormatting.RED + "You are not allowed to use Sophisticated Building.");
+            SophisticatedBuilding.message(player, false, "sophisticatedbuilding.message.not_allowed_to_use_mod");
             return false;
         }
         return true;
@@ -470,22 +479,73 @@ public class ServerBlockPlacer {
         blocks.skipFirst = ReplaceRules.shouldSkipFirst(blocks.skipFirst, ServerBuildState.isLikeVanilla(player));
     }
 
+    //A build or break request from a client: the limits of the player's power level apply here too, since a modified
+    //client could send anything (see BuildLimits). An out-of-reach start, an extent over the blocks per axis or a block
+    //farther than the build mode and the player's modifiers reach reject the request; more blocks than may be placed at
+    //once are cut to that limit.
+    private boolean validateRequest(Player player, BlockSet blocks) {
+        if (blocks.firstPos == null) return false;
+        int maxPerAxis = AttachmentHandler.getMaxBlocksPerAxis(player, false);
+        // Player#blockInteractionRange is 1.20.5+: vanilla 1.16 reaches 4.5 blocks in survival, 5 in creative
+        double startReach = BuildLimits.startReach(AttachmentHandler.getPlacementReach(player, false), player.isCreative() ? 5.0 : 4.5);
+        BlockPos center = player.blockPosition();
+        if (!BuildLimits.startWithinReach(center.distSqr(blocks.firstPos), startReach)) {
+            SophisticatedBuilding.message(player, true, "sophisticatedbuilding.message.request_out_of_reach");
+            return false;
+        }
+        BlockPos last = blocks.lastPos != null ? blocks.lastPos : blocks.firstPos;
+        if (!BuildLimits.extentWithinAxisLimit(last.getX() - blocks.firstPos.getX(), last.getY() - blocks.firstPos.getY(),
+                last.getZ() - blocks.firstPos.getZ(), maxPerAxis)) {
+            SophisticatedBuilding.message(player, true, "sophisticatedbuilding.message.request_over_axis_limit", maxPerAxis);
+            return false;
+        }
+        CompoundTag modifiers = Services.PLATFORM.getPersistentData(player).getCompound(ModifierSettingsPacket.DATA_KEY);
+        int modifierReach = ModifierLimits.reach(modifiers, maxPerAxis, AttachmentHandler.getMaxMirrorRadius(player, false));
+        int maxDistance = BuildLimits.maxBlockDistance(AttachmentHandler.getBuildModeReach(player), startReach, maxPerAxis, modifierReach);
+        for (BlockEntry block : blocks) {
+            BlockPos pos = block.blockPos;
+            int distance = Math.max(Math.abs(pos.getX() - center.getX()),
+                    Math.max(Math.abs(pos.getY() - center.getY()), Math.abs(pos.getZ() - center.getZ())));
+            if (distance > maxDistance) {
+                SophisticatedBuilding.message(player, true, "sophisticatedbuilding.message.request_out_of_reach");
+                return false;
+            }
+        }
+
+        int maxAtOnce = AttachmentHandler.getMaxBlocksPlacedAtOnce(player, false);
+        List<BlockEntry> unskipped = new ArrayList<>();
+        for (BlockEntry block : blocks) {
+            if (!blocks.isSkipped(block)) unskipped.add(block);
+        }
+        int allowed = BuildLimits.allowedCount(unskipped.size(), maxAtOnce);
+        if (allowed <= 0) return false;
+        if (allowed < unskipped.size()) {
+            //The start stays, the rest is cut
+            unskipped.sort((a, b) -> Boolean.compare(!a.blockPos.equals(blocks.firstPos), !b.blockPos.equals(blocks.firstPos)));
+            for (BlockEntry block : unskipped.subList(allowed, unskipped.size())) {
+                blocks.remove(block.blockPos);
+            }
+            SophisticatedBuilding.message(player, true, "sophisticatedbuilding.message.request_capped", maxAtOnce);
+        }
+        return true;
+    }
+
     private boolean validateBlockSet(Player player, BlockSet blocks) {
 
         if (blocks.isEmpty()) {
-            SophisticatedBuilding.log(player, ChatFormatting.RED + "No blocks to place.");
+            SophisticatedBuilding.message(player, false, "sophisticatedbuilding.message.no_blocks");
             return false;
         }
         //Vanilla already handled the only block
         if (!blocks.hasUnskippedEntries()) return false;
         if (blocks.size() > ServerConfig.validation.maxBlocksPlacedAtOnce.get()) {
-            SophisticatedBuilding.log(player, ChatFormatting.RED + "Too many blocks to place. Max: " + ServerConfig.validation.maxBlocksPlacedAtOnce.get());
+            SophisticatedBuilding.message(player, false, "sophisticatedbuilding.message.too_many_blocks", ServerConfig.validation.maxBlocksPlacedAtOnce.get());
             return false;
         }
 
         //Dont allow mixing breaking and placing blocks
         if (isMixedPlacingAndBreaking(blocks)) {
-            SophisticatedBuilding.log(player, ChatFormatting.RED + "Cannot mix breaking and placing blocks.");
+            SophisticatedBuilding.message(player, false, "sophisticatedbuilding.message.mixed_place_break");
             return false;
         }
 

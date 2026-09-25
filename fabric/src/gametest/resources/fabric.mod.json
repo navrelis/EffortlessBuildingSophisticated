@@ -19,7 +19,13 @@
       "sophisticated.building.gametest.ProtectionGameTest",
       "sophisticated.building.gametest.InventoryHelperGameTest",
       "sophisticated.building.gametest.MergeUndoGameTest",
-      "sophisticated.building.gametest.ChargeGameTest"
+      "sophisticated.building.gametest.ChargeGameTest",
+      "sophisticated.building.gametest.PlayerDataGameTest",
+      "sophisticated.building.gametest.ServerLimitsGameTest",
+      "sophisticated.building.gametest.ProtectionEventsGameTest",
+      "sophisticated.building.gametest.ArrayLimitGameTest",
+      "sophisticated.building.gametest.OffhandBagFilterGameTest",
+      "sophisticated.building.gametest.MaterialCostGameTest"
     ]
   },
   "depends": {

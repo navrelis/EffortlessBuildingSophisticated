@@ -1,7 +1,9 @@
 package sophisticated.building;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
@@ -160,6 +162,11 @@ public final class SophisticatedBuilding {
         } else {
             ServerProxy.logTranslate(player, prefix, translationKey, suffix, actionBar);
         }
+    }
+
+    //A red message to the player (chat or action bar), translated by the client (the mod is on both sides)
+    public static void message(Player player, boolean actionBar, String translationKey, Object... args) {
+        player.displayClientMessage(new TranslatableComponent(translationKey, args).withStyle(ChatFormatting.RED), actionBar);
     }
 
     public static void logError(String msg) {

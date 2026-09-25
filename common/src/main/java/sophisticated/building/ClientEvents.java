@@ -193,6 +193,7 @@ public class ClientEvents {
     }
 
     public static void onLoggingOut() {
+        CommonConfig.SERVER_VALUES.clear();
         ClientBackpackItemCache.clear();
         ClientBuildingUpgradeState.clear();
         ClientBackpackToolCache.clear();

@@ -56,6 +56,9 @@ public final class GameTestSupport {
         new EmbeddedChannel(connection);
         player.connection = new ServerGamePacketListenerImpl(server, connection, player);
         level.addNewPlayer(player);
+        // At the test structure, like a player building there (the server checks the reach of build requests)
+        BlockPos standAt = helper.absolutePos(new BlockPos(3, 1, 3));
+        player.moveTo(standAt.getX() + 0.5, standAt.getY(), standAt.getZ() + 0.5);
         player.setGameMode(gameType);
         player.inventory.clearContent();
         player.inventory.selected = 0;

@@ -1,5 +1,6 @@
 package sophisticated.building.fabric.platform;
 
+import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -15,8 +16,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import sophisticated.building.platform.services.IBlockEventHelper;
 
+import javax.annotation.Nullable;
+
 /**
- * Plain vanilla behaviour: Fabric fires no events for these server-side block operations.
+ * Plain vanilla behaviour, except for breaks: those fire Fabric API's player block break events, as a vanilla break
+ * does (claim mods listen to them). Fabric has no place event. Minecraft 1.16.x (Java 8) has no Common Protection API
+ * build (it needs Java 17), so placements are not checked against claim mods here.
  */
 public final class FabricBlockEventHelper implements IBlockEventHelper {
 
@@ -29,7 +34,18 @@ public final class FabricBlockEventHelper implements IBlockEventHelper {
 
     @Override
     public boolean fireBlockBreakEvent(Level level, BlockPos pos, BlockState state, Player player) {
-        return true;
+        //Fabric API's player break events, as for a vanilla break (claim mods listen to them)
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        boolean allowed = PlayerBlockBreakEvents.BEFORE.invoker().beforeBlockBreak(level, player, pos, state, blockEntity);
+        if (!allowed) {
+            PlayerBlockBreakEvents.CANCELED.invoker().onBlockBreakCanceled(level, player, pos, state, blockEntity);
+        }
+        return allowed;
+    }
+
+    @Override
+    public void afterBlockBroken(Level level, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, Player player) {
+        PlayerBlockBreakEvents.AFTER.invoker().afterBlockBreak(level, player, pos, state, blockEntity);
     }
 
     @Override

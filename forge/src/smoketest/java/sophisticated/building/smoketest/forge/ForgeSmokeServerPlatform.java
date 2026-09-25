@@ -1,33 +1,31 @@
 package sophisticated.building.smoketest.forge;
 
-import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameType;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import sophisticated.building.smoketest.server.SmokeServerPlatform;
+import sophisticated.building.smoketest.server.VanillaFakePlayers;
 
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** Forge's fake player: its connection swallows every packet the mod sends. */
+/**
+ * The vanilla fake player of the Fabric builds (a server player whose connection drops every packet), not Forge's
+ * FakePlayer: Forge 36's FakePlayer reports its position as the world origin (blockPosition() and position() are
+ * overridden), so the server's reach check of build requests would refuse every request of a player standing at the
+ * test structure.
+ */
 public final class ForgeSmokeServerPlatform implements SmokeServerPlatform {
     private static final Set<BlockPos> REFUSED = ConcurrentHashMap.newKeySet();
     private static boolean listening;
 
     @Override
     public ServerPlayer createPlayer(ServerLevel level, GameType gameType) {
-        FakePlayer player = FakePlayerFactory.get(level, new GameProfile(UUID.randomUUID(), "sb-smoketest"));
-        player.setGameMode(gameType);
-        player.inventory.clearContent();
-        player.inventory.selected = 0;
-        return player;
+        return VanillaFakePlayers.create(level, gameType);
     }
 
     @Override

@@ -7,6 +7,7 @@ import sophisticated.building.network.message.BackpackItemCountPacket;
 import sophisticated.building.network.message.BackpackToolsPacket;
 import sophisticated.building.network.message.BreakCountdownPacket;
 import sophisticated.building.network.message.BuildingUpgradeStatePacket;
+import sophisticated.building.network.message.CommonConfigSyncPacket;
 import sophisticated.building.network.message.IsQuickReplacingPacket;
 import sophisticated.building.network.message.IsUsingBuildModePacket;
 import sophisticated.building.network.message.ModifierSettingsPacket;
