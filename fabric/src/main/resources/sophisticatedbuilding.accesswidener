@@ -1,0 +1,7 @@
+accessWidener v2 named
+# Minecraft 1.20.4: the render types of the previews and outlines (BuildRenderTypes, OutlineRenderTypes, RenderTypes) are
+# built with RenderType.CompositeState, a protected nested class. Fabric API does not widen it; the compile only worked
+# because the Porting Lib of Sophisticated Core (a dev runtime dependency) widens it transitively, so the mod did not
+# compile without Sophisticated Backpacks (runSmokeServer -PsmokeNoSb=true). At runtime a protected nested class is
+# public in its class file, so the released jars were not affected.
+accessible class net/minecraft/client/renderer/RenderType$CompositeState

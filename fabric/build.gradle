@@ -163,6 +163,8 @@ loom {
     interfaceInjection {
         enableDependencyInterfaceInjection = false
     }
+    // RenderType.CompositeState for the render types, see the file
+    accessWidenerPath = file("src/main/resources/${mod_id}.accesswidener")
     mixin {
         defaultRefmapName.set("${mod_id}.refmap.json")
     }
