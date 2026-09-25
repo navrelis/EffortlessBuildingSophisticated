@@ -124,10 +124,12 @@ public class CompatHelper {
 			return ((BlockItem) stack.getItem()).getBlock() == block;
 		}
 
+		//A randomizer bag accepts the blocks it holds (the filter description), never air or other blocks
 		if (stack.getItem() instanceof AbstractRandomizerBagItem randomizerBagItem) {
+			if (block == null) return false;
 			IItemHandler bagInventory = randomizerBagItem.getBagInventory(stack);
-			ItemStack firstMatch = ItemHelper.findFirstMatch(bagInventory, s -> s.getItem() instanceof BlockItem);
-			return firstMatch != null && !firstMatch.isEmpty();
+			ItemStack match = ItemHelper.findFirstMatch(bagInventory, s -> s.getItem() instanceof BlockItem blockItem && blockItem.getBlock() == block);
+			return match != null && !match.isEmpty();
 		}
 		return false;
 	}

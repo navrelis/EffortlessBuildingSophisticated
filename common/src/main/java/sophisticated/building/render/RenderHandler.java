@@ -11,7 +11,7 @@ import sophisticated.building.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -97,15 +97,9 @@ public class RenderHandler {
 		drawRandomizerBagHUD(guiGraphics);
 	}
 
-	private static final ChatFormatting highlightColor = ChatFormatting.DARK_AQUA;
-	private static final ChatFormatting normalColor = ChatFormatting.WHITE;
-	private static final Component placingText = new TextComponent(
-			normalColor + "Left-click to " + highlightColor + "cancel, " +
-			normalColor + "Right-click to " + highlightColor + "place");
+	private static final Component placingText = new TranslatableComponent("sophisticatedbuilding.hud.placing_hint");
 
-	private static final Component breakingText = new TextComponent(
-			normalColor + "Left-click to " + highlightColor + "break, " +
-			normalColor + "Right-click to " + highlightColor + "cancel");
+	private static final Component breakingText = new TranslatableComponent("sophisticatedbuilding.hud.breaking_hint");
 
 	private static void renderSubText(GuiGraphics guiGraphics) {
 		var state = SophisticatedBuildingClient.BUILDER_CHAIN.getBuildingState();
