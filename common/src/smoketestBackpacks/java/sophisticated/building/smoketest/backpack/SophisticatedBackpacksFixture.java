@@ -87,12 +87,20 @@ public final class SophisticatedBackpacksFixture implements SmokeBackpacks {
 
     @Override
     public void setBuildingUpgradeEnabled(ItemStack backpack, boolean enabled) {
+        buildingUpgradeWrapper(backpack).setEnabled(enabled);
+    }
+
+    @Override
+    public boolean isBuildingUpgradeEnabled(ItemStack backpack) {
+        return buildingUpgradeWrapper(backpack).isEnabled();
+    }
+
+    private static IUpgradeWrapper buildingUpgradeWrapper(ItemStack backpack) {
         IBackpackWrapper wrapper = wrapper(backpack);
         for (IUpgradeWrapper upgrade : wrapper.getUpgradeHandler().getSlotWrappers().values()) {
             ResourceLocation id = Registry.ITEM.getKey(upgrade.getUpgradeStack().getItem());
             if (id.getNamespace().equals(SophisticatedBuilding.MODID) && id.getPath().startsWith("building_upgrade")) {
-                upgrade.setEnabled(enabled);
-                return;
+                return upgrade;
             }
         }
         throw new IllegalStateException("The backpack has no Building Upgrade");
