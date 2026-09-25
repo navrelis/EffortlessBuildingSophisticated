@@ -339,3 +339,17 @@ every `sb.*` check (Forge 38.0.17, Sophisticated Backpacks 1.18-3.12.1.433, Curi
   38.0.17, mods: this jar, Sophisticated Backpacks 1.18-3.12.1.433, Curios 1.18-5.0.2.5) the same, and it stops cleanly.
 - The `ERROR` "No loader defined for tool_types" at server start comes from Sophisticated Backpacks 1.18's own data
   (`data/sophisticatedbackpacks/registry/tool_types.json`), not from this mod.
+
+## Standalone run without Sophisticated Backpacks
+
+`gradlew runSmokeServer -PsmokeNoSb=true --no-daemon` (loader folders with the Sophisticated Backpacks integration)
+proves the mod works without Sophisticated Backpacks and Sophisticated Core: `gradle/smoketest.gradle` drops every
+dependency of the `localRuntime`, `modLocalRuntime`, `smoketestLocalRuntime`, `modSmoketestLocalRuntime` and
+`modSmoketestRuntimeOnly` configurations (Sophisticated Backpacks and Core, their Fabric port libraries, Curios,
+Trinkets), leaves the backpack fixture (every file under a `smoketestBackpacks` folder) out of the smoke source set
+and passes `-Dsophisticatedbuilding.smoketest.noSb=true` to the run.
+The `sb.*` scenarios report "skipped" (and fail instead if the backpack integration is active anyway).
+`server.place_line_survival`, `server.undo_redo`, `server.merge_undo_refund`, `server.refused_place_not_charged`
+(skipped on Fabric: no place event there) and `server.no_mod_errors` must pass. The main code still compiles against
+Sophisticated Backpacks (compile-only), so only the runtime changes. On the hub,
+`scripts/test-all-versions.ps1 -SmokeTasks runSmokeServerNoSb` runs it for every loader folder with the integration.
