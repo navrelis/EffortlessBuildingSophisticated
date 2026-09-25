@@ -314,7 +314,7 @@ replaced `libraries/cpw/mods/modlauncher/8.0.9/modlauncher-8.0.9.jar` with modla
 
 ### Forge 1.16.4 (`forge-1.16.4/`)
 
-`forge-1.16.4/` builds `sophisticatedbuilding-forge-1.16.4-5.0.0.jar` (Minecraft `[1.16.4]`, Forge `[35.1.37,)`,
+`forge-1.16.4/` builds `sophisticatedbuilding-forge-1.16.4-5.0.1.jar` (Minecraft `[1.16.4]`, Forge `[35.1.37,)`,
 optional Sophisticated Backpacks `[1.16.4-3.0.0.289,1.16.5)`) from `../forge` with the classes Sophisticated Backpacks
 1.16.4 and Forge 35 need replaced (README.md, "Forge 1.16.4"). Its smoke runs use the same scenarios and check names as
 `forge/`, including every `sb.*` check (Forge 35.1.37, SB 1.16.4-3.0.0.289, Curios 1.16.5-4.1.0.0):
