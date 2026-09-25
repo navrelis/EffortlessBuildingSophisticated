@@ -304,6 +304,8 @@ public class RadialMenu extends Screen {
 							btn.action == getRaisedEdge() ||
 							btn.action == getLineThickness() ||
 							btn.action == getCircleStart() ||
+							btn.action == ModeOptions.getTerrainNoise() ||
+							btn.action == ModeOptions.getTerrainType() ||
 							btn.action == SophisticatedBuildingClient.BUILD_SETTINGS.getReplaceModeActionEnum() ||
 					btn.action == ActionEnum.TOGGLE_PROTECT_TILE_ENTITIES && SophisticatedBuildingClient.BUILD_SETTINGS.shouldProtectTileEntities() ||
 					btn.action == ActionEnum.TOGGLE_MINI_PREVIEW && SophisticatedBuildingClient.BLOCK_PREVIEWS.isMiniBlockPreviewEnabled();

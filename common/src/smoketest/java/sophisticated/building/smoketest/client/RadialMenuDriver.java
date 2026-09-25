@@ -69,7 +69,38 @@ final class RadialMenuDriver {
             set("accumulatedMouseX", -getDouble("buttonDistance") + dx);
             set("accumulatedMouseY", dy);
         });
+        pointerToMenuMouse();
         d.waitUntil("the radial menu to highlight the " + action + " button", 40, () -> RadialMenu.instance.doAction == action);
+    }
+
+    /**
+     * Moves the mouse onto a build mode option button on the right: column {@code column} of option row {@code row}
+     * (the menu places them at {@code buttonDistance + column * 26, -13 + row * 39}), and waits for the highlight.
+     */
+    void hoverOptionButton(ModeOptions.ActionEnum action, int row, int column) {
+        d.clientRun(() -> {
+            set("accumulatedMouseX", getDouble("buttonDistance") + column * 26);
+            set("accumulatedMouseY", -13 + row * 39);
+        });
+        pointerToMenuMouse();
+        d.waitUntil("the radial menu to highlight the " + action + " option", 40, () -> RadialMenu.instance.doAction == action);
+    }
+
+    /** Moves the mouse to the ring's centre, where nothing is highlighted and no tooltip is drawn. */
+    void hoverNothing() {
+        d.clientRun(() -> {
+            set("accumulatedMouseX", 0);
+            set("accumulatedMouseY", 0);
+        });
+        pointerToMenuMouse();
+        d.waitUntil("the radial menu to highlight nothing", 40, () -> RadialMenu.instance.doAction == null && RadialMenu.instance.switchTo == null);
+    }
+
+    /** Puts the real pointer where the menu's tracked mouse is, so the menu draws its tooltip next to the button. */
+    private void pointerToMenuMouse() {
+        double[] at = d.client(() -> new double[]{RadialMenu.instance.width / 2.0 + getDouble("accumulatedMouseX"),
+                RadialMenu.instance.height / 2.0 + getDouble("accumulatedMouseY")});
+        d.pointAt(at[0], at[1]);
     }
 
     /** Left-clicks (selects the highlighted mode) and releases the radial key, which closes the menu. */
