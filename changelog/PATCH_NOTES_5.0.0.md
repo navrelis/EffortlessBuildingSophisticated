@@ -1,19 +1,17 @@
-# Sophisticated Building Update – 4.3.0 (Minecraft 1.21.10)
-
-*Draft — lead to confirm before release.*
+# Sophisticated Building Update – 5.0.0 (Minecraft 1.21.10)
 
 ## Artifacts
 
-* `sophisticatedbuilding-fabric-1.21.10-4.3.0.jar` — Fabric
-* `sophisticatedbuilding-neoforge-1.21.10-4.3.0.jar` — NeoForge
-* `sophisticatedbuilding-forge-1.21.10-4.3.0.jar` — Forge
+* `sophisticatedbuilding-fabric-1.21.10-5.0.0.jar` — Fabric
+* `sophisticatedbuilding-neoforge-1.21.10-5.0.0.jar` — NeoForge
+* `sophisticatedbuilding-forge-1.21.10-5.0.0.jar` — Forge
 
 ## New
 
 ### Minecraft 1.21.10
 
-Sophisticated Building 4.3.0 is the first release for Minecraft 1.21.10, on Fabric, NeoForge and
-Forge. It has the same features as 4.3.0 for 1.21.1, with these exceptions:
+Sophisticated Building 5.0.0 is the first release for Minecraft 1.21.10, on Fabric, NeoForge and
+Forge. It has the same features as 5.0.0 for 1.21.1, with these exceptions:
 
 * **Sophisticated Backpacks integration on NeoForge only.** Sophisticated Backpacks has no Fabric
   or Forge release for 1.21.10, so on those loaders the Building Upgrade items are plain
