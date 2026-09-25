@@ -38,7 +38,8 @@ public final class SmokeServerRunner {
         List<Holder.Reference<GameTestInstance>> tests = level.registryAccess().lookupOrThrow(Registries.TEST_INSTANCE).listElements()
                 .filter(test -> test.key().location().getNamespace().equals(SophisticatedBuilding.MODID))
                 .toList();
-        // Well above the terrain of a normal world; the structures are cleared and placed by the runner
+        // Well above the terrain of a normal world. Placing the (empty) test structures does not clear their space, so the
+        // world must be new (the loader build deletes it before every run, as the vanilla game test server does)
         BlockPos spawn = level.getSharedSpawnPos();
         BlockPos origin = new BlockPos(spawn.getX(), level.getMaxY() - 40, spawn.getZ());
         GameTestRunner runner = GameTestRunner.Builder.fromBatches(GameTestBatchFactory.divideIntoBatches(tests, GameTestBatchFactory.DIRECT, level), level)

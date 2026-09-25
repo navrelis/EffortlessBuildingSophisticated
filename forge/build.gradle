@@ -134,6 +134,17 @@ sourceSets.main.resources.srcDir generateModMetadata
 // logic in ../gradle/smoketest.gradle)
 tasks.matching { it.name == 'runSmoketestClient' }.configureEach { verifySmokeRun(it, smoketestOutDir('client')) }
 tasks.matching { it.name == 'runSmoketestGameTestServer' }.configureEach { verifySmokeRun(it, smoketestOutDir('server')) }
+// Forge 55's game test target is a plain dedicated server that keeps its world between runs, and a 1.21.5 test
+// structure (the empty smoketest_empty template) does not clear what an earlier run left in its place. Like the vanilla
+// game test server (it replaces its world on every start), every server smoke run starts from a new world.
+def smokeServerWorld = layout.projectDirectory.dir('build/smoketest/server-run/world').asFile
+tasks.matching { it.name == 'runSmoketestGameTestServer' }.configureEach {
+    doFirst {
+        if (smokeServerWorld.exists() && !smokeServerWorld.deleteDir()) {
+            throw new GradleException("Could not delete the old smoke test world ${smokeServerWorld}")
+        }
+    }
+}
 tasks.register('runSmokeClient') {
     group = 'Slime Launcher'
     description = 'Runs the client smoke test (runSmoketestClient).'
