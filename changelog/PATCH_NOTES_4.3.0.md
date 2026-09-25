@@ -45,7 +45,7 @@ NeoForge and Forge). Open it with the new button in the radial menu (above Modif
 
 ## Fixes (compared with 4.2.1 for Minecraft 1.21.1)
 
-* **Fabric:** holding exactly the blocks a build needs (e.g. exactly 1 stone for a 1 block build) no longer loses the
+* **Fabric:** holding exactly the blocks a build needs (e.g. exactly 5 stone for a 5 block line) no longer loses the
   held block on the client when a build-mode click replaces the vanilla placement; the server now resends the slot,
   as on NeoForge and Forge.
 * The Omega Randomizer Bag screen no longer allocates a new native buffer for every weight badge on every frame.
