@@ -3,6 +3,7 @@ package sophisticated.building;
 import sophisticated.building.config.ConfigType;
 import sophisticated.building.config.ConfigValue;
 import sophisticated.building.config.IConfigBuilder;
+import sophisticated.building.config.NumberConfigValue;
 import sophisticated.building.platform.Services;
 
 /**
@@ -16,14 +17,19 @@ public class ClientConfig {
     // The loader's spec object (Fabric ConfigSpec, NeoForge ModConfigSpec), registered by the loader project.
     public static final Object spec = builder.build();
 
+    /** Writes the current client values (changed through {@link ConfigValue#set}) to the loader's config file. */
+    public static void save() {
+        Services.CONFIG.save(spec);
+    }
+
     public static class Visuals {
         public final ConfigValue<Boolean> showBlockPreviews;
         public final ConfigValue<Boolean> onlyShowBlockPreviewsWhenBuilding;
         public final ConfigValue<Boolean> showMiniBlockPreview;
-        public final ConfigValue<Integer> maxBlockPreviews;
-        public final ConfigValue<Integer> appearAnimationLength;
-        public final ConfigValue<Integer> breakAnimationLength;
-        public final ConfigValue<Double> previewScale;
+        public final NumberConfigValue<Integer> maxBlockPreviews;
+        public final NumberConfigValue<Integer> appearAnimationLength;
+        public final NumberConfigValue<Integer> breakAnimationLength;
+        public final NumberConfigValue<Double> previewScale;
 
         public Visuals(IConfigBuilder builder) {
             builder.push("Visuals");
@@ -72,9 +78,9 @@ public class ClientConfig {
     }
 
     public static class Performance {
-        public final ConfigValue<Integer> previewRenderDistance;
+        public final NumberConfigValue<Integer> previewRenderDistance;
         public final ConfigValue<Boolean> enableUpdateThrottling;
-        public final ConfigValue<Integer> maxMiniBlockPreviews;
+        public final NumberConfigValue<Integer> maxMiniBlockPreviews;
 
         public Performance(IConfigBuilder builder) {
             builder.comment("Performance settings for Sophisticated Building.",

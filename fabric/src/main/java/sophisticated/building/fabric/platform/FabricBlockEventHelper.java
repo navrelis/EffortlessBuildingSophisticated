@@ -22,9 +22,9 @@ public final class FabricBlockEventHelper implements IBlockEventHelper {
 
     @Override
     public boolean placeBlock(Player player, Level level, BlockPos pos, Runnable placement) {
-        BlockState previous = level.getBlockState(pos);
+        //No place event on Fabric: nothing can refuse the placement (whether a block was set is up to the caller)
         placement.run();
-        return level.getBlockState(pos) != previous;
+        return true;
     }
 
     @Override

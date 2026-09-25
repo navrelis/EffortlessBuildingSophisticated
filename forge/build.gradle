@@ -89,6 +89,8 @@ minecraft {
             workingDirectory project.file('build/smoketest/client-run')
             property 'sophisticatedbuilding.smoketest.mode', 'client'
             property 'sophisticatedbuilding.smoketest.out', smoketestOutDir('client').absolutePath
+            // Harness mixin (SmokeWindowMixin): the window is created without taking the focus
+            args '--mixin.config=sophisticatedbuilding_smoketest.mixins.json'
             mods {
                 sophisticatedbuilding_smoketest {
                     source sourceSets.smoketest
@@ -113,7 +115,10 @@ minecraft {
 }
 
 // The smoke runs pass or fail on the result file they write (shared logic in ../gradle/smoketest.gradle)
-tasks.matching { it.name == 'runSmokeClient' }.configureEach { verifySmokeRun(it, smoketestOutDir('client')) }
+tasks.matching { it.name == 'runSmokeClient' }.configureEach {
+    verifySmokeRun(it, smoketestOutDir('client'))
+    disableEarlyWindow(it, file('build/smoketest/client-run'))
+}
 tasks.matching { it.name == 'runSmokeServer' }.configureEach { verifySmokeRun(it, smoketestOutDir('server')) }
 
 dependencies {
@@ -193,6 +198,18 @@ sourceSets.each {
     def dir = layout.buildDirectory.dir("sourcesSets/$it.name")
     it.output.resourcesDir = dir
     it.java.destinationDirectory = dir
+}
+
+// So compileJava and processResources have overlapping outputs. processResources is not incremental: before it runs,
+// Gradle deletes its previous outputs, and after a compileJava restored from the build cache those can include the
+// classes (the smoke harness then compiled against a main output without classes). So processResources is not tracked
+// (it always runs and never deletes anything; stale resources go with clean) and runs after the compile task of its
+// source set. Same change as on mc/1.21.1 and mc/1.21.4.
+sourceSets.configureEach { sourceSet ->
+    tasks.named(sourceSet.processResourcesTaskName) {
+        doNotTrackState('Shares its output directory with the compile task')
+        mustRunAfter tasks.named(sourceSet.compileJavaTaskName)
+    }
 }
 
 // IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.
