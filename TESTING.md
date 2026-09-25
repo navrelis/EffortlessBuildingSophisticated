@@ -1,4 +1,4 @@
-# Testing Sophisticated Building 26.1.2
+# Testing Sophisticated Building 26.2
 
 Three layers, from fast to real:
 
@@ -11,7 +11,7 @@ Three layers, from fast to real:
 `gradlew build` compiles the smoke harness (so it cannot rot) but never runs it. The harness is dev-only: it lives in
 its own source set, is loaded only by the smoke runs, and never ends up in the mod jar.
 
-On Minecraft 26.1.2 only NeoForge has Sophisticated Backpacks (official build); Fabric and Forge have none, so their
+On Minecraft 26.2 only NeoForge has Sophisticated Backpacks (official build); Fabric and Forge have none, so their
 smoke runs have no `sb.*` checks and do not compile the SB fixture.
 
 ## Running the smoke tests
@@ -58,7 +58,7 @@ deleted when the task starts.
 - A skipped check has `"passed": true`, `"skipped": true` and a detail starting with `SKIPPED:`.
 - Checks named `sb.*` are Sophisticated Backpacks checks. A loader build that ships the SB integration
   (`META-INF/services/sophisticated.building.platform.services.IBackpackIntegration`) must report passing `sb.*` checks;
-  on 26.1.2 that is NeoForge only. Fabric and Forge 26.1.2 have no SB and report none.
+  on 26.2 that is NeoForge only. Fabric and Forge 26.2 have no SB and report none.
 - The file is rewritten after every check (atomically), so a crash or a kill still leaves the checks done so far.
 
 ## Scenarios
@@ -115,7 +115,7 @@ test is its own batch and they run one after the other, as on 1.21.1. The `sb_` 
 instances into checks (the game test server also runs vanilla's optional `minecraft:always_pass`).
 
 On NeoForge `sb.worn_backpack` is skipped by `runSmokeServer` since 1.21.8: the NeoForge fake player has no Curios
-`back` slot with Curios 12.0.0+1.21.8, 13.0.0+1.21.10, 14.0.0+1.21.11 and 15.0.0+26.1.2 (it had one with Curios for 1.21.1). The
+`back` slot with Curios 12.0.0+1.21.8, 13.0.0+1.21.10, 14.0.0+1.21.11, 15.0.0+26.1.2 and 16.0.0+26.2 (it had one with Curios for 1.21.1). The
 client run, with a real player, checks it.
 
 ## Layout
@@ -159,11 +159,15 @@ Loader glue per build:
 | SB fixture | - | `common/src/smoketestBackpacks` | - |
 | Accessory slot | - | Curios (smoke runtime only) | - |
 
-Forge's world previews and outlines are drawn in a frame pass added through `AddFramePassEvent` (Forge 58+). The GUI
-quads need the common mixin config (`GuiGraphicsAccessor`); the Forge smoke runs inherit the
-`--mixin.config=sophisticatedbuilding.mixins.json` argument from `minecraft.runs.configureEach` (log: "Mixing
-GuiGraphicsAccessor from sophisticatedbuilding.mixins.json into net.minecraft.client.gui.GuiGraphics"); the
-`line_preview` and `radial_menu` screenshots are the runtime proof that the previews and the radial menu render.
+Forge's world previews and outlines were drawn in a frame pass added through `AddFramePassEvent` (Forge 58 to 64); on
+Forge 65 (26.2) they are submitted by the Forge mixin config (`LevelRendererMixin`, end of
+`LevelRenderer#submitFeatures`). The GUI quads need the common mixin config (`GuiGraphicsAccessor`); the Forge smoke
+runs inherit both `--mixin.config` arguments (`sophisticatedbuilding.mixins.json`,
+`sophisticatedbuilding.forge.mixins.json`) from `minecraft.runs.configureEach` (log: "Mixing GuiGraphicsAccessor from
+sophisticatedbuilding.mixins.json into net.minecraft.client.gui.GuiGraphicsExtractor", "Mixing LevelRendererMixin from
+sophisticatedbuilding.forge.mixins.json into net.minecraft.client.renderer.LevelRenderer"); the `line_preview`,
+`mirror_placed` and `radial_menu` screenshots are the runtime proof that the previews, the mirror plane and lines and
+the radial menu render.
 
 ## Adopting the harness in another Minecraft version (port)
 
@@ -179,7 +183,7 @@ GuiGraphicsAccessor from sophisticatedbuilding.mixins.json into net.minecraft.cl
      `GlobalTestReporter`/`TestReporter`, and whether the loader's game test server works at all (Forge 55 does not,
      Forge 58, 60, 61 and 64 do).
      The NBT `DataVersion` of `smoketest_empty.nbt` is 3955 (1.21.1); old templates are upgraded by DataFixer (1.21.4 =
-     4189, 1.21.5 = 4325, 1.21.8 = 4440, 1.21.10 = 4556, 1.21.11 = 4671, 26.1.2 = 4790).
+     4189, 1.21.5 = 4325, 1.21.8 = 4440, 1.21.10 = 4556, 1.21.11 = 4671, 26.1.2 = 4790, 26.2 = 4903).
    - Packets: `StreamCodec` round trip in `ServerScenarios#roundTrip` (1.20.5+; older versions use `FriendlyByteBuf`
      write/read methods).
    - Client: `Screenshot.takeScreenshot` (asynchronous since 1.21.5), `KeyMapping.set/click`, `Minecraft#submit`, the
@@ -297,6 +301,39 @@ GuiGraphicsAccessor from sophisticatedbuilding.mixins.json into net.minecraft.cl
 - Unchanged and working: `ClientDriver`, `RadialMenuDriver`, `ServerScenarios`, `VanillaFakePlayers`,
   `SophisticatedBackpacksFixture` (SB 26.1.2-3.26.2.2156 / Core 26.1.2-1.5.0.2334 API identical), Curios glue
   (Curios 15.0.0+26.1.2), the 1.21.1 `smoketest_empty.nbt`.
+
+### What the 26.1.2 -> 26.2 adoption changed
+
+- Screens, overlays and toasts belong to `Minecraft#gui` since 26.2: `ClientDriver`, `ClientScenarios` and
+  `RadialMenuDriver` use `mc.gui.screen()`, `mc.gui.setScreen(...)`, `mc.gui.overlay()` and `mc.gui.toastManager()`;
+  the screenshot reads `mc.gameRenderer.mainRenderTarget()` (was `Minecraft#getMainRenderTarget`).
+- Forge harness mod: `loaderVersion="[65,)"`, `pack.mcmeta` `min_format` `[107, 1]`, `max_format` 107 (26.2 data packs
+  are 107.1, resource packs 88; the Forge 65 MDK declares the same, and so does the mod's own `pack.mcmeta`).
+- Unchanged and working: `ServerScenarios`, `VanillaFakePlayers`, the loader glue,
+  `SophisticatedBackpacksFixture` (SB 26.2-3.26.2.2154 / Core 26.2-1.5.0.2337 API identical), Curios glue
+  (Curios 16.0.0+26.2), the 1.21.1 `smoketest_empty.nbt`.
+
+## Findings (26.2)
+
+- Results of the 26.2 runs: `runSmokeServer` 3 / 9 (1 skipped: `sb.worn_backpack`, see above) / 3 checks,
+  `runSmokeClient` 10 / 17 (7 `sb.*`) / 10 checks on Fabric / NeoForge / Forge, all passing; Fabric `runGametest`
+  "All 18 required tests passed" (17 + `minecraft:always_pass`).
+- Rendering (26.2 submits the previews instead of drawing them, see the README): the screenshots were compared with the
+  1.21.11 ones of all three loaders. `line_preview` (white outline box, translucent faces, translucent mini ghost
+  blocks), `line_placed`, `mirror_placed` (red mirror plane and line, mirrored rows, 2-block preview box),
+  `modifiers_screen` and `radial_menu` match; the pixel differences are vanilla's (horizon fog, the held item) and the
+  break particles' random positions. The first 26.2 build drew the outline edges with the solid features, before the
+  ghost blocks, so an edge behind a ghost block showed through it; the edges are drawn after the ghost blocks again
+  (see the README), which the second run confirmed.
+- `mirror_placed` sometimes also shows a fading dashed outline around the block south of each row end (x 8 and its
+  mirror -1, z + 1): the look-at preview from before the harness teleports the player, taken while the placed stone
+  already stood on the client (on 1.21.11 that preview was still on the ground, inside the row end). It depends on
+  when the client receives the placed blocks, not on the rendering (one of the two Fabric runs does not have it).
+- Forge logs "Class version 69 required is higher than the class version supported by the current version of Mixin
+  (JAVA_21 ...)" at debug level for both mixin configs (as on 26.1.2 for the common one); the mixins are applied and
+  work.
+- As on 26.1.2, NeoForge lists the Sophisticated Backpacks, Core and Curios data packs as `TOO_OLD`; the mod's own data
+  pack is compatible (`client.mod_data_pack_compatible`).
 
 ## Minecraft 26.1 and 26.1.1 check
 
