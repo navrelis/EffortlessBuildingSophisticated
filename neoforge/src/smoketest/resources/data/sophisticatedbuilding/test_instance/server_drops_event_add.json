@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "function": "sophisticatedbuilding_smoketest:server_drops_event_add",
+  "environment": "sophisticatedbuilding:smoke_drops_add",
+  "structure": "sophisticatedbuilding:smoketest_empty",
+  "max_ticks": 400,
+  "required": true
+}

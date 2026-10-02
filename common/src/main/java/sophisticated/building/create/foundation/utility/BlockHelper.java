@@ -139,7 +139,7 @@ public class BlockHelper {
 				&& (player == null || !player.isCreative())) {
 			List<ItemStack> drops = Block.getDrops(state, serverLevel, pos, blockEntity, player, usedTool);
 			if (player != null)
-				Services.BLOCK_EVENTS.onBlockDropsCollected(serverLevel, pos, state, blockEntity, player, usedTool);
+				drops = Services.BLOCK_EVENTS.onBlockDropsCollected(serverLevel, pos, state, blockEntity, player, usedTool, drops);
 			for (ItemStack itemStack : drops)
 				droppedItemCallback.accept(itemStack);
 

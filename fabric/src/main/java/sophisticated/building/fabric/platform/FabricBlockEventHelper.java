@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import javax.annotation.Nullable;
 import sophisticated.building.platform.services.IBlockEventHelper;
+import java.util.List;
 
 /**
  * Plain vanilla behaviour: Fabric fires no events for these server-side block operations.
@@ -54,7 +55,8 @@ public final class FabricBlockEventHelper implements IBlockEventHelper {
     }
 
     @Override
-    public void onBlockDropsCollected(ServerLevel level, BlockPos pos, BlockState state, BlockEntity blockEntity, Player player, ItemStack tool) {
+    public List<ItemStack> onBlockDropsCollected(ServerLevel level, BlockPos pos, BlockState state, BlockEntity blockEntity, Player player, ItemStack tool, List<ItemStack> drops) {
+        return drops;
     }
 
     @Override

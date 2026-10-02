@@ -23,6 +23,8 @@ public final class SmokeTestNeoForge {
 
     public SmokeTestNeoForge(IEventBus modEventBus, Dist dist) {
         SmokeServerTests.functions().forEach((name, function) -> TEST_FUNCTIONS.register(name, () -> function));
+        // NeoForge only: their test instances are in this loader's smoke resources, so Fabric and Forge never reference them
+        NeoForgeDropsEventScenarios.functions().forEach((name, function) -> TEST_FUNCTIONS.register(name, () -> function));
         TEST_FUNCTIONS.register(modEventBus);
         SmokeServer.init();
         if (dist.isClient() && SmokeTest.isClientMode()) {
