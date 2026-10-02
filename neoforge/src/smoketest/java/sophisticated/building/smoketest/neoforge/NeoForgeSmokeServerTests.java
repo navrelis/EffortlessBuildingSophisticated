@@ -42,6 +42,21 @@ public final class NeoForgeSmokeServerTests {
         ServerScenarios.server_request_limits(helper);
     }
 
+    @GameTest(template = "smoketest_empty", batch = "smoke_drops_add", timeoutTicks = ServerScenarios.TIMEOUT_TICKS)
+    public static void server_drops_event_add(GameTestHelper helper) {
+        NeoForgeDropsEventScenarios.server_drops_event_add(helper);
+    }
+
+    @GameTest(template = "smoketest_empty", batch = "smoke_drops_remove", timeoutTicks = ServerScenarios.TIMEOUT_TICKS)
+    public static void server_drops_event_remove(GameTestHelper helper) {
+        NeoForgeDropsEventScenarios.server_drops_event_remove(helper);
+    }
+
+    @GameTest(template = "smoketest_empty", batch = "smoke_drops_cancel", timeoutTicks = ServerScenarios.TIMEOUT_TICKS)
+    public static void server_drops_event_cancel(GameTestHelper helper) {
+        NeoForgeDropsEventScenarios.server_drops_event_cancel(helper);
+    }
+
     @GameTest(template = "smoketest_empty", batch = "smoke_3", timeoutTicks = ServerScenarios.TIMEOUT_TICKS)
     public static void sb_upgrade_supplies_blocks(GameTestHelper helper) {
         ServerScenarios.sb_upgrade_supplies_blocks(helper);

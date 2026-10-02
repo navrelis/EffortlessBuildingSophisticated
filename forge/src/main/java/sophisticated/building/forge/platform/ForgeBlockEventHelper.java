@@ -94,13 +94,14 @@ public final class ForgeBlockEventHelper implements IBlockEventHelper {
     }
 
     @Override
-    public void onBlockDropsCollected(ServerLevel level, BlockPos pos, BlockState state, BlockEntity blockEntity, Player player, ItemStack tool) {
+    public List<ItemStack> onBlockDropsCollected(ServerLevel level, BlockPos pos, BlockState state, BlockEntity blockEntity, Player player, ItemStack tool, List<ItemStack> drops) {
         // The break event already dropped the experience to 0 when the player cannot harvest the block
         if (pos.equals(pendingExperiencePos) && pendingExperience > 0) {
             state.getBlock().popExperience(level, pos, pendingExperience);
         }
         pendingExperiencePos = null;
         pendingExperience = 0;
+        return drops;
     }
 
     /** The used tool, as vanilla passes it: on Forge {@code spawnAfterBreak} drops no experience. */
