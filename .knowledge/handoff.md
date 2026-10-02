@@ -127,6 +127,16 @@ docs/RELEASING.md. The scope questions are answered - do not ask them again. Fin
 """
 ```
 
+## Update 2026-10-02 (read first; the sections below are the 2026-09-25 state)
+- 5.0.1 was finished and released on 2026-09-26 (48 files, ids 8974400-8974447, tags v5.0.1 / v5.0.1+<mc>):
+  open-work items 1-4 below are DONE.
+- **5.0.2 released 2026-10-02**: NeoForge BlockDropsEvent crash fix (Apothic Enchanting Boon), only on mc/1.21.1,
+  1.21.4, 1.21.5, 1.21.8, 1.21.10, 1.21.11, 26.1.2, 26.2 (26 files, ids 9041129-9041156, tags v5.0.2+<mc>, v5.0.2).
+  1.16.3-1.20.4 stay 5.0.1. Details: report.md, plan.md (H1-H4), decisions.md.
+- Still open: item 5 (client smoke runs, needs the user's "Clients erlaubt"), item 6 final run; manual checklist in
+  report.md (real Apothic Enchanting test).
+- Graph: AST-only incremental refresh done 2026-10-02 (versions/1.21.1 + scripts); docs were not re-extracted.
+
 ## Where things stand (end of 2026-09-25)
 
 ### Released
