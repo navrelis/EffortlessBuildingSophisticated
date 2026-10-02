@@ -1,4 +1,20 @@
-# Plan (multi-version, 4.3.0)
+# Plan
+
+## 5.0.2 hotfix: NeoForge BlockDropsEvent crash with Apothic Enchanting (2026-10-02)
+User report (crash log, sophisticatedbuilding-neoforge-1.21.1-5.0.1, NeoForge 21.1.250, Apothic Enchanting 1.6.2):
+UnsupportedOperationException in BoonComponent when our survival break posts BlockDropsEvent with an immutable `List.of()`.
+Affected: NeoForge builds on mc/1.21.1, 1.21.4, 1.21.5, 1.21.8, 1.21.10, 1.21.11, 26.1.2 (neoforge + neoforge-26.1), 26.2.
+Not affected: Forge (no drops event on our path), NeoForge 1.20.4 (no BlockDropsEvent), Fabric.
+
+| ID | Task | Model | Depends | Status |
+|----|------|-------|---------|--------|
+| H1 | mc/1.21.1: fire BlockDropsEvent with the real drops as a mutable ItemEntity list, hand out what survives the event (cancel = no items/XP), all loaders' helpers adapted, NeoForge server smoke regression check | Opus | - | done (782d717 on mc/1.21.1) |
+| H2 | Port H1 to the other 7 branches (1.21.4 -> 26.2) | Sonnet x2 | H1 | done |
+| H3 | Verify per branch (build, unit tests, GameTests, runSmokeServer), commit, push, CI | lead | H2 | done (all 8 pushed; CI check pending) |
+| H4 | 5.0.2 release material (8 branch patch notes, CHANGELOG, CurseForge changelog), bump the 8 branches, CurseForge dry run, upload after user OK | lead/Sonnet | H3 | in progress (notes done; bump running) |
+
+DoD H1/H2: no UnsupportedOperationException when a listener adds to the drops; items added by listeners reach the player like normal drops; removed items are not given; canceled event gives no items and no XP; Fabric/Forge behaviour unchanged; build + unit tests + GameTests + runSmokeServer (incl. new check) green.
+
 
 Status: open / in progress / in review / done. Chains: forward (1.21.1 -> 26.2) and backward (1.21.1 -> 1.16.x) can run in parallel once F1 is done.
 

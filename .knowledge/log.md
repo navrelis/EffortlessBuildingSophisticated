@@ -160,3 +160,12 @@
 - 2026-09-26 B6 batch 2 (lead): 9 branches bumped; all 48 jars 5.0.1 (332-364 classes, no test classes, no nested jars); committed + pushed
 - 2026-09-26 C6 dry run (lead): 48 files, ids resolved, slugs ok, changelog 2751 chars; metadata identical to the 5.0.0 plan; waiting for the user's OK
 - 2026-09-26 C6 (lead, user OK): 5.0.1 uploaded, 48 files, CurseForge ids 8974400-8974447; tags v5.0.1 (main) + v5.0.1+<mc> (17 branches) pushed
+- 2026-10-02 lead: user crash report (Apothic Enchanting Boon + NeoForge 1.21.1 5.0.1) analysed: immutable List.of() in NeoForgeBlockEventHelper.onBlockDropsCollected on 8 NeoForge branches. H1 -> Opus (mc/1.21.1) started.
+- 2026-10-02 H1 review (lead): accepted without corrections; lead verified fabric/forge/neoforge build, NeoForge runSmokeServer passed incl. drops_event add/remove/cancel. Commit 782d717 on mc/1.21.1. H2 -> Sonnet A (1.21.4/1.21.5/1.21.8) + Sonnet B (1.21.10/1.21.11/26.1.2/26.2) started.
+- 2026-10-02 H2-B review (lead): 1.21.10/1.21.11/26.1.2 (both NeoForge folders)/26.2 main-code diff identical to 782d717; smoke checks registered NeoForge-only via test_instance JSON; agent: all builds/gametests/smoke green, regression proof on 26.2.
+- 2026-10-02 H2-A review (lead): 1.21.4/1.21.5/1.21.8 main-code diff identical to 782d717; agent: all green, regression proof on 1.21.5.
+- 2026-10-02 H3 lead verification started (test-all-versions build,gametest,server,smoke runSmokeServer; reports local/test-reports/h3-a, h3-b). H4 release notes -> Sonnet started.
+- 2026-10-02 H4 notes review (lead): accepted without corrections (8 PATCH_NOTES_5.0.2.md, CHANGELOG 5.0.2 section, release/curseforge-changelog-5.0.2.md, description jar-name line; 26 jars).
+- 2026-10-02 H3 batch A (lead): test-all-versions 1.21.4/1.21.5/1.21.8 30 pass 0 fail (NeoForge smoke 15/15 incl. drops_event x3). Commits 44f2d35 (1.21.4), e5a9cd8 (1.21.5), 1f583b8 (1.21.8) pushed. Earlier run was stopped on user request and restarted.
+- 2026-10-02 H3 batch B (lead): test-all-versions 1.21.10/1.21.11/26.1.2/26.2 43 pass 0 fail (all 5 NeoForge folders: drops_event x3 pass). Commits 0a85ac7 (1.21.10), f55421c (1.21.11), 25f3743 (26.1.2), a161e92 (26.2) pushed; CI 1.21.4 success, rest running.
+- 2026-10-02 H4 bump (lead): bump-version 5.0.2 on the 8 branches started (WhatIf reviewed).

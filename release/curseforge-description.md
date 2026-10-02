@@ -530,7 +530,7 @@ Mouse: **right-click** places / sets points, **left-click** breaks / cancels a p
 
 ## 13. Supported versions and compatibility
 
-One jar per Minecraft version and loader; the file name says both: `sophisticatedbuilding-<loader>-<minecraft>-5.0.1.jar`. Install it on the client **and** the server.
+One jar per Minecraft version and loader; the file name says both: `sophisticatedbuilding-<loader>-<minecraft>-<version>.jar`, where the version is 5.0.2 for Minecraft 1.21.1 to 26.2 and 5.0.1 for 1.16.3 to 1.20.4. Install it on the client **and** the server.
 
 | Minecraft | Fabric | NeoForge | Forge | Backpacks integration | Java |
 |---|---|---|---|---|---|

@@ -46,3 +46,8 @@
   breaking needs an effective tool. User may override.
 - (2026-09-26) Balance decisions kept (user): Protect Tile Entities also protects during survival mass breaking; mass breaking needs an effective tool. Terrain Mound gets no alpha label (user).
 - (2026-09-26) Tags: v<version> on main (as 5.0.0) plus v<version>+<mc> per branch (docs/RELEASING.md). Reason: per-branch tags point at the commit of each branch's jars.
+
+## 5.0.2 hotfix (2026-10-02)
+- NeoForge survival break posts BlockDropsEvent with the real drops (ItemEntity carriers, mutable list) and hands out exactly what survives the event; canceled = no items, no XP. Reason: matches NeoForge's own CommonHooks.handleBlockDrops, so drop-changing mods (Apothic Boon, auto-smelt, telekinesis) work instead of crashing or being ignored.
+- The carrier ItemEntities are never added to the world; their stacks go through the existing drop callback (backpack/inventory). Reason: keeps our drop routing unchanged.
+- 5.0.2 only on the 8 affected branches (all their loaders, since common/ changes); the 9 others stay 5.0.1. Upload via -JarDir with just those jars. Reason: releases are per branch (docs/RELEASING.md); re-uploading 9 unchanged branches would only be noise.

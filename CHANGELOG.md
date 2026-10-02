@@ -8,6 +8,27 @@ version. This file summarises them; `README.md`'s support matrix lists every jar
 range, minimum loader version and Sophisticated Backpacks support. (4.3.0 was the working name of this
 release while it was built; it was never published, so everything since 4.2.1 is 5.0.0.)
 
+## 5.0.2 — NeoForge crash fix on 8 branches
+
+A hotfix for the jars of Minecraft 1.21.1, 1.21.4, 1.21.5, 1.21.8, 1.21.10, 1.21.11, 26.1.2 and 26.2 (all their
+loaders: 26 jars, including both NeoForge jars of 26.1.2). Same file names with `5.0.2` in place of `5.0.1`; nothing to
+migrate, worlds and configs of 5.0.1 load unchanged. The other branches (1.16.3 to 1.20.4, including NeoForge 1.20.4,
+which has no such event) stay on 5.0.1 and are not affected. Full per-branch notes are in each branch's
+`changelog/PATCH_NOTES_5.0.2.md`.
+
+### Fixes
+
+* **NeoForge: crash when another mod adds drops.** When the mod broke blocks for a player (survival breaking with a
+  build mode, survival replace, undo that mines blocks back), it posted NeoForge's block drops event
+  (`BlockDropsEvent`) with a read-only empty list. A mod that adds drops in that event crashed the server or
+  singleplayer world with `java.lang.UnsupportedOperationException`; it was reported with the Boon enchantment of
+  Apothic Enchanting (Apotheosis modpacks). The event now carries the real drops in a changeable list, and the player
+  receives exactly the drops that remain after the other mods ran, delivered where the mod's drops always went
+  (inventory or backpack). Mods and enchantments that change drops (extra drops, auto-smelt, telekinesis-like, drop
+  removal) now also work on blocks the mod breaks; before, they never saw the real drops. If a mod cancels the event,
+  the block still breaks but drops no items and no experience, the same as NeoForge's own block breaking.
+* **Fabric and Forge:** no change in behaviour. These jars are rebuilt only because shared code changed.
+
 ## 5.0.1 — bug fixes on top of 5.0.0
 
 A bug-fix release for all 48 jars of 5.0.0 (1.16.3 to 26.2, Fabric/NeoForge/Forge): nothing to migrate, worlds and
