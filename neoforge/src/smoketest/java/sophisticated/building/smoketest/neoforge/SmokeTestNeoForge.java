@@ -15,7 +15,8 @@ import java.util.function.Consumer;
 /**
  * NeoForge glue of the smoke harness (mod "sophisticatedbuilding_smoketest", only loaded by runSmokeClient /
  * runSmokeServer). Registers the server scenarios as game test functions; their test instances are data (see
- * {@link SmokeServerTests}).
+ * {@link SmokeServerTests}); the NeoForge-only block drops event scenarios ({@link NeoForgeDropsEventScenarios}) are
+ * registered here and not in the loader-neutral {@link SmokeServerTests}.
  */
 @Mod(SmokeTest.MOD_ID)
 public final class SmokeTestNeoForge {
@@ -23,6 +24,7 @@ public final class SmokeTestNeoForge {
 
     public SmokeTestNeoForge(IEventBus modEventBus, Dist dist) {
         SmokeServerTests.functions().forEach((name, function) -> TEST_FUNCTIONS.register(name, () -> function));
+        NeoForgeDropsEventScenarios.functions().forEach((name, function) -> TEST_FUNCTIONS.register(name, () -> function));
         TEST_FUNCTIONS.register(modEventBus);
         SmokeServer.init();
         if (dist.isClient() && SmokeTest.isClientMode()) {

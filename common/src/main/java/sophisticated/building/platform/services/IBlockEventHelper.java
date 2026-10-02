@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * Block placing/breaking hooks whose behaviour depends on the loader: NeoForge fires its block
@@ -44,11 +45,14 @@ public interface IBlockEventHelper {
     boolean isRestoringBlockSnapshots(Level level);
 
     /**
-     * Called after the drops of a player-broken block were collected. NeoForge fires its block drops
-     * event and pops the event's experience; Fabric does nothing (experience comes from
-     * {@link BlockState#spawnAfterBreak}, see {@link #getSpawnAfterBreakTool}).
+     * Called after the drops of a player-broken block were collected; returns the drops to hand out.
+     * NeoForge posts its block drops event with {@code drops} as a mutable list of item entities
+     * (listeners may add or remove entries), pops the event's experience and returns the stacks that
+     * survived; a cancelled event means no items and no experience. Forge pops the experience of its
+     * break event, Fabric does nothing (experience comes from {@link BlockState#spawnAfterBreak}, see
+     * {@link #getSpawnAfterBreakTool}); both return {@code drops} unchanged.
      */
-    void onBlockDropsCollected(ServerLevel level, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, Player player, ItemStack tool);
+    List<ItemStack> onBlockDropsCollected(ServerLevel level, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, Player player, ItemStack tool, List<ItemStack> drops);
 
     /**
      * The tool passed to {@link BlockState#spawnAfterBreak}. NeoForge passes an empty stack (its
