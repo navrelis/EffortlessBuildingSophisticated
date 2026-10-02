@@ -119,6 +119,7 @@ exactly what arrives from a client.
 | `server.undo_redo` | Undo/redo packets restore the inventory counts |
 | `server.merge_undo_refund` | Survival merges (+1 snow layer, +1 candle) cost one item each; undo puts both blocks back without mining and gives the items back, redo charges them again |
 | `server.refused_place_not_charged` | The loader's block place event refuses 2 of a 5 block line (as a protection mod would): only the 3 placed planks are charged and undo gives back exactly those. Skipped on Fabric (no place event; `ChargeGameTest` covers refused placements) |
+| `server.drops_event_add`, `server.drops_event_remove`, `server.drops_event_cancel` | NeoForge only: a build-mode break (`BlockHelper.destroyBlockAs` as a survival player) posts `BlockDropsEvent` with the real drops as a mutable list; a listener adding a diamond item entity (the Apothic Enchanting Boon crash), removing all drops or cancelling the event decides what the drop callback receives |
 | `sb.upgrade_supplies_blocks`, `sb.disabled_upgrade_ignored`, `sb.tier_cap`, `sb.tool_swapper_tools`, `sb.worn_backpack_chest`, `sb.worn_backpack` | As on the client, server side (NeoForge only) |
 | `server.no_mod_errors` | As on the client |
 
