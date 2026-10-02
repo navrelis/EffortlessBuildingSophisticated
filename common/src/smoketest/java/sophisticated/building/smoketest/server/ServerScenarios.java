@@ -42,8 +42,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class ServerScenarios {
 
-    /** Success details and skip reasons by check name, read by the reporter. */
-    static final Map<String, String> DETAILS = new ConcurrentHashMap<>();
+    /** Success details and skip reasons by check name, read by the reporter (DETAILS also by loader-only scenarios). */
+    public static final Map<String, String> DETAILS = new ConcurrentHashMap<>();
     /** System property of the standalone smoke run (set by gradle/smoketest.gradle for -PsmokeNoSb=true). */
     static final String NO_SB_PROPERTY = "sophisticatedbuilding.smoketest.noSb";
     static final Map<String, String> SKIPPED = new ConcurrentHashMap<>();

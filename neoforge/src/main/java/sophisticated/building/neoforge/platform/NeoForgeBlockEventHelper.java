@@ -7,6 +7,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -28,6 +29,7 @@ import net.neoforged.neoforge.event.level.BlockDropsEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import sophisticated.building.platform.services.IBlockEventHelper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class NeoForgeBlockEventHelper implements IBlockEventHelper {
@@ -86,13 +88,31 @@ public final class NeoForgeBlockEventHelper implements IBlockEventHelper {
     }
 
     @Override
-    public void onBlockDropsCollected(ServerLevel level, BlockPos pos, BlockState state, BlockEntity blockEntity, Player player, ItemStack tool) {
-        BlockDropsEvent event = new BlockDropsEvent(level, pos, state, blockEntity, List.of(), player, tool);
-        NeoForge.EVENT_BUS.post(event);
-        if (!event.isCanceled()) {
-            if (event.getDroppedExperience() > 0)
-                state.getBlock().popExperience(level, pos, event.getDroppedExperience());
+    public List<ItemStack> onBlockDropsCollected(ServerLevel level, BlockPos pos, BlockState state, BlockEntity blockEntity, Player player, ItemStack tool, List<ItemStack> drops) {
+        //CommonHooks::handleBlockDrops, but the item entities only carry the stacks: they are never added to the level,
+        //the surviving stacks go to our drop callback. The list must stay mutable, listeners add and remove entries.
+        List<ItemEntity> itemEntities = new ArrayList<>();
+        for (ItemStack stack : drops) {
+            if (stack.isEmpty()) continue;
+            ItemEntity itemEntity = new ItemEntity(level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, stack);
+            itemEntity.setDefaultPickUpDelay();
+            itemEntities.add(itemEntity);
         }
+
+        BlockDropsEvent event = new BlockDropsEvent(level, pos, state, blockEntity, itemEntities, player, tool);
+        NeoForge.EVENT_BUS.post(event);
+        if (event.isCanceled())
+            return List.of();
+
+        if (event.getDroppedExperience() > 0)
+            state.getBlock().popExperience(level, pos, event.getDroppedExperience());
+
+        List<ItemStack> result = new ArrayList<>();
+        for (ItemEntity itemEntity : event.getDrops()) {
+            if (itemEntity == null || itemEntity.getItem().isEmpty()) continue;
+            result.add(itemEntity.getItem());
+        }
+        return result;
     }
 
     @Override
