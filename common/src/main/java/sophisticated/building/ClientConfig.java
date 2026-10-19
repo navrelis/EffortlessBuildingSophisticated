@@ -8,12 +8,14 @@ import sophisticated.building.platform.Services;
 
 /**
  * Client-side configuration for Sophisticated Building.
- * These settings affect only the visual appearance and client-side behavior.
+ * These settings affect only the visual appearance and client-side behavior, except {@link Gameplay}, which applies to
+ * the worlds this client hosts (singleplayer, LAN).
  */
 public class ClientConfig {
     private static final IConfigBuilder builder = Services.CONFIG.createBuilder(ConfigType.CLIENT);
     public static final Visuals visuals = new Visuals(builder);
     public static final Performance performance = new Performance(builder);
+    public static final Gameplay gameplay = new Gameplay(builder);
     // The loader's spec object (Fabric ConfigSpec, NeoForge ModConfigSpec), registered by the loader project.
     public static final Object spec = builder.build();
 
@@ -104,6 +106,23 @@ public class ClientConfig {
                             "Mini previews show block rotation inside the ghost outline.",
                             "Set to 0 to always show mini previews regardless of count (no limit).")
                     .defineInRange("maxMiniBlockPreviews", 4096, 0, 100000);
+
+            builder.pop();
+        }
+    }
+
+    public static class Gameplay {
+        public final ConfigValue<Boolean> balancedBreaking;
+
+        public Gameplay(IConfigBuilder builder) {
+            builder.comment("Gameplay settings for the worlds this client hosts (singleplayer and LAN worlds).")
+                   .push("Gameplay");
+
+            balancedBreaking = builder
+                    .comment("Use balanced survival breaking in singleplayer (and on a LAN world you host): build-mode mass breaking",
+                            "and survival replace cost more tool durability and hunger and have an escalating cooldown, tuned in the",
+                            "server config (section BalancedBreaking). On a server only the server's config decides.")
+                    .define("balancedBreaking", false);
 
             builder.pop();
         }
