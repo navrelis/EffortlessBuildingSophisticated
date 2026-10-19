@@ -277,7 +277,7 @@ R2 of mc/1.21.1 (`fb10ef2..766d18f`) adds `client.mini_block_preview`, `client.d
   skipped: no place event). Differences to 1.21.1: Forge 40's `ForgeConfigSpec.ConfigValue` has no `getDefault()`
   (the adapter keeps the defined default); no pink petals (1.20+) among the merges; the Player Settings screen draws
   its own background and tooltips (see the README).
-- R3 (5.0.1 fixes of `mc/1.21.1` d8ab383..48261e8): Fabric per-player data saved with the player (`PlayerDataMixin`,
+- R3 (5.1.0 fixes of `mc/1.21.1` d8ab383..48261e8): Fabric per-player data saved with the player (`PlayerDataMixin`,
   `ServerPlayerEvents.COPY_FROM`), server checks of build requests with the common config synced to the client
   (`CommonConfigSyncPacket` as a `ModPayload` with `writeVarIntArray`/`readVarIntArray`), array limit, Fabric break
   events and Common Protection API 1.0.0 (built against 1.19, but its classes keep the same intermediary names on
