@@ -59,3 +59,5 @@
 - Cooldown formula: uses in last 30 min (incl. this one) n; cooldown = 15 s if n <= 10, else min(120 s, 15 s + (n-10)*5 s). Reason: user's 15 s base / 1-2 min heavy-use range; linear and predictable.
 - One-block operations exempt from all balance rules. Reason: they equal a vanilla break.
 - Split: pure cooldown logic (Sonnet) separate from the integration (Opus). Reason: keep Opus to the subtle part.
+- 5.1.0 upload through the project's own scripts/curseforge-upload.ps1 (not the generic uploader). Reason: all earlier releases of project 1414718 used it; plan metadata conventions (48 files, ranges, relations) live there.
+- Graph refresh only via the incremental Python recipe. Reason: `graphify update .` treats the ignored versions/ worktrees as removed and prunes ~3600 nodes.

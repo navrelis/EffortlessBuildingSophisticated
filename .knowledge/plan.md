@@ -1,17 +1,17 @@
 # Plan
 
 ## 5.1.0 (session 2026-10-19): reach re-sync after respawn + balanced survival breaking
-Usage tally (work units, long=2 short=1): Opus 2 (A3) / Sonnet 15 (A1, A2, F1, F2, B1, B2 long, A5, B2a long, B2b long) -> Opus ~12%.
+Usage tally (work units, long=2 short=1): Opus 2 (A3) / Sonnet 16 (A1, A2, F1, F2, B1, B2 long, A5, B2a long, B2b long, G1 short) -> Opus ~11%.
 
 | ID | Task | Model | Size/Diff | Depends | Status |
 |----|------|-------|-----------|---------|--------|
 | A1 | mc/1.21.1: re-send power level after respawn (CommonEvents.onPlayerRespawned) + test | Sonnet | short/easy | - | done |
 | A2 | mc/1.21.1: pure BalanceCooldown logic (rolling window, cooldown formula, persistence helpers) + unit tests | Sonnet | short/easy | - | done (942d396) |
 | A3 | mc/1.21.1: balanced breaking integration (configs, effective-state rule, durability x, exhaustion, hunger gate, cooldown enforce + persistence, S2C state, HUD, action bar, settings GUI toggle, lang, tests) | Opus | long/hard | A1, A2 | done (ab565a5, pushed) |
-| A4 | Port A1-A3 to the 16 other branches (groups) | Sonnet x2 | long/medium | A3 | F1+B1+F2 done (11 branches committed locally); done (all 16 committed locally, not pushed) |
+| A4 | Port A1-A3 to the 16 other branches (groups) | Sonnet x2 | long/medium | A3 | done (all 16 branches, pushed) |
 | A5 | 5.1.0 release material (patch notes, CHANGELOG, CurseForge changelog, description, README/docs) | Sonnet | short/easy | A3 | done |
-| A6 | Verify all branches (test-all-versions), bump 5.1.0, commit, push, CurseForge upload, tags | lead | long | A4, A5 | in progress (full run) |
-| A7 | Graphify update, report, final push | lead | short | A6 | open |
+| A6 | Verify all branches (test-all-versions), bump 5.1.0, commit, push, CurseForge upload, tags | lead | long | A4, A5 | done (161 pass; CF ids 9254487-9254534; tags) |
+| A7 | Graphify update (G1 Sonnet, incremental), report, final push | lead | short | A6 | done |
 
 DoD A1: after death the client's power level equals the server's without relog; test proof; all loaders build.
 DoD A2: formula, window expiry, clamp, persistence round-trip covered by unit tests; no Minecraft imports.
