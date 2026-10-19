@@ -146,8 +146,10 @@ build + unit tests verified. Open: finish verification, 5.0.1 release material, 
 ## 5.1.0 client checks (2026-10-19, user: "a few" client tests, then upload if needed)
 | ID | Task | Model | Size | Status |
 |----|------|-------|------|--------|
-| K2 | mc/1.21.1 client smoke: client.respawn_power_level, client.balanced_breaking, client.balanced_settings_toggle; runSmokeClient fabric/neoforge/forge | Sonnet | short | open (interrupted; partial uncommitted edits) |
+| K2 | mc/1.21.1 client smoke: client.respawn_power_level, client.balanced_breaking, client.balanced_settings_toggle; runSmokeClient fabric/neoforge/forge | Sonnet | short | done: 29386a7 on mc/1.21.1 (fabric 27/27, neoforge 27/27, forge 19/19, forge-1.21 19/19) |
 | K3 | runSmokeClient (existing checks) on 26.2, 1.20.1, 1.16.5 | lead | short | done: Fabric 3/3 pass; Forge harness crash; 1.16.5 packet bug found |
 | K4 | mc/1.16.5: register CommonConfigSyncPacket (CLIENTBOUND) + verify | Sonnet/lead | short | done: forge-1.16.4 + forge + fabric runSmokeClient pass (no_mod_errors); 85d1399 |
-| K5 | Smoke harness: SmokeWindowMixin that applies on Forge/NeoForge (1.16.5 forge, 1.21.1 forge/neoforge); other branches = follow-up | Sonnet | short | 1.16.5 forge done (328c397, client 24/24); 1.21.1 forge/neoforge pending; port to the other Forge/NeoForge folders after |
-| K6 | 5.1.1 for mc/1.16.5 only: notes, bump, upload (-JarDir), tag | lead + Sonnet | short | bump done + pushed (c4c7ba1); CurseForge upload + tags pending |
+| K5 | Smoke harness: SmokeWindowMixin that applies on Forge/NeoForge (1.16.5 forge, 1.21.1 forge/neoforge); other branches = follow-up | Sonnet | short | done on all branches (redirect for Mixin 0.8.4/0.8.5, unsafe=true for 0.8.7); every Forge/NeoForge client passes |
+| K6 | 5.1.1 for mc/1.16.5 only: notes, bump, upload (-JarDir), tag | lead + Sonnet | short | done: bump, push, tags, CurseForge upload (ids 9255707-9255709, 173 log entries) |
+| K7 | mc/1.19.4 Forge pack.mcmeta keys (Forge 45: forge:server_data_pack_format; data pack was TOO_NEW) | Sonnet/lead | short | fix done: 2bda9e7 on mc/1.19.4 (full test 7 pass/0 fail, client 16/16), pushed; release (version, upload) waits for a user decision |
+| K8 | report.md + incremental graph refresh + final push | lead/Sonnet | short | report.md written; graph refresh running (Sonnet); final push pending |

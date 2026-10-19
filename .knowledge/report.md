@@ -1,80 +1,71 @@
-# Report: 5.1.0, reach re-sync after respawn + balanced survival breaking (session 2026-10-19)
+# Report: 5.1.1 for 1.16.5, client smoke checks on all branches, 1.19.4 Forge pack fix (session 2026-10-19, sessions 3-5)
 
-Earlier reports (4.3.0/5.0.0 multi-version work, 5.0.1, 5.0.2): `git log -p -- .knowledge/report.md`.
+Earlier reports (4.3.0/5.0.0, 5.0.1, 5.0.2, 5.1.0): `git log -p -- .knowledge/report.md`.
 
 ## Result
-Released as **5.1.0** on CurseForge (project 1414718): 48 files, ids 9254487-9254534, all 17 branches and all their
-loaders. Tags `v5.1.0` (main) and `v5.1.0+<mc>` (17 branches) pushed. GitHub CI green on all 17 release commits.
+- **5.1.1 released for mc/1.16.5 only** (3 jars). Tags `v5.1.1+1.16.5` (c4c7ba1) and `v5.1.1` (main 4771203) pushed. CurseForge project 1414718:
+  fabric-1.16.5 id 9255707, forge-1.16.4 id 9255708, forge-1.16.5 id 9255709 (uploaded by this session from the approved plan; the upload log
+  went 170 -> 173 entries). Note for the record: the team lead's later message "do not retry the upload" crossed with the upload; it had already
+  gone through. No second attempt, no other upload.
+- **Every Forge/NeoForge client folder on all 17 branches now passes `runSmokeClient`** (first time since 2026-09-25).
+- **1.19.4 Forge pack bug fixed on mc/1.19.4 (2bda9e7, pushed), NOT released** (no bump, tag or upload; waits for a user decision).
 
 ## Requirement -> implementation
-- **Reach upgrades permanent after consumption.** The server always kept the power level (saved, copied on clone).
-  The bug was on the client side: after a respawn the new client player was never told its level again, so reach and
-  limits acted like level 0 until relog. Fix: `CommonEvents.onPlayerRespawned` sends `PowerLevelPacket` (all branches).
-- **Balanced survival breaking (optional, off by default).**
-  - On/off: dedicated server -> server config `BalancedBreaking.enabled`; singleplayer/LAN host -> client config
-    `Gameplay.balancedBreaking` (toggle in the player settings GUI) or the server config.
-  - Scope: survival build-mode mass breaking and survival replace mining. One-block operations, creative and placing
-    are exempt.
-  - Cost: tool durability x5 per block (`durabilityMultiplier`, 1-20; never breaks the tool when
-    stopBeforeToolBreaks applies), exhaustion 0.075 per block, refused at food level <= 6.
-  - Cooldown: one operation = one use; uses in the last 30 real-time minutes n; 15 s while n <= 10, then +5 s per use,
-    max 120 s. Stored as epoch millis in the player's persistent data, so it survives relog, offline time, restart and
-    death (Forge/NeoForge clone hook copies it).
-  - Feedback: action-bar refusal (cooldown seconds / too hungry) and a HUD cooldown line; S2C `BalanceStatePacket`.
+- **K4 real bug (1.16.5):** `CommonConfigSyncPacket` was missing from `PacketHandler` CLIENTBOUND since 5.0.1 ("Unknown payload" on join, the client got no
+  server limits). Fix 85d1399 (one registration, same as 1.16.3). Verified: runSmokeClient forge-1.16.4 24/24 (client.no_mod_errors, no
+  common_config_sync error), forge 1.16.5 24/24, fabric 16/16; server run build/gametest/server/runSmokeServer 10 pass / 0 fail / 2 n/a.
+- **K2 (1.21.1):** client checks `client.respawn_power_level`, `client.balanced_breaking`, `client.balanced_settings_toggle` + TESTING.md rows
+  (29386a7). runSmokeClient fabric 27/27, neoforge 27/27, forge 19/19, forge-1.21 19/19.
+- **K5 harness fix (dev-only, no release):** `SmokeWindowMixin` constructor `@Inject` was rejected by Mixin on Forge/NeoForge (harness bug since
+  2026-09-25, Forge clients crashed at start). Form chosen per folder by the runtime Mixin version (client log) and javap of `At`:
 
-## Changed files (per branch, same set; reference mc/1.21.1 942d396, 32210c9, ab565a5)
-- New: `utilities/BalanceCooldown` (pure logic), `utilities/BalanceRules`, `systems/BalancedBreaking`,
-  `network/message/BalanceStatePacket`, `client/ClientBalanceState`; tests `BalanceCooldownTest`, `BalanceRulesTest`,
-  Fabric `BalancedBreakingGameTest` (9).
-- Changed: `ServerConfig` (BalancedBreaking section), `ClientConfig` (Gameplay), `CommonEvents` (respawn resync,
-  `onPlayerCloned`), `ServerBlockPlacer`/`BlockPlacerHelper`/`BreakToolHelper`/`ToolSelector` (balanced flag,
-  uses needed per tool), `RenderHandler` (HUD), `PlayerSettingsGui` (toggle), `ClientBreakCountdown`, `ClientEvents`,
-  `PacketHandler`, `en_us.json`, Forge/NeoForge events (clone hook), smoke scenario `server.balanced_breaking` and its
-  registration per loader, `TESTING.md`.
-- Release: `changelog/PATCH_NOTES_5.1.0.md`, `gradle/shared.properties`, release jars + SHA256SUMS (17 branches);
-  main: `CHANGELOG.md`, `release/curseforge-changelog-5.1.0.md`, `release/curseforge-description.md`, `README.md`.
-- Version adaptations only: Optional `getLongArray` (1.21.5+), `level().getServer()` (1.21.9+), HUD via
-  GuiGraphicsExtractor (26.x), FriendlyByteBuf packet + Consumer `hurtAndBreak` (<= 1.20.4), TranslatableComponent
-  (<= 1.18.2), Java 8 rewrites without records/var/pattern instanceof (1.16.x), 1.16 server-test runner.
+  | Runtime Mixin | Form | Folders (commit) |
+  |---|---|---|
+  | 0.8.2 (1.16.3) | unchanged, accepted (24/24) | 1.16.3 forge |
+  | 0.8.4 / 0.8.5 | `@Redirect` of the same INVOKE | 1.16.5 328c397, 1.17.1 2eaf855, 1.18.1 d229d05, 1.18.2 0b171a6, 1.19.2 0da9a88, 1.19.4 b0fe588, 1.20.1 8c798b5, 1.20.4 de87d9b |
+  | 0.8.7 | `@At(unsafe = true)` | 1.21.1 2874661, 1.21.4 584ad8a, 1.21.5 6992721, 1.21.8 c034d72, 1.21.10 684ce99, 1.21.11 21c5618, 26.1.2 f63bbe2, 26.2 eb5b51b |
+  | static `createGlfwWindow` | inject works, unchanged | 26.1.2 + 26.2 NeoForge (24/24; the K3 26.2 failure was the overload) |
+
+  1.19.2: the old target `glfwCreateWindow` never matched (Forge 43's Window ctor calls `EarlyProgressVisualization.handOffWindow`); fixed.
+  Each folder verified by its own runSmokeClient (reports in `local/test-reports/k5-port/`). `forge-<mc>` siblings compile `forge/src/smoketest`.
+- **1.19.4 Forge pack bug (found by the K5 client run):** Forge 45 reads `forge:server_data_pack_format` / `forge:client_resources_pack_format`
+  (`ForgeHooks.makePackFormatKey`); our `pack.mcmeta` used the pre-1.19.3 names, so the data pack was flagged TOO_NEW. Fix: both keys in
+  `forge/src/main/templates/pack.mcmeta` and `forge/src/smoketest/resources/pack.mcmeta`, README.md and TESTING.md updated (2bda9e7). Only 1.19.4
+  affected (Forge 43 and older read the old keys; 1.20+ use `supported_formats`/`min_format`). The world still loaded; the pack was only shown
+  as made for a newer version.
+
+## Changed files and why
+- mc/1.16.5: `PacketHandler` (K4), `SmokeWindowMixin` forge (K5), release bump + 3 jars + SHA256SUMS + `changelog/PATCH_NOTES_5.1.1.md`.
+- mc/1.21.1: `ClientScenarios`, `GuiScenarios`, TESTING.md (K2); forge/neoforge `SmokeWindowMixin` (K5).
+- 15 more branches: `SmokeWindowMixin` forge/neoforge only (dev-only source set, not in release jars).
+- mc/1.19.4: two `pack.mcmeta`, README.md, TESTING.md.
+- main: `CHANGELOG.md` 5.1.1, `release/curseforge-changelog-5.1.1.md`, `release/curseforge-description.md`, `.knowledge/`, graphify-out.
 
 ## Key decisions (details in decisions.md)
-- Dedicated server: server config only; integrated server: host's client setting OR server config.
-- Real-time epoch millis in player data (survives offline time); linear, predictable cooldown formula.
-- One-block operations exempt; checks and use recording at request time.
-- Split pure cooldown logic (Sonnet) from the integration (Opus) to keep Opus on the subtle part.
+- 5.1.1 only for 1.16.5 (client-side packet registration; server unchanged; precedent 5.0.2).
+- K5 form by runtime Mixin version, not by Minecraft version; 1.16.3 left as is (verified).
+- 1.19.4 fix held back from a release until the user decides (needs a new upload yes; version 5.1.1 vs 5.1.2 open).
 
 ## Checks run
-- Lead review of every port: new classes diffed against 1.21.1/1.19.2 (identical except the adaptations above);
-  changed hunks compared line by line against the reference port.
-- `test-all-versions` (build, gametest, server, smoke runSmokeServer), all 17 branches, two parallel instances:
-  **161 pass / 0 fail / 31 n/a** (local/test-reports/v510-final). Unit tests 150 (Fabric) / 136 (Forge, NeoForge);
-  Fabric GameTests 46-48 per branch; dedicated servers reach Done (SB verified where it exists);
-  `server.balanced_breaking` passed in every smoke run.
-- 48 release jars: version 5.1.0, balance classes present, no test/smoketest classes, no nested jars.
-- CurseForge plan metadata identical to 5.0.1 apart from the version (MC versions, loaders, Java, relations).
-- GitHub CI green on all 17 release commits.
+- runSmokeClient on every Forge/NeoForge/Fabric folder touched (see above), client logs read for `MIXIN Subsystem Version`.
+- 1.16.5 3 jars: version 5.1.1, no smoketest/gametest classes, no nested jars, common_config_sync in PacketHandler; CurseForge dry run
+  metadata identical to the 5.1.0 plan entries apart from Path/Sha256/Source; SHAs match SHA256SUMS.txt. GitHub CI green on c4c7ba1.
+- 1.19.4 full run after the pack fix (local/test-reports/p194-pack): fabric build 150 unit, gametest 47, server (SB verified), runSmokeServer 13;
+  forge build 136 unit, server Done, runSmokeServer 7 -> 7 pass / 0 fail / 1 n/a. Forge client 16/16 incl. client.mod_data_pack_compatible.
 
-## Manual test checklist (needs a game client)
-- Die with reach upgrades -> after respawn reach and limits are correct without relog.
-- HUD cooldown line position and colour; action-bar texts (cooldown / too hungry); the pending outline vanishes on
-  refusal.
-- Player settings GUI "Gameplay / Balanced Breaking" row + tooltip; toggling in singleplayer takes effect at once;
-  LAN guest follows the host.
-- Dedicated NeoForge/Forge server: config reload flips the state; real death keeps the cooldown; relog/offline keeps it.
-- Client preview tool icons/counts with balanced breaking on.
+## Manual test checklist (needs a human in a client)
+- Forge 1.19.4 with the fix: data pack screen shows the mod pack as compatible.
+- Dedicated NeoForge/Forge server: config reload flips balanced state; real death keeps cooldown; relog/offline keeps it.
+- LAN guest follows the host's balanced setting.
+- 1.21.1 balanced_refused screenshot: the red pending outline is still visible right after the refusal (check waits 60 ticks); verify
+  "pending outline vanishes on refusal" by eye.
 
 ## Model usage
-Work units (long = 2, short = 1): Opus 2 (A3 balanced-breaking integration) / Sonnet 16 (A1, A2, A5, F1, F2, B1, B2,
-B2a, B2b, graph refresh) -> Opus ~11%. No precision overrides.
+Work units (long = 2, short = 1), this session series: Opus 0 / Sonnet ~22 (K2 rows, K4, K5 port edits across 20+ files, 1.19.2 mixin fix,
+1.19.4 pack fix + docs, K6 notes, graph refresh) -> Opus 0%. No precision overrides.
 
 ## Known limitations and recommendations
-- Redo of a balanced break is not balanced (undo/redo bypass the balance rules).
-- The break animation of `hurtAndBreak(..., MAINHAND)` uses the main-hand slot even if the tool came from the
-  inventory/backpack (cosmetic, same as the existing mineBlock path).
-- 5.1.0 client and server must match (new S2C packet).
-- Client smoke runs (`runSmokeClient`) were not run this release; do the manual checklist above in a client.
-- `graphify update .` must not be used on this repo (it drops `versions/1.21.1`); use the incremental Python recipe.
-- Knowledge graph: incremental AST refresh of the 28 changed versions/1.21.1 files (5220 nodes, 15644 edges,
-  213 communities; old communities kept as they were, 4 new ones labelled: Balanced Breaking Rules & System,
-  BalanceCooldown & Tests, Balanced Breaking GameTest (Fabric), Balance State Sync). manifest.json was already stale
-  for ~100 other 1.21.1 files; a future incremental run will re-extract them.
+- **Open:** 1.19.4 Forge fix is not released; CurseForge still has the old 1.19.4 jar. Decide release + version number (5.1.1 extra paragraph or 5.1.2).
+- `scripts/bump-version.ps1` rewrites TESTING.md history headings that name the old version ("### R3 (5.1.0 fixes ...)"); fix the script or
+  check the headings after every bump (done by hand for 1.16.5).
+- `graphify update .` must not be used (drops versions/1.21.1); use the incremental Python recipe.
