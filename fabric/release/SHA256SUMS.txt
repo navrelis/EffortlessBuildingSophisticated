@@ -1,1 +1,1 @@
-0e6a39c58e15f8d7ff63ce589e5c24579e7d7849c56460b4162e34dd0733769f  sophisticatedbuilding-fabric-1.21.11-5.1.0.jar
+349a412f315f17c06556117f0fe9557c1d3d5c87ddb2aea8b8488aaf67598d96  sophisticatedbuilding-fabric-1.21.11-5.1.2.jar
