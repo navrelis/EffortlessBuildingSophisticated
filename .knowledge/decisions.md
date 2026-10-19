@@ -51,3 +51,11 @@
 - NeoForge survival break posts BlockDropsEvent with the real drops (ItemEntity carriers, mutable list) and hands out exactly what survives the event; canceled = no items, no XP. Reason: matches NeoForge's own CommonHooks.handleBlockDrops, so drop-changing mods (Apothic Boon, auto-smelt, telekinesis) work instead of crashing or being ignored.
 - The carrier ItemEntities are never added to the world; their stacks go through the existing drop callback (backpack/inventory). Reason: keeps our drop routing unchanged.
 - 5.0.2 only on the 8 affected branches (all their loaders, since common/ changes); the 9 others stay 5.0.1. Upload via -JarDir with just those jars. Reason: releases are per branch (docs/RELEASING.md); re-uploading 9 unchanged branches would only be noise.
+
+## 5.1.0 (2026-10-19)
+- Reach "not permanent" = client not re-synced after respawn (server data was always kept). Fix: send PowerLevelPacket in onPlayerRespawned. Reason: vanilla creates a new client player on respawn; login/dimension change already re-send.
+- Balance on/off: dedicated server -> server config only; integrated server (singleplayer/LAN host) -> host's client setting OR server config. Reason: user: "client is for singleplayer, server decides for everyone"; the integrated server runs in the client JVM, so it can read the host's client config without a packet.
+- Cooldown uses real-time epoch millis stored in the player's saved data. Reason: user wants it to survive relog and offline time.
+- Cooldown formula: uses in last 30 min (incl. this one) n; cooldown = 15 s if n <= 10, else min(120 s, 15 s + (n-10)*5 s). Reason: user's 15 s base / 1-2 min heavy-use range; linear and predictable.
+- One-block operations exempt from all balance rules. Reason: they equal a vanilla break.
+- Split: pure cooldown logic (Sonnet) separate from the integration (Opus). Reason: keep Opus to the subtle part.

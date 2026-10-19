@@ -8,6 +8,46 @@ version. This file summarises them; `README.md`'s support matrix lists every jar
 range, minimum loader version and Sophisticated Backpacks support. (4.3.0 was the working name of this
 release while it was built; it was never published, so everything since 4.2.1 is 5.0.0.)
 
+## 5.1.0 — Balanced survival breaking, reach upgrades after respawn
+
+A feature release for the jars of all 17 branches, Minecraft 1.16.3 to 26.2 (all their loaders, every jar). Same file
+names with `5.1.0` in place of the previous version. The 8 branches 1.21.1 to 26.2 come from 5.0.2; the 9 branches
+1.16.3 to 1.20.4 jump from 5.0.1 directly (5.0.2 was a NeoForge-only fix for 1.21.1 and newer and never applied to
+them). Nothing to migrate: worlds and configs of 5.0.x load unchanged, new config entries are added with their
+defaults. Client and server need 5.1.0 together (new network packet). Full per-branch notes are in each branch's
+`changelog/PATCH_NOTES_5.1.0.md`.
+
+### New: balanced survival breaking (optional, off by default)
+
+With it off nothing changes. With it on, mass breaking costs a survival player more, so it is no longer a shortcut past
+mining.
+
+* **What it covers:** build-mode mass breaking in survival and the mining done by survival replace. Operations that
+  mine a single block, creative players and placing are never affected.
+* **Where it is switched on:** on a dedicated server only the server config decides (`BalancedBreaking.enabled`,
+  forces it for all players). In singleplayer and on a LAN world you host, the player switches it on with the new
+  **Balanced Breaking** toggle in the player settings (client config `Gameplay.balancedBreaking`); the server config
+  counts there too.
+* **Durability:** each block costs the tool `durabilityMultiplier` uses (default 5, range 1 - 20); Unbreaking applies
+  like in vanilla; with `SurvivalBreaking.stopBeforeToolBreaks` a tool is only used while it has more uses left than
+  that.
+* **Hunger:** `exhaustionPerBlock` 0.075 per block instead of the normal 0.005; an operation is refused while the food
+  level is below `minFoodLevel` (default 7, i.e. at 6 or lower).
+* **Cooldown:** after each operation, base 15 s. The operations of the last 30 minutes of real time are counted: the
+  first 10 keep 15 s, every further one adds 5 s, up to 120 s; old operations drop out of the window, so the cooldown
+  goes back down by itself. Configurable with `cooldownBaseSeconds`, `cooldownWindowMinutes`, `cooldownFreeUses`,
+  `cooldownStepSeconds` and `cooldownMaxSeconds`. Real time: it keeps running while the player is offline and survives
+  relog, restart and death.
+* **Feedback:** an action-bar message when an operation is refused (cooldown seconds left, or too hungry); a HUD line
+  with the remaining cooldown below the break countdown.
+
+### Fixes
+
+* **Reach upgrades looked lost after dying.** After death and respawn the client forgot the power level until the next
+  relog or dimension change (shorter reach and smaller limits); the server always kept it. The client now gets it
+  again right after the respawn. Reach upgrades are permanent: once used they are saved with the player and kept
+  through death, relog and restart.
+
 ## 5.0.2 — NeoForge crash fix on 8 branches
 
 A hotfix for the jars of Minecraft 1.21.1, 1.21.4, 1.21.5, 1.21.8, 1.21.10, 1.21.11, 26.1.2 and 26.2 (all their

@@ -56,7 +56,7 @@ smoke-tests every version branch and loader.
 ## Support matrix
 
 One row per jar. Each branch builds its jars from its loader folders and keeps them in `<folder>/release/`. Jar names
-are `sophisticatedbuilding-<loader>-<minecraft>-<mod version>.jar` (5.0.0). The Minecraft range, the minimum loader version and the
+are `sophisticatedbuilding-<loader>-<minecraft>-<mod version>.jar` (for example 5.1.0). The Minecraft range, the minimum loader version and the
 optional Sophisticated Backpacks (SB) range are the ones declared in the jar's metadata (`fabric.mod.json`,
 `META-INF/mods.toml` or `META-INF/neoforge.mods.toml`). Every declared version was run with the in-game smoke harness
 (see `docs/TESTING.md` and the branch's `TESTING.md`).

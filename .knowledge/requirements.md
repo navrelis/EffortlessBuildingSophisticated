@@ -1,3 +1,20 @@
+# Requirements
+
+## Session 2026-10-19: 5.1.0 (reach-upgrade fix + balanced survival breaking)
+- Reach upgrades must stay after consumption. Finding: server saves them (relog/death/dimension OK), but the client is
+  not re-synced after death -> client acts as level 0 until relog. Fix on all branches.
+- New option "balanced survival breaking", off by default.
+  - Dedicated server: the server config decides for all players. Singleplayer: the client setting decides (server config also counts).
+  - Covers survival build-mode breaking + survival replace mining; one-block operations count like vanilla; creative never affected; placing not affected.
+  - Tool durability x5 per block (server config); stopBeforeToolBreaks keeps working.
+  - Hunger: 0.075 exhaustion per block (user value); refused when food level <= 6.
+  - Cooldown: base 15 s; uses in the last 30 real-time minutes; first 10 keep 15 s, +5 s per extra use, max 120 s; old uses expire. Server config.
+  - One operation = one use (not weighted by block count).
+  - Cooldown survives relog and offline time (stored with the player, real-time clock).
+  - Feedback: action bar on refusal (cooldown seconds / too hungry) + HUD cooldown next to the break countdown.
+- All 17 branches, version 5.1.0, push to GitHub (mc/* branches + main), upload to CurseForge (user approved upfront).
+- Lead decides all other details. No new dependencies.
+
 # Requirements (session 2026-09-24, multi-version)
 
 ## Goal

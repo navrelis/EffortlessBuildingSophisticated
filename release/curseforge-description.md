@@ -18,7 +18,7 @@ It runs on **every Minecraft version from 1.16.3 to 26.2**, on **Fabric, NeoForg
 4. Build modes (every mode and option)
 5. Modifiers (Mirror, Array, Radial Mirror)
 6. Replace modes and protection
-7. Survival rules (items, mass breaking, undo/redo)
+7. Survival rules (items, mass breaking, balanced breaking, undo/redo)
 8. Items and recipes
 9. Sophisticated Backpacks integration
 10. Player Settings and HUD
@@ -38,11 +38,12 @@ It runs on **every Minecraft version from 1.16.3 to 26.2**, on **Fabric, NeoForg
 - **Replace modes:** Only Air, Blocks And Air, Only Blocks and Filter By Offhand, plus Quick Replace and tile entity protection.
 - **Live preview:** ghost blocks, outline, block count and size, a list of the blocks needed, and counts of what you have and what is missing. Blocks you cannot pay for or cannot break are marked and skipped, never faked.
 - **Fair Survival:** exact item costs (also for double slabs, candles and other multi-item blocks), items with data (named blocks, filled shulker boxes) keep their data, failed placements are not charged, mass breaking with the right tool, durability, drops, hunger and a short mining delay, tools are never broken, optional survival replace.
+- **Balanced survival breaking (optional, off by default):** mass breaking can cost 5 times the tool durability, much more hunger and an escalating real-time cooldown, in singleplayer with one toggle, on a server with one config switch.
 - **Undo and redo** (50 steps by default) that follow the same survival rules.
 - **Randomizer Bags** (5, 9, 27 and 54 slots) that place a random block from your templates; the Omega bag has a weight per slot.
-- **Power levels:** Reach Upgrades 1 to 3 raise your reach and your build limits in Survival.
+- **Power levels:** Reach Upgrades 1 to 3 raise your reach and your build limits in Survival. They are permanent: once used they stay with you through death, relog and restart.
 - **Sophisticated Backpacks integration:** Building Upgrade tiers 1 to 4 and Omega let a build take blocks from your backpacks (worn ones too), and mass breaking uses tools from Tool Swapper backpacks.
-- **Player Settings screen** for all preview and performance settings, no config file editing needed.
+- **Player Settings screen** for all preview, performance and gameplay settings, no config file editing needed.
 - **Works without Sophisticated Backpacks:** everything except the backpack features works on its own; the Building Upgrade items then stay as inert placeholders without recipes.
 
 ---
@@ -118,6 +119,8 @@ In Survival your building power depends on your **power level** (0 to 3); Creati
 - **Max mirror radius:** how far Mirror and Radial Mirror reach.
 
 You raise your power level by using **Reach Upgrade 1, 2 and 3** in that order (section 8); operators can set it with `/powerlevel` (section 12). The server checks every build and break request against these limits itself (reach, blocks per axis, blocks placed at once, and what the modifiers add on top), using its own common config, not the client's; a request outside them is refused or cut down with a message. The server additionally rejects any single build larger than `Validation.maxBlocksPlacedAtOnce` (10000 blocks) for everyone.
+
+**Reach upgrades are permanent.** Once used, a Reach Upgrade is saved with your player and is never lost: it stays through death and respawn, relog and server restarts. (Before 5.1.0 the game could show the old, lower limits after a respawn until you relogged; the server always kept them.)
 
 ---
 
@@ -298,7 +301,7 @@ On by default (`SurvivalBreaking.enabled`).
 - **Tool choice:** main hand, rest of the hotbar, inventory, offhand, then the tools in a backpack with an enabled Tool Swapper or Advanced Tool Swapper. The **first effective tool** for each block is used (pickaxe, axe, shovel, hoe, shears). Blocks that need the correct tool for drops (stone, ores) only accept the correct tool.
 - Blocks that break instantly (flowers, torches, grass) need no tool. A block without an effective tool that does not require one can be broken with the tool in your main hand; with no tool at all, such blocks are skipped (no bare-hand mass mining).
 - **Unbreakable blocks** are always skipped. **Tools never break:** a tool with 1 use left is not used.
-- **Durability, drops, hunger:** one use per block (Unbreaking, Fortune and Silk Touch work as in vanilla), drops go straight into your inventory, 0.005 exhaustion per block like vanilla mining.
+- **Durability, drops, hunger:** one use per block (Unbreaking, Fortune and Silk Touch work as in vanilla), drops go straight into your inventory, 0.005 exhaustion per block like vanilla mining. With balanced breaking on (below), mass breaking costs more.
 - **Protected blocks are skipped:** spawn protection (operators excepted), world border, adventure-mode rules and, on NeoForge and Forge, protection mods that cancel the break event; on Fabric, the mod fires Fabric API's player block break events and, where installed, asks the Common Protection API too, so claim mods that use either are respected.
 - **Mining delay:** the mod adds up the vanilla mining time of every block with its tool and waits that long, at most 2 seconds by default (`maxDelayTicks` = 40). A countdown shows *"Breaking N blocks in X s"* with a progress bar. Before you click, the HUD shows the tools that will be used (with a count each), a barrier icon with the number of blocks that cannot be broken, and the estimated time (`~X s`).
 - If nothing can be broken: *"No suitable tool for the selected blocks (switch to Disable mode for vanilla mining)"*; if some are skipped: *"N Block(s) skipped: no suitable tool"*.
@@ -308,6 +311,17 @@ In Creative, mass breaking is instant, needs no tools and drops nothing.
 ### Survival replace
 
 Off by default (`SurvivalReplace.enabled`). When on, the replace modes and Quick Replace work in Survival: each block in the way is **mined** with the rules above (tool, durability, drops into your inventory, hunger, skipping, delay shown as *"Replacing N blocks in X s"*), then the new block is placed and paid for. The item is checked first; without the item or a tool, nothing is mined or charged at that spot.
+
+### Balanced survival breaking
+
+Optional and **off by default**; with it off nothing changes. When it is on, build-mode mass breaking and the mining done by survival replace cost survival players more, so they are no longer a shortcut past mining. Breaking a **single block**, **Creative** players and **placing** are never affected.
+
+- **Where it is switched on:** on a dedicated server only the server config decides: `BalancedBreaking.enabled = true` forces it for all players. In singleplayer, and on a LAN world you host, you switch it on yourself with the **Balanced Breaking** toggle in the Player Settings (client config `Gameplay.balancedBreaking`); the server config counts there too.
+- **Durability:** every mined block costs the tool `durabilityMultiplier` uses (default 5, 1 - 20) instead of 1. Unbreaking applies like in vanilla. With `SurvivalBreaking.stopBeforeToolBreaks` a tool is only used while it has more uses left than that.
+- **Hunger:** `exhaustionPerBlock` 0.075 per block instead of 0.005. An operation is refused while your food level is below `minFoodLevel` (default 7, so at 6 or lower).
+- **Cooldown:** after each operation you wait 15 seconds. The operations of the last 30 minutes of real time are counted: the first 10 keep the 15 seconds, every further one adds 5 seconds, up to 120 seconds. Old operations drop out of the window, so the cooldown goes back down by itself. It is real time: it keeps running while you are offline and survives relog, restart, death and respawn.
+- **Feedback:** if an operation is refused, a message above the hotbar tells you why (cooldown seconds left, or too hungry); the HUD shows the remaining cooldown below the break countdown.
+- **Settings:** all numbers are in the server config, section `BalancedBreaking` (section 11). Client and server both need 5.1.0 or newer for it.
 
 ### Undo and redo
 
@@ -360,7 +374,7 @@ Right-click to consume. Each one raises your power level by one (section 3) and 
 | Reach Upgrade 2 | 1 | level 2 | 4 blaze powder around an ender pearl (plus shape) |
 | Reach Upgrade 3 | 2 | level 3 | end crystal in the centre, chorus fruit on the sides, ghast tears in the corners |
 
-Using one out of order says *"Use Reach Upgrade N first."*; using one you already have says *"Already used this upgrade!"*. Your power level is kept on death.
+Using one out of order says *"Use Reach Upgrade N first."*; using one you already have says *"Already used this upgrade!"*. Reach upgrades are permanent: your power level is saved with you and kept through death, relog and server restarts.
 
 ### Compressed blocks
 
@@ -447,6 +461,8 @@ Open it with the button at the top left of the radial menu or the key *Open Play
 | Preview Distance | 64 blocks | 16 - 256 | No individual previews beyond this distance. |
 | Update Throttling | ON | | Skip preview calculations while you do not move. |
 | Max Mini Previews | 4096 blocks | 0 - 100000 (0 = no limit) | Maximum number of mini block previews. |
+| **Gameplay** | | | |
+| Balanced Breaking | OFF | | Singleplayer and LAN worlds you host: mass breaking and survival replace cost more durability and hunger and have an escalating cooldown (section 7). On a server only the server config decides. |
 
 ### HUD
 
@@ -454,6 +470,7 @@ Open it with the button at the top left of the radial menu or the key *Open Play
 - **Next to the crosshair (placing):** the blocks the build uses with their counts; **red counts** for missing blocks. In Creative only when a build uses more than one block type.
 - **Next to the crosshair (Survival breaking):** the tools that will be used with how many blocks each, a barrier icon with the number of blocks that cannot be broken, and the estimated time `~X s`.
 - **Below the crosshair:** the mining countdown *"Breaking N blocks in X s"* / *"Replacing N blocks in X s"* with a red progress bar.
+- **Below the break countdown (balanced breaking):** *"Balanced breaking: cooldown X s"* while the cooldown runs. If an operation is refused, the same text (or *"too hungry"*) appears above the hotbar.
 - **Bottom right (Survival):** how many of the held block (or of each template of a held Randomizer Bag) you have in your inventory and backpacks, shortened like `11.2k`.
 - **Radial menu, bottom right:** your power level; point at it for all current and next-level limits.
 
@@ -487,6 +504,15 @@ There are three config files. Every option below lists its default and allowed r
 | `SurvivalBreaking.maxDelayTicks` | 40 | 0 - 1200 | Longest mining delay of one survival break or replace (20 ticks = 1 s). |
 | `SurvivalBreaking.exhaustionPerBlock` | 0.005 | 0.0 - 1.0 | Hunger exhaustion per broken block. |
 | `SurvivalReplace.enabled` | false | | Replace modes and Quick Replace in Survival (blocks in the way are mined like survival breaking). |
+| `BalancedBreaking.enabled` | false | | Balanced survival breaking for all players of this server (section 7). In singleplayer and on a LAN world you host, the Player Settings toggle also switches it on. |
+| `BalancedBreaking.durabilityMultiplier` | 5 | 1 - 20 | Durability uses each mined block costs the tool. |
+| `BalancedBreaking.exhaustionPerBlock` | 0.075 | 0.0 - 1.0 | Hunger exhaustion per mined block instead of `SurvivalBreaking.exhaustionPerBlock`. |
+| `BalancedBreaking.minFoodLevel` | 7 | 0 - 20 | An operation is refused while the food level is below this (0 = never). |
+| `BalancedBreaking.cooldownBaseSeconds` | 15 | 0 - 3600 | Cooldown after each operation, in real-time seconds. |
+| `BalancedBreaking.cooldownWindowMinutes` | 30 | 1 - 1440 | Window in which a player's operations are counted. |
+| `BalancedBreaking.cooldownFreeUses` | 10 | 0 - 1000 | Operations in the window that only get the base cooldown. |
+| `BalancedBreaking.cooldownStepSeconds` | 5 | 0 - 3600 | Seconds added for every operation in the window beyond the free ones. |
+| `BalancedBreaking.cooldownMaxSeconds` | 120 | 0 - 86400 | Longest cooldown (never shorter than the base). |
 
 ### Common config (power level limits)
 
@@ -501,7 +527,7 @@ A level-0 limit of 0 for blocks placed at once or blocks per axis disables the b
 
 ### Client config
 
-The ten Player Settings above: `Visuals.showBlockPreviews`, `onlyShowBlockPreviewsWhenBuilding`, `showMiniBlockPreview`, `maxBlockPreviews`, `appearAnimationLength`, `breakAnimationLength`, `previewScale`, and `Performance.previewRenderDistance`, `enableUpdateThrottling`, `maxMiniBlockPreviews`.
+The eleven Player Settings above: `Visuals.showBlockPreviews`, `onlyShowBlockPreviewsWhenBuilding`, `showMiniBlockPreview`, `maxBlockPreviews`, `appearAnimationLength`, `breakAnimationLength`, `previewScale`, and `Performance.previewRenderDistance`, `enableUpdateThrottling`, `maxMiniBlockPreviews`, and `Gameplay.balancedBreaking` (default off; applies to singleplayer and LAN worlds you host).
 
 ---
 
@@ -530,7 +556,7 @@ Mouse: **right-click** places / sets points, **left-click** breaks / cancels a p
 
 ## 13. Supported versions and compatibility
 
-One jar per Minecraft version and loader; the file name says both: `sophisticatedbuilding-<loader>-<minecraft>-<version>.jar`, where the version is 5.0.2 for Minecraft 1.21.1 to 26.2 and 5.0.1 for 1.16.3 to 1.20.4. Install it on the client **and** the server.
+One jar per Minecraft version and loader; the file name says both: `sophisticatedbuilding-<loader>-<minecraft>-<version>.jar`, where the version is 5.1.0 for every Minecraft version from 1.16.3 to 26.2. Install it on the client **and** the server; since 5.1.0 they need the same version (balanced breaking uses a new network packet). Worlds and configs of 5.0.x load unchanged.
 
 | Minecraft | Fabric | NeoForge | Forge | Backpacks integration | Java |
 |---|---|---|---|---|---|
@@ -588,6 +614,10 @@ One jar per Minecraft version and loader; the file name says both: `sophisticate
 **The radial menu says build modes are disabled.** Your power level allows 0 blocks (a server setting). Use a Reach Upgrade or ask an operator.
 
 **Mass breaking does nothing or skips blocks.** You need an effective tool (in your inventory or a Tool Swapper backpack); tools with 1 use left are not used; protected, unbreakable and tile-entity blocks are skipped; the server may have disabled survival breaking. Use Disable mode for normal mining.
+
+**Mass breaking says "Balanced breaking: cooldown X s" or "too hungry".** Balanced survival breaking is on (the server config, or the Balanced Breaking toggle in singleplayer). Wait for the cooldown (it also runs while you are offline) or eat until your food level is above the server's `BalancedBreaking.minFoodLevel` (7 by default). The server owner can switch it off with `BalancedBreaking.enabled = false`; in singleplayer, switch off the toggle in the Player Settings. Breaking a single block is never limited.
+
+**My reach upgrades seemed gone after I died.** They are permanent and were never lost; before 5.1.0 the game only showed the old limits until you relogged. Update to 5.1.0 on the client and the server.
 
 **I cannot replace blocks in Survival.** Survival replace is off by default. Ask the server owner to set `SurvivalReplace.enabled = true`.
 
