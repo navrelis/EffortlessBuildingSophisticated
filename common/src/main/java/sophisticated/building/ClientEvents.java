@@ -13,12 +13,14 @@ import sophisticated.building.buildmode.BuildModeEnum;
 import sophisticated.building.buildmode.ModeOptions;
 import sophisticated.building.client.ClientBackpackItemCache;
 import sophisticated.building.client.ClientBackpackToolCache;
+import sophisticated.building.client.ClientBalanceState;
 import sophisticated.building.client.ClientBreakCountdown;
 import sophisticated.building.client.ClientBuildingUpgradeState;
 import sophisticated.building.gui.buildmode.PlayerSettingsGui;
 import sophisticated.building.gui.buildmode.RadialMenu;
 import sophisticated.building.gui.buildmodifier.ModifiersScreen;
 import sophisticated.building.platform.ClientServices;
+import sophisticated.building.systems.BalancedBreaking;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -50,6 +52,9 @@ public class ClientEvents {
 
     public static void onClientTickPre() {
         if (!isGameActive()) return;
+
+        //The host's toggle for the integrated server this client may run (it notices a change on its next tick)
+        BalancedBreaking.setHostClientSetting(ClientConfig.gameplay.balancedBreaking.get());
 
         SophisticatedBuildingClient.BUILDER_CHAIN.onTick();
 
@@ -200,6 +205,7 @@ public class ClientEvents {
         ClientBuildingUpgradeState.clear();
         ClientBackpackToolCache.clear();
         ClientBreakCountdown.clear();
+        ClientBalanceState.clear();
     }
 
     public static void onLoggingIn() {
