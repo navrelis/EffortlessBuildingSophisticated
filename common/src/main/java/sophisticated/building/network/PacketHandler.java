@@ -54,6 +54,7 @@ public final class PacketHandler {
 			new Payload<>(BuildingUpgradeStatePacket.ID, BuildingUpgradeStatePacket::new, BuildingUpgradeStatePacket.Handler::handle, "building_upgrade_state"),
 			new Payload<>(BackpackToolsPacket.ID, BackpackToolsPacket::new, BackpackToolsPacket.Handler::handle, "backpack_tools"),
 			new Payload<>(BreakCountdownPacket.ID, BreakCountdownPacket::new, BreakCountdownPacket.Handler::handle, "break_countdown"),
+			new Payload<>(CommonConfigSyncPacket.ID, CommonConfigSyncPacket::new, CommonConfigSyncPacket.Handler::handle, "common_config_sync"),
 			new Payload<>(BalanceStatePacket.ID, BalanceStatePacket::new, BalanceStatePacket.Handler::handle, "balance_state")
 	));
 
