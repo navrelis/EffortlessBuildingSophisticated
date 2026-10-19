@@ -4,8 +4,8 @@ Three layers, from fast to real:
 
 | Layer | Command (in a loader folder) | What it proves |
 |---|---|---|
-| Unit tests | `gradlew build` | Pure logic in `common/src/test` (117 tests on Fabric incl. its config tests, 103 on NeoForge and Forge) |
-| Fabric GameTests | `gradlew runGametest` | 38 server-side building rules (`fabric/src/gametest`) plus the Porting Lib self test nested in the Fabric Sophisticated Core port (39 required tests) |
+| Unit tests | `gradlew build` | Pure logic in `common/src/test` (150 tests on Fabric incl. its config tests, 136 on NeoForge and Forge) |
+| Fabric GameTests | `gradlew runGametest` | 47 server-side building rules (`fabric/src/gametest`), incl. balanced survival breaking (`BalancedBreakingGameTest`), plus the Porting Lib self test nested in the Fabric Sophisticated Core port (48 required tests) |
 | **In-game smoke tests** | `gradlew runSmokeClient` / `gradlew runSmokeServer` | The mod works in a real game on this loader, including the Sophisticated Backpacks (SB) integration on Fabric and NeoForge |
 
 Forge 1.20.4 has no Sophisticated Backpacks release, so the Forge build ships no SB integration and its smoke runs have
@@ -119,6 +119,7 @@ arrives from a client, and handed to the packets' server handlers.
 | `server.undo_redo` | Undo/redo packets restore the inventory counts |
 | `server.merge_undo_refund` | Survival merges (+1 snow layer, +1 candle) cost one item each; undo puts both blocks back without mining and gives the items back, redo charges them again |
 | `server.refused_place_not_charged` | The loader's block place event refuses 2 of a 5 block line (as a protection mod would): only the 3 placed planks are charged and undo gives back exactly those. Skipped on Fabric (no place event; `ChargeGameTest` covers refused placements) |
+| `server.balanced_breaking` | Balanced breaking switched on in the server config: a 3 stone break costs the iron pickaxe 3 x the durability multiplier and starts a cooldown in the persistent data, a second break during it is refused; the cooldown comes back after a save/load into a new player object and after `restoreFrom` (respawn, the loader's clone event) |
 | `server.request_limits` | A survival player's build requests are checked against the power level limits (ServerBlockPlacer#validateRequest): a line starting 60 blocks away and a 20 block extent (survival: 8 per axis) are refused, nothing placed or charged; a normal 5 block line afterwards is placed |
 | `sb.upgrade_supplies_blocks`, `sb.disabled_upgrade_ignored`, `sb.tier_cap`, `sb.tool_swapper_tools`, `sb.worn_backpack_chest`, `sb.worn_backpack` | As on the client, server side |
 | `server.no_mod_errors` | As on the client |
@@ -296,6 +297,17 @@ Since R2 (player settings editor, bag title fit) the two checks also use:
   the Porting Lib self test); `runSmokeServer` Fabric 12 (1 skip), NeoForge 12/12, Forge 6/6, and with
   `-PsmokeNoSb=true` Fabric 12 (7 skips), NeoForge 12 (6 skips); `scripts/check-fabric-no-sb-bytecode.ps1 -Mc 1.20.4`
   on main: 349 classes, 0 differ.
+
+- R4 (5.1.0, ported from mc/1.21.1 942d396, 32210c9, ab565a5): the power level is sent again after a respawn, and the
+  optional balanced survival breaking (`BalanceCooldown`, `BalanceRules`, `BalancedBreaking`, `BalanceStatePacket`,
+  `ClientBalanceState`, server config section `BalancedBreaking`, client config `Gameplay.balancedBreaking`, HUD line,
+  settings toggle, NeoForge/Forge `onClone` -> `CommonEvents.onPlayerCloned`; Fabric needs nothing, its player data is
+  copied by `FabricPlayerData.copy`). New tests: `BalanceCooldownTest`, `BalanceRulesTest`, `ToolSelectorTest` additions,
+  Fabric `BalancedBreakingGameTest` (9 tests), smoke check `server.balanced_breaking`. Differences to 1.21.1:
+  `BalanceStatePacket` is written in this branch's packet style (`FriendlyByteBuf` constructor and `write`, no `CODEC`),
+  and `ItemStack#hurtAndBreak(int, T, Consumer<T>)` with `broadcastBreakEvent`. Verified: `gradlew build` Fabric 150 tests,
+  NeoForge and Forge 136; Fabric `runGametest` "All 48 required tests passed" (47 + the Porting Lib self test);
+  `runSmokeServer` Fabric 13 (1 skip), NeoForge 13/13, Forge 7/7, each with `server.balanced_breaking` passed.
 
 ## Standalone run without Sophisticated Backpacks
 

@@ -91,6 +91,19 @@ public class ClientBreakCountdown {
 	}
 
 	/**
+	 * The server refused the oldest pending request of that kind (balanced breaking cooldown or hunger, see
+	 * {@code BalanceStatePacket}): drop its outline now instead of after {@link #PENDING_TIMEOUT_TICKS}.
+	 */
+	public static void dropPending(boolean placing) {
+		for (var iterator = PENDING.iterator(); iterator.hasNext(); ) {
+			if (iterator.next().placing == placing) {
+				iterator.remove();
+				return;
+			}
+		}
+	}
+
+	/**
 	 * Ticks every active countdown and ages pending sets; call once per client tick. Break
 	 * countdowns that reach 0 fire {@code onBlocksBroken} for their set (if any) so the dissolve
 	 * animation starts when the blocks actually vanish, then are removed. Placement countdowns fire
