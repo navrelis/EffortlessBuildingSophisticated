@@ -263,7 +263,7 @@ the `mc/1.21.1` one with these 1.19.4 differences:
   `setTooltipForNextRenderPass(Tooltip, DefaultTooltipPositioner, true)` and `AbstractSliderButton` are the same as on
   1.21.1. Forge 45's `ForgeConfigSpec.ConfigValue#set/getDefault` and `ForgeConfigSpec#save()` exist.
 
-- R3 (5.0.1 fixes of `mc/1.21.1` d8ab383..48261e8): Fabric per-player data saved with the player (`PlayerDataMixin`,
+- R3 (5.1.0 fixes of `mc/1.21.1` d8ab383..48261e8): Fabric per-player data saved with the player (`PlayerDataMixin`,
   `ServerPlayerEvents.COPY_FROM`), server checks of build requests with the common config synced to the client
   (`CommonConfigSyncPacket` as a `ModPayload` with `writeVarIntArray`/`readVarIntArray`), array limit, Fabric break
   events and Common Protection API 1.0.0, offhand bag filter, material cost list, previous build mode, translatable
@@ -295,7 +295,7 @@ the `mc/1.21.1` one with these 1.19.4 differences:
 | `fabric/` | 150/150 | 47/47 | 13 (12 passed, 1 skipped; 6 `sb.*`), incl. `server.balanced_breaking` |
 | `forge/` | 136/136 | - | 7/7, incl. `server.balanced_breaking` |
 
-### Results (5.0.1 fixes, 2026-09-25)
+### Results (5.1.0 fixes, 2026-09-25)
 
 | Folder | `gradlew build` (unit tests) | Game tests | `runSmokeServer` | `runSmokeServer -PsmokeNoSb=true` | `runSmokeClient` |
 |---|---|---|---|---|---|
