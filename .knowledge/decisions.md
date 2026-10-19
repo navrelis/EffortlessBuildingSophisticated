@@ -61,3 +61,7 @@
 - Split: pure cooldown logic (Sonnet) separate from the integration (Opus). Reason: keep Opus to the subtle part.
 - 5.1.0 upload through the project's own scripts/curseforge-upload.ps1 (not the generic uploader). Reason: all earlier releases of project 1414718 used it; plan metadata conventions (48 files, ranges, relations) live there.
 - Graph refresh only via the incremental Python recipe. Reason: `graphify update .` treats the ignored versions/ worktrees as removed and prunes ~3600 nodes.
+
+## 5.1.1 + client checks (2026-10-19, session 3)
+- Smoke harness SmokeWindowMixin on Forge 36 (1.16.5) uses @Redirect of EarlyProgressVisualization.handOffWindow instead of @Inject; on 1.21.1 Forge/NeoForge @At(unsafe = true). Reason: Mixin >= 0.8.3 refuses callback injections into constructors before RETURN; Forge 36's patched Mixin 0.8.4.12 has no `unsafe` attribute, Mixin 0.8.7 does. Dev-only, no release.
+- 5.1.1 only for mc/1.16.5 (3 jars), uploaded with -JarDir; the fix is client-side (packet registration), server unchanged. Reason: only branch with the bug; precedent 5.0.2.

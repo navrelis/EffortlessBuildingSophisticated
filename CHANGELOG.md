@@ -8,6 +8,25 @@ version. This file summarises them; `README.md`'s support matrix lists every jar
 range, minimum loader version and Sophisticated Backpacks support. (4.3.0 was the working name of this
 release while it was built; it was never published, so everything since 4.2.1 is 5.0.0.)
 
+## 5.1.1 — Server limits sync fix on 1.16.5 and 1.16.4
+
+A hotfix for the 3 jars of Minecraft 1.16.5 and 1.16.4: Fabric (1.16.4 and 1.16.5), Forge 1.16.5 and Forge 1.16.4. Same
+file names with `5.1.1` in place of `5.1.0`; nothing to migrate, worlds and configs of 5.1.0 load unchanged. The other
+16 branches (every other Minecraft version, 1.16.3 to 26.2, all their jars) stay on 5.1.0 and are not affected. Full per-branch notes are in
+the branch's `changelog/PATCH_NOTES_5.1.1.md`.
+
+### Fixes
+
+* **The server's power level limits were not sent to the client (1.16.5 and 1.16.4).** The packet that sends the
+  server's limits (reach, blocks at once, blocks per axis, mirror radius of every level) to the client on join was
+  never registered on the client of this branch, so it was dropped (Forge logged `Unknown payload
+  sophisticatedbuilding:common_config_sync` on every join, Fabric a warning). The client kept using its own common
+  config for reach and the build limits of previews and build modes, while the server enforced its own. On a server
+  whose limits differ from the client's, the two disagreed: the server refused or cut what went over its limits, and the
+  client did not offer what only the server's higher limits allowed. The packet is now registered like on every other
+  branch. With identical limits (the defaults) nothing was visible.
+* **Fabric and Forge:** all 3 jars are rebuilt because the shared `common` module changed.
+
 ## 5.1.0 — Balanced survival breaking, reach upgrades after respawn
 
 A feature release for the jars of all 17 branches, Minecraft 1.16.3 to 26.2 (all their loaders, every jar). Same file

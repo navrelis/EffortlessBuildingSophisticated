@@ -1,7 +1,7 @@
 # Plan
 
 ## 5.1.0 (session 2026-10-19): reach re-sync after respawn + balanced survival breaking
-Usage tally (work units, long=2 short=1): Opus 2 (A3) / Sonnet 16 (A1, A2, F1, F2, B1, B2 long, A5, B2a long, B2b long, G1 short) -> Opus ~11%.
+Usage tally (work units, long=2 short=1): Opus 2 (A3) / Sonnet 19 (A1, A2, F1, F2, B1, B2 long, A5, B2a long, B2b long, G1 short, K2 short, K4 short, K5 short, K6n short) -> Opus ~10%.
 
 | ID | Task | Model | Size/Diff | Depends | Status |
 |----|------|-------|-----------|---------|--------|
@@ -142,3 +142,12 @@ build + unit tests verified. Open: finish verification, 5.0.1 release material, 
 | C6 | CurseForge dry run, user OK, upload, tag v5.0.1 | lead | B6 | done (user OK; 48 files, ids 8974400-8974447; tags v5.0.1 + v5.0.1+<mc>) |
 | K1 | Client smoke runs on every branch (only after "Clients erlaubt") | lead | B6 | blocked (user go) |
 | Z6 | test-all-versions final, report, graphify, memory, push | lead | B6 | open |
+
+## 5.1.0 client checks (2026-10-19, user: "a few" client tests, then upload if needed)
+| ID | Task | Model | Size | Status |
+|----|------|-------|------|--------|
+| K2 | mc/1.21.1 client smoke: client.respawn_power_level, client.balanced_breaking, client.balanced_settings_toggle; runSmokeClient fabric/neoforge/forge | Sonnet | short | open (interrupted; partial uncommitted edits) |
+| K3 | runSmokeClient (existing checks) on 26.2, 1.20.1, 1.16.5 | lead | short | done: Fabric 3/3 pass; Forge harness crash; 1.16.5 packet bug found |
+| K4 | mc/1.16.5: register CommonConfigSyncPacket (CLIENTBOUND) + verify | Sonnet/lead | short | done: forge-1.16.4 + forge + fabric runSmokeClient pass (no_mod_errors); 85d1399 |
+| K5 | Smoke harness: SmokeWindowMixin that applies on Forge/NeoForge (1.16.5 forge, 1.21.1 forge/neoforge); other branches = follow-up | Sonnet | short | 1.16.5 forge done (328c397, client 24/24); 1.21.1 forge/neoforge pending; port to the other Forge/NeoForge folders after |
+| K6 | 5.1.1 for mc/1.16.5 only: notes, bump, upload (-JarDir), tag | lead + Sonnet | short | bump done + pushed (c4c7ba1); CurseForge upload + tags pending |
