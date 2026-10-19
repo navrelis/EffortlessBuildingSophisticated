@@ -13,11 +13,12 @@ import sophisticated.building.smoketest.client.SmokeWindowHints;
  * task turns FML's early loading window off (config/fml.toml earlyWindowControl = false, ../gradle/smoketest.gradle):
  * NeoForge 21.9+ then has no EarlyLoadingScreenController window to take over and creates the window here (vanilla
  * glfwCreateWindow call; the ImmediateWindowHandler of older FML versions is gone).
+ * {@code unsafe = true} is required because Mixin 0.8.3+ refuses callback injections into a constructor before RETURN.
  */
 @Mixin(Window.class)
 abstract class SmokeWindowMixin {
 
-    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwCreateWindow(IILjava/lang/CharSequence;JJ)J", remap = false))
+    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwCreateWindow(IILjava/lang/CharSequence;JJ)J", remap = false, unsafe = true))
     private void sophisticatedbuilding_smoketest$createWithoutFocus(CallbackInfo ci) {
         SmokeWindowHints.beforeWindowCreation();
     }
