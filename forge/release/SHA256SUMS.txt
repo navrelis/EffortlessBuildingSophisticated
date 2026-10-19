@@ -1,1 +1,1 @@
-2a8af65c518f2e290064bb7bebf6fdf301dc796a9025625d53b137dc81884eb2  sophisticatedbuilding-forge-1.19.4-5.1.0.jar
+bd7ff8b36abf8952046de78da328205b6d6909b2f2b62975af7c4f9be9889ff2  sophisticatedbuilding-forge-1.19.4-5.1.2.jar
