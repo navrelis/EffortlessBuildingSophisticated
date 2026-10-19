@@ -1,7 +1,5 @@
 # Sophisticated Building Update – 5.1.0 - Minecraft 1.16.3
 
-*Draft — lead to confirm before release.*
-
 A feature release for 1.16.3: optional balanced survival breaking and a fix for reach upgrades after respawn. It follows 5.0.1 directly (5.0.2 only fixed a NeoForge crash on Minecraft 1.21.1 and newer). Nothing to migrate: worlds and configs of 5.0.1 load unchanged.
 
 ## Artifacts

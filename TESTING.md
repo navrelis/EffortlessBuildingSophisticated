@@ -252,7 +252,7 @@ loader version:
 | `fabric/` | 104/104 | 24/24 | 5 (4 passed, 1 skipped: `server.refused_place_not_charged`, no place event on Fabric) | not run yet (clients on hold) |
 | `forge/` | 90/90 | - | 11 (10 passed, 1 skipped: `sb.tool_swapper_tools`) | not run yet (clients on hold) |
 
-### Round 3 (R3, 5.0.1 fixes, 2026-09-25, headless)
+### Round 3 (R3, 5.1.0 fixes, 2026-09-25, headless)
 
 Ported from `mc/1.21.1` (d8ab383..48261e8): Fabric player data saved with the player, server checks of build requests
 (`validateRequest`) with the common config limits synced to the client (`CommonConfigSyncPacket`), Fabric player break
