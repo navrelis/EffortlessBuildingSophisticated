@@ -1866,10 +1866,10 @@
     "semantic_hash": "13bec312e93c642de1202247f1b4f47d"
   },
   "versions/1.21.1/common/src/smoketest/java/sophisticated/building/smoketest/client/ClientScenarios.java": {
-    "mtime": 1790296831.9118867,
-    "seen": 1790327296.4827487,
-    "ast_hash": "dc0ec410308b3c621c2995dab017771a",
-    "semantic_hash": "dc0ec410308b3c621c2995dab017771a"
+    "mtime": 1792410417.8951344,
+    "seen": 1792419396.3278854,
+    "ast_hash": "8e89f532d95e260f6e993d3b5b6cf015",
+    "semantic_hash": "8e89f532d95e260f6e993d3b5b6cf015"
   },
   "versions/1.21.1/common/src/smoketest/java/sophisticated/building/smoketest/client/ClientWindow.java": {
     "mtime": 1790278686.1181028,
@@ -1878,10 +1878,10 @@
     "semantic_hash": "89981dbaeab49cab1b89ac97d78afc47"
   },
   "versions/1.21.1/common/src/smoketest/java/sophisticated/building/smoketest/client/GuiScenarios.java": {
-    "mtime": 1790296853.1871092,
-    "seen": 1790327296.4827497,
-    "ast_hash": "831efad1f19c5829c5b869f138a4c785",
-    "semantic_hash": "831efad1f19c5829c5b869f138a4c785"
+    "mtime": 1792410460.8958511,
+    "seen": 1792419396.327889,
+    "ast_hash": "3443e33f47b9d232ddd70fa672c30a78",
+    "semantic_hash": "3443e33f47b9d232ddd70fa672c30a78"
   },
   "versions/1.21.1/common/src/smoketest/java/sophisticated/building/smoketest/client/RadialMenuDriver.java": {
     "mtime": 1790275095.0043802,
@@ -2668,5 +2668,17 @@
     "seen": 1792407971.4386187,
     "ast_hash": "da118474e1d61ed073ae4a6420e3a4e5",
     "semantic_hash": "da118474e1d61ed073ae4a6420e3a4e5"
+  },
+  "versions/1.21.1/forge/src/smoketest/java/sophisticated/building/smoketest/forge/mixin/SmokeWindowMixin.java": {
+    "mtime": 1792412144.433527,
+    "seen": 1792419396.3278904,
+    "ast_hash": "d3d66a1103cdc809ead88cd6ca90ec01",
+    "semantic_hash": "d3d66a1103cdc809ead88cd6ca90ec01"
+  },
+  "versions/1.21.1/neoforge/src/smoketest/java/sophisticated/building/smoketest/neoforge/mixin/SmokeWindowMixin.java": {
+    "mtime": 1792412144.4654672,
+    "seen": 1792419396.3278913,
+    "ast_hash": "52d431d8e76534e2b755f95ec36747f8",
+    "semantic_hash": "52d431d8e76534e2b755f95ec36747f8"
   }
 }
