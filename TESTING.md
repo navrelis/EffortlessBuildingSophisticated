@@ -304,7 +304,7 @@ same as mc/1.18.2):
   `sb.*`), Fabric 5 (4 passed, `server.refused_place_not_charged` skipped: no place event). Differences to 1.21.1: Forge
   38/39's `ForgeConfigSpec.ConfigValue` has no `getDefault()` (the adapter keeps the defined default); no pink petals
   (1.20+) among the merges; the Player Settings screen draws its own background and tooltips (see the README).
-- R3 (5.0.1 fixes of `mc/1.21.1` d8ab383..48261e8), ported via mc/1.18.2 (same common code): Fabric per-player data
+- R3 (5.1.0 fixes of `mc/1.21.1` d8ab383..48261e8), ported via mc/1.18.2 (same common code): Fabric per-player data
   saved with the player (`PlayerDataMixin`, `ServerPlayerEvents.COPY_FROM`), server checks of build requests with the
   common config synced to the client (`CommonConfigSyncPacket` as a `ModPayload` with `writeVarIntArray`/
   `readVarIntArray`), array limit, Fabric break events and Common Protection API 1.0.0 (built against 1.19, but its
@@ -349,7 +349,7 @@ builds up to 0.46.3+1.18 accept 1.18, from 0.46.4+1.18 on they require exactly 1
 
 ### Forge 1.18 (`forge-1.18/`)
 
-`forge-1.18/` builds `sophisticatedbuilding-forge-1.18-5.0.1.jar` (Minecraft `[1.18]`, Forge `[38.0.17,)`, optional
+`forge-1.18/` builds `sophisticatedbuilding-forge-1.18-5.1.0.jar` (Minecraft `[1.18]`, Forge `[38.0.17,)`, optional
 Sophisticated Backpacks `[1.18-3.12.1,)`) from `../forge` with the classes Sophisticated Backpacks 1.18 and Forge 38
 need replaced (README.md, "Forge 1.18"). Its smoke runs use the same scenarios and check names as `forge/`, including
 every `sb.*` check (Forge 38.0.17, Sophisticated Backpacks 1.18-3.12.1.433, Curios 1.18-5.0.2.5):

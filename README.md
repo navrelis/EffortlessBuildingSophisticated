@@ -55,7 +55,7 @@ therefore gets its own Forge jar from `forge-1.18/`.
 
 ### Forge 1.18
 
-`forge-1.18/` builds `sophisticatedbuilding-forge-1.18-5.0.1.jar` (Minecraft `[1.18]`, Forge `[38.0.17,)`,
+`forge-1.18/` builds `sophisticatedbuilding-forge-1.18-5.1.0.jar` (Minecraft `[1.18]`, Forge `[38.0.17,)`,
 `loaderVersion` `[38,)`, optional Sophisticated Backpacks `[1.18-3.12.1,)`) with ModDevGradle Legacy 2.0.147 and Gradle
 8.14.5, without Parchment (none exists for 1.18), reobfuscated to SRG names. Dev runtime: Forge 38.0.17 (the latest Forge
 for 1.18), Sophisticated Backpacks 1.18-3.12.1.433 (CurseForge file 3555237, its latest 1.18 release) and Curios
@@ -88,7 +88,7 @@ reconfiguration). The overrides:
   `ServerTickEvent`; the harness mod's `mods.toml` asks for `loaderVersion` `[38,)`.
 
 As on `forge/`, the dev runs pin the launcher libraries of Forge 38.0.17's profile (securejarhandler 0.9.54, forgespi
-4.0.10, coremods 5.0.1). Everything else of `../forge` (Forge 39 code: `RenderLevelLastEvent`, `ForgeRegistries`
+4.0.10, coremods 5.1.0). Everything else of `../forge` (Forge 39 code: `RenderLevelLastEvent`, `ForgeRegistries`
 deferred registers, networking, configs, capabilities, Curios compatibility) compiles and runs on Forge 38 unchanged.
 
 ## Differences from the 1.21.1 branch
@@ -142,7 +142,7 @@ differences of `mc/1.18.2` apply, plus the ones marked **1.18.1**:
   blocks and then the outlines are drawn in `RenderLevelLastEvent`, after the whole level (also after particles,
   clouds and weather, where the stages draw them after the translucent blocks and after the particles). Deferred
   registers are created from `ForgeRegistries` (no registry keys). The dev runs pin the launcher libraries of Forge
-  39.1.2's own profile (securejarhandler 1.0.3, forgespi 4.0.10, coremods 5.0.1): the newer builds Gradle would pick
+  39.1.2's own profile (securejarhandler 1.0.3, forgespi 4.0.10, coremods 5.1.0): the newer builds Gradle would pick
   crash the dev runs at startup.
 * **1.18.1, Sophisticated Backpacks 3.15:** Sophisticated Core ships inside the Backpacks jar (the same
   `net.p3pp3rf1y.sophisticatedcore` packages as the later separate Core). There are no upgrade count limits or
