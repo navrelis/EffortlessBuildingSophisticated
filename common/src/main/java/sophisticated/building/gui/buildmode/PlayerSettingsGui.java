@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.function.DoubleFunction;
 
 /**
- * The player's own settings: an editor of the client config ({@link ClientConfig} Visuals and Performance). Toggles
+ * The player's own settings: an editor of the client config ({@link ClientConfig} Visuals, Performance and Gameplay). Toggles
  * for the switches, sliders with the config's ranges for the numbers; every change applies at once, "Done" (or
  * Escape, or the screen's key) writes the loader's client config file, "Reset to defaults" restores every value.
  * Opened from the radial menu ({@code OPEN_PLAYER_SETTINGS}) and the "Open player settings" key.
@@ -89,6 +89,8 @@ public class PlayerSettingsGui extends Screen {
 		add(new BooleanEntry("enableUpdateThrottling", performance.enableUpdateThrottling));
 		add(new IntEntry("maxMiniBlockPreviews", performance.maxMiniBlockPreviews, 64, 3,
 				value -> value == 0 ? new TranslatableComponent(LANG + "value.no_limit") : blocks(value)));
+		list.addHeader(new TranslatableComponent(LANG + "gameplay"));
+		add(new BooleanEntry("balancedBreaking", ClientConfig.gameplay.balancedBreaking));
 		addRenderableWidget(list);
 		list.setScrollAmount(scroll);
 
