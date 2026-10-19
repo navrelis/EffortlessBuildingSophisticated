@@ -103,7 +103,7 @@ creative tab registry and older loader APIs; the port keeps the behaviour wherev
   handler capability (the mod reads the `Items` tag directly, as on Fabric).
 * Data files use the pre-1.21 folder names (`recipes/`, `tags/items/`), recipe results use `"item"`, and the recipes
   that need Sophisticated Backpacks carry Forge's `conditions` (`forge:mod_loaded`) next to Fabric's load conditions.
-  Forge `pack.mcmeta`: pack format 13 with `forge:resource_pack_format` 13 and `forge:data_pack_format` 12.
+  Forge `pack.mcmeta`: pack format 13 with `forge:client_resources_pack_format` 13 and `forge:server_data_pack_format` 12.
 
 ## Build and test
 

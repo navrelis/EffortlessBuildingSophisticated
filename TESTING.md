@@ -192,7 +192,9 @@ Loader glue per build:
    - SB fixture: the Fabric port for 1.19.4 returns the wrapper from `BackpackWrapperLookup.get(stack)` as a plain
      `Optional` (the other ports return a Porting Lib `LazyOptional` with `resolve()`); the fixture accepts both.
      `SettingsTabControl#getOpenTab` is public in Core 0.5.109.
-   - Forge: `pack.mcmeta` pack format 13 with `forge:resource_pack_format` 13 and `forge:data_pack_format` 12, the
+   - Forge: `pack.mcmeta` pack format 13 with `forge:client_resources_pack_format` 13 and `forge:server_data_pack_format` 12 (Forge 45 builds
+     the key from the PackType name; the older `forge:resource_pack_format` / `forge:data_pack_format` are ignored
+     there, which flagged the data pack TOO_NEW until 2026-10-19), the
      harness mod's `loaderVersion` `[45,)`. Forge 1.19.4 has no SB, so its `ForgeSmokeServerTests` has no `sb_` tests
      and the Forge smoke source set does not compile `common/src/smoketestBackpacks` (the first `runSmokeServer`
      failed its six `sb_` tests with "No SmokeBackpacks fixture registered").
