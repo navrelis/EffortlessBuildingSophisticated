@@ -5,6 +5,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import sophisticated.building.network.message.BackpackItemCountPacket;
 import sophisticated.building.network.message.BackpackToolsPacket;
+import sophisticated.building.network.message.BalanceStatePacket;
 import sophisticated.building.network.message.BreakCountdownPacket;
 import sophisticated.building.network.message.BuildingUpgradeStatePacket;
 import sophisticated.building.network.message.CommonConfigSyncPacket;
@@ -52,7 +53,8 @@ public final class PacketHandler {
 			new Payload<>(TranslatedLogPacket.ID, TranslatedLogPacket::new, TranslatedLogPacket.Handler::handle, "translated_log"),
 			new Payload<>(BuildingUpgradeStatePacket.ID, BuildingUpgradeStatePacket::new, BuildingUpgradeStatePacket.Handler::handle, "building_upgrade_state"),
 			new Payload<>(BackpackToolsPacket.ID, BackpackToolsPacket::new, BackpackToolsPacket.Handler::handle, "backpack_tools"),
-			new Payload<>(BreakCountdownPacket.ID, BreakCountdownPacket::new, BreakCountdownPacket.Handler::handle, "break_countdown")
+			new Payload<>(BreakCountdownPacket.ID, BreakCountdownPacket::new, BreakCountdownPacket.Handler::handle, "break_countdown"),
+			new Payload<>(BalanceStatePacket.ID, BalanceStatePacket::new, BalanceStatePacket.Handler::handle, "balance_state")
 	));
 
 	private PacketHandler() {

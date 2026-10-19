@@ -61,6 +61,38 @@ class ToolSelectorTest {
 	}
 
 	@Test
+	void usesNeededSkipsToolsWithoutMoreUsesLeftThanABlockCosts() {
+		FakeCandidate fiveLeft = new FakeCandidate(true, true, 5, false);
+		FakeCandidate sixLeft = new FakeCandidate(true, true, 6, false);
+		assertEquals(1, ToolSelector.select(Arrays.asList(fiveLeft, sixLeft), ToolSelector.Need.TOOL, true, true, 5));
+		assertEquals(-2, ToolSelector.select(Arrays.asList(fiveLeft), ToolSelector.Need.TOOL, true, true, 5));
+		assertEquals(0, ToolSelector.select(Arrays.asList(fiveLeft, sixLeft), ToolSelector.Need.TOOL, true, true, 4));
+	}
+
+	@Test
+	void usesNeededAppliesToTheMainHandFallbackToo() {
+		FakeCandidate mainHand = new FakeCandidate(false, false, 3, true);
+		assertEquals(-2, ToolSelector.select(Arrays.asList(mainHand), ToolSelector.Need.TOOL, false, true, 3));
+		assertEquals(0, ToolSelector.select(Arrays.asList(mainHand), ToolSelector.Need.TOOL, false, true, 2));
+	}
+
+	@Test
+	void usesNeededIsIgnoredWithoutStopBeforeToolBreaks() {
+		FakeCandidate oneLeft = new FakeCandidate(true, true, 1, false);
+		assertEquals(0, ToolSelector.select(Arrays.asList(oneLeft), ToolSelector.Need.TOOL, true, false, 5));
+	}
+
+	@Test
+	void oneUseNeededIsTheOldRule() {
+		FakeCandidate oneLeft = new FakeCandidate(true, true, 1, false);
+		FakeCandidate twoLeft = new FakeCandidate(true, true, 2, false);
+		for (List<FakeCandidate> candidates : Arrays.asList(Arrays.asList(oneLeft), Arrays.asList(twoLeft), Arrays.asList(oneLeft, twoLeft))) {
+			assertEquals(ToolSelector.select(candidates, ToolSelector.Need.TOOL, true, true),
+					ToolSelector.select(candidates, ToolSelector.Need.TOOL, true, true, 1));
+		}
+	}
+
+	@Test
 	void noEffectiveToolFallsBackToMainHandWhenCorrectToolNotRequired() {
 		FakeCandidate ineffective = new FakeCandidate(false, false, Integer.MAX_VALUE, false);
 		FakeCandidate mainHand = new FakeCandidate(false, false, Integer.MAX_VALUE, true);
