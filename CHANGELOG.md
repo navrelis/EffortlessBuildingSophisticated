@@ -8,6 +8,27 @@ version. This file summarises them; `README.md`'s support matrix lists every jar
 range, minimum loader version and Sophisticated Backpacks support. (4.3.0 was the working name of this
 release while it was built; it was never published, so everything since 4.2.1 is 5.0.0.)
 
+## 5.1.2 — Forge 1.19.4 data pack format fix
+
+A hotfix for one jar: Forge for Minecraft 1.19.4. `sophisticatedbuilding-forge-1.19.4-5.1.2.jar` replaces
+`sophisticatedbuilding-forge-1.19.4-5.1.0.jar`; nothing to migrate, worlds and configs of 5.1.0 load unchanged. The
+Fabric 1.19.4 jar is unchanged in content and stays on 5.1.0 (the branch's version number is bumped to 5.1.2 in the
+source, but no Fabric 5.1.2 file is published). Every other Minecraft version stays on its current version (5.1.0;
+1.16.5 and 1.16.4 are on 5.1.1). Full per-branch notes are in the branch's `changelog/PATCH_NOTES_5.1.2.md`.
+
+### Fixes
+
+* **Forge 1.19.4 flagged the built-in data pack as made for a newer Minecraft version.** The `pack.mcmeta` of this jar
+  declared the format keys `forge:resource_pack_format` and `forge:data_pack_format`. Forge 45 (1.19.4) reads
+  `forge:client_resources_pack_format` and `forge:server_data_pack_format` instead (since 1.19.3 the keys are built
+  from the pack type name), so it ignored ours and judged the mod's built-in data pack by the vanilla `pack_format` 13.
+  The data pack is for pack format 12, so Forge showed it as made for a newer Minecraft version ("too new") in the data
+  pack screen and the pack list. The world still loaded and
+  building worked; the pack was only shown as incompatible. `pack.mcmeta` now declares
+  `forge:client_resources_pack_format` 13 and `forge:server_data_pack_format` 12, and the data pack is reported
+  compatible. Only the Forge 1.19.4 jar was affected: Forge for older versions reads the old keys and 1.20 and newer
+  use other keys.
+
 ## 5.1.1 — Server limits sync fix on 1.16.5 and 1.16.4
 
 A hotfix for the 3 jars of Minecraft 1.16.5 and 1.16.4: Fabric (1.16.4 and 1.16.5), Forge 1.16.5 and Forge 1.16.4. Same
