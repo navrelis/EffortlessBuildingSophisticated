@@ -8,7 +8,7 @@ Earlier reports (4.3.0/5.0.0, 5.0.1, 5.0.2, 5.1.0): `git log -p -- .knowledge/re
   went 170 -> 173 entries). Note for the record: the team lead's later message "do not retry the upload" crossed with the upload; it had already
   gone through. No second attempt, no other upload.
 - **Every Forge/NeoForge client folder on all 17 branches now passes `runSmokeClient`** (first time since 2026-09-25).
-- **5.1.2 released for Forge 1.19.4 only** (user chose the version and approved the upload after the dry run): fix 2bda9e7, release 6c35ea7 on mc/1.19.4, main docs 4cef5d1, tags `v5.1.2+1.19.4` / `v5.1.2` pushed, CurseForge file id 9256239 (log 174 entries). The Fabric 1.19.4 jar is unchanged and stays 5.1.0 on CurseForge.
+- **5.1.2 on EVERY jar** (user decision: one version everywhere). First the Forge 1.19.4 fix (2bda9e7, release 6c35ea7, CF id 9256239). Then all other 16 branches bumped to 5.1.2 (version alignment, no code change; release commits d36ebd2 1.16.3, db1fcbb 1.16.5, de55364 1.17.1, 7ef9174 1.18.1, 082760f 1.18.2, 5768871 1.19.2, 62963ba 1.20.1, 3186b0c 1.20.4, 3501deb 1.21.1, fc6ca86 1.21.4, 05ae7d6 1.21.5, 2e8f850 1.21.8, ba8ff1d 1.21.10, e5db457 1.21.11, cae3170 26.1.2, e4570e6 26.2), 47 more jars uploaded (CF ids 9256240-9257696 range, log 221 entries, 48 files of 5.1.2). Tags `v5.1.2+<mc>` on all 17 branches + `v5.1.2` (main 4cef5d1; the later main docs commit ed8178a is not in the tag). Checks: each rebuilt jar equals its previous jar except one metadata file with the version (CRC comparison of all 48), no smoketest classes, no nested jars; plan metadata of all 48 identical to the 5.1.0/5.1.1 entries; SHA of staged jars = SHA256SUMS.txt. The 1.16.5/1.16.4 files at 5.1.1 stay on CurseForge as older files.
 
 ## Requirement -> implementation
 - **K4 real bug (1.16.5):** `CommonConfigSyncPacket` was missing from `PacketHandler` CLIENTBOUND since 5.0.1 ("Unknown payload" on join, the client got no
@@ -60,7 +60,7 @@ Earlier reports (4.3.0/5.0.0, 5.0.1, 5.0.2, 5.1.0): `git log -p -- .knowledge/re
 - 1.21.1 balanced_refused screenshot: the red pending outline is still visible right after the refusal (check waits 60 ticks); verify
   "pending outline vanishes on refusal" by eye.
 
-## Model usage
+## Model usage (update: 5.1.2 alignment: notes for 16 branches + doc repair, 2 more Sonnet tasks; Opus still 0)
 Work units (long = 2, short = 1), this session series: Opus 0 / Sonnet ~22 (K2 rows, K4, K5 port edits across 20+ files, 1.19.2 mixin fix,
 1.19.4 pack fix + docs, K6 notes, graph refresh) -> Opus 0%. No precision overrides.
 
