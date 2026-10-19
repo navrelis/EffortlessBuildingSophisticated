@@ -37,4 +37,9 @@ public final class FabricSmokeServerTests implements FabricGameTest {
     public void server_request_limits(GameTestHelper helper) {
         ServerScenarios.server_request_limits(helper);
     }
+
+    @GameTest(template = EMPTY_STRUCTURE, batch = "smoke_balanced", timeoutTicks = ServerScenarios.TIMEOUT_TICKS)
+    public void server_balanced_breaking(GameTestHelper helper) {
+        ServerScenarios.server_balanced_breaking(helper);
+    }
 }
