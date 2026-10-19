@@ -1,1 +1,1 @@
-027b8fcd3b1ccaa85fd1d16cf1792e343f8568f0db759d01b967cda7daa332de  sophisticatedbuilding-fabric-1.17.1-5.0.1.jar
+f804f11a5aa5ae774493f25d252f7e9fb14057a99cdcda3875e026ba321d2c60  sophisticatedbuilding-fabric-1.17.1-5.1.0.jar
