@@ -280,7 +280,7 @@ Errors from others: "No key layers ... Not a registry ops" (vanilla, flat world 
 - Clients (`runSmokeClient`, 16 / 24 checks) not run yet: the lead holds them until the cursor-safe harness is on every
   branch.
 
-### R3 (5.0.1 fixes; port of mc/1.21.1 d8ab383..48261e8)
+### R3 (5.1.0 fixes; port of mc/1.21.1 d8ab383..48261e8)
 
 - 1.16.5 specifics: Fabric per-player data through a mixin into `Player#addAdditionalSaveData/readAdditionalSaveData`
   (Java 8 mixin config) and Fabric API 0.42's `ServerPlayerEvents.COPY_FROM` (present in its fabric-entity-events-v1);
@@ -336,7 +336,7 @@ replaced `libraries/cpw/mods/modlauncher/8.0.9/modlauncher-8.0.9.jar` with modla
 
 ### Forge 1.16.4 (`forge-1.16.4/`)
 
-`forge-1.16.4/` builds `sophisticatedbuilding-forge-1.16.4-5.0.1.jar` (Minecraft `[1.16.4]`, Forge `[35.1.37,)`,
+`forge-1.16.4/` builds `sophisticatedbuilding-forge-1.16.4-5.1.0.jar` (Minecraft `[1.16.4]`, Forge `[35.1.37,)`,
 optional Sophisticated Backpacks `[1.16.4-3.0.0.289,1.16.5)`) from `../forge` with the classes Sophisticated Backpacks
 1.16.4 and Forge 35 need replaced (README.md, "Forge 1.16.4"). Its smoke runs use the same scenarios and check names as
 `forge/`, including every `sb.*` check (Forge 35.1.37, SB 1.16.4-3.0.0.289, Curios 1.16.5-4.1.0.0):
