@@ -42,4 +42,9 @@ public final class ForgeSmokeServerTests {
     public static void server_request_limits(GameTestHelper helper) {
         ServerScenarios.server_request_limits(helper);
     }
+
+    @GameTest(template = "smoketest_empty", batch = "smoke_balanced", timeoutTicks = ServerScenarios.TIMEOUT_TICKS)
+    public static void server_balanced_breaking(GameTestHelper helper) {
+        ServerScenarios.server_balanced_breaking(helper);
+    }
 }

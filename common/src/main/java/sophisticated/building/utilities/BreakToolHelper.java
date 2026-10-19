@@ -12,6 +12,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import sophisticated.building.ServerConfig;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.client.ClientBackpackToolCache;
+import sophisticated.building.client.ClientBalanceState;
 import sophisticated.building.compatibility.CompatHelper;
 import sophisticated.building.platform.Services;
 
@@ -242,6 +243,15 @@ public class BreakToolHelper {
 	 */
 	@Nullable
 	public static ToolSlot selectTool(Player player, Level level, BlockPos pos, BlockState state, List<ToolSlot> candidates) {
+		return selectTool(player, level, pos, state, candidates, 1);
+	}
+
+	/**
+	 * As {@link #selectTool(Player, Level, BlockPos, BlockState, List)} for a block that costs the tool
+	 * {@code usesNeeded} durability uses (balanced breaking, see {@link ToolSelector#select(List, ToolSelector.Need, boolean, boolean, int)}).
+	 */
+	@Nullable
+	public static ToolSlot selectTool(Player player, Level level, BlockPos pos, BlockState state, List<ToolSlot> candidates, int usesNeeded) {
 		ToolSelector.Need need = needFor(level, pos, state);
 		boolean requiresCorrectTool = state.requiresCorrectToolForDrops();
 		boolean stopBeforeToolBreaks = ServerConfig.survivalBreaking.stopBeforeToolBreaks.get();
@@ -251,7 +261,7 @@ public class BreakToolHelper {
 			adapters.add(new StackCandidate(slot.get(), state, slot.isMainHand()));
 		}
 
-		int index = ToolSelector.select(adapters, need, requiresCorrectTool, stopBeforeToolBreaks);
+		int index = ToolSelector.select(adapters, need, requiresCorrectTool, stopBeforeToolBreaks, usesNeeded);
 		if (index == -1) {
 			return null;
 		}
@@ -328,6 +338,18 @@ public class BreakToolHelper {
 			});
 		}
 
+		// Balanced breaking (the server's state, ClientBalanceState): each block of a mass break costs the
+		// multiplier in durability, so the plan selects and drains like the server will
+		int usesNeeded = 1;
+		if (ClientBalanceState.isActive() && !player.isCreative()) {
+			int count = 0;
+			for (BlockEntry entry : blocks) {
+				if (skipPos == null || !entry.blockPos.equals(skipPos)) count++;
+			}
+			usesNeeded = BalanceRules.usesPerBlock(BalanceRules.applies(true, false, count),
+					ServerConfig.balancedBreaking.durabilityMultiplier.get());
+		}
+
 		int totalTicks = 0;
 		for (BlockEntry entry : blocks) {
 			if (skipPos != null && entry.blockPos.equals(skipPos)) {
@@ -336,7 +358,7 @@ public class BreakToolHelper {
 
 			BlockState state = level.getBlockState(entry.blockPos);
 
-			ToolSlot selected = selectTool(player, level, entry.blockPos, state, liveView);
+			ToolSlot selected = selectTool(player, level, entry.blockPos, state, liveView, usesNeeded);
 			if (isImpossible(selected)) {
 				entry.invalid = true;
 				plan.unbreakable++;
@@ -350,7 +372,7 @@ public class BreakToolHelper {
 				int selectedIndex = liveView.indexOf(selected);
 				ItemStack copy = copies.get(selectedIndex);
 				if (state.getDestroySpeed(level, entry.blockPos) > 0 && copy.isDamageableItem()) {
-					copy.setDamageValue(copy.getDamageValue() + 1);
+					copy.setDamageValue(copy.getDamageValue() + usesNeeded);
 				}
 				plan.usesPerTool.merge(candidates.get(selectedIndex), 1, Integer::sum);
 			}

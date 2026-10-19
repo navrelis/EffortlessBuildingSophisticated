@@ -50,15 +50,44 @@ public class ServerBlockPlacer {
         if (!validateBlockSet(player, blocks)) return;
         if (!validateRequest(player, blocks)) return;
 
+        boolean balanced = false;
         if (!player.isCreative() && ServerConfig.survivalReplace.enabled.get()) {
-            placeTime = scheduleReplaceMining(player, blocks, placeTime);
+            ReplaceSchedule schedule = scheduleReplaceMining(player, blocks, placeTime);
+            if (schedule == null) return;
+            placeTime = schedule.placeTime();
+            balanced = schedule.balanced();
         }
 
-        delayedEntries.add(new DelayedEntry(player, blocks, placeTime));
+        delayedEntries.add(new DelayedEntry(player, blocks, placeTime, balanced));
     }
 
-    //Survival replace: the blocks in the way are mined, so wait for the mining delay like survival breaking
-    private long scheduleReplaceMining(Player player, BlockSet blocks, long clientPlaceTime) {
+    private record ReplaceSchedule(long placeTime, boolean balanced) {}
+
+    //Survival replace: the blocks in the way are mined, so wait for the mining delay like survival breaking.
+    //Mining 2+ blocks is a balanced operation when balanced breaking is on; null when that was refused (cooldown, hunger).
+    @Nullable
+    private ReplaceSchedule scheduleReplaceMining(Player player, BlockSet blocks, long clientPlaceTime) {
+        MiningEstimate estimate = estimateReplaceMining(player, blocks, 1);
+        boolean balanced = BalancedBreaking.appliesTo(player, estimate.blocks());
+        if (balanced) {
+            if (!BalancedBreaking.tryStart(player, true)) return null;
+            estimate = estimateReplaceMining(player, blocks, BalancedBreaking.usesPerBlock(true));
+        }
+        if (estimate.blocks() == 0) return new ReplaceSchedule(clientPlaceTime, balanced);
+
+        long now = player.level.getGameTime();
+        long placeTime = ReplaceRules.placeTime(clientPlaceTime, now, estimate.ticks(), ServerConfig.survivalBreaking.maxDelayTicks.get());
+        if (player instanceof ServerPlayer serverPlayer) {
+            Services.NETWORK.sendToPlayer(serverPlayer, new BreakCountdownPacket((int) Math.max(0, placeTime - now), estimate.blocks(), true));
+        }
+        return new ReplaceSchedule(placeTime, balanced);
+    }
+
+    //blocks: the blocks a tool can mine; ticks: their estimated mining time
+    private record MiningEstimate(int blocks, int ticks) {}
+
+    //The blocks a survival placement has to mine first, with the tool rule of usesNeeded durability uses per block
+    private static MiningEstimate estimateReplaceMining(Player player, BlockSet blocks, int usesNeeded) {
         Level level = player.level;
         List<BreakToolHelper.ToolSlot> candidates = BreakToolHelper.collectCandidates(player);
         int totalTicks = 0;
@@ -70,21 +99,14 @@ public class ServerBlockPlacer {
             BlockState state = level.getBlockState(block.blockPos);
             if (!BlockUtilities.needsMining(state) || state.is(block.newBlockState.getBlock())) continue;
 
-            var selected = BreakToolHelper.selectTool(player, level, block.blockPos, state, candidates);
+            var selected = BreakToolHelper.selectTool(player, level, block.blockPos, state, candidates, usesNeeded);
             if (BreakToolHelper.isImpossible(selected)) continue;
 
             replaceCount++;
             var tool = selected == null ? ItemStack.EMPTY : selected.get();
             totalTicks += BreakToolHelper.estimateBreakTicks(level, block.blockPos, state, tool);
         }
-        if (replaceCount == 0) return clientPlaceTime;
-
-        long now = level.getGameTime();
-        long placeTime = ReplaceRules.placeTime(clientPlaceTime, now, totalTicks, ServerConfig.survivalBreaking.maxDelayTicks.get());
-        if (player instanceof ServerPlayer serverPlayer) {
-            Services.NETWORK.sendToPlayer(serverPlayer, new BreakCountdownPacket((int) Math.max(0, placeTime - now), replaceCount, true));
-        }
-        return placeTime;
+        return new MiningEstimate(replaceCount, totalTicks);
     }
     
     public void tick() {
@@ -100,7 +122,7 @@ public class ServerBlockPlacer {
             
             long gameTime = entry.player.level.getGameTime();
             if (gameTime >= entry.placeTime) {
-                applyBlockSet(entry.player, entry.blocks);
+                applyBlockSet(entry.player, entry.blocks, false, entry.balanced);
                 iterator.remove();
             }
         }
@@ -110,7 +132,8 @@ public class ServerBlockPlacer {
         return delayedEntriesView;
     }
 
-    public record DelayedEntry(Player player, BlockSet blocks, long placeTime) {}
+    //balanced: a balanced operation (BalancedBreaking), whose mined blocks cost more durability and hunger
+    public record DelayedEntry(Player player, BlockSet blocks, long placeTime, boolean balanced) {}
 //endregion
 
     public void breakBlocks(Player player, BlockSet blocks) {
@@ -130,44 +153,62 @@ public class ServerBlockPlacer {
         if (!validateBlockSet(player, blocks)) return;
         if (!validateRequest(player, blocks)) return;
 
+        //Breaking 2+ blocks is a balanced operation when balanced breaking is on: checked (cooldown, hunger) and
+        //counted now, and estimated again with its tool rule
+        BreakEstimate estimate = estimateBreak(player, blocks, 1);
+        boolean balanced = BalancedBreaking.appliesTo(player, estimate.breakable());
+        if (balanced) {
+            if (!BalancedBreaking.tryStart(player, false)) return;
+            estimate = estimateBreak(player, blocks, BalancedBreaking.usesPerBlock(true));
+        }
+        int delay = ToolSelector.capDelay(estimate.ticks(), ServerConfig.survivalBreaking.maxDelayTicks.get());
+
+        // Tools are not pre-damaged here; selection (and the actual durability cost) happens again
+        // at apply time in applyBlockSet, against the live stacks.
+        delayedEntries.add(new DelayedEntry(player, blocks, player.level.getGameTime() + delay, balanced));
+
+        if (player instanceof ServerPlayer serverPlayer) {
+            Services.NETWORK.sendToPlayer(serverPlayer, new BreakCountdownPacket(delay, estimate.blockCount(), false));
+        }
+    }
+
+    //blockCount: the blocks of the request; breakable: those a tool (or the hand) can break; ticks: their mining time
+    private record BreakEstimate(int blockCount, int breakable, int ticks) {}
+
+    //A survival break request, with the tool rule of usesNeeded durability uses per block
+    private static BreakEstimate estimateBreak(Player player, BlockSet blocks, int usesNeeded) {
         List<BreakToolHelper.ToolSlot> candidates = BreakToolHelper.collectCandidates(player);
         int totalTicks = 0;
         int blockCount = 0;
+        int breakable = 0;
         for (BlockEntry block : blocks) {
             if (blocks.isSkipped(block)) continue;
             blockCount++;
 
             var state = player.level.getBlockState(block.blockPos);
-            var selected = BreakToolHelper.selectTool(player, player.level, block.blockPos, state, candidates);
+            var selected = BreakToolHelper.selectTool(player, player.level, block.blockPos, state, candidates, usesNeeded);
             if (BreakToolHelper.isImpossible(selected)) continue;
+            if (!state.isAir()) breakable++;
 
             var tool = selected == null ? net.minecraft.world.item.ItemStack.EMPTY : selected.get();
             totalTicks += BreakToolHelper.estimateBreakTicks(player.level, block.blockPos, state, tool);
         }
-        int delay = ToolSelector.capDelay(totalTicks, ServerConfig.survivalBreaking.maxDelayTicks.get());
-
-        // Tools are not pre-damaged here; selection (and the actual durability cost) happens again
-        // at apply time in applyBlockSet, against the live stacks.
-        delayedEntries.add(new DelayedEntry(player, blocks, player.level.getGameTime() + delay));
-
-        if (player instanceof ServerPlayer serverPlayer) {
-            Services.NETWORK.sendToPlayer(serverPlayer, new BreakCountdownPacket(delay, blockCount, false));
-        }
+        return new BreakEstimate(blockCount, breakable, totalTicks);
     }
 
     public void applyBlockSet(Player player, BlockSet blocks) {
-        applyBlockSet(player, blocks, false);
+        applyBlockSet(player, blocks, false, false);
     }
 
     //Redo restores whole states, so multi-item states (double slabs, candles...) cost all their items
     //Returns the entries that could not be redone (missing items, unminable block...), for the caller to keep
     //on the redo stack
     public BlockSet redoBlockSet(Player player, BlockSet blocks) {
-        return applyBlockSet(player, blocks, true);
+        return applyBlockSet(player, blocks, true, false);
     }
 
     //Returns the entries that were not applied (empty unless restoring, see redoBlockSet)
-    private BlockSet applyBlockSet(Player player, BlockSet blocks, boolean restoring) {
+    private BlockSet applyBlockSet(Player player, BlockSet blocks, boolean restoring, boolean balanced) {
 
         if (!checkAndNotifyAllowedToUseMod(player)) return blocks;
         if (!validateBlockSet(player, blocks)) return blocks;
@@ -186,7 +227,7 @@ public class ServerBlockPlacer {
             boolean breaking = BlockUtilities.isNullOrAir(block.newBlockState);
             if (breaking && candidates != null) survivalBreaksAttempted++;
 
-            if (applyBlockEntry(player, block, candidates, templates, restoring)) {
+            if (applyBlockEntry(player, block, candidates, templates, restoring, balanced)) {
                 undoSet.add(block);
                 if (breaking && candidates != null) survivalBreaksSucceeded++;
             } else {
@@ -256,7 +297,7 @@ public class ServerBlockPlacer {
     //Build and redo charge the whole state (see restoreCost): a merge one item, three candles onto air three candles
     //restoring: redo, where a state that is already there counts as redone (nothing to place or charge)
     private boolean applyBlockEntry(Player player, BlockEntry block, @Nullable List<BreakToolHelper.ToolSlot> candidates,
-                                    PlacementTemplates templates, boolean restoring) {
+                                    PlacementTemplates templates, boolean restoring, boolean balanced) {
 
         block.existingBlockState = player.level.getBlockState(block.blockPos);
         if (restoring && isAlreadyThere(block.existingBlockState, block.newBlockState)) return true;
@@ -274,8 +315,8 @@ public class ServerBlockPlacer {
         isPlacingOrBreakingBlocks = true;
         try {
             return switch (action) {
-                case BREAK -> BlockPlacerHelper.breakBlock(player, block, candidates);
-                case REPLACE -> mineAndPlace(player, block, candidates, templates, count);
+                case BREAK -> BlockPlacerHelper.breakBlock(player, block, candidates, balanced);
+                case REPLACE -> mineAndPlace(player, block, candidates, templates, count, balanced);
                 default -> placeIfAvailable(player, block, templates, count);
             };
         } finally {
@@ -305,10 +346,10 @@ public class ServerBlockPlacer {
     //Survival replace: the items are checked first, then the block in the way is mined like a survival break
     //(tool durability, drops to the inventory, exhaustion). Nothing is mined or charged if either fails.
     private boolean mineAndPlace(Player player, BlockEntry block, List<BreakToolHelper.ToolSlot> candidates,
-                                 PlacementTemplates templates, int count) {
+                                 PlacementTemplates templates, int count, boolean balanced) {
         var tracker = SophisticatedBuilding.ITEM_USAGE_TRACKER;
         if (!tracker.tryIncreaseUsageCount(block.item, count, player)) return false;
-        if (!BlockPlacerHelper.breakBlock(player, block, candidates)) {
+        if (!BlockPlacerHelper.breakBlock(player, block, candidates, balanced)) {
             tracker.decreaseUsageCount(block.item, count);
             return false;
         }
@@ -390,7 +431,7 @@ public class ServerBlockPlacer {
             return switch (action) {
                 case BREAK -> BlockPlacerHelper.breakBlock(player, tempBlockEntry, candidates);
                 case UNMERGE -> unmerge(player, tempBlockEntry, current, candidates != null);
-                case REPLACE -> mineAndPlace(player, tempBlockEntry, candidates, templates, count);
+                case REPLACE -> mineAndPlace(player, tempBlockEntry, candidates, templates, count, false);
                 default -> placeIfAvailable(player, tempBlockEntry, templates, count);
             };
         } finally {
