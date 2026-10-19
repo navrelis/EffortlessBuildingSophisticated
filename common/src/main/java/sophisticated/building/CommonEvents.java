@@ -22,6 +22,7 @@ import sophisticated.building.network.message.CommonConfigSyncPacket;
 import sophisticated.building.network.message.ModifierSettingsPacket;
 import sophisticated.building.network.message.PowerLevelPacket;
 import sophisticated.building.platform.Services;
+import sophisticated.building.systems.BalancedBreaking;
 import sophisticated.building.systems.ServerBuildState;
 import sophisticated.building.utilities.BreakToolHelper;
 import sophisticated.building.utilities.PowerLevelCommand;
@@ -55,6 +56,7 @@ public final class CommonEvents {
     public static void onLevelTick(ServerLevel level) {
         if (level.dimension() == Level.OVERWORLD) {
             SophisticatedBuilding.SERVER_BLOCK_PLACER.tick();
+            BalancedBreaking.tick(level.getServer());
         }
     }
 
@@ -62,6 +64,7 @@ public final class CommonEvents {
         LAST_BACKPACK_COUNTS.clear();
         LAST_UPGRADE_STATE.clear();
         LAST_BACKPACK_TOOLS.clear();
+        BalancedBreaking.onServerStopped();
     }
 
     /**
@@ -110,6 +113,7 @@ public final class CommonEvents {
 
         sendBuildingUpgradeState(player, true);
         sendBackpackTools(player, true);
+        BalancedBreaking.sendState(player);
     }
 
     public static void onPlayerLoggedOut(ServerPlayer player) {
@@ -131,6 +135,15 @@ public final class CommonEvents {
         LAST_BACKPACK_TOOLS.remove(player.getUUID());
         sendBuildingUpgradeState(player, true);
         sendBackpackTools(player, true);
+        BalancedBreaking.sendState(player);
+    }
+
+    /**
+     * Death, respawn or leaving the End built a new player object from {@code original}: for the loaders whose
+     * persistent data is not copied as a whole (Forge, NeoForge), the mod's data that must survive it is copied here.
+     */
+    public static void onPlayerCloned(Player original, Player clone) {
+        BalancedBreaking.copyData(original, clone);
     }
 
     public static void onPlayerChangedDimension(ServerPlayer player) {
@@ -142,6 +155,7 @@ public final class CommonEvents {
 
         sendBuildingUpgradeState(player, true);
         sendBackpackTools(player, true);
+        BalancedBreaking.sendState(player);
     }
 
     /**

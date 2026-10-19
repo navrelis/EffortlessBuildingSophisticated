@@ -42,6 +42,11 @@ public final class NeoForgeSmokeServerTests {
         ServerScenarios.server_request_limits(helper);
     }
 
+    @GameTest(template = "smoketest_empty", batch = "smoke_balanced", timeoutTicks = ServerScenarios.TIMEOUT_TICKS)
+    public static void server_balanced_breaking(GameTestHelper helper) {
+        ServerScenarios.server_balanced_breaking(helper);
+    }
+
     @GameTest(template = "smoketest_empty", batch = "smoke_drops_add", timeoutTicks = ServerScenarios.TIMEOUT_TICKS)
     public static void server_drops_event_add(GameTestHelper helper) {
         NeoForgeDropsEventScenarios.server_drops_event_add(helper);

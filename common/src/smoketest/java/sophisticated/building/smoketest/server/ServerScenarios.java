@@ -3,6 +3,7 @@ package sophisticated.building.smoketest.server;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -17,6 +18,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import sophisticated.building.platform.services.IBackpackIntegration;
 import sophisticated.building.platform.Services;
+import sophisticated.building.ServerConfig;
 import sophisticated.building.SophisticatedBuilding;
 import sophisticated.building.network.message.PerformRedoPacket;
 import sophisticated.building.network.message.PerformUndoPacket;
@@ -24,11 +26,13 @@ import sophisticated.building.network.message.ServerBreakBlocksPacket;
 import sophisticated.building.network.message.ServerPlaceBlocksPacket;
 import sophisticated.building.smoketest.backpack.SmokeAccessorySlots;
 import sophisticated.building.smoketest.backpack.SmokeBackpacks;
+import sophisticated.building.systems.BalancedBreaking;
 import sophisticated.building.systems.ServerBuildState;
 import sophisticated.building.utilities.BlockEntry;
 import sophisticated.building.utilities.BlockSet;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -207,6 +211,68 @@ public final class ServerScenarios {
                             + "nothing placed or charged; a normal " + LINE + " block line after them was placed");
                 })
                 .thenExecute(() -> cleanup(player))
+                .thenSucceed();
+    }
+
+    /**
+     * Balanced survival breaking switched on in the server config: a 3 block break costs the pickaxe the durability
+     * multiplier per block and starts a cooldown in the player's persistent data; a second break during the cooldown is
+     * refused. The cooldown comes back after a restart (the player saved and loaded into a new player object) and is
+     * taken over on respawn ({@code restoreFrom}, the loader's clone event: Forge/NeoForge copy only part of the
+     * persistent data by themselves).
+     */
+    public static void server_balanced_breaking(GameTestHelper helper) {
+        String check = "server.balanced_breaking";
+        boolean wasEnabled = ServerConfig.balancedBreaking.enabled.get();
+        ServerConfig.balancedBreaking.enabled.set(true);
+        int multiplier = ServerConfig.balancedBreaking.durabilityMultiplier.get();
+        ServerPlayer player = player(helper);
+        player.getInventory().setItem(0, new ItemStack(Items.IRON_PICKAXE));
+        player.getFoodData().setFoodLevel(20);
+        List<BlockPos> first = row(helper, 3);
+        List<BlockPos> second = row(helper, LINE);
+        setAll(helper, first, Blocks.STONE);
+        sendBreak(player, breakSet(first));
+
+        helper.startSequence()
+                .thenWaitUntil(() -> expectAll(helper, first, Blocks.AIR))
+                .thenExecute(() -> {
+                    expectEquals(helper, "pickaxe damage (3 blocks x " + multiplier + ")", 3 * multiplier,
+                            player.getInventory().getItem(0).getDamageValue());
+                    if (BalancedBreaking.remainingMillis(player) <= 0) helper.fail("The balanced break started no cooldown");
+                    setAll(helper, second, Blocks.STONE);
+                    sendBreak(player, breakSet(second));
+                    //Refused (or not) right when the request arrives
+                    ServerConfig.balancedBreaking.enabled.set(wasEnabled);
+                })
+                .thenIdle(50)
+                .thenExecute(() -> {
+                    expectAll(helper, second, Blocks.STONE);
+                    long[] stored = BalancedBreaking.load(player).toArray();
+
+                    ServerPlayer restored = SmokeServerPlatform.get().createPlayer(helper.getLevel(), GameType.SURVIVAL);
+                    CompoundTag saved = player.saveWithoutId(new CompoundTag());
+                    saved.remove("UUID");
+                    restored.load(saved);
+                    expectEquals(helper, "cooldown after a restart", Arrays.toString(stored), Arrays.toString(BalancedBreaking.load(restored).toArray()));
+
+                    ServerPlayer respawned = SmokeServerPlatform.get().createPlayer(helper.getLevel(), GameType.SURVIVAL);
+                    respawned.restoreFrom(player, false);
+                    expectEquals(helper, "cooldown after respawn", Arrays.toString(stored), Arrays.toString(BalancedBreaking.load(respawned).toArray()));
+                    if (BalancedBreaking.remainingMillis(respawned) <= 0) helper.fail("No cooldown left after respawn");
+
+                    for (ServerPlayer copy : List.of(restored, respawned)) {
+                        Services.PLATFORM.getPersistentData(copy).remove(BalancedBreaking.DATA_KEY);
+                    }
+                    DETAILS.put(check, "Balanced breaking on: 3 stone cost the pickaxe " + (3 * multiplier) + " durability, a second break "
+                            + "during the cooldown was refused, the cooldown " + Arrays.toString(stored) + " came back after a save/load "
+                            + "and after restoreFrom (respawn)");
+                })
+                .thenExecute(() -> {
+                    Services.PLATFORM.getPersistentData(player).remove(BalancedBreaking.DATA_KEY);
+                    setAll(helper, second, Blocks.AIR);
+                    cleanup(player);
+                })
                 .thenSucceed();
     }
 
@@ -465,6 +531,12 @@ public final class ServerScenarios {
             if (!state.is(block)) {
                 helper.fail("Expected " + block + " at " + pos.toShortString() + " but was " + state);
             }
+        }
+    }
+
+    private static void setAll(GameTestHelper helper, List<BlockPos> positions, Block block) {
+        for (BlockPos pos : positions) {
+            helper.getLevel().setBlock(pos, block.defaultBlockState(), Block.UPDATE_ALL);
         }
     }
 
