@@ -310,7 +310,7 @@ Since R2 (player settings editor, bag title fit) the two checks also use:
   Fabric 11 (1 skip: `server.refused_place_not_charged`, no place event), `forge` 11/11, `forge-1.19` 11/11 (Forge
   41.1.0). `runSmokeClient` pending (no game clients until the lead allows them).
 
-- R3 (5.0.1, ported from mc/1.21.1 d8ab383..48261e8): server checks of build requests (`BuildLimits`,
+- R3 (5.1.0, ported from mc/1.21.1 d8ab383..48261e8): server checks of build requests (`BuildLimits`,
   `ServerBlockPlacer#validateRequest`, new smoke check `server.request_limits`), common config sync
   (`CommonConfigSyncPacket`), array and modifier caps, offhand bag filter, material cost count, previous build mode
   (`BuildModeHistory`), translation keys (`LangKeysTest`), Fabric per-player data in the player save
