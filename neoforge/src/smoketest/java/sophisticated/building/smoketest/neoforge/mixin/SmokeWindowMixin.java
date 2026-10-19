@@ -12,11 +12,12 @@ import sophisticated.building.smoketest.client.SmokeWindowHints;
  * the user ({@link SmokeWindowHints}, set right before FML's ImmediateWindowHandler creates it, after the game's own
  * hints). The smoke client task turns FML's early loading window off (config/fml.toml earlyWindowControl = false,
  * ../gradle/smoketest.gradle), so the window is created here and not before any mod code runs.
+ * {@code unsafe = true} is required because Mixin 0.8.3+ refuses callback injections into a constructor before RETURN.
  */
 @Mixin(Window.class)
 abstract class SmokeWindowMixin {
 
-    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/neoforged/fml/loading/ImmediateWindowHandler;setupMinecraftWindow(Ljava/util/function/IntSupplier;Ljava/util/function/IntSupplier;Ljava/util/function/Supplier;Ljava/util/function/LongSupplier;)J", remap = false))
+    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/neoforged/fml/loading/ImmediateWindowHandler;setupMinecraftWindow(Ljava/util/function/IntSupplier;Ljava/util/function/IntSupplier;Ljava/util/function/Supplier;Ljava/util/function/LongSupplier;)J", remap = false, unsafe = true))
     private void sophisticatedbuilding_smoketest$createWithoutFocus(CallbackInfo ci) {
         SmokeWindowHints.beforeWindowCreation();
     }
