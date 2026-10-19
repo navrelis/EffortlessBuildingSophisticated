@@ -8,13 +8,14 @@ version. This file summarises them; `README.md`'s support matrix lists every jar
 range, minimum loader version and Sophisticated Backpacks support. (4.3.0 was the working name of this
 release while it was built; it was never published, so everything since 4.2.1 is 5.0.0.)
 
-## 5.1.2 — Forge 1.19.4 data pack format fix
+## 5.1.2 — One version for every jar, Forge 1.19.4 data pack fix
 
-A hotfix for one jar: Forge for Minecraft 1.19.4. `sophisticatedbuilding-forge-1.19.4-5.1.2.jar` replaces
-`sophisticatedbuilding-forge-1.19.4-5.1.0.jar`; nothing to migrate, worlds and configs of 5.1.0 load unchanged. The
-Fabric 1.19.4 jar is unchanged in content and stays on 5.1.0 (the branch's version number is bumped to 5.1.2 in the
-source, but no Fabric 5.1.2 file is published). Every other Minecraft version stays on its current version (5.1.0;
-1.16.5 and 1.16.4 are on 5.1.1). Full per-branch notes are in the branch's `changelog/PATCH_NOTES_5.1.2.md`.
+Every jar of every Minecraft version and loader is now 5.1.2, so all files of the mod share one version number (before,
+the jars were on 5.1.0, except 1.16.5 and 1.16.4 on 5.1.1). File names keep their loader and Minecraft version, only the
+version part becomes `5.1.2`; nothing to migrate, worlds and configs of 5.1.0 load unchanged and no config entries were
+added. For every branch except Forge 1.19.4 the only change is the version number. Nothing network-related changed, so
+5.1.0 and 5.1.2 jars of the same branch can be mixed between client and server. Full per-branch notes are in the
+branch's `changelog/PATCH_NOTES_5.1.2.md`.
 
 ### Fixes
 
@@ -28,6 +29,8 @@ source, but no Fabric 5.1.2 file is published). Every other Minecraft version st
   `forge:client_resources_pack_format` 13 and `forge:server_data_pack_format` 12, and the data pack is reported
   compatible. Only the Forge 1.19.4 jar was affected: Forge for older versions reads the old keys and 1.20 and newer
   use other keys.
+* **1.16.5 and 1.16.4:** these jars carry the 5.1.1 fix (the server's power level limits reach the client again, no
+  more error on join); details in the 5.1.1 section below.
 
 ## 5.1.1 — Server limits sync fix on 1.16.5 and 1.16.4
 
