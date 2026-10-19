@@ -1,1 +1,1 @@
-7141d1d7c42bc04e4505fcfb602603607f8686ac61160d51e95505c78d789d31  sophisticatedbuilding-neoforge-1.21.4-5.1.0.jar
+31cdaca09524a117d6ba3f9dbb866dd9b201c40c7ac66ad890b31a84d03904da  sophisticatedbuilding-neoforge-1.21.4-5.1.2.jar
