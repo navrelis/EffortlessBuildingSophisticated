@@ -1,7 +1,5 @@
 # Sophisticated Building Update – 5.1.0 - Minecraft 1.21.1
 
-*Draft — lead to confirm before release.*
-
 A feature release for 1.21.1: optional balanced survival breaking and a fix for reach upgrades after respawn. Nothing to migrate: worlds and configs of 5.0.2 load unchanged.
 
 ## Artifacts
