@@ -1,16 +1,16 @@
-# Graph Report - EffortlessBuildingSophisticated  (2026-10-02)
+# Graph Report - EffortlessBuildingSophisticated  (2026-10-19)
 
 ## Corpus Check
-- 376 files · ~0 words
+- 383 files · ~0 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 5083 nodes · 14965 edges · 209 communities (149 shown, 60 thin omitted)
-- Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 1030 edges (avg confidence: 0.83)
+- 5220 nodes · 15644 edges · 213 communities (152 shown, 61 thin omitted)
+- Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 1102 edges (avg confidence: 0.83)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `30ebb2e3`
+- Built from commit: `7d19d342`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -59,7 +59,6 @@
 - Radial Menu Smoke Driver
 - SB Smoke Fixture (SophisticatedBackpacksFixture)
 - Fabric Building Upgrade Helper
-- Player Settings GUI Stub (shaders, speed)
 - Requirements & Muted Second-Monitor Windows
 - Fabric Backpack Integration
 - NeoForge Backpack Integration
@@ -81,7 +80,6 @@
 - Diamond Randomizer Bag Screen
 - Omega Bag Weight Packet
 - BlockSet & Mirror Modifier
-- Break Tool Stack Candidates
 - Fabric Client Entry
 - Clearable Menu Interface
 - Power Level Command & Packet
@@ -108,7 +106,6 @@
 - Radial Menu & Build Mode Enum
 - Catnip Theme Color
 - Fabric GameTest Support Helpers
-- Client Events & Backpack Client Caches
 - Inventory, Item Usage & Common Events
 - Fabric Mod Entry (common + smoke)
 - Mode Option Actions (ActionEnum)
@@ -118,7 +115,6 @@
 - Ghost Block Preview Renderer
 - Outline Params & Special Textures
 - NeoForge Mod Entry & Registration
-- Smoke Server GameTests per Loader
 - Block Placement Helpers (BlockHelper, BlockUtilities)
 - Mod Core Wiring (stubs & shared imports)
 - Accessory Slots Fixtures (Curios/Trinkets)
@@ -130,7 +126,6 @@
 - Survival Breaking Analysis (history)
 - Randomizer Bag Items & Containers
 - Config Builder Platform Service
-- ToolSelector & Tests
 - Smoke GUI Scenarios (bags, settings, tabs)
 - Knowledge Log, Port Brief & Port Rules
 - Omega Bag & Template Slots
@@ -157,7 +152,6 @@
 - Catnip Pair Data Type
 - Catnip Box Widget
 - Smoke Client Build Scenarios (line, mirror)
-- Smoke Server Scenarios (sb.* on server)
 - NeoForge Event Subscribers
 - Render System Import Stubs
 - Smoke Backpack Scenario Service
@@ -177,14 +171,19 @@
 - Build Modifiers Registry
 - NeoForge Networking
 - Config Types & Loader Config Classes
+- Player Settings GUI Stub (shaders, speed)
 - Outline/Ghost Render Hooks
 - Color toString
+- Client Events & Backpack Client Caches
+- Smoke Server GameTests per Loader
+- Smoke Server Scenarios (sb.* on server)
 - test-all-versions Stages & Helpers
 - Upstream Jar Fetch Script
 - Test Report Merge & Offline Tests
 - Raycast Helper
 - Upstream Watch & Manifest Update
 - Build State Packets (quick replace, build mode)
+- Break Tool Stack Candidates
 - Mod AllIcons
 - Gradle Wrapper Script (fabric)
 - Gradle Wrapper Script (forge-1.21)
@@ -195,6 +194,7 @@
 - FunctionalInterface (external)
 - Hub Docs: README, Architecture, Releasing, Decisions
 - Shared Collection Import Stubs
+- ToolSelector & Tests
 - Number Field & Client Services
 - Upstream Manifest (manifest.json)
 - Shared Import Stubs (SophisticatedBuilding)
@@ -215,17 +215,21 @@
 - 4.1.1 runOnBackpacks API Break (history)
 - NarratableEntry (external)
 - NativeImage (external)
+- Balance State Sync (packet + client)
+- Balanced Breaking Rules & System
+- BalanceCooldown & Tests
+- Balanced Breaking GameTest (Fabric)
 
 ## God Nodes (most connected - your core abstractions)
-1. `BlockSet` - 101 edges
-2. `BlockEntry` - 66 edges
+1. `BlockSet` - 105 edges
+2. `BlockEntry` - 68 edges
 3. `ClientScenarios` - 62 edges
 4. `ActionEnum` - 61 edges
 5. `IItemHandler` - 59 edges
-6. `PowerLevel` - 49 edges
-7. `Couple` - 47 edges
-8. `IConfigBuilder` - 47 edges
-9. `ConfigValue` - 45 edges
+6. `PowerLevel` - 50 edges
+7. `IConfigBuilder` - 49 edges
+8. `Couple` - 47 edges
+9. `ConfigValue` - 47 edges
 10. `ClientDriver` - 45 edges
 
 ## Surprising Connections (you probably didn't know these)
@@ -258,7 +262,7 @@
 - **Extra <loader>-<mc> folders forced by merge verdicts** — docs_porting_merge_1_16_4_1_16_5, docs_porting_merge_1_18_1_18_1, docs_porting_merge_1_19_x, docs_porting_merge_1_21_1_21_1, readme_loader_mc_extra_folders [INFERRED 0.85]
 - **Dual-loader (Fabric/NeoForge) LGPL license and hardfork provenance chain** — license_gnu_lgpl_v3, license_effortless_building_original_mod, license_effortlessbuildingsophisticated_hardfork [INFERRED 0.85]
 
-## Communities (209 total, 60 thin omitted)
+## Communities (213 total, 61 thin omitted)
 
 ### Community 1 - "Power Level Attachment"
 Cohesion: 0.11
@@ -321,8 +325,8 @@ Cohesion: 0.09
 Nodes (22): SmokeServerPlatform, VanillaFakePlayers, FabricSmokeServerPlatform, ForgeSmokeServerPlatform, NeoForgeSmokeServerPlatform, net.minecraft.server.level.ServerLevel, net.minecraft.world.level.GameType, Override (+14 more)
 
 ### Community 115 - "Break Countdown HUD"
-Cohesion: 0.16
-Nodes (4): ClientBreakCountdown, Countdown, PendingSet, Handler
+Cohesion: 0.15
+Nodes (4): Handler, ClientBreakCountdown, PendingSet, Countdown
 
 ### Community 116 - "Smoke Client Platform (held keys)"
 Cohesion: 0.18
@@ -358,7 +362,7 @@ Nodes (6): AbstractRandomizerBagItem, CachedPositionSelection, java.util.Splitta
 
 ### Community 126 - "IBackpackIntegration Service & NONE Fallback"
 Cohesion: 0.23
-Nodes (5): NumberConfigValue, DoubleEntry, IntEntry, NumberEntry, java.util.function.DoubleFunction
+Nodes (5): NumberConfigValue, java.util.function.DoubleFunction, NumberEntry, IntEntry, DoubleEntry
 
 ### Community 128 - "RenderHandler & Modifier Plane Rendering"
 Cohesion: 0.26
@@ -399,10 +403,6 @@ Nodes (5): SophisticatedBuildingNeoForgeClient, net.neoforged.neoforge.client.ev
 ### Community 144 - "Platform Helper Service (menus, persistent data)"
 Cohesion: 0.11
 Nodes (11): ForgePlatformHelper, Data, PowerLevelCapability, net.minecraft.world.item.CreativeModeTab, net.minecraftforge.common.capabilities.AutoRegisterCapability, net.minecraftforge.registries.DeferredRegister, org.jetbrains.annotations.Nullable, Clone (+3 more)
-
-### Community 15 - "Player Settings GUI Stub (shaders, speed)"
-Cohesion: 0.07
-Nodes (16): BooleanEntry, HeaderRow, PlayerSettingsGui, Row, SettingEntry, SettingsList, Slider, Entry (+8 more)
 
 ### Community 150 - "Requirements & Muted Second-Monitor Windows"
 Cohesion: 0.29
@@ -494,7 +494,7 @@ Nodes (4): UIRenderHelper, Color, net.minecraft.network.chat.Style, SuppressWarn
 
 ### Community 28 - "Fabric GameTest Support Helpers"
 Cohesion: 0.15
-Nodes (10): ArrayLimitGameTest, ChargeGameTest, ConfigScope, GameTestSupport, MergeGameTest, ProtectionEventsGameTest, ProtectionGameTest, ServerLimitsGameTest (+2 more)
+Nodes (10): ArrayLimitGameTest, ChargeGameTest, MergeGameTest, ProtectionEventsGameTest, ProtectionGameTest, ServerLimitsGameTest, UndoGameTest, Override (+2 more)
 
 ### Community 3 - "Inventory, Item Usage & Common Events"
 Cohesion: 0.09
@@ -532,33 +532,29 @@ Nodes (7): BaseBuildMode, Disabled, Single, IBuildMode, Override, Override, Over
 Cohesion: 0.18
 Nodes (8): SophisticatedBuildingNeoForge, SmokeTestNeoForge, net.neoforged.api.distmarker.Dist, net.neoforged.bus.api.IEventBus, net.neoforged.fml.common.Mod, net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent, net.neoforged.fml.ModContainer, net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent
 
-### Community 4 - "Smoke Server GameTests per Loader"
-Cohesion: 0.12
-Nodes (8): FabricSmokeServerTests, ForgeSmokeServerTests, NeoForgeSmokeServerTests, net.minecraft.gametest.framework.GameTest, net.minecraft.gametest.framework.GameTestHelper, net.minecraftforge.gametest.GameTestHolder, net.neoforged.neoforge.gametest.GameTestHolder, net.neoforged.neoforge.gametest.PrefixGameTestTemplate
-
 ### Community 40 - "Block Placement Helpers (BlockHelper, BlockUtilities)"
 Cohesion: 0.12
 Nodes (6): AbstractBlockBreakQueue, BlockHelper, net.minecraft.world.entity.LivingEntity, net.minecraft.world.level.block.state.properties.BooleanProperty, net.minecraft.world.level.block.state.properties.Property, net.minecraft.world.level.BlockGetter
 
 ### Community 41 - "Mod Core Wiring (stubs & shared imports)"
 Cohesion: 0.06
-Nodes (18): StencilElement, BagTitle, DiamondRandomizerBagScreen, GoldenRandomizerBagScreen, OmegaRandomizerBagScreen, RandomizerBagScreen, RenderHandler, net.minecraft.client.DeltaTracker (+10 more)
+Nodes (18): StencilElement, BagTitle, DiamondRandomizerBagScreen, GoldenRandomizerBagScreen, OmegaRandomizerBagScreen, RandomizerBagScreen, net.minecraft.client.DeltaTracker, net.minecraft.client.gui.Font (+10 more)
 
 ### Community 42 - "Accessory Slots Fixtures (Curios/Trinkets)"
 Cohesion: 0.17
 Nodes (6): SmokeAccessorySlots, TrinketsAccessorySlots, dev.emi.trinkets.api.TrinketInventory, Override, SB fixture in common/src/smoketestBackpacks (SophisticatedBackpacksFixture, SophisticatedBackpacksScreens), trinketsapi
 
 ### Community 43 - "Common/Server Config Values"
-Cohesion: 0.14
-Nodes (15): ClientConfig, Performance, Visuals, CommonConfig, MaxBlocksPerAxis, MaxBlocksPlacedAtOnce, MaxMirrorRadius, Reach (+7 more)
+Cohesion: 0.13
+Nodes (17): CommonConfig, MaxBlocksPerAxis, MaxBlocksPlacedAtOnce, MaxMirrorRadius, Reach, ConfigValue, IConfigBuilder, ClientConfig (+9 more)
 
 ### Community 45 - "Smoke ClientDriver Input Helpers"
 Cohesion: 0.10
 Nodes (12): ClientDriver, com.mojang.blaze3d.platform.NativeImage, java.lang.reflect.Field, java.lang.reflect.Method, java.util.function.BooleanSupplier, net.minecraft.server.MinecraftServer, completablefuture, executionexception (+4 more)
 
 ### Community 46 - "Network Helper Service & Countdown Packet"
-Cohesion: 0.23
-Nodes (3): CommonEvents, FabricCommonEvents, net.minecraft.server.level.ServerPlayer
+Cohesion: 0.22
+Nodes (3): FabricCommonEvents, net.minecraft.server.level.ServerPlayer, CommonEvents
 
 ### Community 47 - "Power Level Capability (Forge/NeoForge)"
 Cohesion: 0.10
@@ -579,10 +575,6 @@ Nodes (48): MaterialCostOverlay, MenuBase, GoldenRandomizerBagContainer, OmegaRa
 ### Community 50 - "Config Builder Platform Service"
 Cohesion: 0.11
 Nodes (7): Builder, ForgeConfigHelper, NumberValue, Value, Override, Override, SuppressWarnings
-
-### Community 51 - "ToolSelector & Tests"
-Cohesion: 0.12
-Nodes (9): Candidate, Need, ToolSelector, FakeCandidate, ToolSelectorTest, NO_TOOL, TOOL, UNBREAKABLE (+1 more)
 
 ### Community 52 - "Smoke GUI Scenarios (bags, settings, tabs)"
 Cohesion: 0.18
@@ -617,8 +609,8 @@ Cohesion: 0.07
 Nodes (29): TwoClicksBuildMode, IInteractionChecker, IBackpackIntegration, net.minecraft.world.entity.player.Player, net.minecraft.world.InteractionHand, net.minecraft.world.item.TooltipFlag, arraydeque, arraylist (+21 more)
 
 ### Community 60 - "ServerBlockPlacer & Skip-First Tests"
-Cohesion: 0.15
-Nodes (5): Handler, ClientProxy, DelayedEntry, ServerBlockPlacer, BlockSetSkipTest
+Cohesion: 0.12
+Nodes (8): Handler, ClientProxy, BlockSetSkipTest, ServerBlockPlacer, ReplaceSchedule, MiningEstimate, DelayedEntry, BreakEstimate
 
 ### Community 61 - "mc/1.21.1 Branch Docs & Smoke Harness Contract"
 Cohesion: 0.06
@@ -637,12 +629,12 @@ Cohesion: 0.16
 Nodes (6): Builder, NeoForgeConfigHelper, NumberValue, Value, Override, SuppressWarnings
 
 ### Community 65 - "BreakToolHelper & Tool Swapper Integration"
-Cohesion: 0.13
-Nodes (6): ItemHandlerHelper, BreakPlan, BreakToolHelper, ToolSlot, ToolSwapperIntegration, ToolSwapperIntegration
+Cohesion: 0.12
+Nodes (6): ItemHandlerHelper, ToolSwapperIntegration, ToolSwapperIntegration, BreakToolHelper, ToolSlot, BreakPlan
 
 ### Community 68 - "Block Entries & Placement Templates"
 Cohesion: 0.12
-Nodes (6): BlockPlacerHelper, BlockUtilities, MaterialCost, PlacementTemplates, Template, net.minecraft.world.level.block.state.properties.IntegerProperty
+Nodes (6): BlockUtilities, MaterialCost, PlacementTemplates, Template, net.minecraft.world.level.block.state.properties.IntegerProperty, BlockPlacerHelper
 
 ### Community 69 - "Building Upgrade Settings Tab & Container"
 Cohesion: 0.14
@@ -650,7 +642,7 @@ Nodes (18): BuildingUpgradeSettingsTab, BuildingUpgradeContainer, BuildingUpgrad
 
 ### Community 7 - "Forge Event Subscribers"
 Cohesion: 0.06
-Nodes (24): ForgeClientEvents, ForgeCommonEvents, net.minecraftforge.event.entity.living.LivingEquipmentChangeEvent, net.minecraftforge.event.RegisterCommandsEvent, net.minecraftforge.event.server.ServerStoppedEvent, net.minecraftforge.eventbus.api.SubscribeEvent, Key, Load (+16 more)
+Nodes (24): ForgeClientEvents, net.minecraftforge.event.entity.living.LivingEquipmentChangeEvent, net.minecraftforge.event.RegisterCommandsEvent, net.minecraftforge.event.server.ServerStoppedEvent, net.minecraftforge.eventbus.api.SubscribeEvent, Key, Load, LoggingIn (+16 more)
 
 ### Community 70 - "Unused Scroll Pane Widgets & SB Screens"
 Cohesion: 0.22
@@ -674,7 +666,7 @@ Nodes (6): Pair, com.mojang.serialization.Codec, org.apache.commons.lang3.mutabl
 
 ### Community 8 - "NeoForge Event Subscribers"
 Cohesion: 0.06
-Nodes (24): NeoForgeClientEvents, NeoForgeCommonEvents, net.neoforged.bus.api.SubscribeEvent, net.neoforged.fml.common.EventBusSubscriber, net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent, net.neoforged.neoforge.event.RegisterCommandsEvent, net.neoforged.neoforge.event.server.ServerStoppedEvent, Key (+16 more)
+Nodes (24): NeoForgeClientEvents, net.neoforged.bus.api.SubscribeEvent, net.neoforged.fml.common.EventBusSubscriber, net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent, net.neoforged.neoforge.event.RegisterCommandsEvent, net.neoforged.neoforge.event.server.ServerStoppedEvent, Key, Load (+16 more)
 
 ### Community 80 - "Render System Import Stubs"
 Cohesion: 0.09
@@ -693,7 +685,7 @@ Cohesion: 0.12
 Nodes (12): BuildingUpgradeItem, net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper, net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeSlotChangeResult, net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeCountLimitConfig, net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeGroup, net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase, net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType, Override (+4 more)
 
 ### Community 86 - "Build Packets (place, break, undo, redo)"
-Cohesion: 0.03
+Cohesion: 0.04
 Nodes (68): BackpackItemCountPacket, Handler, BreakCountdownPacket, BuildingUpgradeStatePacket, Handler, CommonConfigSyncPacket, Handler, Handler (+60 more)
 
 ### Community 88 - "Replace Rules & Tests"
@@ -730,11 +722,19 @@ Nodes (3): BaseModifier, BuildModifiers, NBTUtils
 
 ### Community 98 - "NeoForge Networking"
 Cohesion: 0.07
-Nodes (25): BackpackToolsPacket, Handler, PacketHandler, Payload, FabricClientNetworking, FabricNetworking, ForgeNetworking, ForgeNetworkHelper (+17 more)
+Nodes (25): BackpackToolsPacket, Handler, FabricClientNetworking, FabricNetworking, ForgeNetworking, ForgeNetworkHelper, NeoForgeNetworking, Context (+17 more)
 
 ### Community 99 - "Config Types & Loader Config Classes"
 Cohesion: 0.17
 Nodes (9): ConfigType, IConfigHelper, FabricConfigHelper, net.minecraftforge.common.ForgeConfigSpec, net.neoforged.neoforge.common.ModConfigSpec, CLIENT, COMMON, SERVER (+1 more)
+
+### Community 15 - "Player Settings GUI Stub (shaders, speed)"
+Cohesion: 0.07
+Nodes (16): Entry, net.minecraft.client.gui.components.AbstractSliderButton, net.minecraft.client.gui.components.ContainerObjectSelectionList, net.minecraft.client.gui.components.Tooltip, net.minecraft.client.gui.narration.NarratableEntry, Override, Open: original-code findings awaiting user decision (PlayerSettingsGui stub, bag title overflow, unused widgets), Open points: Fabric GameTest hangs, original-code findings, Curios 12+ fake player, Java 8u321 for Forge 34/35 (+8 more)
+
+### Community 4 - "Smoke Server GameTests per Loader"
+Cohesion: 0.11
+Nodes (8): net.minecraft.gametest.framework.GameTest, net.minecraft.gametest.framework.GameTestHelper, net.minecraftforge.gametest.GameTestHolder, net.neoforged.neoforge.gametest.GameTestHolder, net.neoforged.neoforge.gametest.PrefixGameTestTemplate, FabricSmokeServerTests, ForgeSmokeServerTests, NeoForgeSmokeServerTests
 
 ### Community 0 - "test-all-versions Stages & Helpers"
 Cohesion: 0.08
@@ -791,6 +791,10 @@ Nodes (24): 4.3.0 build/CI/testing: hub main, synced templates, smoke harness on
 ### Community 39 - "Shared Collection Import Stubs"
 Cohesion: 0.13
 Nodes (15): net.minecraft.world.InteractionResult, clientboundcontainersetslotpacket, commandregistrationcallback, equipmentslot, leveltickevent, player, playerblockbreakevents, playerevent (+7 more)
+
+### Community 51 - "ToolSelector & Tests"
+Cohesion: 0.12
+Nodes (9): Override, ToolSelector, Candidate, Need, UNBREAKABLE, NO_TOOL, TOOL, ToolSelectorTest (+1 more)
 
 ### Community 66 - "Number Field & Client Services"
 Cohesion: 0.06
@@ -856,22 +860,34 @@ Nodes (27): attachment.AttachmentHandler / PowerLevel, Fabric build.gradle depen
 Cohesion: 0.17
 Nodes (20): BackpackScanCompat (T-U2), Crash: NoSuchMethodError in server tick loop (NeoForge 21.1.250 modpack), Fabric Salandora port frozen at 3.23.4.3.106, Fix design: MethodHandle shim, compile against latest, LinkageError, warn once, Widen guards to LinkageError (T-U3), NeoForge mixin refmap WARN, Release plumbing: deps bump, refmap removal, 4.1.1 (T-U4), ReturnTypeAgnosticInvoker (T-U1) (+12 more)
 
+### Community 212 - "Balance State Sync (packet + client)"
+Cohesion: 0.19
+Nodes (3): ClientBalanceState, BalanceStatePacket, Handler
+
+### Community 209 - "Balanced Breaking Rules & System"
+Cohesion: 0.08
+Nodes (7): BalancedBreaking, BalanceRules, Refusal, NONE, COOLDOWN, HUNGER, BalanceRulesTest
+
+### Community 210 - "BalanceCooldown & Tests"
+Cohesion: 0.15
+Nodes (4): BalanceCooldown, Settings, BalanceCooldownTest, assertarrayequals
+
 ## Knowledge Gaps
-- **257 isolated node(s):** `Blue`, `Gray`, `Green`, `Purple`, `Red` (+252 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 855 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **60 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **260 isolated node(s):** `Blue`, `Gray`, `Green`, `Purple`, `Red` (+255 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 865 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **61 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `BlockSet` connect `BlockSet & Mirror Modifier` to `Raycast Helper`, `Two/Three-Click Build Modes & Mode Options`, `Build Mode Coordinates (Line, Wall, Cube)`, `Radial Mirror Modifier`, `Root Cause RC2 Client Availability (history)`, `Backpack & Modifier Packets (StreamCodec)`, `Catnip Couple Data Type`, `Outline Params & Special Textures`, `BuilderChain Client Build Flow`, `Fabric Bootstrap, Config Files & Logging`, `ServerBlockPlacer & Skip-First Tests`, `BreakToolHelper & Tool Swapper Integration`, `Number Field & Client Services`, `Block Previews`, `Array & Mirror Modifier Entries`, `Smoke Server Scenarios (sb.* on server)`, `Build Packets (place, break, undo, redo)`, `Fabric GameTest Classes`, `Build Modifiers Registry`, `Diagonal Line & Wall Modes`, `Break Countdown HUD`, `Undo/Redo Stack`?**
-  _High betweenness centrality (0.041) - this node is a cross-community bridge._
 - **Why does `Testing across every version and loader (test-all-versions.ps1)` connect `Test Report Merge & Offline Tests` to `test-all-versions Stages & Helpers`, `Final Report, Handoff & Test Results`, `Changelog & Historic Patch Notes 4.2.x`, `Knowledge Log, Port Brief & Port Rules`, `mc/1.21.1 Branch Docs & Smoke Harness Contract`, `Hub Docs: README, Architecture, Releasing, Decisions`?**
-  _High betweenness centrality (0.040) - this node is a cross-community bridge._
+  _High betweenness centrality (0.037) - this node is a cross-community bridge._
 - **Why does `IBackpackIntegration` connect `Two/Three-Click Build Modes & Mode Options` to `Number Field & Client Services`, `Catnip Render Element Base`, `Fabric Backpack Integration`, `NeoForge Backpack Integration`, `Fabric GameTest Classes`, `mc/1.21.1 Branch Docs & Smoke Harness Contract`?**
-  _High betweenness centrality (0.040) - this node is a cross-community bridge._
+  _High betweenness centrality (0.034) - this node is a cross-community bridge._
+- **Why does `SB availability = loader registers META-INF/services/...IBackpackIntegration` connect `mc/1.21.1 Branch Docs & Smoke Harness Contract` to `test-all-versions Stages & Helpers`, `Test Report Merge & Offline Tests`, `Two/Three-Click Build Modes & Mode Options`?**
+  _High betweenness centrality (0.031) - this node is a cross-community bridge._
 - **What connects `Blue`, `Gray`, `Green` to the rest of the system?**
-  _257 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _260 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Power Level Attachment` be split into smaller, more focused modules?**
   _Cohesion score 0.11313131313131314 - nodes in this community are weakly interconnected._
 - **Should `Item Descriptions & Tooltips` be split into smaller, more focused modules?**
