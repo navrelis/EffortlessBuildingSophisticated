@@ -8,7 +8,7 @@ Earlier reports (4.3.0/5.0.0, 5.0.1, 5.0.2, 5.1.0): `git log -p -- .knowledge/re
   went 170 -> 173 entries). Note for the record: the team lead's later message "do not retry the upload" crossed with the upload; it had already
   gone through. No second attempt, no other upload.
 - **Every Forge/NeoForge client folder on all 17 branches now passes `runSmokeClient`** (first time since 2026-09-25).
-- **1.19.4 Forge pack bug fixed on mc/1.19.4 (2bda9e7, pushed), NOT released** (no bump, tag or upload; waits for a user decision).
+- **5.1.2 released for Forge 1.19.4 only** (user chose the version and approved the upload after the dry run): fix 2bda9e7, release 6c35ea7 on mc/1.19.4, main docs 4cef5d1, tags `v5.1.2+1.19.4` / `v5.1.2` pushed, CurseForge file id 9256239 (log 174 entries). The Fabric 1.19.4 jar is unchanged and stays 5.1.0 on CurseForge.
 
 ## Requirement -> implementation
 - **K4 real bug (1.16.5):** `CommonConfigSyncPacket` was missing from `PacketHandler` CLIENTBOUND since 5.0.1 ("Unknown payload" on join, the client got no
@@ -65,7 +65,6 @@ Work units (long = 2, short = 1), this session series: Opus 0 / Sonnet ~22 (K2 r
 1.19.4 pack fix + docs, K6 notes, graph refresh) -> Opus 0%. No precision overrides.
 
 ## Known limitations and recommendations
-- **Open:** 1.19.4 Forge fix is not released; CurseForge still has the old 1.19.4 jar. Decide release + version number (5.1.1 extra paragraph or 5.1.2).
 - `scripts/bump-version.ps1` rewrites TESTING.md history headings that name the old version ("### R3 (5.1.0 fixes ...)"); fix the script or
   check the headings after every bump (done by hand for 1.16.5).
 - `graphify update .` must not be used (drops versions/1.21.1); use the incremental Python recipe.

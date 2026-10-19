@@ -65,4 +65,4 @@
 ## 5.1.1 + client checks (2026-10-19, session 3)
 - Smoke harness SmokeWindowMixin on Forge 36 (1.16.5) uses @Redirect of EarlyProgressVisualization.handOffWindow instead of @Inject; on 1.21.1 Forge/NeoForge @At(unsafe = true). Reason: Mixin >= 0.8.3 refuses callback injections into constructors before RETURN; Forge 36's patched Mixin 0.8.4.12 has no `unsafe` attribute, Mixin 0.8.7 does. Dev-only, no release.
 - 5.1.1 only for mc/1.16.5 (3 jars), uploaded with -JarDir; the fix is client-side (packet registration), server unchanged. Reason: only branch with the bug; precedent 5.0.2.
-- 1.19.4 Forge pack fix committed but not released. Reason: needs a user decision (version 5.1.1 vs 5.1.2) and a new upload yes.
+- 1.19.4 Forge pack fix released as 5.1.2 (user choice), only the Forge jar uploaded (Fabric 1.19.4 jar unchanged, stays 5.1.0 on CurseForge; branch source says 5.1.2). Reason: only the Forge jar changed; 5.1.1 was already used for 1.16.5.
