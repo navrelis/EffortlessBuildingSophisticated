@@ -4,8 +4,8 @@ Three layers, from fast to real:
 
 | Layer | Command (in a loader folder) | What it proves |
 |---|---|---|
-| Unit tests | `gradlew build` | Pure logic in `common/src/test` (104 tests on Fabric incl. its config tests, 90 on Forge) |
-| Fabric server tests | `gradlew runGametest` | 24 server-side building rules (`fabric/src/gametest`, the game tests of the other branches) |
+| Unit tests | `gradlew build` | Pure logic in `common/src/test` (150 tests on Fabric incl. its config tests, 136 on Forge) |
+| Fabric server tests | `gradlew runGametest` | 46 server-side building rules (`fabric/src/gametest`, the game tests of the other branches), incl. balanced survival breaking (`BalancedBreakingGameTest`) |
 | **In-game smoke tests** | `gradlew runSmokeClient` / `gradlew runSmokeServer` | The mod works in a real game on this loader, on Forge including the Sophisticated Backpacks (SB) integration |
 
 `gradlew build` compiles the smoke harness and the server tests (so they cannot rot) but never runs them. The harness is
@@ -150,10 +150,11 @@ to the packets' server handlers.
 | `server.merge_undo_refund` | Survival merges (+1 snow layer, +1 sea pickle; no candles before Minecraft 1.17) cost one item each; undo puts both blocks back without mining and gives the items back, redo charges them again |
 | `server.refused_place_not_charged` | Forge: the block place event refuses 2 of a 5 block line (as a protection mod would): only the 3 placed planks are charged and undo gives back exactly those. Skipped on Fabric (no place event; the server test `ChargeGameTest` covers refused placements) |
 | `server.request_limits` | A crafted request the server must refuse with the survival power level limits (a start 60 blocks above the player, a line whose clicks are 20 blocks apart): nothing placed or charged; a normal 5 block line right after is placed |
+| `server.balanced_breaking` | Balanced breaking switched on in the server config: a 3 stone break costs the iron pickaxe 3 x the durability multiplier and starts a cooldown in the persistent data, a second break during it is refused; the cooldown comes back after a save/load into a new player object and after `restoreFrom` (respawn, the loader's clone event) |
 | `sb.upgrade_supplies_blocks`, `sb.disabled_upgrade_ignored`, `sb.tier_cap`, `sb.tool_swapper_tools`, `sb.worn_backpack_chest`, `sb.worn_backpack` | Forge only: as on the client, server side (`sb.tool_swapper_tools` skipped, see above) |
 | `server.no_mod_errors` | As on the client |
 
-Fabric reports 3 checks, Forge 9 (8 passed, 1 skipped).
+Fabric reports 7 checks (6 passed, 1 skipped), Forge 13 (12 passed, 1 skipped).
 
 ## Layout
 
@@ -271,6 +272,34 @@ events, array cap, offhand bag filter, material cost, Activate Previous Build Mo
 | `fabric/` | 117/117 | 37/37 | 6 (5 passed, 1 skipped: `server.refused_place_not_charged`) | 6 (5 passed, 1 skipped) |
 | `forge/` | 103/103 | - | 12 (11 passed, 1 skipped: `sb.tool_swapper_tools`) | 6/6 |
 
+### Round 4 (R4, 5.1.0, headless)
+
+Ported from `mc/1.21.1` (942d396, 32210c9, ab565a5): the power level is sent again after a respawn, and the optional
+balanced survival breaking is new (`BalanceCooldown`, `BalanceRules`, `BalancedBreaking`, `BalanceStatePacket`,
+`ClientBalanceState`, server config section `BalancedBreaking`, client config `Gameplay.balancedBreaking`, HUD line,
+settings toggle). Forge `onClone` -> `CommonEvents.onPlayerCloned` in `ForgeCommonEvents`; Fabric needs nothing, the
+player data is copied by `FabricPlayerData.copy` (`ServerPlayerMixin`, see R3). New tests: `BalanceCooldownTest`,
+`BalanceRulesTest`, `ToolSelectorTest` additions, Fabric `BalancedBreakingGameTest` (9 tests), smoke check
+`server.balanced_breaking` (registered in `SmokeServer` like the other server checks). Differences from 1.21.1, all from
+the game or loader version:
+
+- Java 8: `BalanceStatePacket`, `ReplaceSchedule`, `MiningEstimate` and `BreakEstimate` are final classes instead of
+  records, `switch` with `case:`, no `var`.
+- `BalanceStatePacket` is a `ModPayload` with a `FriendlyByteBuf` constructor and `write` (no `CODEC`);
+  `ItemStack#hurtAndBreak(int, T, Consumer<T>)` with `broadcastBreakEvent`; `Player#level` and `Inventory` are fields.
+- The HUD line is drawn through the branch's `GuiGraphics` wrapper over `PoseStack`; `PlayerSettingsGui` adds the toggle
+  to the 1.16 widget list.
+- `FoodData` has no exhaustion accessor, so the game test reads and sets it through the food data's save tag; the server
+  tests use `@ServerTest`/`ServerTestHelper`, `GameTestSupport.assertTrue`, the 4-argument `ServerPlayer` constructor and
+  no `ClientInformation`.
+
+| Folder | `gradlew build` (unit tests) | Server tests | `runSmokeServer` | `-PsmokeNoSb=true` |
+|---|---|---|---|---|
+| `fabric/` | 150/150 | 46/46 (37 + 9 `BalancedBreakingGameTest`) | 7 (6 passed, 1 skipped: `server.refused_place_not_charged`) | 7 (6 passed, 1 skipped) |
+| `forge/` | 136/136 | - | 13 (12 passed, 1 skipped: `sb.tool_swapper_tools`) | 7/7 |
+
+`server.balanced_breaking` passed in every `runSmokeServer` run above.
+
 ### Results (2026-09-25)
 
 | Folder | Runtime | `gradlew build` (unit tests) | Server tests | `runSmokeServer` | `runSmokeClient` |
@@ -295,6 +324,6 @@ Trinkets), leaves the backpack fixture (every file under a `smoketestBackpacks` 
 and passes `-Dsophisticatedbuilding.smoketest.noSb=true` to the run.
 The `sb.*` scenarios do not run: `SmokeServer` registers them only when the backpack fixture is present (a registered one would report "skipped", or fail if the backpack integration were active anyway).
 `server.place_line_survival`, `server.undo_redo`, `server.merge_undo_refund`, `server.refused_place_not_charged`
-(skipped on Fabric: no place event there), `server.request_limits` and `server.no_mod_errors` must pass. The main code still compiles against
+(skipped on Fabric: no place event there), `server.request_limits`, `server.balanced_breaking` and `server.no_mod_errors` must pass. The main code still compiles against
 Sophisticated Backpacks (compile-only), so only the runtime changes. On the hub,
 `scripts/test-all-versions.ps1 -SmokeTasks runSmokeServerNoSb` runs it for every loader folder with the integration.

@@ -25,7 +25,8 @@
       "sophisticated.building.gametest.ProtectionEventsGameTest",
       "sophisticated.building.gametest.ArrayLimitGameTest",
       "sophisticated.building.gametest.OffhandBagFilterGameTest",
-      "sophisticated.building.gametest.MaterialCostGameTest"
+      "sophisticated.building.gametest.MaterialCostGameTest",
+      "sophisticated.building.gametest.BalancedBreakingGameTest"
     ]
   },
   "depends": {

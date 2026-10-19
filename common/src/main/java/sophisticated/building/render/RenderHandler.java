@@ -24,10 +24,13 @@ import sophisticated.building.create.catnip.animation.AnimationTickHolder;
 import sophisticated.building.create.catnip.outliner.Outliner;
 import sophisticated.building.create.catnip.render.DefaultSuperRenderTypeBuffer;
 import sophisticated.building.create.catnip.render.SuperRenderTypeBuffer;
+import sophisticated.building.buildmode.BuildModeEnum;
+import sophisticated.building.client.ClientBalanceState;
 import sophisticated.building.client.ClientBreakCountdown;
 import sophisticated.building.inventory.IItemHandler;
 import sophisticated.building.item.AbstractRandomizerBagItem;
 import sophisticated.building.systems.BuilderChain;
+import sophisticated.building.utilities.BalanceRules;
 import sophisticated.building.utilities.BreakToolHelper;
 import sophisticated.building.utilities.InventoryHelper;
 
@@ -96,6 +99,8 @@ public class RenderHandler {
 		drawStacks(guiGraphics);
 
 		drawBreakCountdown(guiGraphics);
+
+		drawBalanceCooldown(guiGraphics);
 
 		drawRandomizerBagHUD(guiGraphics);
 	}
@@ -245,6 +250,30 @@ public class RenderHandler {
 		if (filledWidth > 0) {
 			guiGraphics.fill(barX, barY, barX + filledWidth, barY + barHeight, 0xFFDD3333);
 		}
+	}
+
+	/**
+	 * Draws the remaining balanced breaking cooldown (ClientBalanceState, sent by the server) for a survival player with
+	 * a build mode or Quick Replace active: below the break countdown, or in its place when none is running.
+	 */
+	private static void drawBalanceCooldown(GuiGraphics guiGraphics) {
+		long remaining = ClientBalanceState.remainingMillis();
+		if (remaining <= 0) return;
+
+		Minecraft mc = Minecraft.getInstance();
+		LocalPlayer player = mc.player;
+		if (player == null || player.isCreative() || player.isSpectator()) return;
+		if (SophisticatedBuildingClient.BUILD_MODES.getBuildMode() == BuildModeEnum.DISABLED
+				&& !SophisticatedBuildingClient.BUILD_SETTINGS.isQuickReplacing()) return;
+
+		Font font = mc.font;
+		String text = I18n.get("sophisticatedbuilding.hud.balanced_cooldown", BalanceRules.displaySeconds(remaining));
+		int textY = mc.getWindow().getGuiScaledHeight() / 2 + 24;
+		if (ClientBreakCountdown.hasActive()) {
+			//Below the countdown's text and progress bar
+			textY += font.lineHeight + 10;
+		}
+		guiGraphics.drawCenteredString(font, text, mc.getWindow().getGuiScaledWidth() / 2, textY, 0xFFFFAA55);
 	}
 
 	private static void drawItemStack(GuiGraphics guiGraphics, ItemStack stack, int x, int y, boolean missing) {

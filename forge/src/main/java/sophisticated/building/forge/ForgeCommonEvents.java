@@ -94,6 +94,8 @@ public class ForgeCommonEvents {
 		if (PowerLevelCapability.has(original)) {
 			PowerLevelCapability.set(clone, PowerLevelCapability.get(original));
 		}
+		// The persistent data is only copied in part (its "PlayerPersisted" tag): copy what must survive
+		CommonEvents.onPlayerCloned(original, clone);
 	}
 
 	@SubscribeEvent
