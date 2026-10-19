@@ -33,6 +33,16 @@ public final class ToolSelector {
 	 */
 	public static int select(List<? extends Candidate> candidates, Need need,
 			boolean requiresCorrectTool, boolean stopBeforeToolBreaks) {
+		return select(candidates, need, requiresCorrectTool, stopBeforeToolBreaks, 1);
+	}
+
+	/**
+	 * As {@link #select(List, Need, boolean, boolean)}, for a block that costs a tool {@code usesNeeded} durability
+	 * uses (balanced breaking): with {@code stopBeforeToolBreaks} a candidate is skipped unless it has more than
+	 * {@code usesNeeded} uses left, so mining the block never breaks it (1 = the normal rule).
+	 */
+	public static int select(List<? extends Candidate> candidates, Need need,
+			boolean requiresCorrectTool, boolean stopBeforeToolBreaks, int usesNeeded) {
 		if (need == Need.UNBREAKABLE) {
 			return -2;
 		}
@@ -48,7 +58,7 @@ public final class ToolSelector {
 			if (requiresCorrectTool && !candidate.isCorrect()) {
 				continue;
 			}
-			if (stopBeforeToolBreaks && candidate.remainingUses() <= 1) {
+			if (stopBeforeToolBreaks && candidate.remainingUses() <= usesNeeded) {
 				continue;
 			}
 			return i;
@@ -60,7 +70,7 @@ public final class ToolSelector {
 				if (!candidate.isMainHand()) {
 					continue;
 				}
-				if (stopBeforeToolBreaks && candidate.remainingUses() <= 1) {
+				if (stopBeforeToolBreaks && candidate.remainingUses() <= usesNeeded) {
 					continue;
 				}
 				return i;
