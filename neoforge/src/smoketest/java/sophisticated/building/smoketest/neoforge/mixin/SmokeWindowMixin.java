@@ -12,11 +12,12 @@ import sophisticated.building.smoketest.client.SmokeWindowHints;
  * the user ({@link SmokeWindowHints}, set right before glfwCreateWindow, after the game's own hints). The smoke client
  * task turns FML's early loading window off (config/fml.toml earlyWindowControl = false, ../gradle/smoketest.gradle), so
  * NeoForge 21.5+ does not take over the early window (EarlyLoadingScreenController) and creates it here.
+ * {@code unsafe = true} is required because Mixin 0.8.3+ refuses callback injections into a constructor before RETURN.
  */
 @Mixin(Window.class)
 abstract class SmokeWindowMixin {
 
-    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwCreateWindow(IILjava/lang/CharSequence;JJ)J", remap = false))
+    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwCreateWindow(IILjava/lang/CharSequence;JJ)J", remap = false, unsafe = true))
     private void sophisticatedbuilding_smoketest$createWithoutFocus(CallbackInfo ci) {
         SmokeWindowHints.beforeWindowCreation();
     }
