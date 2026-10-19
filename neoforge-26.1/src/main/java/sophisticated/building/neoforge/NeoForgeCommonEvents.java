@@ -93,6 +93,8 @@ public class NeoForgeCommonEvents {
 		if (original.hasData(NeoForgeAttachments.POWER_LEVEL)) {
 			clone.setData(NeoForgeAttachments.POWER_LEVEL, original.getData(NeoForgeAttachments.POWER_LEVEL));
 		}
+		// The persistent data is only copied in part (its "PlayerPersisted" tag): copy what must survive
+		CommonEvents.onPlayerCloned(original, clone);
 	}
 
 	@SubscribeEvent
