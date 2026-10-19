@@ -108,6 +108,15 @@ public final class GameTestSupport {
             scope.reset(ServerConfig.survivalBreaking.maxDelayTicks);
             scope.reset(ServerConfig.survivalBreaking.exhaustionPerBlock);
             scope.reset(ServerConfig.survivalReplace.enabled);
+            scope.reset(ServerConfig.balancedBreaking.enabled);
+            scope.reset(ServerConfig.balancedBreaking.durabilityMultiplier);
+            scope.reset(ServerConfig.balancedBreaking.exhaustionPerBlock);
+            scope.reset(ServerConfig.balancedBreaking.minFoodLevel);
+            scope.reset(ServerConfig.balancedBreaking.cooldownBaseSeconds);
+            scope.reset(ServerConfig.balancedBreaking.cooldownWindowMinutes);
+            scope.reset(ServerConfig.balancedBreaking.cooldownFreeUses);
+            scope.reset(ServerConfig.balancedBreaking.cooldownStepSeconds);
+            scope.reset(ServerConfig.balancedBreaking.cooldownMaxSeconds);
             return scope;
         }
 

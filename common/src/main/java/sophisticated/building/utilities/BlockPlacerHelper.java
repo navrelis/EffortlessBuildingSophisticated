@@ -1,16 +1,17 @@
 package sophisticated.building.utilities;
 
 import net.minecraft.core.Direction;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import sophisticated.building.ServerConfig;
 import sophisticated.building.create.foundation.utility.BlockHelper;
 import sophisticated.building.inventory.ItemHandlerHelper;
 import sophisticated.building.platform.Services;
+import sophisticated.building.systems.BalancedBreaking;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -27,6 +28,15 @@ public class BlockPlacerHelper {
      *                    or {@code null} for creative behaviour (always breaks with the empty hand).
      */
     public static boolean breakBlock(Player player, BlockEntry blockEntry, @Nullable List<BreakToolHelper.ToolSlot> candidates) {
+        return breakBlock(player, blockEntry, candidates, false);
+    }
+
+    /**
+     * @param balanced part of a balanced operation ({@link BalancedBreaking}): the block costs the tool the durability
+     *                 multiplier in uses (the vanilla {@code mineBlock} use plus the rest through the vanilla damage
+     *                 API, so Unbreaking and tool breaking behave like vanilla) and the balanced exhaustion.
+     */
+    public static boolean breakBlock(Player player, BlockEntry blockEntry, @Nullable List<BreakToolHelper.ToolSlot> candidates, boolean balanced) {
         if (candidates == null || player.isCreative()) {
             // In Creative mode, use empty hand (no tool needed)
             ItemStack usedTool = ItemStack.EMPTY;
@@ -40,7 +50,8 @@ public class BlockPlacerHelper {
 
         Level level = player.level;
         BlockState state = level.getBlockState(blockEntry.blockPos);
-        BreakToolHelper.ToolSlot selectedSlot = BreakToolHelper.selectTool(player, level, blockEntry.blockPos, state, candidates);
+        int usesNeeded = BalancedBreaking.usesPerBlock(balanced);
+        BreakToolHelper.ToolSlot selectedSlot = BreakToolHelper.selectTool(player, level, blockEntry.blockPos, state, candidates, usesNeeded);
         if (BreakToolHelper.isImpossible(selectedSlot)) {
             return false;
         }
@@ -52,9 +63,13 @@ public class BlockPlacerHelper {
 
         if (brokeBlock) {
             if (selectedSlot != null) {
+                //mineBlock took the first use (if the tool did not break); the rest like vanilla mining damage
+                if (usesNeeded > 1 && !tool.isEmpty() && tool.isDamageableItem()) {
+                    tool.hurtAndBreak(usesNeeded - 1, player, p -> p.broadcastBreakEvent(EquipmentSlot.MAINHAND));
+                }
                 selectedSlot.set(tool);
             }
-            player.causeFoodExhaustion(ServerConfig.survivalBreaking.exhaustionPerBlock.get().floatValue());
+            player.causeFoodExhaustion(BalancedBreaking.exhaustionPerBlock(balanced));
         }
 
         return brokeBlock;
