@@ -88,6 +88,9 @@ server world.
 | `client.disable_quick_replace_preview` | Disable mode, looking at a stone block with planks in hand: no outline of the mod without Quick Replace (vanilla places the block), with Quick Replace the preview of the replaced block and its outline are shown. Screenshots `disable_plain`, `disable_quick_replace_preview` |
 | `client.place_line_survival` | Survival (power level 3 via `/powerlevel`): a 5 block line consumes exactly 5 planks |
 | `client.undo_redo` | Undo removes the 5 blocks and gives the planks back (mined with the axe), redo restores them and charges them again |
+| `client.respawn_power_level` | Survival player with power level 2 (1 if it already was 2), keep inventory on: killed through the damage path (generic kill hit), the death screen shows, its respawn makes a new client player object; that player shows the power level again without a relog (the server re-sends it on respawn, 5.1.0 fix) and the server player kept it. Mode, level, position and the game rule are restored afterwards |
+| `client.balanced_breaking` | Balanced survival breaking switched on through the client setting (`ClientConfig` Gameplay `balancedBreaking`; `BalancedBreaking.isEnabled` on the server and `ClientBalanceState.isActive` follow): breaking a 5 block stone line with an iron pickaxe costs 5 x `durabilityMultiplier` durability, the client learns the cooldown (`BalanceStatePacket`). Screenshot `balanced_hud`. A second mass break during the cooldown is refused: the action bar shows the `sophisticatedbuilding.message.balanced_cooldown` text, the 5 blocks stay and the pickaxe damage is unchanged. Screenshot `balanced_refused` |
+| `client.balanced_settings_toggle` | Player settings (radial menu button), Gameplay section: the balanced breaking row is scrolled into view with the mouse wheel, a click on its toggle flips `ClientConfig` Gameplay `balancedBreaking` (label On/Off follows) and `BalancedBreaking.isEnabled` on the server follows, a second click flips it back, Done closes the screen. Screenshot `settings_balanced_row` |
 | `client.randomizer_bag_screens` | For each of the 4 bags (randomizer, golden, diamond, omega): sneak + use (looking at the sky) opens its screen class; mouse clicks pick up the stone, drop one into bag slot 0 and put the rest back; Escape closes it (the server closes the menu too); the server's bag holds 1 stone and the player 63; reopening shows the stone in slot 0. Omega: the mouse wheel over slot 0 raises its weight 1 -> 2 and the Reset button sets it back to 1, both checked in the server's bag data. Screenshots `randomizer_bag`, `golden_randomizer_bag`, `diamond_randomizer_bag`, `omega_randomizer_bag`, `omega_randomizer_bag_weights`. Every bag title fits its texture (`BagTitle`/`TitleFit`: scaled, at most to 0.6, then cut with "..."); a bag renamed in an anvil to a 59 character name shows that name, cut, and the full name as tooltip on hover. Screenshot `renamed_bag_title` |
 | `client.player_settings_gui` | The radial menu's player settings button (above Modifier Settings) opens `PlayerSettingsGui`; a click flips `onlyShowBlockPreviewsWhenBuilding`, a drag sets the Appear Animation slider 5 -> 20 ticks, Done closes it; the loader's client config holds both values in memory and in its file (`config/sophisticatedbuilding-client.json` on Fabric, `.toml` on NeoForge/Forge). The "Open Player Settings" key (unbound by default, bound to F7 for the test) reopens it showing the saved value, Reset to Defaults and the key again restore and save the defaults. Screenshots `radial_player_settings`, `player_settings` |
 | `client.modifier_entry_widgets` | The mod's checkbox and number widgets where a player uses them: in the modifier screen "Add Array" adds an array, a click on the entry's enable checkbox switches it off, the mouse wheel on its Count input raises 5 -> 6, the close button closes the screen, and the server stores the array with these values (`ModifierSettingsPacket`, player data `sophisticatedbuilding:buildModifiers`). Screenshot `modifier_widgets` |
@@ -182,7 +185,7 @@ Loader glue per build:
 
 ### Porting the H5 checks (GUI screens)
 
-`client.randomizer_bag_screens`, `client.player_settings_gui`, `client.modifier_entry_widgets` and
+`client.randomizer_bag_screens`, `client.player_settings_gui`, `client.balanced_settings_toggle`, `client.modifier_entry_widgets` and
 `sb.upgrade_settings_tab` live in `client/GuiScenarios` (plus the input helpers `pointAt`/`clickAt`/`scrollAt`/`pressKey`
 in `ClientDriver`, `SmokeBackpacks#isBuildingUpgradeEnabled`, and the client-only service `SmokeBackpackScreens` with
 its SB implementation `SophisticatedBackpacksScreens` + `META-INF/services` entry in `common/src/smoketestBackpacks`).
@@ -231,6 +234,11 @@ Since R2 (player settings editor, bag title fit) the two checks also use:
 - `client.randomizer_bag_screens`: `BagTitle.fit`/`availableWidth`/`isHovered` and `TitleFit#drawnWidth` (the screens'
   own layout), `AbstractContainerScreen#imageWidth` (reflection), `Screen#getTitle`, and the anvil name of an item:
   `ItemStack#set(DataComponents.CUSTOM_NAME, ...)` (1.20.5+; before: `ItemStack#setHoverName`).
+- `client.balanced_breaking`: the action bar message is read from the `Component` fields of `Gui` by reflection
+  (title, subtitle and overlay message; found by type because the field names are mappings), `ClientBalanceState`,
+  `BalancedBreaking#isEnabled`, the `ClientConfig` / `ServerConfig` balanced breaking values and the language key
+  `sophisticatedbuilding.message.balanced_cooldown`. `client.balanced_settings_toggle` uses `PlayerSettingsGui#settingEntries()`
+  (row key `balancedBreaking`), the fields `list`/`doneButton` and `CommonComponents#optionStatus` for the toggle label.
 
 ## Findings of the first runs (1.21.1)
 

@@ -10,6 +10,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -52,6 +53,7 @@ import sophisticated.building.item.AbstractRandomizerBagItem;
 import sophisticated.building.item.OmegaRandomizerBagItem;
 import sophisticated.building.platform.ClientServices;
 import sophisticated.building.platform.Services;
+import sophisticated.building.systems.BalancedBreaking;
 import sophisticated.building.smoketest.backpack.SmokeBackpackScreens;
 import sophisticated.building.smoketest.backpack.SmokeBackpacks;
 
@@ -451,6 +453,69 @@ final class GuiScenarios {
                 }
             });
         }
+    }
+
+    /**
+     * The Gameplay section of the player settings (5.1.0): the balanced breaking row sits below the visuals and
+     * performance rows, so the list is scrolled with the mouse wheel; a click on its toggle flips
+     * {@code ClientConfig.gameplay.balancedBreaking}, and the integrated server's {@code BalancedBreaking.isEnabled} follows
+     * (the client writes the host toggle every client tick). A second click flips it back, Done closes the screen.
+     */
+    String balancedSettingsToggle() {
+        ConfigValue<Boolean> balanced = ClientConfig.gameplay.balancedBreaking;
+        boolean before = d.client(balanced::get);
+        try {
+            d.waitUntilServer("BalancedBreaking.isEnabled to be " + before + " before the click (the server config switch must be off)", 40, server -> BalancedBreaking.isEnabled(server) == before);
+            radial.open();
+            radial.hoverButton(ModeOptions.ActionEnum.OPEN_PLAYER_SETTINGS);
+            radial.clickAndRelease();
+            PlayerSettingsGui screen = waitForSettingsScreen("the radial menu's player settings button");
+
+            PlayerSettingsGui.SettingEntry<?> row = settingRow(screen, "balancedBreaking");
+            AbstractWidget list = widget(screen, "list", AbstractWidget.class);
+            for (int i = 0; i < 20 && !d.client(() -> rowVisible(row, list)); i++) {
+                Point middle = d.client(() -> new Point(list.getX() + list.getWidth() / 2.0, list.getY() + list.getHeight() / 2.0));
+                d.scrollAt(middle.x(), middle.y(), -3);
+                d.waitTicks(2);
+            }
+            if (!d.client(() -> rowVisible(row, list))) {
+                throw new AssertionError("Scrolling the settings list with the mouse wheel did not bring the balanced breaking row into view");
+            }
+
+            Point toggle = d.client(() -> center(row.widget()));
+            d.clickAt(toggle.x(), toggle.y());
+            d.waitUntil("the click to flip balancedBreaking to " + !before, 20, () -> balanced.get() != before);
+            d.waitUntilServer("BalancedBreaking.isEnabled to become " + !before, 40, server -> BalancedBreaking.isEnabled(server) == !before);
+            String shown = d.client(() -> row.widget().getMessage().getString());
+            if (!CommonComponents.optionStatus(!before).getString().equals(shown)) throw new AssertionError("The toggle shows '" + shown + "' after the click, expected '" + CommonComponents.optionStatus(!before).getString() + "'");
+            d.waitTicks(2);
+            d.screenshot("settings_balanced_row");
+
+            d.clickAt(toggle.x(), toggle.y());
+            d.waitUntil("the second click to flip balancedBreaking back to " + before, 20, () -> balanced.get() == before);
+            d.waitUntilServer("BalancedBreaking.isEnabled to become " + before + " again", 40, server -> BalancedBreaking.isEnabled(server) == before);
+
+            Point done = d.client(() -> center(widget(d.mc.screen, "doneButton", AbstractWidget.class)));
+            d.clickAt(done.x(), done.y());
+            d.waitUntil("Done to close the player settings", 40, () -> d.mc.screen == null);
+            return "Player settings, Gameplay section: the balanced breaking row was scrolled into view with the mouse wheel, a click on its toggle flipped "
+                    + "ClientConfig Gameplay.balancedBreaking " + before + " -> " + !before + " (label '" + shown + "') and BalancedBreaking.isEnabled(server) followed; "
+                    + "a second click flipped it back, Done closed the screen";
+        } finally {
+            d.clientRun(() -> {
+                if (d.mc.screen != null) d.mc.setScreen(null);
+                if (balanced.get() != before) {
+                    balanced.set(before);
+                    ClientConfig.save();
+                }
+            });
+        }
+    }
+
+    /** Client thread: the row's control was laid out (rendered) inside the list's visible area. */
+    private static boolean rowVisible(PlayerSettingsGui.SettingEntry<?> row, AbstractWidget list) {
+        AbstractWidget control = row.widget();
+        return control.getY() >= list.getY() && control.getY() + control.getHeight() <= list.getY() + list.getHeight();
     }
 
     private PlayerSettingsGui waitForSettingsScreen(String how) {

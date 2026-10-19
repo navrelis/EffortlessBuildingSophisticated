@@ -1,7 +1,11 @@
 package sophisticated.building.smoketest.client;
 
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.screens.DeathScreen;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
@@ -23,14 +27,17 @@ import net.minecraft.world.level.levelgen.presets.WorldPresets;
 import net.minecraft.world.phys.Vec3;
 import sophisticated.building.ClientConfig;
 import sophisticated.building.ClientEvents;
+import sophisticated.building.ServerConfig;
 import sophisticated.building.SophisticatedBuildingClient;
 import sophisticated.building.attachment.AttachmentHandler;
+import sophisticated.building.attachment.PowerLevel;
 import sophisticated.building.buildmode.BuildModeEnum;
 import sophisticated.building.buildmode.ModeOptions;
 import sophisticated.building.buildmodifier.BaseModifier;
 import sophisticated.building.buildmodifier.Mirror;
 import sophisticated.building.client.ClientBackpackItemCache;
 import sophisticated.building.client.ClientBackpackToolCache;
+import sophisticated.building.client.ClientBalanceState;
 import sophisticated.building.client.ClientBuildingUpgradeState;
 import sophisticated.building.create.CreateClient;
 import sophisticated.building.create.catnip.outliner.Outliner;
@@ -43,12 +50,14 @@ import sophisticated.building.smoketest.SmokeReport;
 import sophisticated.building.smoketest.SmokeTest;
 import sophisticated.building.smoketest.backpack.SmokeAccessorySlots;
 import sophisticated.building.smoketest.backpack.SmokeBackpacks;
+import sophisticated.building.systems.BalancedBreaking;
 import sophisticated.building.systems.BuildSettings;
 import sophisticated.building.systems.BuilderChain;
 import sophisticated.building.utilities.BlockEntry;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -107,6 +116,9 @@ final class ClientScenarios {
         check("client.disable_quick_replace_preview", this::disableQuickReplacePreview);
         check("client.place_line_survival", this::placeLineSurvival);
         check("client.undo_redo", this::undoRedo);
+        check("client.respawn_power_level", this::respawnPowerLevel);
+        check("client.balanced_breaking", this::balancedBreaking);
+        check("client.balanced_settings_toggle", gui::balancedSettingsToggle);
         check("client.randomizer_bag_screens", gui::randomizerBagScreens);
         check("client.player_settings_gui", gui::playerSettingsGui);
         check("client.modifier_entry_widgets", gui::modifierEntryWidgets);
@@ -556,6 +568,220 @@ final class ClientScenarios {
         expectEquals("oak planks after redo", before, afterRedo);
         return "Undo removed the " + LINE_LENGTH + " blocks and gave the planks back (" + before + " -> " + afterUndo
                 + "), redo restored them and charged them again (-> " + afterRedo + ")";
+    }
+
+    //endregion
+
+    //region 5.1.0 scenarios (respawn power level, balanced survival breaking)
+
+    /**
+     * The 5.1.0 fix: the client builds a new player object on respawn, whose copy of the power level starts at 0; the
+     * server re-sends it ({@code CommonEvents#onPlayerRespawned}). A survival player with a power level is killed through
+     * the damage path, the death screen's respawn is triggered, and the NEW client player must show the level again
+     * without a relog (and the server must have kept it).
+     */
+    private String respawnPowerLevel() {
+        GameType modeBefore = d.server(server -> ClientDriver.serverPlayer(server).gameMode.getGameModeForPlayer());
+        int levelBefore = d.server(server -> AttachmentHandler.getPowerLevel(ClientDriver.serverPlayer(server)));
+        Vec3 positionBefore = d.server(server -> ClientDriver.serverPlayer(server).position());
+        boolean keepBefore = d.server(server -> server.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY));
+        int target = levelBefore == 2 ? 1 : 2;
+        try {
+            d.serverRun(server -> {
+                ServerPlayer player = ClientDriver.serverPlayer(server);
+                player.setGameMode(GameType.SURVIVAL);
+                // Nothing dropped, nothing lost: the later checks keep their inventory
+                server.getGameRules().getRule(GameRules.RULE_KEEPINVENTORY).set(true, server);
+                setServerPowerLevel(player, target);
+            });
+            d.waitUntil("the client to be in survival with power level " + target, 60,
+                    () -> d.mc.gameMode.getPlayerMode() == GameType.SURVIVAL && AttachmentHandler.getPowerLevel(d.mc.player) == target);
+            LocalPlayer oldPlayer = d.client(() -> d.mc.player);
+
+            // Through the normal damage path, as /kill does
+            d.serverRun(server -> {
+                ServerPlayer player = ClientDriver.serverPlayer(server);
+                player.hurt(player.damageSources().genericKill(), Float.MAX_VALUE);
+                if (player.isAlive()) throw new AssertionError("The server player survived a generic kill hit (health " + player.getHealth() + ")");
+            });
+            d.waitUntil("the death screen", 100, () -> d.mc.screen instanceof DeathScreen);
+            d.waitTicks(2);
+
+            // What the death screen's Respawn button does
+            d.clientRun(() -> d.mc.player.respawn());
+            d.waitUntil("a new, living client player after the respawn", 200,
+                    () -> d.mc.player != null && d.mc.player != oldPlayer && d.mc.player.isAlive() && d.mc.level != null);
+            d.clientRun(() -> {
+                if (d.mc.screen instanceof DeathScreen) d.mc.setScreen(null);
+            });
+            d.waitTicks(5);
+
+            int clientRightAfter = d.client(() -> AttachmentHandler.getPowerLevel(d.mc.player));
+            try {
+                d.waitUntil("the new client player to show power level " + target + " again (without a relog)", 60,
+                        () -> AttachmentHandler.getPowerLevel(d.mc.player) == target);
+            } catch (AssertionError timeout) {
+                throw new AssertionError(timeout.getMessage() + "; the new client player has power level "
+                        + d.client(() -> AttachmentHandler.getPowerLevel(d.mc.player)) + ", the server player "
+                        + d.server(server -> AttachmentHandler.getPowerLevel(ClientDriver.serverPlayer(server))));
+            }
+            int serverLevel = d.server(server -> AttachmentHandler.getPowerLevel(ClientDriver.serverPlayer(server)));
+            expectEquals("the server player's power level after the respawn", target, serverLevel);
+            boolean newObject = d.client(() -> d.mc.player != oldPlayer);
+            expectEquals("a new client player object after the respawn", true, newObject);
+            return "Survival player with power level " + target + " (was " + levelBefore + ") was killed (generic kill damage), the death screen was shown, "
+                    + "the respawn made a new client player (power level " + clientRightAfter + " 5 ticks after the respawn); it shows "
+                    + target + " without a relog, the server player kept " + serverLevel;
+        } finally {
+            restorePlayer(modeBefore, levelBefore, positionBefore);
+            d.serverRun(server -> server.getGameRules().getRule(GameRules.RULE_KEEPINVENTORY).set(keepBefore, server));
+        }
+    }
+
+    /** Server thread: the power level of the player (the attachment), sent to its client like the mod's commands do. */
+    private static void setServerPowerLevel(ServerPlayer player, int level) {
+        PowerLevel powerLevel = AttachmentHandler.getOrCreatePowerLevel(player);
+        powerLevel.setPowerLevel(level);
+        AttachmentHandler.setPowerLevel(player, powerLevel);
+        AttachmentHandler.syncToClient(player);
+    }
+
+    /** Back to the state before a check: respawned if dead, game mode, power level and position as they were. */
+    private void restorePlayer(GameType mode, int powerLevel, Vec3 position) {
+        try {
+            d.clientRun(() -> {
+                if (d.mc.player != null && (!d.mc.player.isAlive() || d.mc.screen instanceof DeathScreen)) {
+                    d.mc.player.respawn();
+                }
+            });
+            d.waitUntil("a living client player", 200, () -> d.mc.player != null && d.mc.player.isAlive() && !(d.mc.screen instanceof DeathScreen));
+            d.serverRun(server -> {
+                ServerPlayer player = ClientDriver.serverPlayer(server);
+                player.setGameMode(mode);
+                setServerPowerLevel(player, powerLevel);
+            });
+            d.waitUntil("the client to be back in " + mode + " with power level " + powerLevel, 60,
+                    () -> d.mc.gameMode.getPlayerMode() == mode && AttachmentHandler.getPowerLevel(d.mc.player) == powerLevel);
+            d.teleport(position);
+        } catch (Throwable error) {
+            SmokeTest.LOGGER.warn("Could not restore the player after a scenario", error);
+        }
+    }
+
+    /**
+     * Balanced survival breaking (5.1.0), through the host toggle of the client config: a mass break in survival costs
+     * the tool {@code durabilityMultiplier} uses per block, the server tells the client about the cooldown (HUD), and
+     * a second break during the cooldown is refused with a message and leaves the blocks alone.
+     */
+    private String balancedBreaking() {
+        GameType modeBefore = d.server(server -> ClientDriver.serverPlayer(server).gameMode.getGameModeForPlayer());
+        int levelBefore = d.server(server -> AttachmentHandler.getPowerLevel(ClientDriver.serverPlayer(server)));
+        Vec3 positionBefore = d.server(server -> ClientDriver.serverPlayer(server).position());
+        boolean settingBefore = d.client(() -> ClientConfig.gameplay.balancedBreaking.get());
+        int multiplier = ServerConfig.balancedBreaking.durabilityMultiplier.get();
+        BlockPos start = lane(0);
+        List<BlockPos> line = row(start, LINE_LENGTH);
+        try {
+            enterSurvival();
+            d.serverRun(server -> {
+                ServerPlayer player = ClientDriver.serverPlayer(server);
+                player.getFoodData().setFoodLevel(20);
+                player.getFoodData().setSaturation(5.0F);
+                clearCooldown(player);
+            });
+            giveHotbar(new ItemStack(Items.IRON_PICKAXE));
+            d.clientRun(() -> ClientConfig.gameplay.balancedBreaking.set(true));
+            d.waitUntilServer("BalancedBreaking.isEnabled to follow the client setting", 40, BalancedBreaking::isEnabled);
+            d.waitUntil("the client to learn that balanced breaking is active", 60, ClientBalanceState::isActive);
+
+            // First mass break: not refused, costs durability
+            placeDirectly(line, Blocks.STONE);
+            firstBreakClick(start);
+            Preview preview = aimSecond(groundTop(start.east(LINE_LENGTH - 1)), LINE_LENGTH);
+            preview.expectExactly(line, LINE_LENGTH, 0);
+            d.leftClick();
+            waitForBlocks(line, Blocks.AIR, "the survival line to be broken", 400);
+            d.waitTicks(5);
+            int damage = d.server(server -> ClientDriver.serverPlayer(server).getInventory().getItem(0).getDamageValue());
+            expectEquals("iron pickaxe damage after breaking " + LINE_LENGTH + " blocks (durabilityMultiplier " + multiplier + ")",
+                    LINE_LENGTH * multiplier, damage);
+
+            d.waitUntil("the client to learn the cooldown (BalanceStatePacket)", 40, () -> ClientBalanceState.remainingMillis() > 0);
+            boolean active = d.client(ClientBalanceState::isActive);
+            long remaining = d.client(ClientBalanceState::remainingMillis);
+            int uses = d.client(ClientBalanceState::getUsesInWindow);
+            expectEquals("ClientBalanceState.isActive during the cooldown", true, active);
+            d.screenshot("balanced_hud");
+
+            // Second mass break during the cooldown: refused
+            placeDirectly(line, Blocks.STONE);
+            long left = d.client(ClientBalanceState::remainingMillis);
+            if (left <= 0) throw new AssertionError("The cooldown (" + remaining + " ms when it started) ran out before the second break was tried");
+            firstBreakClick(start);
+            aimSecond(groundTop(start.east(LINE_LENGTH - 1)), LINE_LENGTH);
+            String expectedPrefix = d.client(() -> net.minecraft.client.resources.language.I18n.get("sophisticatedbuilding.message.balanced_cooldown", "@@").split("@@")[0]);
+            d.leftClick();
+            String message;
+            try {
+                d.waitUntil("the action bar to show the cooldown refusal '" + expectedPrefix + "...'", 60,
+                        () -> overlayTextsNow().stream().anyMatch(text -> text.contains(expectedPrefix)));
+                message = overlayTexts().stream().filter(text -> text.contains(expectedPrefix)).findFirst().orElse("?");
+            } catch (AssertionError timeout) {
+                throw new AssertionError(timeout.getMessage() + "; overlay texts " + overlayTexts() + "; blocks " + worldState(line));
+            }
+            d.screenshot("balanced_refused");
+            d.waitTicks(60);
+            if (!allAre(line, Blocks.STONE)) {
+                throw new AssertionError("The refused break still removed blocks: " + worldState(line));
+            }
+            int damageAfter = d.server(server -> ClientDriver.serverPlayer(server).getInventory().getItem(0).getDamageValue());
+            expectEquals("iron pickaxe damage after the refused break", damage, damageAfter);
+            return "Balanced breaking switched on through the client setting (server isEnabled followed): breaking " + LINE_LENGTH + " stone with an iron pickaxe cost "
+                    + damage + " durability (" + LINE_LENGTH + " x " + multiplier + "), the client got the cooldown (" + remaining + " ms left at once, " + uses
+                    + " use in the window), HUD screenshot balanced_hud; a second break during the cooldown left the " + LINE_LENGTH
+                    + " blocks and showed '" + message + "' on the action bar (screenshot balanced_refused)";
+        } finally {
+            d.clientRun(() -> {
+                KeyMapping.releaseAll();
+                SophisticatedBuildingClient.BUILDER_CHAIN.cancel();
+                ClientConfig.gameplay.balancedBreaking.set(settingBefore);
+            });
+            d.serverRun(server -> {
+                clearCooldown(ClientDriver.serverPlayer(server));
+                for (BlockPos pos : line) server.overworld().setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+            });
+            // The server learns the setting from the next client ticks and tells the client
+            d.waitTicks(5);
+            restorePlayer(modeBefore, levelBefore, positionBefore);
+        }
+    }
+
+    /** Server thread: the player's balanced breaking cooldown (per-player data) is gone, and the client is told. */
+    private static void clearCooldown(ServerPlayer player) {
+        Services.PLATFORM.getPersistentData(player).remove(BalancedBreaking.DATA_KEY);
+        BalancedBreaking.sendState(player);
+    }
+
+    /** The texts the in-game overlay holds (title, subtitle and the action bar message; found by type, field names are mappings). */
+    private List<String> overlayTexts() {
+        return d.client(this::overlayTextsNow);
+    }
+
+    /** overlayTexts on the client thread. */
+    private List<String> overlayTextsNow() {
+        List<String> texts = new ArrayList<>();
+        Gui gui = d.mc.gui;
+        for (Field field : Gui.class.getDeclaredFields()) {
+            if (Modifier.isStatic(field.getModifiers()) || field.getType() != Component.class) continue;
+            try {
+                field.setAccessible(true);
+                Component value = (Component) field.get(gui);
+                if (value != null) texts.add(value.getString());
+            } catch (IllegalAccessException e) {
+                throw new AssertionError("Cannot read Gui#" + field.getName(), e);
+            }
+        }
+        return texts;
     }
 
     //endregion
