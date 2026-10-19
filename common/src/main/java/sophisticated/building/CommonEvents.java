@@ -122,6 +122,11 @@ public final class CommonEvents {
     /** After the player respawned (the loader copies the power level first where needed). */
     public static void onPlayerRespawned(ServerPlayer player) {
         ServerBuildState.handleNewPlayer(player);
+
+        //The client builds a new player object on respawn, so its copy of the power level is back at 0
+        PowerLevel powerLevel = AttachmentHandler.getOrCreatePowerLevel(player);
+        Services.NETWORK.sendToPlayer(player, new PowerLevelPacket(powerLevel.getPowerLevel()));
+
         LAST_UPGRADE_STATE.remove(player.getUUID());
         LAST_BACKPACK_TOOLS.remove(player.getUUID());
         sendBuildingUpgradeState(player, true);
